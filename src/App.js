@@ -13,8 +13,8 @@ import UserGreeting from "./components/UserGreeting";
 import NameList from "./components/NameList";
 import Stylesheet from "./components/Stylesheet";
 import Inline from "./components/Inline";
-import './appStyles.css'
-import styles from './appStyles.module.css'
+import "./appStyles.css";
+import styles from "./appStyles.module.css";
 import Form from "./components/Form";
 import LifecycleA from "./components/LifecycleA";
 import FragmentDemo from "./components/FragmentDemo";
@@ -30,6 +30,10 @@ import Hero from "./components/Hero";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ClickCounter from "./components/ClickCounter";
 import HoverCounter from "./components/HoverCounter";
+import ClickCounterTwo from "./components/ClickCounterTwo";
+import HoverCounterTwo from "./components/HoverCounterTwo";
+import User from "./components/User";
+import CounterForRenderProps from "./components/CounterForRenderProps";
 
 class App extends Component {
   render() {
@@ -74,6 +78,20 @@ class App extends Component {
         </ErrorBoundary> */}
         {/* <ClickCounter name="Richard"/> */}
         {/* <HoverCounter name="Superman"/> */}
+        {/* <ClickCounterTwo />
+        <HoverCounterTwo />
+        <User render={(isLoggedIn) => isLoggedIn ? 'Richard': 'Guest'}/> */}
+        <CounterForRenderProps 
+          render={(count, incrementCount) => (
+            <ClickCounterTwo count={count} incrementCount={incrementCount} />
+          )} 
+        />
+        
+        <CounterForRenderProps 
+          render={(count, incrementCount) => (
+            <HoverCounterTwo count={count} incrementCount={incrementCount} />
+          )}
+        />
       </div>
     );
   }
