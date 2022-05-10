@@ -3,14 +3,16 @@ import NextAuth from 'next-auth'
 // Providers
 import GithubProvider from 'next-auth/providers/github'
 import GoogleProvider from "next-auth/providers/google"
+import { PrismaAdapter } from "@next-auth/prisma-adapter" 
+import { PrismaClient } from "@prisma/client"
 
-// Adapter
-// import {MongoDBAdapter} from '@next-auth/mongodb-adapter'
-// import clientPromise from '../../../lib/mongodb'
+const prisma = new PrismaClient() // Required to perform CRUD operations 
 
 export default NextAuth({
   secret: process.env.SECRET,
-  // adapter: MongoDBAdapter(clientPromise),
+
+  adapter: PrismaAdapter(prisma), // NextAuth adapter for Prisma
+
   session: {
     strategy: 'jwt',
   },
