@@ -1,5 +1,5 @@
-import { tracks } from '../../../data/tracks'
+// import { tracks } from '../../../data/tracks'
 
-export default function handler(req, res) {
-  res.status(200).json(tracks)
-}
+// export default function handler(req, res) {
+//   res.status(200).json(tracks)
+// }
