@@ -19,6 +19,9 @@ export default function Home() {
         <h1 className={styles.title}>
           {session ? `${session.user.name},  ` : ''} Welcome to the Classical Music Catalogue{' '}
         </h1>
+        <body>
+          Some extra stuff here
+        </body>
       </main>
 
       <footer className={styles.footer}>

@@ -38,6 +38,7 @@ export default NextAuth({
       return session
     },
   },
+  // Use the following prop to create 
   // pages: {
   //   signIn: '/auth/signin',
   //   signOut: '/auth/signout',
