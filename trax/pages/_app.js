@@ -11,7 +11,6 @@ import Navbar from "../components/Navbar";
 
 import { useEffect } from "react"
 
-
 function MyApp({ session, Component, pageProps }) {
   
   // To allow Bootstrap to use javascript forcing next to render client side only
