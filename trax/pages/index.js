@@ -1,31 +1,36 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import {useSession} from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import styles from '../styles/Home.module.css'
 
 export default function Home() {
-  const {data: session, status} = useSession()
-  console.log(`session ===>`, session)
-  console.log(`status ===>`, status)
+
+  
+  const { data: session, status } = useSession()
+
   return (
     <div className={styles.container}>
       <Head>
         <title>CMC</title>
-        <meta name="Classical Music Catalogue" content="Classical Backing Track Catalogue" />
-        <link rel="icon" href="/favicon.ico" />
+        <meta
+          name='Classical Music Catalogue'
+          content='Classical Backing Track Catalogue'
+        />
+        <link rel='icon' href='/favicon.ico' />
       </Head>
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          {session ? `${session.user.name},  ` : ''} Welcome to the Classical Music Catalogue{' '}
+          {session ? `${session.user.name},  ` : ''} Welcome to the Classical
+          Music Catalogue{' '}
         </h1>
-        <body>
-          Some extra stuff here
-        </body>
+        <div>
+          Below is a list of the currently available tracks
+        </div>
       </main>
 
       <footer className={styles.footer}>
-        <a
+        {/* <a
           href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
           target="_blank"
           rel="noopener noreferrer"
@@ -34,7 +39,7 @@ export default function Home() {
           <span className={styles.logo}>
             <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
           </span>
-        </a>
+        </a> */}
       </footer>
     </div>
   )
