@@ -1,13 +1,12 @@
-
 import React ,{useState} from 'react';
 import AWS from 'aws-sdk'
 
-const S3_BUCKET = process.env.REACT_APP_BUCKET_NAME
-const REGION = process.env.REACT_APP_REGION
+const S3_BUCKET = "backingtrackstorage"
+const REGION = "eu-west-2"
 
 AWS.config.update({
-    accessKeyId: process.env.REACT_APP_ACCESS_ID,
-    secretAccessKey: process.env.REACT_APP_ACCESS_KEY,
+    accessKeyId: "AKIAV66ZZX5G234R6BXM",
+    secretAccessKey: "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"
 })
 
 const myBucket = new AWS.S3({
@@ -23,7 +22,7 @@ const UploadImageToS3WithNativeSdk = () => {
     const handleFileInput = (e) => {
         setSelectedFile(e.target.files[0]);
     }
-
+ 
     const uploadFile = (file) => {
 
         const params = {
