@@ -1,7 +1,9 @@
-import UploadTracks from '../components/UploadTrack'
+import UploadTrack from '../components/UploadTrack'
 
 export async function getServerSideProps() {
-  const res = await fetch(`http://localhost:3000/api/tracks`)
+  const res = await fetch(`http://localhost:3000/api/tracks`, {
+    method: 'GET'
+  })
   const data = await res.json()
 
   if (!data) {
@@ -18,11 +20,9 @@ export async function getServerSideProps() {
 
 function upload({tracks}) {
   
-  console.log(tracks)
-
   return (
     <>
-      <UploadTracks />
+      <UploadTrack />
       <p>Below is a list of the tracks already uploaded</p>
       <ul>
         {tracks.map(track => (

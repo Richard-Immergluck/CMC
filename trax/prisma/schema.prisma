@@ -57,6 +57,7 @@ model Track {
   id         String @id @default(cuid())
   title      String
   composer   String
+
   uploadedBy User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
 }
