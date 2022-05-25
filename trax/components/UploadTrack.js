@@ -1,18 +1,5 @@
 import React, { useState } from 'react'
 import AWS from 'aws-sdk'
-import { Formik, Form, Field, ErrorMessage } from 'formik'
-import * as Yup from 'yup'
-import TextError from '../components/TextError'
-
-const initialValues = {
-  title: '',
-  composer: ''
-}
-
-const validationSchema = Yup.object({
-  title: Yup.string().required('Required!'),
-  composer: Yup.string().required('Required!')
-})
 
 const S3_BUCKET = 'backingtrackstorage'
 const REGION = 'eu-west-2'
@@ -55,50 +42,16 @@ const UploadTrack = () => {
       })
   }
 
-  const uploadFileDB = () => {}
-
   return (
-    <div>
-      <div>Upload Progress is {progress}%</div>
-      <input type='file' onChange={handleFileInput} />
-      <Formik
-        initialValues={initialValues}
-        validationSchema={validationSchema}
-      >
-        <Form>
-          <div className='form-control'>
-            <label htmlFor='title'>Title:</label>
-            <Field
-              type='text'
-              id='title'
-              name='title'
-              placeholder='Title'
-            />
-            <ErrorMessage name='title' component={TextError} />
-          </div>
-
-          <div className='form-control'>
-            <label htmlFor='composer'>Composer:</label>
-            <Field
-              type='text'
-              id='composer'
-              name='composer'
-              placeholder='Composer'
-            />
-            <ErrorMessage name='composer' component={TextError} />
-          </div>
-          <button
-            onClick={() => {
-              uploadFileS3(selectedFile)
-              uploadFileDB(selectedFile)
-            }}
-          >
-            {' '}
-            Upload to S3
-          </button>
-        </Form>
-      </Formik>
-    </div>
+    <>
+    <p></p>
+      <div>
+        <input type='file' onChange={handleFileInput} />
+        <button onClick={() => uploadFileS3(selectedFile)}>Upload to S3</button>
+        <div>Upload Progress is {progress}%</div>
+      </div>
+      <p></p>
+    </>
   )
 }
 
