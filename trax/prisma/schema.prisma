@@ -54,10 +54,10 @@ model VerificationToken {
 }
 
 model Track {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   title      String
   composer   String
-
-  uploadedBy User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  uploadedAt DateTime @default(now())
+  uploadedBy User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
 }

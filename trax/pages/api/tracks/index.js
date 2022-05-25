@@ -15,21 +15,35 @@ export default async function handler(req, res) {
 
       const { title, composer } = req.body
 
-      const session = await getSession({req})
+      const session = await getSession({ req })
 
       const upTrack = await prisma.track.create({
         data: {
           title: title,
           composer: composer,
-          uploadedBy: {connect: { email: session?.user?.email}},
+          uploadedBy: { connect: { email: session?.user?.email } }
         }
       })
-      
+
       res.status(200).json(upTrack)
 
-      const newTrackList = await prisma.track.findMany()
-      console.log(newTrackList)
+      // pull the id of the most recently created track
+      const newTrackId = await prisma.track.findMany({
+        where: {
+          title: title,
+          composer: composer
+        },
+        select: {
+          id: true
+        },
+        orderBy: {
+          uploadedAt: 'desc'
+        },
+        take: 1
+      })
 
+      console.log(newTrackId)
+      
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })
