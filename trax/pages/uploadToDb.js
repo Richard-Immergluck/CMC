@@ -2,18 +2,6 @@ import React from 'react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import TextError from '../components/TextError'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
-
-export const getServerSideProps = async () => {
-  const tracks = await prisma.track.findMany()
-  return {
-    props: {
-      initialTracks: tracks
-    }
-  }
-}
 
 const saveTrack = async (track) => {
   const response = await fetch('/api/tracks', {

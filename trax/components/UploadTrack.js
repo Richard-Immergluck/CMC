@@ -22,8 +22,6 @@ const UploadTrack = () => {
     setSelectedFile(e.target.files[0])
   }
 
-  console.log(selectedFile)
-
   const uploadFileS3 = file => {
     const params = {
       ACL: 'public-read',
@@ -40,11 +38,13 @@ const UploadTrack = () => {
       .send(err => {
         if (err) console.log(err)
       })
+
+    console.log(selectedFile)
   }
 
   return (
     <>
-    <p></p>
+      <p></p>
       <div>
         <input type='file' onChange={handleFileInput} />
         <button onClick={() => uploadFileS3(selectedFile)}>Upload to S3</button>
