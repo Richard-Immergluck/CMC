@@ -3,7 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import TextError from '../components/TextError'
 
-const saveTrack = async (track) => {
+const saveTrack = async track => {
   const response = await fetch('/api/tracks', {
     method: 'POST',
     body: JSON.stringify(track),
@@ -12,11 +12,7 @@ const saveTrack = async (track) => {
     }
   })
 
-  console.log("response", track)
-
-  // if (!response.ok) {
-  //   throw new Error(response.statusText)
-  // }
+  console.log('response', track)
 
   return await response.json()
 }
@@ -31,9 +27,8 @@ const validationSchema = Yup.object({
   composer: Yup.string().required('Required!')
 })
 
-
 const onSubmit = data => {
-saveTrack(data)
+  saveTrack(data);
 }
 
 function TrackUploadForm() {

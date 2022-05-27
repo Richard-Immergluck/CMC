@@ -1,5 +1,7 @@
+// Imports
 import React, { useState } from 'react'
 import AWS from 'aws-sdk'
+import { v4 as uuidv4 } from 'uuid' // For creating the unique ID for each track
 
 const S3_BUCKET = 'backingtrackstorage'
 const REGION = 'eu-west-2'
@@ -14,7 +16,7 @@ const myBucket = new AWS.S3({
   region: REGION
 })
 
-const UploadTrack = () => {
+const UploadTrack = (props) => {
   const [progress, setProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState(null)
 
@@ -23,11 +25,16 @@ const UploadTrack = () => {
   }
 
   const uploadFileS3 = file => {
+      
+    var fileName = file.name
+    var fileExtension = (fileName).split('.').pop()
+    var newFileName = `${uuidv4()}.${fileExtension}`
+
     const params = {
       ACL: 'public-read',
       Body: file,
       Bucket: S3_BUCKET,
-      Key: file.name
+      Key: newFileName // this is where the DB generated file name should go
     }
 
     myBucket
@@ -38,8 +45,6 @@ const UploadTrack = () => {
       .send(err => {
         if (err) console.log(err)
       })
-
-    console.log(selectedFile)
   }
 
   return (
