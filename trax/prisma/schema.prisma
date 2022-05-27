@@ -54,7 +54,7 @@ model VerificationToken {
 }
 
 model Track {
-  id         String   @id @default(cuid())
+  id         String   @id 
   title      String
   composer   String
   uploadedAt DateTime @default(now())

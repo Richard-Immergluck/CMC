@@ -3,15 +3,27 @@ import prisma from '/components/prisma'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const trackList = await prisma.track.findMany()
-    res.json(trackList)
+    const { title, composer } = req.body
+    const newTrackId = await prisma.track.findMany({
+      where: {
+        title: title,
+        composer: composer
+      },
+      select: {
+        id: true
+      },
+      orderBy: {
+        uploadedAt: 'desc'
+      },
+      take: 1
+    })
+    res.json(newTrackId)
   }
 
   if (req.method === 'POST') {
     try {
-
       // Destructure the req.body
-      const { title, composer } = req.body
+      const { id, title, composer } = req.body
 
       // Use getSession Hook to access current user
       const session = await getSession({ req })
@@ -19,9 +31,10 @@ export default async function handler(req, res) {
       // Create DB entry that will be uploaded
       const upTrack = await prisma.track.create({
         data: {
+          id: id,
           title: title,
           composer: composer,
-          uploadedBy: { connect: { email: session?.user?.email } } 
+          uploadedBy: { connect: { email: session?.user?.email } }
         }
       })
 
@@ -40,17 +53,15 @@ export default async function handler(req, res) {
         take: 1
       })
 
-      console.log(newTrackId)
+      console.log('the new track id ====>  ', newTrackId)
 
       res.status(200).json(upTrack, newTrackId)
       
+      return newTrackId
+
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })
     }
   }
-
-  // if (req.method !== 'POST' && !== 'GET') {
-  //   return res.status(405).json({ message: 'Method not allowed' })
-  // }
 }
