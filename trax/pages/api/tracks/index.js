@@ -25,6 +25,8 @@ export default async function handler(req, res) {
       // Destructure the req.body
       const { id, title, composer } = req.body
 
+      console.log('req body is', req.body)
+
       // Use getSession Hook to access current user
       const session = await getSession({ req })
 
