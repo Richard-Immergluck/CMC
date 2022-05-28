@@ -31,58 +31,73 @@ const validationSchema = Yup.object({
   composer: Yup.string().required('Required!')
 })
 
+const onSubmit = (values, selectedFile, newUUID ,newFileName) => {
+  console.log('onSubmit values', values, selectedFile, newUUID, newFileName)
+  uploadToDB(values, selectedFile, newFileName)
+}
+
+const uploadToDB = async (values, file, newFileName) => {
+
+  // console.log('uploadToDB props are ===> ', values, file, newFileName)
+
+  const valuesToSubmit = { ...values, id: newFileName}
+
+  console.log(valuesToSubmit)
+
+
+  const response = await fetch('/api/tracks', {
+    method: 'POST',
+    body: JSON.stringify(valuesToSubmit),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  console.log('response', response)
+  return await response.json()
+}
+
 const UploadToAll = () => {
   const [progress, setProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState(null)
   const [newFileName, setNewFileName] = useState('')
-
-  const onSubmit = (values) => {
-    console.log('here are the values from the form', values)
-  }
+  const [newUUID, setNewUUID] = useState('')
 
   const handleFileInput = e => {
     setSelectedFile(e.target.files[0])
+    setNewUUID(`${uuidv4()}`)
   }
 
-  const saveTrack = async track => {
-    console.log('saveTrack file is ', track)
-  
-    const response = await fetch('/api/tracks', {
-      method: 'POST',
-      body: JSON.stringify(track),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-  
-    console.log('response', track)
-    return await response.json()
-  }
+  const UploadFileS3 = (file) => {
+    
+    // So this side is uploading the previous UUID not the current one!
 
-
-  const UploadFileS3 = file => {
-    // console.log('file coming into the UploadFileS3 function is ====> ', file)
-
+    // Extract File Extension
     var fileExtension = file.name.split('.').pop()
-    setNewFileName(`${uuidv4()}.${fileExtension}`)
 
-    // console.log('file coming into the UploadFileS3 function is ====> ', newFileName)
+    // create new file name with UUID and extension
+    setNewFileName(`${newUUID}.${fileExtension}`)
 
-    // const params = {
-    //   ACL: 'public-read',
-    //   Body: file,
-    //   Bucket: S3_BUCKET,
-    //   Key: newFileName 
-    // }
+    console.log('newFileName = ', newFileName)
 
-    // myBucket
-    //   .putObject(params)
-    //   .on('httpUploadProgress', evt => {
-    //     setProgress(Math.round((evt.loaded / evt.total) * 100))
-    //   })
-    //   .send(err => {
-    //     if (err) console.log(err)
-    //   })
+    const params = {
+      ACL: 'public-read',
+      Body: file,
+      Bucket: S3_BUCKET,
+      Key: newFileName
+    }
+
+    myBucket
+      .putObject(params)
+      .on('httpUploadProgress', evt => {
+        setProgress(Math.round((evt.loaded / evt.total) * 100))
+      })
+      .send(err => {
+        if (err) console.log(err)
+      })
+    
+    console.log(newUUID)
+
   }
 
   return (
@@ -90,7 +105,9 @@ const UploadToAll = () => {
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={onSubmit}
+        onSubmit={values => {
+          onSubmit(values, selectedFile, newUUID, newFileName)
+        }}
         encType='multipart/form-data'
       >
         <Form>
@@ -124,7 +141,7 @@ const UploadToAll = () => {
             <ErrorMessage name='file' component={TextError} />
           </div>
 
-          <button type='submit' onClick={() => UploadFileS3(selectedFile)}>
+          <button onClick={() => UploadFileS3(selectedFile)} type='submit'>
             Upload Track
           </button>
           <div>Upload Progress is {progress}%</div>
