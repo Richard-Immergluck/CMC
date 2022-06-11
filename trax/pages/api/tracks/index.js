@@ -36,7 +36,7 @@ export default async function handler(req, res) {
           id: id,
           title: title,
           composer: composer,
-          uploadedBy: { connect: { email: session?.user?.email } }
+          uploadedBy: { connect: { email: session?.user?.email } } // Use session to get email and coneect user to track
         }
       })
 
