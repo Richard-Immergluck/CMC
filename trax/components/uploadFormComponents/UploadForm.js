@@ -82,8 +82,7 @@ function UploadForm() {
   // End Formik Setup
 
   const onSubmit = values => {
-    setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
-
+    
     var fileExtension = selectedFile.name.split('.').pop() // file extension minus dot
 
     setNewFileName(`${uuid}.${fileExtension}`)
@@ -121,6 +120,7 @@ function UploadForm() {
               label='File'
               name='file'
               onChange={e => {
+                setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
                 setSelectedFile(e.currentTarget.files[0])
               }}
               accept='audio/*' // Points browser to audio files
