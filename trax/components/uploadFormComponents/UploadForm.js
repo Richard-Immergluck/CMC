@@ -29,6 +29,7 @@ const uploadToDB = async (values, id) => {
   return await response.json()
 }
 
+// S3Upload function
 const uploadToS3 = (newFileName, selectedFile) => {
 
   // AWS config
