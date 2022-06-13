@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import styles from '../styles/Home.module.css'
+import AllTracksList from '../components/AllTracksList'
 
 export default function Home() {
 
@@ -25,8 +26,7 @@ export default function Home() {
           Music Catalogue{' '}
         </h1>
         <div>
-          Below is a list of the currently available tracks
-          
+          Short list of recently uploaded tracks goes here...       
         </div>
       </main>
 
