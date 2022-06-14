@@ -12,8 +12,6 @@ export const getStaticProps = async () => {
     }
   })
 
-  console.log(tracks)
-
   return {
     props: {
       tracks
@@ -22,7 +20,7 @@ export const getStaticProps = async () => {
 }
 
 const Catalogue = ({ tracks }) => {
-  // console.log('track listing is ===>', tracks)
+
   return (
     <div>
       <h1>Track Listing</h1>
