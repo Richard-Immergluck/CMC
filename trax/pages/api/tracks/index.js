@@ -4,16 +4,15 @@ import prisma from '/components/prisma'
 export default async function handler(req, res) {
   
   // Fetch All TRacks
-  if (req.method === 'GET') {
-    const trackList = await prisma.track.findMany()
-    res.status(200).json(trackList)
+  if (req.method !== 'POST') {
+    res.status(500).json({ message: 'Something went wrong' })
   }
 
   // Upload a single track to DB
   if (req.method === 'POST') {
     try {
       // Destructure the req.body
-      const { id, title, composer } = req.body
+      const { fileName, title, composer } = req.body
 
       // console.log('req body is', req.body)
 
@@ -23,18 +22,18 @@ export default async function handler(req, res) {
       // DB entry that will be uploaded
       const upTrack = await prisma.track.create({
         data: {
-          id: id,
+          fileName: fileName,
           title: title,
           composer: composer,
           uploadedBy: { connect: { email: session?.user?.email } } // Use session to get email and coneect user to track
         }
       })
 
-      console.log('the new track id ====>  ', newTrackId)
+      console.log('the new track filename is ====>  ', fileName)
 
-      res.status(200).json(upTrack, newTrackId)
+      res.status(200).json(upTrack, fileName)
 
-      return newTrackId
+      return fileName
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })

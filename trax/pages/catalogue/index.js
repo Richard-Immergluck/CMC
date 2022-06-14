@@ -1,37 +1,46 @@
 import React from 'react'
 import Link from 'next/link'
-import Track from '../../components/track'
+import prisma from '/components/prisma'
 
-function Catalogue({ tracks }) {
+export const getStaticProps = async () => {
+  const tracks = await prisma.track.findMany({
+    select: {
+      id: true,
+      fileName: true,
+      title: true,
+      composer: true
+    }
+  })
+
+  console.log(tracks)
+
+  return {
+    props: {
+      tracks
+    }
+  }
+}
+
+const Catalogue = ({ tracks }) => {
+  // console.log('track listing is ===>', tracks)
   return (
-    <>
-      <h1>Catalogue Landing Page</h1>
-      {tracks.map(track => {
-        return (
-          <div key={track.id}>
-            <Link href={`catalogue/${track.id}`} passHref>
-              <Track track={track} />
-            </Link>
+    <div>
+      <h1>Track Listing</h1>
+      <hr />
+      {tracks.map(track => (
+        <Link href={`/catalogue/${track.id}`} key={track.id}>
+          <a>
+            <h3>{track.title}</h3>
+            <p>By {track.composer}</p>
             <hr />
-          </div>
-        )
-      })}
+          </a>
+        </Link>
+      ))}
       <Link href={'/'}>
         <a>Back to Home Page</a>
       </Link>
-    </>
+    </div>
   )
 }
 
 export default Catalogue
-
-export async function getStaticProps() {
-  const response = await fetch('http://localhost:3000/api/tracks/list')
-  const data = await response.json()
-
-  return {
-    props: {
-      tracks: data
-    }
-  }
-}

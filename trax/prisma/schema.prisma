@@ -54,7 +54,8 @@ model VerificationToken {
 }
 
 model Track {
-  id         String   @id 
+  id         Int      @id @default(autoincrement())
+  fileName   String
   title      String
   composer   String
   uploadedAt DateTime @default(now())
