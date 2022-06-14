@@ -1,18 +1,8 @@
-function Track({ track }) {
-  return (
-    <>
-      <h2>
-        Post {track.title} - {track.composer}
-      </h2>
-    </>
-  )
-}
+import prisma from '/components/prisma'
 
-export default Track
-
-export async function getStaticPaths() {
-  const response = await fetch('http://localhost:3000/api/tracks/list')
-  const data = await response.json()
+// Create dynamic routes
+export const getStaticPaths = async () => {
+  const data = await prisma.track.findMany()
 
   const paths = data.map(track => {
     return {
@@ -21,26 +11,53 @@ export async function getStaticPaths() {
       }
     }
   })
+
   return {
     paths,
     fallback: 'blocking'
   }
 }
 
-export async function getStaticProps(context) {
+// Retrieve the individual track from DB
+export const getStaticProps = async context => {
   const { params } = context
-  const response = await fetch(
-    `http://localhost:3000/api/tracks/list/${params.trackId}`
-  )
 
-  const data = await response.json()
+  console.log(params)
 
-  console.log(`Generating page for /catalogue/${params.trackId}`)
-  
+  const track = await prisma.track.findUnique({
+    where: {
+      id: Number(params.trackId)
+    },
+    select: {
+      id: true,
+      fileName: true,
+      title: true,
+      composer: true
+    }
+  })
+
   return {
     props: {
-      track: data
-    },
-    revalidate: 30
+      track: track
+    }
   }
 }
+
+// Render the JSX
+const SingleTrack = ({ track }) => {
+  const downloadFile = () => {
+    
+  }
+
+  return (
+    <>
+      <h2>Track details for {track.title}</h2>
+      <p>File name is {track.fileName}</p>
+      <p>Title is {track.title}</p>
+      <p>Composer is {track.composer}</p>
+      <button onClick={downloadFile()}>Download</button>
+    </>
+  )
+}
+
+export default SingleTrack

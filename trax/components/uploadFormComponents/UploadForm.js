@@ -12,10 +12,10 @@ import FormikControl from './FormikControl'
 import { v4 as uuidv4 } from 'uuid' // For creating the unique ID for each track
 
 // DBUpload function
-const uploadToDB = async (values, id) => {
+const uploadToDB = async (values, fileName) => {
   const { title, composer } = values
 
-  const submissionData = { title, composer, id }
+  const submissionData = { title, composer, fileName }
 
   const response = await fetch('/api/tracks', {
     method: 'POST',

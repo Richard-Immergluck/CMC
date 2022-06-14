@@ -2,7 +2,6 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import styles from '../styles/Home.module.css'
-import AllTracksList from '../components/AllTracksList'
 
 export default function Home() {
 
