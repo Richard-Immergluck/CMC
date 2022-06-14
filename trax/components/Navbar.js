@@ -31,6 +31,11 @@ function Navbar() {
             <a>Forum</a>
           </Link>
         </li>
+        <li>
+          <Link href="/testUploadInterface">
+            <a>Upload</a>
+          </Link>
+        </li>
         {status !== "authenticated" && (
           <li>
             <Link href="/api/auth/signin">
