@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 // AWS package
 import AWS from 'aws-sdk'
@@ -12,10 +12,10 @@ import FormikControl from './FormikControl'
 import { v4 as uuidv4 } from 'uuid' // For creating the unique ID for each track
 
 // DBUpload function
-const uploadToDB = async (values, fileName) => {
+const uploadToDB = async (values, newFileName) => {
   const { title, composer } = values
 
-  const submissionData = { title, composer, fileName }
+  const submissionData = { title, composer, newFileName }
 
   const response = await fetch('/api/tracks', {
     method: 'POST',
@@ -29,9 +29,7 @@ const uploadToDB = async (values, fileName) => {
   return await response.json()
 }
 
-// S3Upload function
 const uploadToS3 = (newFileName, selectedFile) => {
-
   // AWS config
   const S3_BUCKET = 'backingtrackstorage'
   const REGION = 'eu-west-2'
@@ -59,7 +57,7 @@ const uploadToS3 = (newFileName, selectedFile) => {
     .putObject(params)
     // .on('httpUploadProgress', evt => {
     //   setProgress(Math.round((evt.loaded / evt.total) * 100))
-    // }) 
+    // })
     .send(err => {
       if (err) console.log(err)
     })
@@ -68,7 +66,6 @@ const uploadToS3 = (newFileName, selectedFile) => {
 function UploadForm() {
   const [selectedFile, setSelectedFile] = useState(null) //Holds file selected from form
   const [uuid, setUuid] = useState('')
-  const [newFileName, setNewFileName] = useState('')  
 
   // Formik Setup
   const initialValues = {
@@ -82,23 +79,24 @@ function UploadForm() {
   })
   // End Formik Setup
 
+  useEffect(() => {
+    setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
+  }, [])
+
   const onSubmit = values => {
-    
     var fileExtension = selectedFile.name.split('.').pop() // file extension minus dot
-
-    setNewFileName(`${uuid}.${fileExtension}`)
-
-    console.log(newFileName)
-
-    uploadToDB(values, newFileName)
-    uploadToS3(newFileName, selectedFile)
+    var uuidFileName = `${uuid}.${fileExtension}`
+    // console.log('--- selectedFile from onSubmit ---', selectedFile)
+    // console.log('--- new file name from onSubmit ---', uuidFileName)
+    uploadToDB(values, uuidFileName)
+    uploadToS3(uuidFileName, selectedFile)
   }
 
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={values => onSubmit(values, selectedFile, uuid, newFileName)}
+      onSubmit={values => onSubmit(values, selectedFile, uuid)}
     >
       {formik => {
         return (
@@ -121,8 +119,11 @@ function UploadForm() {
               label='File'
               name='file'
               onChange={e => {
+                let file = e.target.files[0]
                 setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
-                setSelectedFile(e.currentTarget.files[0])
+                setSelectedFile(file)
+                console.log('uuid generated -----', uuid)
+                console.log('selectedFile generated ===>', file)
               }}
               accept='audio/*' // Points browser to audio files
             />

@@ -12,8 +12,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       // Destructure the req.body
-      const { fileName, title, composer } = req.body
-
+      const { newFileName, title, composer } = req.body
       // console.log('req body is', req.body)
 
       // Use getSession Hook to access current user
@@ -22,18 +21,18 @@ export default async function handler(req, res) {
       // DB entry that will be uploaded
       const upTrack = await prisma.track.create({
         data: {
-          fileName: fileName,
+          fileName: newFileName,
           title: title,
           composer: composer,
           uploadedBy: { connect: { email: session?.user?.email } } // Use session to get email and coneect user to track
         }
       })
 
-      console.log('the new track filename is ====>  ', fileName)
+      console.log('the new track filename is ====>  ', newFileName)
 
-      res.status(200).json(upTrack, fileName)
+      res.status(200).json(upTrack, newFileName)
 
-      return fileName
+      return newFileName
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })
