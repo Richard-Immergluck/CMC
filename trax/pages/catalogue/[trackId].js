@@ -1,8 +1,7 @@
 import React from 'react'
 import prisma from '/components/prisma'
 import Link from 'next/link'
-import SecureS3Download from '../../components/SecureS3Upload'
-
+import GetSignedS3URL from '../../components/GetSignedS3URL'
 
 // Create dynamic routes
 export const getStaticPaths = async () => {
@@ -47,10 +46,13 @@ export const getStaticProps = async context => {
 
 // Render the JSX
 const SingleTrack = ({ track }) => {
-  
-  const downloadFile = () => {
-    SecureS3Download(track.filename)
-  }
+
+
+  const url = GetSignedS3URL({
+      bucket: 'backingtrackstorage',
+      key: `${track.fileName}`,
+      expires: 60
+    })
 
   return (
     <>
@@ -58,7 +60,8 @@ const SingleTrack = ({ track }) => {
       <p>File name is {track.fileName}</p>
       <p>Title is {track.title}</p>
       <p>Composer is {track.composer}</p>
-      <button onClick={downloadFile(track.filename)}>Download</button>
+      <a href={url} download> Click here to download! </a>
+      <hr />
       <div>
         <Link href={'/catalogue'}>
           <a>Back to the Catalogue</a>
