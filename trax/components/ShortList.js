@@ -18,7 +18,7 @@ export const getStaticProps = async () => {
   }
 }
 
-const Catalogue = ({ tracks }) => {
+const ShortList = ({ tracks }) => {
   return (
     <div>
       <h1>Track Listing</h1>
@@ -39,4 +39,4 @@ const Catalogue = ({ tracks }) => {
   )
 }
 
-export default Catalogue
+export default ShortList
