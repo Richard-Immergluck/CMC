@@ -1,6 +1,5 @@
 import React from 'react'
 import Link from 'next/link'
-import prisma from '/components/prisma'
 
 export const getStaticProps = async () => {
   const tracks = await prisma.track.findMany({
