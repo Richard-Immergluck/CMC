@@ -1,3 +1,4 @@
+import { DeleteBucketOwnershipControlsCommand } from '@aws-sdk/client-s3'
 import AWS from 'aws-sdk'
 
 AWS.config.update({
@@ -35,3 +36,9 @@ function generatePreSignedGetUrl( fileName , fileType) {
   });
 }
 
+const downloadAPI = async (req, res) => {
+  generatePreSignedGetUrl(req)
+  res.status(200).json('something')
+}
+
+export default downloadAPI
