@@ -46,13 +46,13 @@ export const getStaticProps = async context => {
 
 // Render the JSX
 const SingleTrack = ({ track }) => {
-
-
+  
+  // Generate the presigned url
   const url = GetSignedS3URL({
-      bucket: 'backingtrackstorage',
-      key: `${track.fileName}`,
-      expires: 60
-    })
+    bucket: 'backingtrackstorage',
+    key: `${track.fileName}`,
+    expires: 60
+  })
 
   return (
     <>
@@ -60,7 +60,10 @@ const SingleTrack = ({ track }) => {
       <p>File name is {track.fileName}</p>
       <p>Title is {track.title}</p>
       <p>Composer is {track.composer}</p>
-      <a href={url} download> Click here to download! </a>
+      <a href={url} download>
+        {' '}
+        Click here to download!{' '}
+      </a>
       <hr />
       <div>
         <Link href={'/catalogue'}>
