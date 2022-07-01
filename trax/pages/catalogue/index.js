@@ -1,5 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
+import PlaySample from '../../components/PlaySample'
+import prisma from '/components/prisma'
 
 export const getStaticProps = async () => {
   const tracks = await prisma.track.findMany({
@@ -19,19 +21,25 @@ export const getStaticProps = async () => {
 }
 
 const Catalogue = ({ tracks }) => {
+  const start=15
+  const stop=30
   return (
     <div>
       <h1>Track Listing</h1>
       <hr />
       {tracks.map(track => (
-        <Link href={`/catalogue/${track.id}`} key={track.id}>
-          <a>
-            <h3>{track.title}</h3>
-            <p>By {track.composer}</p>
-            <hr />
-          </a>
-        </Link>
+        <>
+          <Link href={`/catalogue/${track.id}`} key={track.id}>
+            <a>
+              <h3>{track.title}</h3>
+              <p>By {track.composer}</p>
+            </a>
+          </Link>
+          <PlaySample track={track} start={start} stop={stop} />
+          <hr />
+        </>
       ))}
+
       <Link href={'/'}>
         <a>Back to Home Page</a>
       </Link>

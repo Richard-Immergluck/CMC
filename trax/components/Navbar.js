@@ -19,11 +19,6 @@ function Navbar() {
             <a>Catalogue</a>
           </Link>
         </li>
-        <li>
-          <Link href="/testDownload">
-            <a>Download</a>
-          </Link>
-        </li>
         {/* {session && (
           <li>
             <Link href="/dashboard">
@@ -31,11 +26,11 @@ function Navbar() {
             </Link>
           </li>
         )} */}
-        {/* <li>
+        <li>
           <Link href="/blog">
             <a>Forum</a>
           </Link>
-        </li> */}
+        </li>
         <li>
           <Link href="/testUploadInterface">
             <a>Upload</a>
