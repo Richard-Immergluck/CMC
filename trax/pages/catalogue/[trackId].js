@@ -1,7 +1,8 @@
 import React from 'react'
 import prisma from '/components/prisma'
 import Link from 'next/link'
-import GetSignedS3URL from '../../components/GetSignedS3URL'
+import GETSignedS3URL from '../../components/GETSignedS3URL'
+import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
 // Create dynamic routes
 export const getStaticPaths = async () => {
@@ -46,9 +47,10 @@ export const getStaticProps = async context => {
 
 // Render the JSX
 const SingleTrack = ({ track }) => {
+  const WaveForm = dynamic(() => import("../../components/WaveForm"), { ssr: false }); // needed for 'Self is not defined' error
   
   // Generate the presigned url
-  const url = GetSignedS3URL({
+  const url = GETSignedS3URL({
     bucket: 'backingtrackstorage',
     key: `${track.fileName}`,
     expires: 60
@@ -64,6 +66,7 @@ const SingleTrack = ({ track }) => {
         {' '}
         Click here to download!{' '}
       </a>
+      <WaveForm url={url} />
       <hr />
       <div>
         <Link href={'/catalogue'}>
