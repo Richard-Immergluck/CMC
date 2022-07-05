@@ -1,5 +1,5 @@
 import React from 'react'
-import GetSignedS3URL from './GetSignedS3URL'
+import GetSignedS3URL from './GETSignedS3URL'
 
 const PlaySample = props => {
   const { track, start, stop } = props

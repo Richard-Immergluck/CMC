@@ -10,12 +10,12 @@ AWS.config = new AWS.Config({
 
 const s3 = new AWS.S3()
 
-const PUTSignedS3URL = async fileId => {
+const PUTSignedS3URL = async newFileName => {
   const signedUrlExpireSeconds = 60 * 15
 
   const url = await s3.getSignedUrlPromise('putObject', {
     Bucket: 'backingtrackstorage',
-    Key: `preview-${fileId}.mp3`,
+    Key: `preview-${newFileName}`,
     ContentType: 'audio/mp3',
     Expires: signedUrlExpireSeconds
   })

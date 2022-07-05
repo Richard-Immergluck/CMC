@@ -9,7 +9,7 @@ AWS.config = new AWS.Config({
 
 const s3 = new AWS.S3();
 
-const GetSignedS3URL = ({ bucket, key, expires }) => {
+const GETSignedS3URL = ({ bucket, key, expires }) => {
   const signedUrl = s3.getSignedUrl("getObject", { // s3.getSignedURL is synchronous
     Key: key,
     Bucket: bucket,
@@ -19,4 +19,4 @@ const GetSignedS3URL = ({ bucket, key, expires }) => {
   return signedUrl;
 };
 
-export default GetSignedS3URL
+export default GETSignedS3URL
