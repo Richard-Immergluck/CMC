@@ -30,8 +30,8 @@ const Catalogue = ({ tracks }) => {
       <h1>Track Listing</h1>
       <hr />
       {tracks.map(track => (
-        <>
-          <Link href={`/catalogue/${track.id}`} key={track.id}>
+        <div key={track.id}>
+          <Link href={`/catalogue/${track.id}`}>
             <a>
               <h3>{track.title}</h3>
               <p>By {track.composer}</p>
@@ -39,7 +39,7 @@ const Catalogue = ({ tracks }) => {
           </Link>
           <PlaySample track={track} start={start} stop={stop} />
           <hr />
-        </>
+        </div>
       ))}
 
       <Link href={'/'}>
