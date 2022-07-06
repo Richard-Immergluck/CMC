@@ -3,6 +3,7 @@ import prisma from '/components/prisma'
 import Link from 'next/link'
 import GETSignedS3URL from '../../components/GETSignedS3URL'
 import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
+import { useCart } from 'react-use-cart'
 
 // Create dynamic routes
 export const getStaticPaths = async () => {
@@ -47,14 +48,23 @@ export const getStaticProps = async context => {
 
 // Render the JSX
 const SingleTrack = ({ track }) => {
-  const WaveFormRegion = dynamic(() => import("../../components/WaveFormRegion"), { ssr: false }); // needed for 'Self is not defined' error
+
+  // needed for 'Self is not defined' error
+  const WaveFormRegion = dynamic(() => import("../../components/WaveFormRegion"), { ssr: false }); 
   
+  const { addItem } = useCart()
+
   // Generate the presigned url
   const url = GETSignedS3URL({
     bucket: 'backingtrackstorage',
     key: `${track.fileName}`,
     expires: 60
   })
+
+  // Add track to the cart function
+  const addToCart = () => {
+    addItem({...track, price: 3000})
+  }
 
   return (
     <>
@@ -67,7 +77,7 @@ const SingleTrack = ({ track }) => {
         Click here to download!{' '}
       </a>
       <div>
-      <button>Click here to add to basket</button>
+      <button onClick={addToCart}>Add to Cart</button>
       </div>
       <WaveFormRegion url={url} />
       <hr />

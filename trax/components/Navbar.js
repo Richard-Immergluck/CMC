@@ -1,48 +1,45 @@
-import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import Link from 'next/link'
+import { signIn, signOut, useSession } from 'next-auth/react'
 
 function Navbar() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession()
   return (
-    <nav className="header">
-      <h1 className="logo">
-        <a href="#">CMC (working title)</a>
+    <nav className='header'>
+      <h1 className='logo'>
+        <a href='#'>CMC (working title)</a>
       </h1>
-      <ul className={`main-nav ${!session && status === 'loading' ? 'loading': 'loaded'}`}>
+      <ul
+        className={`main-nav ${
+          !session && status === 'loading' ? 'loading' : 'loaded'
+        }`}
+      >
         <li>
-          <Link href="/">
+          <Link href='/'>
             <a>Home</a>
           </Link>
         </li>
         <li>
-          <Link href="/catalogue">
+          <Link href='/catalogue'>
             <a>Catalogue</a>
           </Link>
         </li>
         <li>
-          <Link href="/blog">
+          <Link href='/blog'>
             <a>Forum</a>
           </Link>
         </li>
         <li>
-          <Link href="/testUploadInterface">
+          <Link href='/testUploadInterface'>
             <a>Upload</a>
           </Link>
         </li>
-        {session && (
+        {status !== 'authenticated' && (
           <li>
-            <Link href="/Basket">
-              <a>Basket</a>
-            </Link>
-          </li>
-        )}
-        {status !== "authenticated" && (
-          <li>
-            <Link href="/api/auth/signin">
+            <Link href='/api/auth/signin'>
               <a
-                onClick={(e) => {
-                  e.preventDefault();
-                  signIn();
+                onClick={e => {
+                  e.preventDefault()
+                  signIn()
                 }}
               >
                 Sign In
@@ -52,11 +49,11 @@ function Navbar() {
         )}
         {session && (
           <li>
-            <Link href="/api/auth/signout">
+            <Link href='/api/auth/signout'>
               <a
-                onClick={(e) => {
-                  e.preventDefault();
-                  signOut();
+                onClick={e => {
+                  e.preventDefault()
+                  signOut()
                 }}
               >
                 Sign Out
@@ -64,9 +61,14 @@ function Navbar() {
             </Link>
           </li>
         )}
+        <li>
+          <Link href='/cart'>
+            <a>Cart</a>
+          </Link>
+        </li>
       </ul>
     </nav>
-  );
+  )
 }
 
-export default Navbar;
+export default Navbar
