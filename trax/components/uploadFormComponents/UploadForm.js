@@ -55,9 +55,6 @@ const uploadToS3 = (newFileName, selectedFile) => {
 
   myBucket
     .putObject(params)
-    // .on('httpUploadProgress', evt => {
-    //   setProgress(Math.round((evt.loaded / evt.total) * 100))
-    // })
     .send(err => {
       if (err) console.log(err)
     })
@@ -80,14 +77,12 @@ function UploadForm() {
   // End Formik Setup
 
   useEffect(() => {
-    setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
+    setUuid(`${uuidv4()}`) // Generate a unique ID for each track 
   }, [])
 
   const onSubmit = values => {
     var fileExtension = selectedFile.name.split('.').pop() // file extension minus dot
     var uuidFileName = `${uuid}.${fileExtension}`
-    // console.log('--- selectedFile from onSubmit ---', selectedFile)
-    // console.log('--- new file name from onSubmit ---', uuidFileName)
     uploadToDB(values, uuidFileName)
     uploadToS3(uuidFileName, selectedFile)
   }
@@ -122,8 +117,6 @@ function UploadForm() {
                 let file = e.target.files[0]
                 setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
                 setSelectedFile(file)
-                console.log('uuid generated -----', uuid)
-                console.log('selectedFile generated ===>', file)
               }}
               accept='audio/*' // Points browser to audio files
             />
