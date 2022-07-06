@@ -19,13 +19,6 @@ function Navbar() {
             <a>Catalogue</a>
           </Link>
         </li>
-        {/* {session && (
-          <li>
-            <Link href="/dashboard">
-              <a>Profile</a>
-            </Link>
-          </li>
-        )} */}
         <li>
           <Link href="/blog">
             <a>Forum</a>
@@ -36,6 +29,13 @@ function Navbar() {
             <a>Upload</a>
           </Link>
         </li>
+        {session && (
+          <li>
+            <Link href="/Basket">
+              <a>Basket</a>
+            </Link>
+          </li>
+        )}
         {status !== "authenticated" && (
           <li>
             <Link href="/api/auth/signin">
