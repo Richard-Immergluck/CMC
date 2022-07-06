@@ -1,7 +1,9 @@
 import React from 'react'
 import GetSignedS3URL from './GETSignedS3URL'
+import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
 const PlaySample = props => {
+  const WaveFormRegionHidden = dynamic(() => import("../components/WaveFormRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
   const { track, start, stop } = props
 
   //Create presigned URL
@@ -17,11 +19,7 @@ const PlaySample = props => {
   // Render the JSX
   return (
     <div key={track.id}>
-      <audio controls preload='metadata'>
-        <source src={revisedURL} type='audio/mp3' />
-        <source src={revisedURL} type='audio/wav' />
-        <p>Your browser does not support this file type.</p>
-      </audio>
+      <WaveFormRegionHidden url={revisedURL} />
     </div>
   )
 }

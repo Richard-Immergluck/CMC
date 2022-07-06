@@ -1,6 +1,5 @@
 import React from 'react'
 import Link from 'next/link'
-import Script from 'next/script'
 import PlaySample from '../../components/PlaySample'
 import prisma from '/components/prisma'
 
@@ -38,7 +37,6 @@ const Catalogue = ({ tracks }) => {
               <p>By {track.composer}</p>
             </a>
           </Link>
-          <div id='waveform'></div>
           <PlaySample track={track} start={start} stop={stop} />
           <hr />
         </>

@@ -47,7 +47,7 @@ export const getStaticProps = async context => {
 
 // Render the JSX
 const SingleTrack = ({ track }) => {
-  const WaveForm = dynamic(() => import("../../components/WaveForm"), { ssr: false }); // needed for 'Self is not defined' error
+  const WaveFormRegion = dynamic(() => import("../../components/WaveFormRegion"), { ssr: false }); // needed for 'Self is not defined' error
   
   // Generate the presigned url
   const url = GETSignedS3URL({
@@ -66,7 +66,10 @@ const SingleTrack = ({ track }) => {
         {' '}
         Click here to download!{' '}
       </a>
-      <WaveForm url={url} />
+      <div>
+      <button>Click here to add to basket</button>
+      </div>
+      <WaveFormRegion url={url} />
       <hr />
       <div>
         <Link href={'/catalogue'}>
