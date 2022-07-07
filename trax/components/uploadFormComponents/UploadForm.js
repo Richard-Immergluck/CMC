@@ -13,10 +13,28 @@ import { v4 as uuidv4 } from 'uuid' // For creating the unique ID for each track
 
 // DBUpload function
 const uploadToDB = async (values, newFileName) => {
-  const { title, composer } = values
 
-  const submissionData = { title, composer, newFileName }
+  // Destructure values
+  const { title, composer, previewStartString, priceString } = values
 
+  // Create the additional submission variables 
+  var previewStart = Number(previewStartString)
+  var previewEnd = (previewStart + 15)
+  var price = parseInt(priceString)
+  var formattedPrice = `£${(price.toFixed(2))}`
+  
+  // Create the submission object
+  const submissionData = {
+    title,
+    composer,
+    newFileName,
+    previewStart,
+    previewEnd,
+    price,
+    formattedPrice
+  }
+
+  // Send the submission object to the api endpoint
   const response = await fetch('/api/tracks', {
     method: 'POST',
     body: JSON.stringify(submissionData),
@@ -24,8 +42,7 @@ const uploadToDB = async (values, newFileName) => {
       'Content-Type': 'application/json'
     }
   })
-
-  console.log('response', response)
+  // console.log('response', response)
   return await response.json()
 }
 
@@ -45,7 +62,7 @@ const uploadToS3 = (newFileName, selectedFile) => {
   })
   // AWS config end
 
-  // File Upload structure
+  // File Upload object structure
   const params = {
     ACL: 'public-read',
     Body: selectedFile,
@@ -53,11 +70,10 @@ const uploadToS3 = (newFileName, selectedFile) => {
     Key: newFileName
   }
 
-  myBucket
-    .putObject(params)
-    .send(err => {
-      if (err) console.log(err)
-    })
+  // Upload the file to S3
+  myBucket.putObject(params).send(err => {
+    if (err) console.log(err)
+  })
 }
 
 function UploadForm() {
@@ -67,17 +83,21 @@ function UploadForm() {
   // Formik Setup
   const initialValues = {
     title: '',
-    composer: ''
+    composer: '',
+    previewStartString: '',
+    priceString: ''
   }
 
   const validationSchema = Yup.object({
     title: Yup.string().required('Required'),
-    composer: Yup.string().required('Required')
+    composer: Yup.string().required('Required'),
+    previewStartString: Yup.string().required('Required'),
+    priceString: Yup.string().required('Required')
   })
   // End Formik Setup
 
   useEffect(() => {
-    setUuid(`${uuidv4()}`) // Generate a unique ID for each track 
+    setUuid(`${uuidv4()}`) // Generate a unique ID for each track
   }, [])
 
   const onSubmit = values => {
@@ -96,6 +116,19 @@ function UploadForm() {
       {formik => {
         return (
           <Form>
+            <hr />
+            <FormikControl
+              control='fileInput'
+              type='file'
+              label='File'
+              name='file'
+              onChange={e => {
+                let file = e.target.files[0]
+                setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
+                setSelectedFile(file)
+              }}
+              accept='audio/*' // Points browser to audio files
+            />
             <FormikControl
               control='input'
               type='title'
@@ -109,16 +142,16 @@ function UploadForm() {
               name='composer'
             />
             <FormikControl
-              control='fileInput'
-              type='file'
-              label='File'
-              name='file'
-              onChange={e => {
-                let file = e.target.files[0]
-                setUuid(`${uuidv4()}`) // Generate new UUID for file uploads
-                setSelectedFile(file)
-              }}
-              accept='audio/*' // Points browser to audio files
+              control='input'
+              type='integer'
+              label='Preview Start Time'
+              name='previewStartString'
+            />
+            <FormikControl
+              control='input'
+              type='price'
+              label='Price £'
+              name='priceString'
             />
             <button type='submit' disabled={!formik.isValid}>
               Submit

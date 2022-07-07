@@ -9,7 +9,11 @@ export const getStaticProps = async () => {
       id: true,
       fileName: true,
       title: true,
-      composer: true
+      composer: true,
+      previewStart: true,
+      previewEnd: true,
+      price: true,
+      formattedPrice: true
     }
   })
 
@@ -22,9 +26,6 @@ export const getStaticProps = async () => {
 
 const Catalogue = ({ tracks }) => {
 
-  const start = 15
-  const stop = 30
-
   return (
     <div>
       <h1>Track Listing</h1>
@@ -35,9 +36,10 @@ const Catalogue = ({ tracks }) => {
             <a>
               <h3>{track.title}</h3>
               <p>By {track.composer}</p>
+              <p>{track.formattedPrice}</p>
             </a>
           </Link>
-          <PlaySample track={track} start={start} stop={stop} />
+          <PlaySample track={track} start={track.previewStart} stop={track.previewEnd} />
           <hr />
         </div>
       ))}
