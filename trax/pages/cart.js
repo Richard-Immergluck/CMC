@@ -8,7 +8,7 @@ export const getStaticProps = async () => {
   const tracks = await prisma.track.findMany({
     select: {
       id: true,
-      price: true,
+      price: true
     }
   })
 
@@ -25,24 +25,42 @@ function Cart({ tracks }) {
 
   var formatter = new Intl.NumberFormat('en-UK', {
     style: 'currency',
-    currency: 'GBP',
-  });
+    currency: 'GBP'
+  })
 
-  var total=formatter.format(cartTotal)
+  var total = formatter.format(cartTotal)
 
   const checkout = () => {
-    alert("You've just bought some tracks!")
-
+    
     // Check cart values against DB
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
-      console.log(items[arrayObject].id)
-      console.log(tracks[arrayObject].price)
+      // First, find the track in the DB
+      for (var trackObject = 0; trackObject < tracks.length; trackObject++) {
+        if (tracks[trackObject].id === items[arrayObject].id) {
+          // console.log('track id is ===>', tracks[trackObject].id, 'and track price is ==>', tracks[trackObject].price)
+
+          // Then compare the prices
+          if (tracks[trackObject].price !== items[arrayObject].price) {
+            alert(
+              'Sorry, the prices have changed. The cart will now be emptied and items will need to be added again - apologies for the inconvenience.'
+            )
+            emptyCart()
+            return
+          } else {
+            console.log('price check passed')
+          }
+        }
+      }
     }
 
-    console.log(tracks)
+    alert("You've just bought some tracks!")
+
+    // Stripe checkout
+
     // Create DB Submission Object
     const submissionData = {}
-    // Create some fake data to send to the API
+
+
   }
 
   return (
