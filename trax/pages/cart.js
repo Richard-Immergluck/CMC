@@ -23,6 +23,7 @@ function Cart({ tracks }) {
   // useCart hook
   const { emptyCart, removeItem, cartTotal, items } = useCart()
 
+  // Format function for the cart total
   var formatter = new Intl.NumberFormat('en-UK', {
     style: 'currency',
     currency: 'GBP'
@@ -30,8 +31,8 @@ function Cart({ tracks }) {
 
   var total = formatter.format(cartTotal)
 
-  const checkout = () => {
-    
+  // --- START of Checkout ---
+  const checkout = async () => {
     // Check cart values against DB
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
       // First, find the track in the DB
@@ -53,15 +54,36 @@ function Cart({ tracks }) {
       }
     }
 
-    alert("You've just bought some tracks!")
-
     // Stripe checkout
 
-    // Create DB Submission Object
-    const submissionData = {}
+    // Create DB Submission assigning the cart items to the user
 
+    // // Iterate over cart items for DB submission
+    // for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
+    //   // Create the submission object
+    //   var trackID = items[arrayObject].id
+      
+      const submissionData = 
+        // trackID,
+        items
+    
 
-  }
+      // Send the submission object to the api endpoint
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        body: JSON.stringify(submissionData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      alert("You've just bought some tracks!")
+
+      return await response.json()
+      
+    // }
+    
+  } // --- END of Checkout ---
 
   return (
     <div className='ms-2'>

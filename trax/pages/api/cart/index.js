@@ -1,42 +1,50 @@
 import { getSession } from 'next-auth/react'
-
 import prisma from '/components/prisma'
 
+// Update DB when tracks are bought
 export default async function handler(req, res) {
-  
-  // Fetch All TRacks
+  // Error if not POST
   if (req.method !== 'POST') {
     res.status(500).json({ message: 'Something went wrong' })
   }
 
-  // Upload a single track to DB
   if (req.method === 'POST') {
     try {
-
       // Destructure the req.body
-      const {} = req.body
-      // console.log('req body is', req.body)
+      const { ...cartItems } = req.body
 
       // Use getSession Hook to access current user
       const session = await getSession({ req })
 
-      // DB entry that will be uploaded
-      const upTrack = await prisma.track.create({
-        data: {
-          fileName: newFileName,
-          title: title,
-          composer: composer,
-          uploadedBy: { connect: { email: session?.user?.email } }, // Use session to get email and connect user to track
-          previewStart: previewStart,
-          previewEnd: previewEnd,
-          price: price,
-          formattedPrice: formattedPrice
-        }
-      })
+      // Loop through the cartItems and update the DB
+      for (var itemIndex in cartItems) {
 
-      res.status(200).json(upTrack, newFileName)
+        console.log(cartItems[itemIndex].id)
 
-      return newFileName
+        const purchasedTrack = await prisma.user.update({
+          data: {
+            TrackOwners: {
+              create: {
+                purchasedBy: session.user.id, 
+                purchasedAt: new Date(),
+                track: { connect: { id: cartItems[itemIndex].id } }
+              }
+            }
+          },
+          where: {
+            id: session.user.id,
+            email: session.user.email
+          }
+        })
+      }
+
+      res.status(200).json(
+        // purchasedTracks
+        "You've just bought some tracks!"
+      )
+
+      return 'success!'
+      // }
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })
