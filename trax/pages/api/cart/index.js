@@ -3,11 +3,29 @@ import prisma from '/components/prisma'
 
 // Update DB when tracks are bought
 export default async function handler(req, res) {
-  // Error if not POST
-  if (req.method !== 'POST') {
-    res.status(500).json({ message: 'Something went wrong' })
+  // Destructure the req.body
+  const { ...cartItems } = req.body
+
+  // Check if user has already purchased the track
+  if (req.method === 'GET') {
+    try {
+      // Use getSession Hook to access current user
+      const session = await getSession({ req })
+
+      // If user is logged in, get all tracks that have been purchased by the user
+      if (session?.user) {
+        const userTracks = await prisma.TrackOwner.findMany({
+          where: { userId: session.user.id }
+        })
+        res.status(200).json(userTracks)
+      } 
+    } catch (err) {
+      console.log('from API error', err)
+      res.status(400).json({ message: 'Something went wrong' })
+    }
   }
 
+  // Record the track purchase in the DB
   if (req.method === 'POST') {
     try {
       // Destructure the req.body
@@ -18,14 +36,12 @@ export default async function handler(req, res) {
 
       // Loop through the cartItems and update the DB
       for (var itemIndex in cartItems) {
-
-        console.log(cartItems[itemIndex].id)
-
+        // DB update for each item in the cart
         const purchasedTrack = await prisma.user.update({
           data: {
             TrackOwners: {
               create: {
-                purchasedBy: session.user.id, 
+                purchasedBy: session.user.id,
                 purchasedAt: new Date(),
                 track: { connect: { id: cartItems[itemIndex].id } }
               }
@@ -38,13 +54,8 @@ export default async function handler(req, res) {
         })
       }
 
-      res.status(200).json(
-        // purchasedTracks
-        "You've just bought some tracks!"
-      )
-
+      res.status(200).json(purchasedTracks, "You've just bought some tracks!")
       return 'success!'
-      // }
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })

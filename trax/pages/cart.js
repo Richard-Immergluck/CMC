@@ -23,7 +23,7 @@ function Cart({ tracks }) {
   // useCart hook
   const { emptyCart, removeItem, cartTotal, items } = useCart()
 
-  // Format function for the cart total
+  // Format function for cart total
   var formatter = new Intl.NumberFormat('en-UK', {
     style: 'currency',
     currency: 'GBP'
@@ -31,19 +31,20 @@ function Cart({ tracks }) {
 
   var total = formatter.format(cartTotal)
 
-  // --- START of Checkout ---
+  // ------ START OF CHECKOUT ------
   const checkout = async () => {
-    // Check cart values against DB
+    
+    // --- Check cart values against DB for manipulation ---
+    // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
-      // First, find the track in the DB
+      // For each cart item, loop through DB tracks
       for (var trackObject = 0; trackObject < tracks.length; trackObject++) {
+        // Match the cart item ID to the DB track ID
         if (tracks[trackObject].id === items[arrayObject].id) {
-          // console.log('track id is ===>', tracks[trackObject].id, 'and track price is ==>', tracks[trackObject].price)
-
-          // Then compare the prices
+          // Compare the prices
           if (tracks[trackObject].price !== items[arrayObject].price) {
             alert(
-              'Sorry, the prices have changed. The cart will now be emptied and items will need to be added again - apologies for the inconvenience.'
+              `Sorry, but the item price for ${items[arrayObject].title} have changed. The cart will now be emptied and items will need to be added again - apologies for the inconvenience.`
             )
             emptyCart()
             return
@@ -53,36 +54,69 @@ function Cart({ tracks }) {
         }
       }
     }
+    // --- END manipulation check ---
+
+    // --- Check whether user has already purchased the track ---
+    // GET request for tracks owned by user
+    const getUserTracks = await fetch('/api/cart', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const userTracksObject = await getUserTracks.json()
+
+    // Check GET request against cart items
+    const matchedItemArray = []
+    // Loop through cart items
+    for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
+      // Loop through purchased items
+      for (var trackObject = 0; trackObject < userTracksObject.length; trackObject++) {
+        // Match the cart item with the purchased item
+        if (userTracksObject[trackObject].trackId === items[arrayObject].id) {
+          // Add the matched item to the matchedItemArray
+          matchedItemArray.push(items[arrayObject])
+        }
+      }
+    }
+
+    // Create message if user has already purchased the track
+    // First check if the matchedItemArray is empty
+    if (matchedItemArray.length !== 0) {
+      // If there is one matched item
+      if (matchedItemArray.length === 1) {
+        alert(
+          `Sorry, but "${matchedItemArray[0].title} by ${matchedItemArray[0].composer}" has already been purchased. Please revise your shopping cart.`
+        )
+      }
+      // If there are multiple matched items
+      if (matchedItemArray.length > 1) {
+        var itemList = ``
+        for (var arrayObject = 0; arrayObject < matchedItemArray.length; arrayObject++) {
+          itemList += `"${matchedItemArray[arrayObject].title} by ${matchedItemArray[arrayObject].composer}", `
+        }
+        alert(
+          `Sorry, but the following items have already been purchased: ${itemList} Please revise your shopping cart.`
+        )
+      }
+    }
+    // ------ END already purchased check ------
 
     // Stripe checkout
 
-    // Create DB Submission assigning the cart items to the user
+    // Send the submission object to the api endpoint
+    // to update DB with purchase info
+    // const submissionData = items
+    // const response = await fetch('/api/cart', {
+    //   method: 'POST',
+    //   body: JSON.stringify(submissionData),
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   }
+    // })
 
-    // // Iterate over cart items for DB submission
-    // for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
-    //   // Create the submission object
-    //   var trackID = items[arrayObject].id
-      
-      const submissionData = 
-        // trackID,
-        items
-    
-
-      // Send the submission object to the api endpoint
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        body: JSON.stringify(submissionData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      alert("You've just bought some tracks!")
-
-      return await response.json()
-      
+    // return await response.json()
     // }
-    
   } // --- END of Checkout ---
 
   return (
