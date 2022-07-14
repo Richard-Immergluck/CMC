@@ -2,7 +2,7 @@
 import { SessionProvider } from 'next-auth/react'
 
 // Style Imports
-import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/globals.css'
 import '../components/Navbar.css'
 
@@ -16,6 +16,7 @@ import { useEffect } from 'react'
 
 
 function MyApp({ session, Component, pageProps }) {
+  
   // To allow Bootstrap to use javascript forcing next to render client side only
   useEffect(() => {
     import('bootstrap/dist/js/bootstrap')

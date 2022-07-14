@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useCart } from 'react-use-cart'
 import Link from 'next/link'
 import prisma from '/components/prisma'
+// import { loadStripe } from '@stripe/stripe-js'
 
 // Retrieve all the tracks from the DB
 export const getStaticProps = async () => {
@@ -33,8 +34,7 @@ function Cart({ tracks }) {
 
   // ------ START OF CHECKOUT ------
   const checkout = async () => {
-    
-    // --- Check cart values against DB for manipulation ---
+    // --- START Manipulation Check ---
     // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
       // For each cart item, loop through DB tracks
@@ -56,7 +56,7 @@ function Cart({ tracks }) {
     }
     // --- END manipulation check ---
 
-    // --- Check whether user has already purchased the track ---
+    // --- START Already purchased track check ---
     // GET request for tracks owned by user
     const getUserTracks = await fetch('/api/cart', {
       method: 'GET',
@@ -71,7 +71,11 @@ function Cart({ tracks }) {
     // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
       // Loop through purchased items
-      for (var trackObject = 0; trackObject < userTracksObject.length; trackObject++) {
+      for (
+        var trackObject = 0;
+        trackObject < userTracksObject.length;
+        trackObject++
+      ) {
         // Match the cart item with the purchased item
         if (userTracksObject[trackObject].trackId === items[arrayObject].id) {
           // Add the matched item to the matchedItemArray
@@ -92,7 +96,11 @@ function Cart({ tracks }) {
       // If there are multiple matched items
       if (matchedItemArray.length > 1) {
         var itemList = ``
-        for (var arrayObject = 0; arrayObject < matchedItemArray.length; arrayObject++) {
+        for (
+          var arrayObject = 0;
+          arrayObject < matchedItemArray.length;
+          arrayObject++
+        ) {
           itemList += `"${matchedItemArray[arrayObject].title} by ${matchedItemArray[arrayObject].composer}", `
         }
         alert(
@@ -102,8 +110,28 @@ function Cart({ tracks }) {
     }
     // ------ END already purchased check ------
 
-    // Stripe checkout
+    // --- START Stripe Checkout ---
 
+    const lineitemsBody = JSON.stringify({
+
+    })
+
+    console.log(lineitemsBody)
+
+    // const stripeSubmissionData = items
+
+    // const stripeResponse = await fetch('/api/stripe', {
+    //   method: 'POST',
+    //   body: JSON.stringify(stripeSubmissionData),
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   }
+    // })
+
+    // return await stripeResponse.json()
+    // --- END Stripe Checkout ---
+
+    // --- Update DB with purchsed tracks ---
     // Send the submission object to the api endpoint
     // to update DB with purchase info
     // const submissionData = items
@@ -117,7 +145,9 @@ function Cart({ tracks }) {
 
     // return await response.json()
     // }
-  } // --- END of Checkout ---
+    // --- END update DB with purchased tracks ---
+  }
+  // --- END of Checkout ---
 
   return (
     <div className='ms-2'>

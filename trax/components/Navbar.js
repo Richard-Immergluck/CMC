@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 
+
 function Navbar() {
   const { data: session, status } = useSession()
   return (
     <nav className='header'>
       <h1 className='logo'>
-        <a href='#'>CMC (working title)</a>
+        <a>CMC (working title)</a>
       </h1>
       <ul
         className={`main-nav ${
@@ -23,11 +24,13 @@ function Navbar() {
             <a>Catalogue</a>
           </Link>
         </li>
-        <li>
-          <Link href='/blog'>
-            <a>Forum</a>
-          </Link>
-        </li>
+        {session && (
+          <li>
+            <Link href='/profile'>
+              <a>Profile</a>
+            </Link>
+          </li>
+        )}
         <li>
           <Link href='/testUploadInterface'>
             <a>Upload</a>
