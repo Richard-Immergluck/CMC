@@ -1,17 +1,20 @@
-import React from "react";
-import Input from "./Input";
-import FileInput from "./FileInput";
+import React from 'react'
+import Input from './Input'
+import FileInput from './FileInput'
+import MoneyInput from './MoneyInput'
 
 function FormikControl(props) {
-  const { control, ...rest } = props;
+  const { control, ...rest } = props
   switch (control) {
-    case "input":
-      return <Input {...rest} />;
-    case "fileInput":
-      return <FileInput {...rest} />;
+    case 'input':
+      return <Input {...rest} />
+    case 'moneyInput':
+      return <MoneyInput {...rest} />
+    case 'fileInput':
+      return <FileInput {...rest} />
     default:
-      return null;
+      return null
   }
 }
 
-export default FormikControl;
+export default FormikControl
