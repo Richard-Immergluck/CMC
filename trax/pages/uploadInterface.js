@@ -1,7 +1,7 @@
 import React from 'react'
 import UploadForm from '../components/uploadFormComponents/UploadForm'
 
-function testUploadInterface() {
+function uploadInterface() {
   return (
     <div>
       <UploadForm />
@@ -9,4 +9,4 @@ function testUploadInterface() {
   )
 }
 
-export default testUploadInterface
+export default uploadInterface

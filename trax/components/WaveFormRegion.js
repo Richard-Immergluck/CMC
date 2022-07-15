@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
+import Button from 'react-bootstrap/Button'
 
 const WaveForm = ({ url }) => {
   const previewStart = 15
@@ -23,6 +24,7 @@ const WaveForm = ({ url }) => {
       hideScrollbar: true,
       pixelRatio: 1,
       barWidth: 1.5,
+      interact: false
     })
 
     waveSurfer.load(url)
@@ -49,9 +51,14 @@ const WaveForm = ({ url }) => {
   return (
     <>
       <div ref={containerRef} />
-      <button onClick={togglePlayPause} disabled={buttonDisable}>
+      <Button className='mt-3'
+        size='md'
+        variant='info'
+        onClick={togglePlayPause}
+        disabled={buttonDisable}
+      >
         {play ? 'pause' : 'Play Sample'}
-      </button>
+      </Button>
     </>
   )
 }

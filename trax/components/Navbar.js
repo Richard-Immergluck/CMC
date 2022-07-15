@@ -31,11 +31,13 @@ function Navbar() {
             </Link>
           </li>
         )}
+         {session && (
         <li>
-          <Link href='/testUploadInterface'>
+          <Link href='/uploadInterface'>
             <a>Upload</a>
           </Link>
         </li>
+        )}
         {status !== 'authenticated' && (
           <li>
             <Link href='/api/auth/signin'>

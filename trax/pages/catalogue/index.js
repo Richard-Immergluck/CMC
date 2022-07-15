@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PlaySample from '../../components/PlaySample'
 import prisma from '/components/prisma'
-import { Container, Table } from 'react-bootstrap'
+import { Container, Table, Button } from 'react-bootstrap'
 import _ from 'lodash'
 
 export const getStaticProps = async () => {
@@ -38,9 +38,9 @@ const Catalogue = ({ tracks, users }) => {
 
   useEffect(() => {
     setPaginatedTracks(_(tracks).slice(0).take(pageSize).value())
-    }, [])
+  }, [])
 
-  const pageCount = tracks? Math.ceil(tracks.length / pageSize) : 0
+  const pageCount = tracks ? Math.ceil(tracks.length / pageSize) : 0
   if (pageCount === 1) {
     return null
   }
@@ -52,10 +52,9 @@ const Catalogue = ({ tracks, users }) => {
     const startIndex = (pageNumber - 1) * pageSize
     const paginatedTrack = _(tracks).slice(startIndex).take(pageSize).value()
     setPaginatedTracks(paginatedTrack)
-  }  
+  }
 
   const userTrackMatch = (userId, users) => {
-    console.log('this is the track', userId)
     const user = _.find(users, { id: userId })
     return user ? user.name : 'Unknown'
   }
@@ -81,7 +80,11 @@ const Catalogue = ({ tracks, users }) => {
             <tbody>
               {paginatedTracks.map((track, key) => (
                 <tr key={track.id}>
-                  <td>{key + 1}</td>
+                  <td>
+                    <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
+                      {key + 1}
+                    </Link>
+                  </td>
                   <td>
                     <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
                       <p>{track.title}</p>
@@ -122,11 +125,11 @@ const Catalogue = ({ tracks, users }) => {
               ))}
             </ul>
           </nav>
-          <button>
-          <Link href={'/'}>
-            <a>Back to Home Page</a>
-          </Link>
-          </button>
+          <Button variant='info'>
+            <Link href={'/'}>
+              <a>Back to Home Page</a>
+            </Link>
+          </Button>
         </Container>
       </div>
     </>
