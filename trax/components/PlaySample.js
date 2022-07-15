@@ -8,7 +8,7 @@ const PlaySample = props => {
 
   //Create presigned URL
   const url = GetSignedS3URL({
-    bucket: 'backingtrackstorage',
+    bucket: process.env.S3_BUCKET_NAME,
     key: `${track.fileName}`,
     expires: 600
   })

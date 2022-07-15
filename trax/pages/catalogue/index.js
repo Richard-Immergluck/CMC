@@ -70,7 +70,7 @@ const Catalogue = ({ tracks, users }) => {
             <thead>
               <tr className='table-info'>
                 <th>#</th>
-                <th>title</th>
+                <th>Title</th>
                 <th>Composer</th>
                 <th>Uploader</th>
                 <th>Price</th>

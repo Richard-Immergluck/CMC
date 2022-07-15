@@ -1,9 +1,9 @@
 import AWS from "aws-sdk"
 
 AWS.config = new AWS.Config({
-  accessKeyId: 'AKIAV66ZZX5G234R6BXM',
-  secretAccessKey: '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',
-  region: 'eu-west-2',
+  accessKeyId: process.env.S3_ACCESS_ID,
+  secretAccessKey: process.env.S3_APP_ACCESS_KEY,
+  region: process.env.S3_REGION,
   signatureVersion: "v4",
 });
 

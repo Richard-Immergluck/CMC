@@ -70,7 +70,7 @@ const SingleTrack = ({ track, users }) => {
 
   // Generate the presigned url
   const url = GETSignedS3URL({
-    bucket: 'backingtrackstorage',
+    bucket: process.env.S3_BUCKET_NAME,
     key: `${track.fileName}`,
     expires: 60
   })
