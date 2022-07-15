@@ -4,6 +4,8 @@ import Link from 'next/link'
 import GETSignedS3URL from '../../components/GETSignedS3URL'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { useCart } from 'react-use-cart'
+import { Container, Button } from 'react-bootstrap'
+import _ from 'lodash'
 
 // Create dynamic routes
 export const getStaticPaths = async () => {
@@ -39,19 +41,27 @@ export const getStaticProps = async context => {
       previewStart: true,
       previewEnd: true,
       price: true,
-      formattedPrice: true
+      formattedPrice: true,
+      userId: true
     }
   })
 
+  const users = await prisma.user.findMany()
+
   return {
     props: {
-      track: track
+      track,
+      users
     }
   }
 }
 
-// Render the JSX
-const SingleTrack = ({ track }) => {
+
+
+const SingleTrack = ({ track, users }) => {
+
+  console.log(track.userId)
+
   // needed for 'Self is not defined' error
   const WaveFormRegion = dynamic(
     () => import('../../components/WaveFormRegion'),
@@ -74,31 +84,37 @@ const SingleTrack = ({ track }) => {
     alert('Track added to cart!')
   }
 
+  const userTrackMatch = (userId, users) => {
+
+    const user = _.find(users, { id: userId })
+    return user ? user.name : 'Unknown'
+  }
+
+  // Render the JSX
   return (
     <>
-      <h2>Track details for {track.title}</h2>
-      <p>File name is {track.fileName}</p>
-      <p>Title is {track.title}</p>
-      <p>Composer is {track.composer}</p>
-      <a href={url} download>
-        {' '}
-        Click here to download!{' '}
-      </a>
-      <br />
-      <br />
-      <div>This track is {track.formattedPrice}</div>
-      <div>
-        <button onClick={addToCart}>Add to Cart</button>
-      </div>
-      <br />
-      <br />
-      <WaveFormRegion url={url} />
-      <hr />
-      <div>
-        <Link href={'/catalogue'}>
-          <a>Back to the Catalogue</a>
-        </Link>
-      </div>
+      <Container className='mt-5'>
+        <h2>{track.title}</h2>
+        <p>by {track.composer}</p>
+        <p>Uploaded by {userTrackMatch(track.userId, users)}</p>
+      
+        <br />
+
+        <WaveFormRegion url={url} />
+        <br />
+        <br />
+        <br />
+        <div>Price: {track.formattedPrice}</div>
+        <div>
+          <Button variant='info' size='md' onClick={addToCart}>Add to Cart</Button>
+        </div>
+        <hr />
+        <div>
+          <Link href={'/catalogue'}>
+            <a>Back to the Catalogue</a>
+          </Link>
+        </div>
+      </Container>
     </>
   )
 }
