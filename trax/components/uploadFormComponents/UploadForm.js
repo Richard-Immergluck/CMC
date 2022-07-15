@@ -55,12 +55,12 @@ const uploadToDB = async (values, newFileName) => {
 
 const uploadToS3 = (newFileName, selectedFile) => {
   // AWS config
-  const S3_BUCKET = 'backingtrackstorage'
-  const REGION = 'eu-west-2'
+  const S3_BUCKET = process.env.S3_BUCKET_NAME
+  const REGION = process.env.S3_REGION
 
   AWS.config.update({
-    accessKeyId: 'AKIAV66ZZX5G234R6BXM',
-    secretAccessKey: '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'
+    accessKeyId: process.env.S3_ACCESS_ID,
+    secretAccessKey: process.env.S3_APP_ACCESS_KEY
   })
 
   const myBucket = new AWS.S3({

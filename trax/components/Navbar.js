@@ -58,7 +58,9 @@ function Navbar() {
               <a
                 onClick={e => {
                   e.preventDefault()
-                  signOut()
+                  signOut({
+                    callbackUrl: `/` // This will need to be changed when deploying
+                  })
                 }}
               >
                 Sign Out
