@@ -39,7 +39,7 @@ const WaveForm = ({ url }) => {
     }
   }, [url])
 
-  const togglePlayPause = () => {
+  const handlePlayPause = () => {
     if (waveSurferRef.current.isPlaying()) {
       waveSurferRef.current.pause()
     } else {
@@ -51,10 +51,10 @@ const WaveForm = ({ url }) => {
   return (
     <>
       <div ref={containerRef} hidden />
-      <Button className='mt-3'
-        size='md'
+      <Button className=''
+        size='sm'
         variant='info'
-        onClick={togglePlayPause}
+        onClick={handlePlayPause}
         disabled={buttonDisable}
       >
         {play ? 'pause' : 'Play Sample'}

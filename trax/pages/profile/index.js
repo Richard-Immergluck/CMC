@@ -1,6 +1,5 @@
 import { getSession } from 'next-auth/react'
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
+import React, { useState } from 'react'
 import {
   Container,
   Card,
@@ -13,7 +12,6 @@ import {
   Table,
   Badge
 } from 'react-bootstrap'
-import PlaySample from '../../components/PlaySample'
 import prisma from '/components/prisma'
 import _ from 'lodash'
 import PlayTrack from '../../components/PlayTrack'

@@ -2,7 +2,15 @@ import React, { useEffect, useState } from 'react'
 import { useCart } from 'react-use-cart'
 import Link from 'next/link'
 import prisma from '/components/prisma'
-// import { loadStripe } from '@stripe/stripe-js'
+import {
+  Container,
+  Card,
+  ListGroup,
+  Row,
+  Col,
+  CloseButton,
+  Button
+} from 'react-bootstrap'
 
 // Retrieve all the tracks from the DB
 export const getStaticProps = async () => {
@@ -112,67 +120,89 @@ function Cart({ tracks }) {
 
     // --- START Stripe Checkout ---
 
-    const lineitemsBody = JSON.stringify({
-
-    })
+    const lineitemsBody = JSON.stringify({})
 
     console.log(lineitemsBody)
-
-    // const stripeSubmissionData = items
-
-    // const stripeResponse = await fetch('/api/stripe', {
-    //   method: 'POST',
-    //   body: JSON.stringify(stripeSubmissionData),
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   }
-    // })
-
-    // return await stripeResponse.json()
-    // --- END Stripe Checkout ---
-
-    // --- Update DB with purchsed tracks ---
-    // Send the submission object to the api endpoint
-    // to update DB with purchase info
-    // const submissionData = items
-    // const response = await fetch('/api/cart', {
-    //   method: 'POST',
-    //   body: JSON.stringify(submissionData),
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   }
-    // })
-
-    // return await response.json()
-    // }
-    // --- END update DB with purchased tracks ---
   }
   // --- END of Checkout ---
 
   return (
-    <div className='ms-2'>
-      <br />
-      <br />
-      <button onClick={emptyCart}>Empty Cart</button>
-      {items.map(item => (
-        <div className='flex items-centre' key={item.id}>
-          <hr />
-          <div>
-            <Link href={`./catalogue/${item.id}`}>
-              <a>{item.title}</a>
-            </Link>
-          </div>
-          <div>{item.composer}</div>
-          <div>{item.formattedPrice}</div>
-          <button onClick={() => removeItem(item.id)}>Remove Item</button>
-          <hr />
-        </div>
-      ))}
-      <p>Total = {total}</p>
-      <button onClick={checkout} className='btn btn-primary ms-2'>
-        Buy Now
-      </button>
-    </div>
+    <>
+      <Container className='mt-5'>
+        <Row>
+          <Col></Col>
+          <Col md={7}>
+            <Card style={{ width: '25rem' }}>
+              <Card.Body>
+                <Card.Title>Shopping Cart</Card.Title>
+                <Card.Subtitle className='mb-2 text-muted'>
+                  Below is a list of the items in your cart.
+                </Card.Subtitle>
+                {items.length > 0 ? (
+                  <>
+                    <Card.Text>
+                      Please check your items before purchasing. Use the
+                      &#39;X&#39; on the right to remove items from the cart.
+                      When you are ready to buy, click &#39;Buy Now&#39;.
+                    </Card.Text>
+                    <hr />
+                    {items.map(item => (
+                      <Container
+                        className='border border-info mb-3'
+                        key={item.id}
+                      >
+                        <ListGroup variant='flush'>
+                          <ListGroup.Item>
+                            <Link href={`./catalogue/${item.id}`}>
+                              {item.title}
+                            </Link>
+                            &nbsp;by {item.composer}
+                          </ListGroup.Item>
+                          <Row>
+                            <Col>
+                              <ListGroup.Item className='mt-3 border-0'>
+                                {item.formattedPrice}
+                              </ListGroup.Item>
+                            </Col>
+                            <Col md={3}>
+                              <ListGroup.Item className='mt-3 border-0'>
+                                <CloseButton
+                                  onClick={() => removeItem(item.id)}
+                                ></CloseButton>
+                              </ListGroup.Item>
+                            </Col>
+                          </Row>
+                        </ListGroup>
+                      </Container>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <Card.Text className='primary'>
+                      Your cart is empty!
+                    </Card.Text>
+                    <Card.Text>
+                      Please got to the{' '}
+                      <Link href='/catalogue' className='text-primary'>
+                        CATALOGUE
+                      </Link>{' '}
+                      to add tracks to your cart
+                    </Card.Text>
+                  </>
+                )}
+                <Card.Text className='p-2 bg-info text-white'>
+                  Total = {total}
+                </Card.Text>
+              </Card.Body>
+            </Card>
+            <Button onClick={checkout} className='btn btn-info mt-3 text-white'>
+              Buy Now
+            </Button>
+          </Col>
+          <Col></Col>
+        </Row>
+      </Container>
+    </>
   )
 }
 
