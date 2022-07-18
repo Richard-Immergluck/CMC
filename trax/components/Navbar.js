@@ -1,81 +1,57 @@
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
+import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap'
 
-
-function Navbar() {
+function MainNavbar() {
   const { data: session, status } = useSession()
   return (
-    <nav className='header'>
-      <h1 className='logo'>
-        <a>CMC (working title)</a>
-      </h1>
-      <ul
-        className={`main-nav ${
-          !session && status === 'loading' ? 'loading' : 'loaded'
-        }`}
-      >
-        <li>
-          <Link href='/'>
-            <a>Home</a>
-          </Link>
-        </li>
-        <li>
-          <Link href='/catalogue'>
-            <a>Catalogue</a>
-          </Link>
-        </li>
-        {session && (
-          <li>
-            <Link href='/profile'>
-              <a>Profile</a>
-            </Link>
-          </li>
-        )}
-         {session && (
-        <li>
-          <Link href='/uploadInterface'>
-            <a>Upload</a>
-          </Link>
-        </li>
-        )}
-        {status !== 'authenticated' && (
-          <li>
-            <Link href='/api/auth/signin'>
-              <a
-                onClick={e => {
-                  e.preventDefault()
-                  signIn()
-                }}
-              >
-                Sign In
-              </a>
-            </Link>
-          </li>
-        )}
-        {session && (
-          <li>
-            <Link href='/api/auth/signout'>
-              <a
-                onClick={e => {
-                  e.preventDefault()
-                  signOut({
-                    callbackUrl: `/` // This will need to be changed when deploying
-                  })
-                }}
-              >
-                Sign Out
-              </a>
-            </Link>
-          </li>
-        )}
-        <li>
-          <Link href='/cart'>
-            <a>Cart</a>
-          </Link>
-        </li>
-      </ul>
-    </nav>
+    <>
+      <Navbar className='shadow' bg='light' variant='light' expand='sm'>
+        <Container>
+          <Navbar.Brand href='/'>C.M.C (working title)</Navbar.Brand>
+          <Navbar.Toggle aria-controls='navbarScroll' />
+          <Navbar.Collapse id='navbarScroll'>
+            <Nav
+              className='ms-auto my-2 my-lg-0 gap-4'
+              style={{ maxHeight: '100px' }}
+              navbarScroll
+            >
+              {session && <Nav.Link href='/profile'>Profile</Nav.Link>}
+              <Nav.Link href='/catalogue'>Catalogue</Nav.Link>
+              {session && <Nav.Link href='/uploadInterface'>Upload</Nav.Link>}
+              
+              {status !== 'authenticated' && (
+                <Nav.Link
+                  href='/api/auth/signin'
+                  onClick={e => {
+                    e.preventDefault()
+                    signIn()
+                  }}
+                >
+                  Sign In
+                </Nav.Link>
+              )}
+              {session && (
+                <Nav.Link
+                  href='/api/auth/signout'
+                  onClick={e => {
+                    e.preventDefault()
+                    signOut({
+                      callbackUrl: `/` // This will need to be changed when deploying
+                    })
+                  }}
+                >
+                  Sign Out
+                </Nav.Link>
+              )}
+
+              {session && <Nav.Link href='/cart'>Cart</Nav.Link>}
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+    </>
   )
 }
 
-export default Navbar
+export default MainNavbar

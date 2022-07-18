@@ -32,19 +32,11 @@ export const getStaticProps = async context => {
   const track = await prisma.track.findUnique({
     where: {
       id: Number(params.trackId)
-    },
-    select: {
-      id: true,
-      fileName: true,
-      title: true,
-      composer: true,
-      previewStart: true,
-      previewEnd: true,
-      price: true,
-      formattedPrice: true,
-      userId: true
     }
   })
+
+  // Convert the date object to a locale date string
+ track.uploadedAt = track.uploadedAt.toLocaleDateString()
 
   const users = await prisma.user.findMany()
 
@@ -56,10 +48,7 @@ export const getStaticProps = async context => {
   }
 }
 
-
-
 const SingleTrack = ({ track, users }) => {
-
   console.log(track.userId)
 
   // needed for 'Self is not defined' error
@@ -85,7 +74,6 @@ const SingleTrack = ({ track, users }) => {
   }
 
   const userTrackMatch = (userId, users) => {
-
     const user = _.find(users, { id: userId })
     return user ? user.name : 'Unknown'
   }
@@ -97,7 +85,7 @@ const SingleTrack = ({ track, users }) => {
         <h2>{track.title}</h2>
         <p>by {track.composer}</p>
         <p>Uploaded by {userTrackMatch(track.userId, users)}</p>
-      
+
         <br />
 
         <WaveFormRegion url={url} />
@@ -106,7 +94,9 @@ const SingleTrack = ({ track, users }) => {
         <br />
         <div>Price: {track.formattedPrice}</div>
         <div>
-          <Button variant='info' size='md' onClick={addToCart}>Add to Cart</Button>
+          <Button variant='info' size='md' onClick={addToCart}>
+            Add to Cart
+          </Button>
         </div>
         <hr />
         <div>

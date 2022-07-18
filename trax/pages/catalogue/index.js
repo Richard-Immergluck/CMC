@@ -6,18 +6,13 @@ import { Container, Table, Button } from 'react-bootstrap'
 import _ from 'lodash'
 
 export const getStaticProps = async () => {
-  const tracks = await prisma.track.findMany({
-    select: {
-      id: true,
-      fileName: true,
-      title: true,
-      composer: true,
-      previewStart: true,
-      previewEnd: true,
-      price: true,
-      formattedPrice: true,
-      userId: true
-    }
+  // Grab all the tracks from the DB
+  const rawTrackData = await prisma.track.findMany()
+
+  // Convert the date object to a locale date string
+  const tracks = rawTrackData.map(track => {
+    track.uploadedAt = track.uploadedAt.toLocaleDateString()
+    return track
   })
 
   const users = await prisma.user.findMany()
