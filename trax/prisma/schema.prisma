@@ -35,9 +35,9 @@ model Session {
 }
 
 model User {
-  id            String        @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String?
-  email         String?       @unique
+  email         String?      @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
@@ -55,25 +55,27 @@ model VerificationToken {
 }
 
 model Track {
-  id             Int           @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   fileName       String
   title          String
   composer       String
-  uploadedAt     DateTime      @default(now())
-  uploadedBy     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  uploadedAt     DateTime     @default(now())
+  uploadedBy     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   previewStart   Int?
   previewEnd     Int?
   price          Float?
   formattedPrice String?
-  TrackOwner    TrackOwner[]
+  downloadName   String?
+  downloadCount  Int?
+  TrackOwner     TrackOwner[]
 }
 
 model TrackOwner {
-  id          Int    @id @default(autoincrement())
-  track       Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  track       Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
   trackId     Int
-  purchasedBy User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchasedBy User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
   purchasedAt DateTime @default(now())
 }

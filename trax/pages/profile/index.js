@@ -84,7 +84,7 @@ const UserProfilePage = ({
   currentUser,
   userUploadedTracks,
   userPurchasedTracks
-}) => {
+  }) => {
   const [key, setKey] = useState('purchased')
 
   return (
@@ -106,13 +106,15 @@ const UserProfilePage = ({
                 </Card.Text>
                 <ListGroup variant='flush'>
                   <ListGroup.Item>
-                    <Button variant="info" onClick={() => setKey('purchased')}>
-                      Purchased Tracks: <Badge bg="secondary">{userPurchasedTracks.length}</Badge>
+                    <Button variant='info' onClick={() => setKey('purchased')}>
+                      Purchased Tracks:{' '}
+                      <Badge bg='secondary'>{userPurchasedTracks.length}</Badge>
                     </Button>
                   </ListGroup.Item>
                   <ListGroup.Item>
-                    <Button variant="info" onClick={() => setKey('uploaded')}>
-                      Uploaded Tracks: <Badge bg="secondary">{userUploadedTracks.length}</Badge>
+                    <Button variant='info' onClick={() => setKey('uploaded')}>
+                      Uploaded Tracks:{' '}
+                      <Badge bg='secondary'>{userUploadedTracks.length}</Badge>
                     </Button>
                   </ListGroup.Item>
                 </ListGroup>
@@ -147,16 +149,16 @@ const UserProfilePage = ({
                           <PlayTrack track={track} />
                         </td>
                         <td>
-                          <Button size='sm' variant='info'>
-                            <a
-                              href={GETSignedS3URL({
-                                bucket: 'backingtrackstorage',
-                                key: `${track.fileName}`,
-                                expires: 60
-                              })}
-                            >
-                              Download
-                            </a>
+                          <Button
+                            size='sm'
+                            variant='info'
+                            href={GETSignedS3URL({
+                              bucket: 'backingtrackstorage',
+                              key: `${track.fileName}`,
+                              expires: 60
+                            })}
+                          >
+                            Download
                           </Button>
                         </td>
                       </tr>
@@ -185,17 +187,33 @@ const UserProfilePage = ({
                           <PlayTrack track={track} />
                         </td>
                         <td>
-                          <Button size='sm' variant='info'>
-                            <a
-                              href={GETSignedS3URL({
-                                bucket: 'backingtrackstorage',
-                                key: `${track.fileName}`,
-                                expires: 60
-                              })}
-                            >
-                              Download
-                            </a>
-                          </Button>
+                          <a
+                            className='btn btn-info btn-sm active'
+                            rel='noreferrer'
+                            target="_blank"
+                            download={track.downloadName}
+                            role='button'                  
+                            href={GETSignedS3URL({
+                              bucket: 'backingtrackstorage',
+                              key: `${track.fileName}`,
+                              expires: 60,
+                              fileName: track.downloadName
+                            })}
+                            
+                          >
+                            Download
+                          </a>
+                          {/* <Button
+                            size='sm'
+                            variant='info'
+                            href={GETSignedS3URL({
+                              bucket: 'backingtrackstorage',
+                              key: `${track.fileName}`,
+                              expires: 60
+                            })}
+                          >
+                            Download
+                          </Button> */}
                         </td>
                       </tr>
                     ))}
