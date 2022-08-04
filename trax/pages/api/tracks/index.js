@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       // Destructure the req.body
-      const { newFileName, title, composer, previewStart, previewEnd, price, formattedPrice } = req.body
+      const { newFileName, title, composer, previewStart, previewEnd, price, formattedPrice, downloadName, downloadCount } = req.body
       // console.log('req body is', req.body)
 
       // Use getSession Hook to access current user
@@ -28,7 +28,9 @@ export default async function handler(req, res) {
           previewStart: previewStart,
           previewEnd: previewEnd,
           price: price,
-          formattedPrice: formattedPrice
+          formattedPrice: formattedPrice,
+          downloadName: downloadName,
+          downloadCount: downloadCount
         }
       })
 

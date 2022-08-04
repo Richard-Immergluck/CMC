@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useCart } from 'react-use-cart'
 import Link from 'next/link'
 import prisma from '/components/prisma'
@@ -42,6 +42,7 @@ function Cart({ tracks }) {
 
   // ------ START OF CHECKOUT ------
   const checkout = async () => {
+    
     // --- START Manipulation Check ---
     // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
@@ -128,7 +129,7 @@ function Cart({ tracks }) {
 
   return (
     <>
-      <Container className='mt-5'>
+      <Container suppressHydrationWarning className='mt-5'>
         <Row>
           <Col></Col>
           <Col md={7}>

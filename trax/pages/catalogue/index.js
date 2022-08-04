@@ -36,9 +36,6 @@ const Catalogue = ({ tracks, users }) => {
   }, [])
 
   const pageCount = tracks ? Math.ceil(tracks.length / pageSize) : 0
-  if (pageCount === 1) {
-    return null
-  }
 
   const pages = _.range(1, pageCount + 1)
 
@@ -99,6 +96,7 @@ const Catalogue = ({ tracks, users }) => {
               ))}
             </tbody>
           </Table>
+          {pages.length > 1 ? (
           <nav className='d-flex justify-content-center'>
             <ul className='pagination'>
               {pages.map(page => (
@@ -120,6 +118,9 @@ const Catalogue = ({ tracks, users }) => {
               ))}
             </ul>
           </nav>
+          ) : (
+            <></>
+          )}
           <Button variant='info'>
             <Link href={'/'}>
               <a>Back to Home Page</a>

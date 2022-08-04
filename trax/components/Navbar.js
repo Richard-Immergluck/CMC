@@ -18,7 +18,7 @@ function MainNavbar() {
             >
               {session && <Nav.Link href='/profile'>Profile</Nav.Link>}
               <Nav.Link href='/catalogue'>Catalogue</Nav.Link>
-              {session && <Nav.Link href='/uploadInterface'>Upload</Nav.Link>}
+              {session && <Nav.Link href='/upload'>Upload</Nav.Link>}
               
               {status !== 'authenticated' && (
                 <Nav.Link

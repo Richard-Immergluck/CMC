@@ -9,11 +9,12 @@ AWS.config = new AWS.Config({
 
 const s3 = new AWS.S3();
 
-const GETSignedS3URL = ({ bucket, key, expires }) => {
-  const signedUrl = s3.getSignedUrl("getObject", { // s3.getSignedURL is synchronous
+const GETSignedS3URL = ({ bucket, key, expires, fileName }) => {
+  const signedUrl = s3.getSignedUrl("getObject", { 
     Key: key,
     Bucket: bucket,
     Expires: expires || 900, // This is the S3 default value (15 minutes)
+    ResponseContentDisposition: `attachment; filename="${fileName}"`,
   });
 
   return signedUrl;
