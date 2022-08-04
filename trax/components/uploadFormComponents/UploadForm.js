@@ -21,6 +21,7 @@ import * as yup from 'yup'
 //UUID package
 import { v4 as uuidv4 } from 'uuid' // For creating the unique ID for each track
 
+// Function to convert the time input into seconds
 const secondMaker = timeSplit => {
   if (timeSplit.length === 2) {
     var previewStart = parseInt(timeSplit[0]) * 60 + parseInt(timeSplit[1])
@@ -35,7 +36,6 @@ const secondMaker = timeSplit => {
 
 // DBUpload function
 const uploadToDB = async (values, newFileName) => {
-  // Destructure values
   const { title, composer, previewStartString, priceString } = values
 
   // Dealing with various user inputs for the previewStart input field
@@ -52,14 +52,14 @@ const uploadToDB = async (values, newFileName) => {
     var previewStart = parseInt(previewStartString)
   }
 
-  // Create the additional submission variables
+  // Create additional submission variables
   var previewEnd = previewStart + 15
   var price = parseFloat(priceString)
   var formattedPrice = `£${price.toFixed(2)}`
   var downloadName = `${title}_${composer}.mp3`
   var downloadCount = 0
 
-  // Create the submission object
+  // Create submission object
   const submissionData = {
     title,
     composer,
