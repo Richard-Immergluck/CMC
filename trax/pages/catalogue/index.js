@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PlaySample from '../../components/PlaySample'
 import prisma from '/components/prisma'
-import { Container, Table, Button } from 'react-bootstrap'
+import { Container, Table, Button, Row, Col } from 'react-bootstrap'
 import _ from 'lodash'
 
 export const getStaticProps = async () => {
@@ -28,6 +28,9 @@ export const getStaticProps = async () => {
 const pageSize = 10
 
 const Catalogue = ({ tracks, users }) => {
+  const [searchParam, setSearchParam] = useState('')
+  const [filterParam, setFilterParam] = useState('')
+  const [searchPressed, setSearchPressed] = useState(false)
   const [paginatedTracks, setPaginatedTracks] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -46,10 +49,14 @@ const Catalogue = ({ tracks, users }) => {
     setPaginatedTracks(paginatedTrack)
   }
 
+  // Function to attach uploader name to track for display
   const userTrackMatch = (userId, users) => {
     const user = _.find(users, { id: userId })
     return user ? user.name : 'Unknown'
   }
+
+  console.log('search param is ....', searchParam)
+  console.log(searchPressed)
 
   return (
     <>
@@ -57,6 +64,51 @@ const Catalogue = ({ tracks, users }) => {
         <h1 className='title mt-3 mb-3' align='center'>
           Track Listing
         </h1>
+        {!searchPressed ? (
+          <Container>
+            <Row className='input-group justify-content-md-center'>
+              <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
+                <Container className='input-group mb-3 bg-light border mt-5 p-3'>
+                  <input
+                    type='text'
+                    id='search param'
+                    placeholder='Search'
+                    className='form-control'
+                    onChange={e => setSearchParam(e.target.value)}
+                  />
+                  <Button
+                    variant='outline-info'
+                    onClick={() => {
+                      if (searchParam) {
+                        setSearchPressed(true)
+                        setFilterParam(searchParam)
+                      }
+                    }}
+                  >
+                    Search
+                  </Button>
+                </Container>
+              </Col>
+            </Row>
+          </Container>
+        ) : (
+          <Container>
+            <Row className='input-group justify-content-md-center'>
+              <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
+                <Button
+                  className='input-group mb-3 bg-light border mt-5 p-3 justify-content-md-center'
+                  variant='outline-info'
+                  onClick={() => {
+                    setFilterParam('')
+                    setSearchPressed(false)
+                  }}
+                >
+                  Reset Search
+                </Button>
+              </Col>
+            </Row>
+          </Container>
+        )}
         <Container className='Catalogue div'>
           <Table striped bordered hover responsive size='sm'>
             <thead>
@@ -70,54 +122,75 @@ const Catalogue = ({ tracks, users }) => {
               </tr>
             </thead>
             <tbody>
-              {paginatedTracks.map((track, key) => (
-                <tr key={track.id}>
-                  <td>
-                    <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
-                      {key + 1}
-                    </Link>
-                  </td>
-                  <td>
-                    <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
-                      <p>{track.title}</p>
-                    </Link>
-                  </td>
-                  <td>{track.composer}</td>
-                  <td>{userTrackMatch(track.userId, users)}</td>
-                  <td>{track.formattedPrice}</td>
-                  <td>
-                    <PlaySample
+              {paginatedTracks
+                .filter(track => {
+                  if (filterParam === '') {
+                    return track
+                  } else if (
+                    track.title
+                      .toLowerCase()
+                      .includes(searchParam.toLowerCase()) ||
+                    track.composer
+                      .toLowerCase()
+                      .includes(searchParam.toLowerCase())
+                  ) {
+                    return track
+                  }
+                })
+                .map((track, key) => (
+                  <tr key={track.id}>
+                    <td>
+                      <Link
+                        href='/catalogue/[id]'
+                        as={`/catalogue/${track.id}`}
+                      >
+                        {key + 1}
+                      </Link>
+                    </td>
+                    <td>
+                      <Link
+                        href='/catalogue/[id]'
+                        as={`/catalogue/${track.id}`}
+                      >
+                        {track.title}
+                      </Link>
+                    </td>
+                    <td>{track.composer}</td>
+                    <td>{userTrackMatch(track.userId, users)}</td>
+                    <td>{track.formattedPrice}</td>
+                    <td>
+                      <PlaySample
                       track={track}
                       start={track.previewStart}
                       stop={track.previewEnd}
                     />
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </Table>
           {pages.length > 1 ? (
-          <nav className='d-flex justify-content-center'>
-            <ul className='pagination'>
-              {pages.map(page => (
-                <li
-                  key={page}
-                  className={
-                    page === currentPage ? 'page-item active' : 'page-item'
-                  }
-                >
-                  <p
-                    className='page-link'
-                    onClick={() => {
-                      pagination(page)
-                    }}
+            <nav className='d-flex justify-content-center'>
+              <ul className='pagination'>
+                {pages.map(page => (
+                  <li
+                    key={page}
+                    className={
+                      page === currentPage ? 'page-item active' : 'page-item'
+                    }
                   >
-                    {page}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </nav>
+                    <p
+                      className='page-link'
+                      onClick={() => {
+                        pagination(page)
+                      }}
+                    >
+                      {page}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           ) : (
             <></>
           )}

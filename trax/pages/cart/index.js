@@ -137,7 +137,7 @@ function Cart({ tracks }) {
               <Card.Body>
                 <Card.Title>Shopping Cart</Card.Title>
                 <Card.Subtitle className='mb-2 text-muted'>
-                  Below is a list of the items in your cart.
+                  Below is a list of the items in your cart. 
                 </Card.Subtitle>
                 {items.length > 0 ? (
                   <>
