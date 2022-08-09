@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, memo } from 'react'
 import Link from 'next/link'
 import PlaySample from '../../components/PlaySample'
 import prisma from '/components/prisma'
@@ -25,7 +25,7 @@ export const getStaticProps = async () => {
   }
 }
 
-const pageSize = 10
+const pageSize = 5
 
 const Catalogue = ({ tracks, users }) => {
   const [searchParam, setSearchParam] = useState('')
@@ -35,7 +35,7 @@ const Catalogue = ({ tracks, users }) => {
   const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
-    setPaginatedTracks(_(tracks).slice(0).take(pageSize).value())
+    setPaginatedTracks(() =>_(tracks).slice(0).take(pageSize).value())
   }, [])
 
   const pageCount = tracks ? Math.ceil(tracks.length / pageSize) : 0
@@ -54,9 +54,6 @@ const Catalogue = ({ tracks, users }) => {
     const user = _.find(users, { id: userId })
     return user ? user.name : 'Unknown'
   }
-
-  console.log('search param is ....', searchParam)
-  console.log(searchPressed)
 
   return (
     <>
@@ -205,4 +202,4 @@ const Catalogue = ({ tracks, users }) => {
   )
 }
 
-export default Catalogue
+export default memo(Catalogue)
