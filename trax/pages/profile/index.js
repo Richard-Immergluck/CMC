@@ -84,7 +84,7 @@ const UserProfilePage = ({
   currentUser,
   userUploadedTracks,
   userPurchasedTracks
-  }) => {
+}) => {
   const [key, setKey] = useState('purchased')
 
   return (
@@ -149,17 +149,21 @@ const UserProfilePage = ({
                           <PlayTrack track={track} />
                         </td>
                         <td>
-                          <Button
-                            size='sm'
-                            variant='info'
+                          <a
+                            className='btn btn-info btn-sm active'
+                            rel='noreferrer'
+                            target='_blank'
+                            download={track.downloadName}
+                            role='button'
                             href={GETSignedS3URL({
                               bucket: 'backingtrackstorage',
                               key: `${track.fileName}`,
-                              expires: 60
+                              expires: 60,
+                              fileName: track.downloadName
                             })}
                           >
                             Download
-                          </Button>
+                          </a>
                         </td>
                       </tr>
                     ))}
@@ -190,30 +194,18 @@ const UserProfilePage = ({
                           <a
                             className='btn btn-info btn-sm active'
                             rel='noreferrer'
-                            target="_blank"
+                            target='_blank'
                             download={track.downloadName}
-                            role='button'                  
+                            role='button'
                             href={GETSignedS3URL({
                               bucket: 'backingtrackstorage',
                               key: `${track.fileName}`,
                               expires: 60,
                               fileName: track.downloadName
                             })}
-                            
                           >
                             Download
                           </a>
-                          {/* <Button
-                            size='sm'
-                            variant='info'
-                            href={GETSignedS3URL({
-                              bucket: 'backingtrackstorage',
-                              key: `${track.fileName}`,
-                              expires: 60
-                            })}
-                          >
-                            Download
-                          </Button> */}
                         </td>
                       </tr>
                     ))}
