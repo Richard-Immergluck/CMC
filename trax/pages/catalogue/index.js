@@ -25,7 +25,7 @@ export const getStaticProps = async () => {
   }
 }
 
-const pageSize = 5
+const pageSize = 10
 
 const Catalogue = ({ tracks, users }) => {
   const [searchParam, setSearchParam] = useState('')
