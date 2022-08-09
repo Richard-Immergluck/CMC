@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import GetSignedS3URL from './GETSignedS3URL'
 import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
@@ -24,4 +24,4 @@ const PlaySample = props => {
   )
 }
 
-export default PlaySample
+export default memo(PlaySample)

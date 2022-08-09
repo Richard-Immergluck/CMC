@@ -1,5 +1,5 @@
 import { getSession } from 'next-auth/react'
-import React, { useState } from 'react'
+import React, { useState, memo } from 'react'
 import {
   Container,
   Card,
@@ -228,4 +228,4 @@ const UserProfilePage = ({
   )
 }
 
-export default UserProfilePage
+export default memo(UserProfilePage)
