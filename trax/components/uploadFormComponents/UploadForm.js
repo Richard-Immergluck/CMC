@@ -63,9 +63,12 @@ const uploadToDB = async (values, newFileName) => {
   const submissionData = {
     title,
     composer,
+    key,
+    instrumentation,
     newFileName,
     previewStart,
     previewEnd,
+    additionalInfo,
     price,
     formattedPrice,
     downloadName,
@@ -129,7 +132,10 @@ function UploadForm() {
     file: null,
     title: '',
     composer: '',
+    key: '',
+    instrumentation: '',
     previewStartString: '',
+    additionalInfo: '',
     priceString: '',
     terms: false
   }
@@ -138,7 +144,10 @@ function UploadForm() {
     file: yup.mixed().required(),
     title: yup.string().required(),
     composer: yup.string().required(),
+    key: yup.string().required(),
+    instrumentation: yup.string().required(),
     previewStartString: yup.string().required(),
+    additionalInfo: yup.string().required(),
     priceString: yup.string().required(),
     terms: yup.bool().required().oneOf([true], 'Terms must be accepted')
   })
@@ -242,6 +251,38 @@ function UploadForm() {
                     </div>
                     <div className='form-control p-2'>
                       <Form.Group md='3' control='input'>
+                        <Form.Label>Key</Form.Label>
+                        <Form.Control
+                          type='text'
+                          placeholder='e.g. Gb Minor'
+                          name='key'
+                          value={values.key}
+                          onChange={handleChange}
+                          isInvalid={!!errors.key}
+                        />
+                        <Form.Control.Feedback type='invalid'>
+                          {errors.composer}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </div>
+                    <div className='form-control p-2'>
+                      <Form.Group md='3' control='input'>
+                        <Form.Label>Instrumentation</Form.Label>
+                        <Form.Control
+                          type='text'
+                          placeholder='e.g. Piano, Orchestra'
+                          name='instrumentation'
+                          value={values.instrumentation}
+                          onChange={handleChange}
+                          isInvalid={!!errors.instrumentation}
+                        />
+                        <Form.Control.Feedback type='invalid'>
+                          {errors.composer}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </div>
+                    <div className='form-control p-2'>
+                      <Form.Group md='3' control='input'>
                         <Form.Label>Preview Start Time</Form.Label>
                         <Form.Control
                           type='text'
@@ -253,6 +294,24 @@ function UploadForm() {
                         />
                         <Form.Control.Feedback type='invalid'>
                           {errors.previewStartString}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </div>
+                    <div className='form-control p-2'>
+                      <Form.Group md='3' control='input'>
+                        <Form.Label>Additional Information</Form.Label>
+                        <Form.Control
+                          type='text'
+                          as='textarea'
+                          style={{ height: 90 }}
+                          placeholder='Tempo, cuts, recitatives, cadenzas etc. Add as much detail as you can. The more detail you add, the more likely your track will be purchased.'
+                          name='additionalInfo'
+                          value={values.additionalInfo}
+                          onChange={handleChange}
+                          isInvalid={!!errors.additionalInfo}
+                        />
+                        <Form.Control.Feedback type='invalid'>
+                          {errors.composer}
                         </Form.Control.Feedback>
                       </Form.Group>
                     </div>

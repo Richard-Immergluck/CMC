@@ -12,7 +12,18 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       // Destructure the req.body
-      const { newFileName, title, composer, previewStart, previewEnd, price, formattedPrice, downloadName, downloadCount } = req.body
+      const { title,
+        composer,
+        key,
+        instrumentation,
+        newFileName,
+        previewStart,
+        previewEnd,
+        additionalInfo,
+        price,
+        formattedPrice,
+        downloadName,
+        downloadCount } = req.body
       // console.log('req body is', req.body)
 
       // Use getSession Hook to access current user
@@ -24,9 +35,12 @@ export default async function handler(req, res) {
           fileName: newFileName,
           title: title,
           composer: composer,
+          key: key,
+          instrumentation: instrumentation,
           uploadedBy: { connect: { email: session?.user?.email } }, // Use session to get email and connect user to track
           previewStart: previewStart,
           previewEnd: previewEnd,
+          additionalInfo: additionalInfo,
           price: price,
           formattedPrice: formattedPrice,
           downloadName: downloadName,
