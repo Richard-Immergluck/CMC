@@ -35,22 +35,36 @@ export const getStaticProps = async context => {
     }
   })
 
-  // Convert the date object to a locale date string
- track.uploadedAt = track.uploadedAt.toLocaleDateString()
+  // Convert the track date object to a locale date string
+  track.uploadedAt = track.uploadedAt.toLocaleDateString()
 
+  // Retrieve the users from DB to match user with track
   const users = await prisma.user.findMany()
+
+  // Retrieve the comments from DB
+  const comments = await prisma.comment.findMany({
+    where: {
+      track: {
+        id: Number(params.trackId)
+      }
+    }
+  })
+
+  // Convert the date element of each comment to a locale date string
+  comments.map(comment => {
+    return (comment.createdAt = comment.createdAt.toLocaleDateString())
+  })
 
   return {
     props: {
       track,
-      users
+      users,
+      comments
     }
   }
 }
 
-const SingleTrack = ({ track, users }) => {
-  console.log(track.userId)
-
+const SingleTrack = ({ track, users, comments }) => {
   // needed for 'Self is not defined' error
   const WaveFormRegion = dynamic(
     () => import('../../components/WaveFormRegion'),
@@ -84,14 +98,32 @@ const SingleTrack = ({ track, users }) => {
       <Container className='mt-5'>
         <h2>{track.title}</h2>
         <p>by {track.composer}</p>
-        <p>Uploaded by {userTrackMatch(track.userId, users)}</p>
+        <p>
+          Uploaded by {userTrackMatch(track.userId, users)} on{' '}
+          {track.uploadedAt}
+        </p>
+        <p>Key: {track.key}</p>
+        <p>Instrumentation: {track.instrumentation}</p>
+        <p>
+          Additional Information:<br />
+          {track.additionalInfo}
+        </p>
 
         <br />
 
         <WaveFormRegion url={url} />
         <br />
         <br />
-        <br />
+        <div>
+          Comments:<br />
+          {comments.map((comment, key) => (
+            <div key={comment.id}>
+              <p>{key + 1} - by {userTrackMatch(comment.userId, users)}<br />{comment.content}</p>
+              <br />
+            </div> 
+          )
+          )}
+        </div>
         <div>Price: {track.formattedPrice}</div>
         <div>
           <Button variant='info' size='md' onClick={addToCart}>

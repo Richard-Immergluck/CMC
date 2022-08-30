@@ -3,6 +3,7 @@ import NextAuth from 'next-auth'
 // Providers
 import GithubProvider from 'next-auth/providers/github'
 import GoogleProvider from "next-auth/providers/google"
+
 import { PrismaAdapter } from "@next-auth/prisma-adapter" 
 import prisma from '/components/prisma'
 
@@ -36,12 +37,4 @@ export default NextAuth({
       return session
     },
   },
-  // Use the following prop to create 
-  // pages: {
-  //   signIn: '/auth/signin',
-  //   signOut: '/auth/signout',
-  //   error: '/auth/error', // Error code passed in query string as ?error=
-  //   verifyRequest: '/auth/verify-request', // (used for check email message)
-  //   newUser: '/auth/new-user' // New users will be directed here on first sign in
-  // }
 })

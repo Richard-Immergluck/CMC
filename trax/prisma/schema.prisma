@@ -44,6 +44,7 @@ model User {
   sessions      Session[]
   Track         Track[]
   TrackOwners   TrackOwner[]
+  Comment       Comment[]
 }
 
 model VerificationToken {
@@ -55,20 +56,24 @@ model VerificationToken {
 }
 
 model Track {
-  id             Int          @id @default(autoincrement())
-  fileName       String
-  title          String
-  composer       String
-  uploadedAt     DateTime     @default(now())
-  uploadedBy     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         String
-  previewStart   Int?
-  previewEnd     Int?
-  price          Float?
-  formattedPrice String?
-  downloadName   String?
-  downloadCount  Int?
-  TrackOwner     TrackOwner[]
+  id              Int          @id @default(autoincrement())
+  fileName        String
+  title           String
+  composer        String
+  uploadedAt      DateTime     @default(now())
+  uploadedBy      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  previewStart    Int?
+  previewEnd      Int?
+  price           Float?
+  formattedPrice  String?
+  downloadName    String?
+  downloadCount   Int?
+  key             String?
+  instrumentation String?
+  additionalInfo  String?
+  TrackOwner      TrackOwner[]
+  Comments        Comment[]
 }
 
 model TrackOwner {
@@ -78,4 +83,14 @@ model TrackOwner {
   purchasedBy User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
   purchasedAt DateTime @default(now())
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId   Int
+  postedBy  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
 }
