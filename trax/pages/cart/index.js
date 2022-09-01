@@ -1,4 +1,5 @@
 import React from 'react'
+import { useSession } from 'next-auth/react'
 import { useCart } from 'react-use-cart'
 import Link from 'next/link'
 import prisma from '/components/prisma'
@@ -29,6 +30,9 @@ export const getStaticProps = async () => {
 }
 
 function Cart({ tracks }) {
+  // Retrieve the user from the session
+  const { data: session } = useSession()
+
   // useCart hook
   const { emptyCart, removeItem, cartTotal, items } = useCart()
 
@@ -40,9 +44,8 @@ function Cart({ tracks }) {
 
   var total = formatter.format(cartTotal)
 
-  // ------ START OF CHECKOUT ------
+  // ------ START OF CHECKOUT FUNCTION ------
   const checkout = async () => {
-    
     // --- START Manipulation Check ---
     // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
@@ -127,84 +130,96 @@ function Cart({ tracks }) {
   }
   // --- END of Checkout ---
 
-  return (
-    <>
-      <Container suppressHydrationWarning className='mt-5'>
-        <Row>
-          <Col></Col>
-          <Col md={7}>
-            <Card style={{ width: '25rem' }}>
-              <Card.Body>
-                <Card.Title>Shopping Cart</Card.Title>
-                <Card.Subtitle className='mb-2 text-muted'>
-                  Below is a list of the items in your cart. 
-                </Card.Subtitle>
-                {items.length > 0 ? (
-                  <>
-                    <Card.Text>
-                      Please check your items before purchasing. Use the
-                      &#39;X&#39; on the right to remove items from the cart.
-                      When you are ready to buy, click &#39;Buy Now&#39;.
-                    </Card.Text>
-                    <hr />
-                    {items.map(item => (
-                      <Container
-                        className='border border-info mb-3'
-                        key={item.id}
-                      >
-                        <ListGroup variant='flush'>
-                          <ListGroup.Item>
-                            <Link href={`./catalogue/${item.id}`}>
-                              {item.title}
-                            </Link>
-                            &nbsp;by {item.composer}
-                          </ListGroup.Item>
-                          <Row>
-                            <Col>
-                              <ListGroup.Item className='mt-3 border-0'>
-                                {item.formattedPrice}
-                              </ListGroup.Item>
-                            </Col>
-                            <Col md={3}>
-                              <ListGroup.Item className='mt-3 border-0'>
-                                <CloseButton
-                                  onClick={() => removeItem(item.id)}
-                                ></CloseButton>
-                              </ListGroup.Item>
-                            </Col>
-                          </Row>
-                        </ListGroup>
-                      </Container>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    <Card.Text className='primary'>
-                      Your cart is empty!
-                    </Card.Text>
-                    <Card.Text>
-                      Please got to the{' '}
-                      <Link href='/catalogue' className='text-primary'>
-                        CATALOGUE
-                      </Link>{' '}
-                      to add tracks to your cart
-                    </Card.Text>
-                  </>
-                )}
-                <Card.Text className='p-2 bg-info text-white'>
-                  Total = {total}
-                </Card.Text>
-              </Card.Body>
-            </Card>
-            <Button onClick={checkout} className='btn btn-info mt-3 text-white'>
-              Buy Now
-            </Button>
-          </Col>
-          <Col></Col>
-        </Row>
-      </Container>
-    </>
-  )
+  if (session && session.user) {
+    return (
+      <>
+        <Container suppressHydrationWarning className='mt-5'>
+          <Row>
+            <Col></Col>
+            <Col md={7}>
+              <Card style={{ width: '25rem' }}>
+                <Card.Body>
+                  <Card.Title>Shopping Cart</Card.Title>
+                  <Card.Subtitle className='mb-2 text-muted'>
+                    Below is a list of the items in your cart.
+                  </Card.Subtitle>
+                  {items.length > 0 ? (
+                    <>
+                      <Card.Text>
+                        Please check your items before purchasing. Use the
+                        &#39;X&#39; on the right to remove items from the cart.
+                        When you are ready to buy, click &#39;Buy Now&#39;.
+                      </Card.Text>
+                      <hr />
+                      {items.map(item => (
+                        <Container
+                          className='border border-info mb-3'
+                          key={item.id}
+                        >
+                          <ListGroup variant='flush'>
+                            <ListGroup.Item>
+                              <Link href={`./catalogue/${item.id}`}>
+                                {item.title}
+                              </Link>
+                              &nbsp;by {item.composer}
+                            </ListGroup.Item>
+                            <Row>
+                              <Col>
+                                <ListGroup.Item className='mt-3 border-0'>
+                                  {item.formattedPrice}
+                                </ListGroup.Item>
+                              </Col>
+                              <Col md={3}>
+                                <ListGroup.Item className='mt-3 border-0'>
+                                  <CloseButton
+                                    onClick={() => removeItem(item.id)}
+                                  ></CloseButton>
+                                </ListGroup.Item>
+                              </Col>
+                            </Row>
+                          </ListGroup>
+                        </Container>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <Card.Text className='primary'>
+                        Your cart is empty!
+                      </Card.Text>
+                      <Card.Text>
+                        Please got to the{' '}
+                        <Link href='/catalogue' className='text-primary'>
+                          CATALOGUE
+                        </Link>{' '}
+                        to add tracks to your cart
+                      </Card.Text>
+                    </>
+                  )}
+                  <Card.Text className='p-2 bg-info text-white'>
+                    Total = {total}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+              <Button
+                onClick={checkout}
+                className='btn btn-info mt-3 text-white'
+              >
+                Buy Now
+              </Button>
+            </Col>
+            <Col></Col>
+          </Row>
+        </Container>
+      </>
+    )
+  } else {
+    return (
+      <>
+        <p>You must be logged in to view the cart</p>
+      </>
+    )
+  }
+  
 }
 
 export default Cart

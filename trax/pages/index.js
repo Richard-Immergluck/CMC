@@ -43,9 +43,9 @@ const Home = ({ tracks }) => {
         </Head>
 
         <main className={styles.main}>
-          <h1 className={styles.title}>
-            Welcome to the Classical Music Catalogue
-          </h1>
+          <h2>Welcome to</h2>
+          <h1 className={styles.title}>C.M.B.C</h1>
+          <h4> - the Classical Music Backing-Track Catalogue - </h4>
 
           <h5 className='mt-5'>
             Here is a short list of the most recent uploads!

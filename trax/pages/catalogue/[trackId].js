@@ -1,4 +1,5 @@
 import React from 'react'
+import { useSession } from 'next-auth/react'
 import prisma from '/components/prisma'
 import Link from 'next/link'
 import GETSignedS3URL from '../../components/GETSignedS3URL'
@@ -65,6 +66,9 @@ export const getStaticProps = async context => {
 }
 
 const SingleTrack = ({ track, users, comments }) => {
+
+  const { data: session} = useSession()
+
   // needed for 'Self is not defined' error
   const WaveFormRegion = dynamic(
     () => import('../../components/WaveFormRegion'),
@@ -124,11 +128,14 @@ const SingleTrack = ({ track, users, comments }) => {
           )
           )}
         </div>
+        <br />
         <div>Price: {track.formattedPrice}</div>
+        <br />
         <div>
-          <Button variant='info' size='md' onClick={addToCart}>
+        {session && <Button variant='info' size='md' onClick={addToCart}>
             Add to Cart
-          </Button>
+          </Button>}
+        {!session && <p>Please <Link href='/login'>login</Link> to add this track to your cart</p>}
         </div>
         <hr />
         <div>
