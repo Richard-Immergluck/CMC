@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 
 // Bootstrap imports
 import {
@@ -123,9 +124,11 @@ function UploadForm() {
 
   const ref = useRef()
 
+  const { data: session } = useSession()
+
   const fileReset = () => {
-    ref.current.value = "";
-  };
+    ref.current.value = ''
+  }
 
   // Formik Setup
   const initialValues = {
@@ -140,15 +143,26 @@ function UploadForm() {
     terms: false
   }
 
+  const supportedFormats = '.mp3' //Supported file formats - mp3 only for testing purposes
+
   const validationSchema = yup.object().shape({
-    file: yup.mixed().required(),
-    title: yup.string().required(),
-    composer: yup.string().required(),
-    key: yup.string().required(),
-    instrumentation: yup.string().required(),
-    previewStartString: yup.string().required(),
-    additionalInfo: yup.string().required(),
-    priceString: yup.string().required(),
+    file: yup
+      .mixed()
+      .required('Please select a file to upload')
+      .test('format', 'File format not supported', value => {
+        console.log(value)
+        var fileExtension = value.split('.').pop() // file extension minus dot
+        if (value) {
+          return supportedFormats.includes(fileExtension)
+        }
+      }),
+    title: yup.string().required('Please enter a title'),
+    composer: yup.string().required('Please enter the composer'),
+    key: yup.string().required('Please enter a key signature'),
+    instrumentation: yup.string().required('Required'),
+    previewStartString: yup.string().required('Required'),
+    additionalInfo: yup.string().required('Please enter additional info'),
+    priceString: yup.string().required('Price is required'),
     terms: yup.bool().required().oneOf([true], 'Terms must be accepted')
   })
   // End Formik Setup
@@ -166,207 +180,210 @@ function UploadForm() {
     fileReset()
   }
 
-  return (
-    <Formik
-      validationSchema={validationSchema}
-      onSubmit={(values, { resetForm }) => {
-        onSubmit(values, selectedFile, uuid)      
-        resetForm(initialValues)
-      }}
-      initialValues={initialValues}
-      validateOnChange={false}
-      validateOnBlur={false}
-    >
-      {({
-        handleSubmit,
-        handleChange,
-        handleBlur,
-        values,
-        touched,
-        isValid,
-        errors
-      }) => (
-        <Form noValidate validated={validated} onSubmit={handleSubmit}>
-          <Container>
-            <Row className='justify-content-md-center'>
-              <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
-                <Container className='bg-light border mt-5 p-3'>
-                  <Stack gap={3}>
-                    <div className='form-control p-2'>
-                      <Form.Group
-                        className='position-relative'
-                        control='fileInput'
-                      >
-                        <Form.Label>Select a File</Form.Label>
-                        <Form.Control
-                          type='file'
-                          required
-                          name='file'
-                          ref={ref}
-                          onChange={e => {
-                            let file = e.target.files[0]
-                            handleChange(e)
-                            setUuid(`${uuidv4()}`)
-                            setSelectedFile(file)
-                          }}
-                          isInvalid={!!errors.file}
-                          accept='audio/*' // Points browser to audio files
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.file}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Title</Form.Label>
-                        <Form.Control
-                          type='text'
-                          placeholder='Title'
-                          name='title'
-                          value={values.title}
-                          onChange={handleChange}
-                          isInvalid={!!errors.title}
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.title}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Composer</Form.Label>
-                        <Form.Control
-                          type='text'
-                          placeholder='Composer'
-                          name='composer'
-                          value={values.composer}
-                          onChange={handleChange}
-                          isInvalid={!!errors.composer}
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.composer}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Key</Form.Label>
-                        <Form.Control
-                          type='text'
-                          placeholder='e.g. Gb Minor'
-                          name='key'
-                          value={values.key}
-                          onChange={handleChange}
-                          isInvalid={!!errors.key}
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.composer}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Instrumentation</Form.Label>
-                        <Form.Control
-                          type='text'
-                          placeholder='e.g. Piano, Orchestra'
-                          name='instrumentation'
-                          value={values.instrumentation}
-                          onChange={handleChange}
-                          isInvalid={!!errors.instrumentation}
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.composer}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Preview Start Time</Form.Label>
-                        <Form.Control
-                          type='text'
-                          placeholder='Time in Seconds or 00:00:00'
-                          name='previewStartString'
-                          value={values.previewStartString}
-                          onChange={handleChange}
-                          isInvalid={!!errors.previewStartString}
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.previewStartString}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Additional Information</Form.Label>
-                        <Form.Control
-                          type='text'
-                          as='textarea'
-                          style={{ height: 90 }}
-                          placeholder='Tempo, cuts, recitatives, cadenzas etc. Add as much detail as you can. The more detail you add, the more likely your track will be purchased.'
-                          name='additionalInfo'
-                          value={values.additionalInfo}
-                          onChange={handleChange}
-                          isInvalid={!!errors.additionalInfo}
-                        />
-                        <Form.Control.Feedback type='invalid'>
-                          {errors.composer}
-                        </Form.Control.Feedback>
-                      </Form.Group>
-                    </div>
-                    <div className='form-control p-2'>
-                      <Form.Group md='3' control='input'>
-                        <Form.Label>Price</Form.Label>
-                        <InputGroup hasValidation>
-                          <InputGroup.Text id='inputGroupPrepend'>
-                            £
-                          </InputGroup.Text>
-                          <Form.Control
-                            type='text'
-                            placeholder='0.00'
-                            name='priceString'
-                            value={values.priceString}
+  if (session && session.user) {
+    return (
+      <>
+        <Formik
+          validationSchema={validationSchema}
+          onSubmit={(values, { resetForm }) => {
+            onSubmit(values, selectedFile, uuid)
+            resetForm(initialValues)
+          }}
+          initialValues={initialValues}
+          validateOnChange={false}
+          validateOnBlur={false}
+        >
+          {({ handleSubmit, handleChange, values, isValid, errors }) => (
+            <Form noValidate validated={validated} onSubmit={handleSubmit}>
+              <Container>
+                <Row className='justify-content-md-center'>
+                  <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
+                    <Container className='bg-light border mt-5 p-3'>
+                      <Stack gap={3}>
+                        <div className='form-control p-2'>
+                          <Form.Group
+                            className='position-relative'
+                            control='fileInput'
+                          >
+                            <Form.Label>Select a File</Form.Label>
+                            <Form.Control
+                              type='file'
+                              required
+                              name='file'
+                              ref={ref}
+                              onChange={e => {
+                                let file = e.target.files[0]
+                                handleChange(e)
+                                setUuid(`${uuidv4()}`)
+                                setSelectedFile(file)
+                                console.log(file.type)
+                              }}
+                              isInvalid={!!errors.file}
+                              accept='audio/*' // Points browser to audio files
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.file}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Title</Form.Label>
+                            <Form.Control
+                              type='text'
+                              placeholder='Title'
+                              name='title'
+                              value={values.title}
+                              onChange={handleChange}
+                              isInvalid={!!errors.title}
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.title}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Composer</Form.Label>
+                            <Form.Control
+                              type='text'
+                              placeholder='Composer'
+                              name='composer'
+                              value={values.composer}
+                              onChange={handleChange}
+                              isInvalid={!!errors.composer}
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.composer}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Key</Form.Label>
+                            <Form.Control
+                              type='text'
+                              placeholder='e.g. Gb Minor'
+                              name='key'
+                              value={values.key}
+                              onChange={handleChange}
+                              isInvalid={!!errors.key}
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.key}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Instrumentation</Form.Label>
+                            <Form.Control
+                              type='text'
+                              placeholder='e.g. Piano, Orchestra'
+                              name='instrumentation'
+                              value={values.instrumentation}
+                              onChange={handleChange}
+                              isInvalid={!!errors.instrumentation}
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.instrumentation}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Preview Start Time</Form.Label>
+                            <Form.Control
+                              type='text'
+                              placeholder='Time in Seconds or 00:00:00'
+                              name='previewStartString'
+                              value={values.previewStartString}
+                              onChange={handleChange}
+                              isInvalid={!!errors.previewStartString}
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.previewStartString}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Additional Information</Form.Label>
+                            <Form.Control
+                              type='text'
+                              as='textarea'
+                              style={{ height: 90 }}
+                              placeholder='Tempo, cuts, recitatives, cadenzas etc. Add as much detail as you can. The more detail you add, the more likely your track will be purchased.'
+                              name='additionalInfo'
+                              value={values.additionalInfo}
+                              onChange={handleChange}
+                              isInvalid={!!errors.additionalInfo}
+                            />
+                            <Form.Control.Feedback type='invalid'>
+                              {errors.additionalInfo}
+                            </Form.Control.Feedback>
+                          </Form.Group>
+                        </div>
+                        <div className='form-control p-2'>
+                          <Form.Group md='3' control='input'>
+                            <Form.Label>Price</Form.Label>
+                            <InputGroup hasValidation>
+                              <InputGroup.Text id='inputGroupPrepend'>
+                                £
+                              </InputGroup.Text>
+                              <Form.Control
+                                type='text'
+                                placeholder='0.00'
+                                name='priceString'
+                                value={values.priceString}
+                                onChange={handleChange}
+                                isInvalid={!!errors.priceString}
+                              />
+                              <Form.Control.Feedback type='invalid'>
+                                {errors.priceString}
+                              </Form.Control.Feedback>
+                            </InputGroup>
+                          </Form.Group>
+                        </div>
+                        <Form.Group className='mb-3'>
+                          <Form.Check
+                            required
+                            name='terms'
+                            label='Agree to terms and conditions'
                             onChange={handleChange}
-                            isInvalid={!!errors.priceString}
+                            isInvalid={!!errors.terms}
+                            feedback={errors.terms}
+                            feedbackType='invalid'
+                            id='validationFormik0'
                           />
-                          <Form.Control.Feedback type='invalid'>
-                            {errors.priceString}
-                          </Form.Control.Feedback>
-                        </InputGroup>
-                      </Form.Group>
-                    </div>
-                    <Form.Group className='mb-3'>
-                      <Form.Check
-                        required
-                        name='terms'
-                        label='Agree to terms and conditions'
-                        onChange={handleChange}
-                        isInvalid={!!errors.terms}
-                        feedback={errors.terms}
-                        feedbackType='invalid'
-                        id='validationFormik0'
-                      />
-                    </Form.Group>
-                  </Stack>
-                  <Container className='d-grid gap-2 mt-2 mb-1'>
-                    <Button
-                      size='lg'
-                      variant='info'
-                      type='submit'
-                      disabled={!isValid}
-                    >
-                      Submit
-                    </Button>
-                  </Container>
-                </Container>
-              </Col>
-            </Row>
-          </Container>
-        </Form>
-      )}
-    </Formik>
-  )
+                        </Form.Group>
+                      </Stack>
+                      <Container className='d-grid gap-2 mt-2 mb-1'>
+                        <Button
+                          size='lg'
+                          variant='info'
+                          type='submit'
+                          disabled={!isValid}
+                        >
+                          Submit
+                        </Button>
+                      </Container>
+                    </Container>
+                  </Col>
+                </Row>
+              </Container>
+            </Form>
+          )}
+        </Formik>
+      </>
+    )
+  } else {
+    return (
+      <>
+        <p>You must be logged in to upload a track.</p>
+      </>
+    )
+  }
 }
 
 export default UploadForm

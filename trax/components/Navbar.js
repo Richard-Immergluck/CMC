@@ -1,14 +1,18 @@
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
-import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap'
+import { Nav, Navbar, Container } from 'react-bootstrap'
+import { useCart } from 'react-use-cart'
 
 function MainNavbar() {
+  
+  const { emptyCart } = useCart()
+
   const { data: session, status } = useSession()
   return (
     <>
       <Navbar className='shadow' bg='light' variant='light' expand='sm'>
         <Container>
-          <Navbar.Brand href='/'>C.M.C (working title)</Navbar.Brand>
+          <Navbar.Brand href='/'>C.M.B.C (working title)</Navbar.Brand>
           <Navbar.Toggle aria-controls='navbarScroll' />
           <Navbar.Collapse id='navbarScroll'>
             <Nav
@@ -28,7 +32,7 @@ function MainNavbar() {
                     signIn()
                   }}
                 >
-                  Sign In
+                  Sign In / Register
                 </Nav.Link>
               )}
               {session && (
@@ -39,6 +43,7 @@ function MainNavbar() {
                     signOut({
                       callbackUrl: `/` // This will need to be changed when deploying
                     })
+                    emptyCart()
                   }}
                 >
                   Sign Out
