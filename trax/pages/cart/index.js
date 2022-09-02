@@ -158,10 +158,14 @@ function Cart({ tracks }) {
                         >
                           <ListGroup variant='flush'>
                             <ListGroup.Item>
-                              <Link href={`./catalogue/${item.id}`}>
-                                {item.title}
-                              </Link>
-                              &nbsp;by {item.composer}
+                              <h5>
+                                &quot;
+                                <Link href={`./catalogue/${item.id}`}>
+                                  {item.title}
+                                </Link>
+                                &quot;
+                              </h5>
+                              &nbsp;&nbsp;&nbsp;By &nbsp;&nbsp;{item.composer}
                             </ListGroup.Item>
                             <Row>
                               <Col>
@@ -203,6 +207,7 @@ function Cart({ tracks }) {
               <Button
                 onClick={checkout}
                 className='btn btn-info mt-3 text-white'
+                disabled={items.length === 0}
               >
                 Buy Now
               </Button>
@@ -219,7 +224,6 @@ function Cart({ tracks }) {
       </>
     )
   }
-  
 }
 
 export default Cart

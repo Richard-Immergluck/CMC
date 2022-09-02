@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import prisma from '/components/prisma'
 import Link from 'next/link'
@@ -67,6 +67,8 @@ export const getStaticProps = async context => {
 
 const SingleTrack = ({ track, users, comments }) => {
 
+  const [cartotal, setCartotal] = useState(0)
+
   const { data: session} = useSession()
 
   // needed for 'Self is not defined' error
@@ -83,12 +85,13 @@ const SingleTrack = ({ track, users, comments }) => {
   })
 
   // Instantiate useCart hook
-  const { addItem } = useCart()
+  const { addItem, items } = useCart()
 
   // Add track to the cart function
   const addToCart = () => {
     addItem({ ...track })
     alert('Track added to cart!')
+    setCartotal(items)
   }
 
   const userTrackMatch = (userId, users) => {
@@ -127,6 +130,7 @@ const SingleTrack = ({ track, users, comments }) => {
             </div> 
           )
           )}
+          {comments.length === 0 && <p>No comments yet - After purchasing this track you will be able to leave comments about it!</p>}
         </div>
         <br />
         <div>Price: {track.formattedPrice}</div>
