@@ -119,6 +119,7 @@ const uploadToS3 = (newFileName, selectedFile) => {
 
 function UploadForm() {
   const [validated, setValidated] = useState(false)
+  const [validatedAfterSubmit, setValidatedAfterSubmit] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null) //Holds file selected from form
   const [uuid, setUuid] = useState('')
 
@@ -150,8 +151,7 @@ function UploadForm() {
       .mixed()
       .required('Please select a file to upload')
       .test('format', 'File format not supported', value => {
-        console.log(value)
-        var fileExtension = value.split('.').pop() // file extension minus dot
+        var fileExtension = value.split('.').pop() // pull file extension from string
         if (value) {
           return supportedFormats.includes(fileExtension)
         }
@@ -163,7 +163,7 @@ function UploadForm() {
     previewStartString: yup.string().required('Required'),
     additionalInfo: yup.string().required('Please enter additional info'),
     priceString: yup.string().required('Price is required'),
-    terms: yup.bool().required().oneOf([true], 'Terms must be accepted')
+    terms: yup.bool().required().oneOf([true], 'Terms and Conditions must be accepted to submit a track')
   })
   // End Formik Setup
 
@@ -172,6 +172,7 @@ function UploadForm() {
   }, [])
 
   const onSubmit = values => {
+    setValidatedAfterSubmit(true)
     var fileExtension = selectedFile.name.split('.').pop() // file extension minus dot
     var uuidFileName = `${uuid}.${fileExtension}`
     uploadToDB(values, uuidFileName)
@@ -190,7 +191,7 @@ function UploadForm() {
             resetForm(initialValues)
           }}
           initialValues={initialValues}
-          validateOnChange={false}
+          validateOnChange={false} // should be set to true after first submission using validatedAfterSubmit and !isvalid in submit onclick - see below
           validateOnBlur={false}
         >
           {({ handleSubmit, handleChange, values, isValid, errors }) => (
@@ -354,7 +355,7 @@ function UploadForm() {
                             isInvalid={!!errors.terms}
                             feedback={errors.terms}
                             feedbackType='invalid'
-                            id='validationFormik0'
+                            id='validationFormik'
                           />
                         </Form.Group>
                       </Stack>
@@ -363,7 +364,7 @@ function UploadForm() {
                           size='lg'
                           variant='info'
                           type='submit'
-                          disabled={!isValid}
+                          // disabled={!isValid} // Disables button if form is invalid - needs to be fixed in conjunction with validation on change
                         >
                           Submit
                         </Button>

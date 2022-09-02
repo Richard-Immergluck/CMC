@@ -7,10 +7,10 @@ import _ from 'lodash'
 
 export const getStaticProps = async () => {
   // Grab all the tracks from the DB
-  const rawTrackData = await prisma.track.findMany()
+  const tracks = await prisma.track.findMany()
 
   // Convert the date object to a locale date string
-  const tracks = rawTrackData.map(track => {
+  tracks.map(track => {
     track.uploadedAt = track.uploadedAt.toLocaleDateString()
     return track
   })
@@ -20,12 +20,14 @@ export const getStaticProps = async () => {
   return {
     props: {
       tracks,
-      users
+      users,
     }
   }
 }
 
-const pageSize = 10
+const pageSize = 30
+
+
 
 const Catalogue = ({ tracks, users }) => {
   const [searchParam, setSearchParam] = useState('')
@@ -128,6 +130,9 @@ const Catalogue = ({ tracks, users }) => {
                       .toLowerCase()
                       .includes(searchParam.toLowerCase()) ||
                     track.composer
+                      .toLowerCase()
+                      .includes(searchParam.toLowerCase()) ||
+                    userTrackMatch(track.userId, users)
                       .toLowerCase()
                       .includes(searchParam.toLowerCase())
                   ) {

@@ -177,7 +177,7 @@ const UserProfilePage = ({
                       <th>#</th>
                       <th>Title</th>
                       <th>Composer</th>
-                      <th>Preview</th>
+                      <th>Play Track</th>
                       <th>Download</th>
                     </tr>
                   </thead>

@@ -1,13 +1,21 @@
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
+import { useEffect } from 'react'
 
 function MainNavbar() {
+
+  const [cartItems, setCartItems] = useState(0)
   
-  const { emptyCart } = useCart()
+  const { emptyCart, items } = useCart()
 
   const { data: session, status } = useSession()
+  
+  useEffect(() => {
+    setCartItems(items.length)}, [items])
+
   return (
     <>
       <Navbar className='shadow' bg='light' variant='light' expand='sm'>
@@ -50,7 +58,7 @@ function MainNavbar() {
                 </Nav.Link>
               )}
 
-              {session && <Nav.Link href='/cart'>Cart</Nav.Link>}
+              {session && <Nav.Link href='/cart'>Cart ({cartItems})</Nav.Link>}
             </Nav>
           </Navbar.Collapse>
         </Container>
