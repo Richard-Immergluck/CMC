@@ -20,14 +20,12 @@ export const getStaticProps = async () => {
   return {
     props: {
       tracks,
-      users,
+      users
     }
   }
 }
 
 const pageSize = 30
-
-
 
 const Catalogue = ({ tracks, users }) => {
   const [searchParam, setSearchParam] = useState('')
@@ -37,7 +35,7 @@ const Catalogue = ({ tracks, users }) => {
   const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
-    setPaginatedTracks(() =>_(tracks).slice(0).take(pageSize).value())
+    setPaginatedTracks(() => _(tracks).slice(0).take(pageSize).value())
   }, [])
 
   const pageCount = tracks ? Math.ceil(tracks.length / pageSize) : 0
@@ -157,15 +155,22 @@ const Catalogue = ({ tracks, users }) => {
                         {track.title}
                       </Link>
                     </td>
-                    <td>{track.composer}</td>
+                    <td>
+                      <Link
+                        href='/catalogue/[id]'
+                        as={`/catalogue/${track.id}`}
+                      >
+                        {track.composer}
+                      </Link>
+                    </td>
                     <td>{userTrackMatch(track.userId, users)}</td>
                     <td>{track.formattedPrice}</td>
                     <td>
                       <PlaySample
-                      track={track}
-                      start={track.previewStart}
-                      stop={track.previewEnd}
-                    />
+                        track={track}
+                        start={track.previewStart}
+                        stop={track.previewEnd}
+                      />
                     </td>
                   </tr>
                 ))}
