@@ -1,5 +1,6 @@
 import { getSession } from 'next-auth/react'
 import React, { useState, memo } from 'react'
+import Link from 'next/link'
 import {
   Container,
   Card,
@@ -19,7 +20,7 @@ import GETSignedS3URL from '../../components/GETSignedS3URL'
 
 export const getServerSideProps = async context => {
   try {
-    // Get the session from the cookie
+    // Get the session from user
     const session = await getSession({ req: context.req })
     if (session) {
       // Get the user from the database
@@ -142,9 +143,30 @@ const UserProfilePage = ({
                   <tbody>
                     {userUploadedTracks.map((track, key) => (
                       <tr key={track.id}>
-                        <td>{key + 1}</td>
-                        <td>{track.title}</td>
-                        <td>{track.composer}</td>
+                        <td>
+                          <Link
+                            href='/profile/[id]'
+                            as={`/profile/${track.id}`}
+                          >
+                            {key + 1}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link
+                            href='/profile/[id]'
+                            as={`/profile/${track.id}`}
+                          >
+                            {track.title}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link
+                            href='/profile/[id]'
+                            as={`/profile/${track.id}`}
+                          >
+                            {track.composer}
+                          </Link>
+                        </td>
                         <td>
                           <PlayTrack track={track} />
                         </td>
@@ -184,9 +206,30 @@ const UserProfilePage = ({
                   <tbody>
                     {userPurchasedTracks.map((track, key) => (
                       <tr key={track.id}>
-                        <td>{key + 1}</td>
-                        <td>{track.title}</td>
-                        <td>{track.composer}</td>
+                        <td>
+                          <Link
+                            href='/profile/[id]'
+                            as={`/profile/${track.title.replace(/\s/g, '-')}`}
+                          >
+                            {key + 1}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link
+                            href='/profile/[id]'
+                            as={`/profile/${track.title.replace(/\s/g, '-')}`}
+                          >
+                            {track.title}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link
+                            href='/profile/[id]'
+                            as={`/profile/${track.title.replace(/\s/g, '-')}`}
+                          >
+                            {track.composer}
+                          </Link>
+                        </td>
                         <td>
                           <PlayTrack track={track} />
                         </td>
