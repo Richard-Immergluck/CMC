@@ -7,6 +7,8 @@ const WaveForm = ({ url }) => {
   const waveSurferRef = useRef({
     isPlaying: () => false
   })
+
+  const [buttonDisable, setButtonDisable] = useState(true)
   const [play, setPlay] = useState(false)
 
   useEffect(() => {
@@ -16,12 +18,12 @@ const WaveForm = ({ url }) => {
       progressColor: '#242038',
       normalize: true,
       preload: 'auto',
-      hideScrollbar: true,
       height: 50
     })
     waveSurfer.load(url)
     waveSurfer.on('ready', () => {
       waveSurferRef.current = waveSurfer
+      setButtonDisable(false)
     })
 
     return () => {
@@ -29,7 +31,7 @@ const WaveForm = ({ url }) => {
     }
   }, [url])
 
-  const handlePlayPause = () => {
+  const togglePlayPause = () => {
     if (waveSurferRef.current.isPlaying()) {
       waveSurferRef.current.pause()
     } else {
@@ -40,12 +42,15 @@ const WaveForm = ({ url }) => {
 
   return (
     <>
-    <div className='d-grid gap-2'>
-      <div ref={containerRef} hidden/>
-      <Button variant='info' size="sm" onClick={handlePlayPause} className="">
-        {play ? 'pause' : 'play'}
+      <div ref={containerRef} />
+      <Button className='mt-3'
+        size='md'
+        variant='info'
+        onClick={togglePlayPause}
+        disabled={buttonDisable}
+      >
+        {play ? 'pause' : 'Play'}
       </Button>
-      </div>
     </>
   )
 }
