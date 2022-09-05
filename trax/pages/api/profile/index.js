@@ -22,4 +22,30 @@ export default async function handler(req, res) {
       res.status(400).json({ message: 'Something went wrong' })
     }
   }
+
+  // POST a new comment to the DB
+  if (req.method === 'POST') {
+    try {
+      // Use getSession Hook to access current user
+      const session = await getSession({ req })
+
+      // Destructure the req.body
+      const { trackId, comment, userId } = req.body
+
+      // If user is logged in, upload a new comment to the DB
+      if (session?.user) {
+        const newComment = await prisma.Comment.create({
+          data: {
+            content: comment,
+            postedBy: { connect: { email: session?.user?.email } },
+            track: { connect: { id: trackId } } 
+          }
+        })
+        res.status(200).json(newComment)
+      } 
+    } catch (err) {
+      console.log('from API error', err)
+      res.status(400).json({ message: 'Something went wrong' })
+    }
+  }
 }

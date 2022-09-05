@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import { useRouter } from 'next/router'
-import { getSession, useSession } from 'next-auth/react'
+import React, { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import prisma from '/components/prisma'
 import Link from 'next/link'
 import GETSignedS3URL from '../../components/GETSignedS3URL'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
-import { Container, Button } from 'react-bootstrap'
+import { Container } from 'react-bootstrap'
 import _ from 'lodash'
+import CommentBox from '../../components/CommentBox'
 
 // Create dynamic routes
 export const getStaticPaths = async () => {
@@ -81,8 +81,8 @@ export const getStaticProps = async context => {
   // Check if the track was uploaded by the current user
   const isTrackUploader = track.userId === currentUser.id
 
-  console.log('Are you the track owner?', isTrackOwner)
-  console.log('Are you the track uploader?', isTrackUploader)
+  // console.log('Are you the track owner?', isTrackOwner)
+  // console.log('Are you the track uploader?', isTrackUploader)
 
   // Pull all users for the userTrackMatch function
   const users = await prisma.user.findMany()
@@ -93,7 +93,8 @@ export const getStaticProps = async context => {
       props: {
         track,
         comments,
-        users
+        users,
+        userId
       }
     }
   } else {
@@ -109,17 +110,15 @@ export const getStaticProps = async context => {
 
 const TrackOwnerPage = params => {
   // Destructure params
-  const { track, comments, users } = params
-
+  const { track, comments, users, userId } = params
 
   // Get the current user session
   const { data: session } = useSession()
 
   // needed for WaveForm 'Self is not defined' error
-  const WaveFormFull = dynamic(
-    () => import('../../components/WaveFormFull'),
-    { ssr: false }
-  )
+  const WaveFormFull = dynamic(() => import('../../components/WaveFormFull'), {
+    ssr: false
+  })
 
   // Generate the presigned url
   const url = GETSignedS3URL({
@@ -177,8 +176,9 @@ const TrackOwnerPage = params => {
               </p>
             )}
           </div>
+          <hr />
           <br />
-          <br />
+          <CommentBox trackId={track.id} user={userId}/>
           <hr />
           <div>
             <Link href={'/catalogue'}>

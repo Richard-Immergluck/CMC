@@ -168,7 +168,7 @@ function UploadForm() {
   // End Formik Setup
 
   useEffect(() => {
-    setUuid(`${uuidv4()}`) // Generate a unique ID for each track
+    setUuid(`${uuidv4()}`) // Update the UUID generated for the track
   }, [])
 
   const onSubmit = values => {
@@ -194,7 +194,13 @@ function UploadForm() {
           validateOnChange={false} // should be set to true after first submission using validatedAfterSubmit and !isvalid in submit onclick - see below
           validateOnBlur={false}
         >
-          {({ handleSubmit, handleChange, values, isValid, errors }) => (
+          {({ 
+            handleSubmit, 
+            handleChange, 
+            values, 
+            isValid, 
+            errors 
+          }) => (
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
               <Container>
                 <Row className='justify-content-md-center'>
