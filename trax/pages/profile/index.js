@@ -146,7 +146,7 @@ const UserProfilePage = ({
                         <td>
                           <Link
                             href='/profile/[id]'
-                            as={`/profile/${track.id}`}
+                            as={`/profile/${track.id}-${track.userId}`}
                           >
                             {key + 1}
                           </Link>
@@ -209,7 +209,7 @@ const UserProfilePage = ({
                         <td>
                           <Link
                             href='/profile/[id]'
-                            as={`/profile/${track.title.replace(/\s/g, '-')}`}
+                            as={`/profile/${track.id}?foo=bar`}
                           >
                             {key + 1}
                           </Link>

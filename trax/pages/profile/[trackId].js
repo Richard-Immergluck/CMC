@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { getSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
+import { getSession, useSession } from 'next-auth/react'
 import prisma from '/components/prisma'
 import Link from 'next/link'
 import GETSignedS3URL from '../../components/GETSignedS3URL'
@@ -15,7 +16,8 @@ export const getStaticPaths = async () => {
   const paths = allTracks.map(track => {
     return {
       params: {
-        trackId: `${track.id}`
+        trackId: `${track.id}`,
+        userId: `${track.userId}`
       }
     }
   })
@@ -28,24 +30,24 @@ export const getStaticPaths = async () => {
 
 // Retrieve the individual track from DB
 export const getStaticProps = async context => {
-  const { params } = context
+  // Get the full url from the context
+  const { ...slug } = context.params
 
-  // Get the session from user
-  const session = await getSession({ req: context.req })
+  // Split the url to get the user id and track id
+  const trackId = slug.trackId.split('-')[0]
+  const userId = slug.trackId.split('-').pop()
 
-  console.log('the session is', session)
-
-  // // Get the user from the database
-  // const currentUser = await prisma.user.findUnique({
-  //   where: {
-  //     email: session.user.email
-  //   }
-  // })
+  // Get the user from the database
+  const currentUser = await prisma.user.findUnique({
+    where: {
+      id: userId
+    }
+  })
 
   // Grab the track from DB using the params
   const track = await prisma.track.findUnique({
     where: {
-      id: Number(params.trackId)
+      id: Number(trackId)
     }
   })
 
@@ -53,7 +55,7 @@ export const getStaticProps = async context => {
   const comments = await prisma.comment.findMany({
     where: {
       track: {
-        id: Number(params.trackId)
+        id: Number(trackId)
       }
     }
   })
@@ -66,40 +68,126 @@ export const getStaticProps = async context => {
   // Convert the date element of the track to a locale date string
   track.uploadedAt = track.uploadedAt.toLocaleDateString()
 
-  // // Check if the track is owned by the current user
-  // const isTrackOwner = await prisma.TrackOwner.findUnique({
-  //   where: {
-  //     trackId_userId: {
-  //       trackId: Number(params.trackId),
-  //       userId: currentUser.id
-  //     }
-  //   }
-  // })
+  // Check if the track has been purchased by the current user
+  const isTrackOwnerQuery = await prisma.TrackOwner.findMany({
+    where: {
+      userId: currentUser.id
+    }
+  })
 
-  // // Check if the track was uploaded by the current user
-  // const isTrackUploader = await prisma.track.findUnique({
-  //   where: {
-  //     id: Number(params.trackId)
-  //   },
-  //   select: {
-  //     userId: true
-  //   }
-  // })
+  // create boolean to check if the track has been purchased
+  const isTrackOwner = isTrackOwnerQuery.length > 0
 
-  // if (isTrackOwner || isTrackUploader === currentUser.id) {
-  return {
-    props: {
-      track,
-      comments
+  // Check if the track was uploaded by the current user
+  const isTrackUploader = track.userId === currentUser.id
+
+  console.log('Are you the track owner?', isTrackOwner)
+  console.log('Are you the track uploader?', isTrackUploader)
+
+  // Pull all users for the userTrackMatch function
+  const users = await prisma.user.findMany()
+
+  // Return the track and comments to the page conditionally
+  if (isTrackOwner || isTrackUploader) {
+    return {
+      props: {
+        track,
+        comments,
+        users
+      }
+    }
+  } else {
+    // If conditions not met, show 404 page
+    return {
+      redirect: {
+        destination: '/404',
+        permanent: false
+      }
     }
   }
 }
 
-const TrackOwnerPage = (track, comments) => {
+const TrackOwnerPage = params => {
+  // Destructure params
+  const { track, comments, users } = params
+
+
+  // Get the current user session
+  const { data: session } = useSession()
+
+  // needed for WaveForm 'Self is not defined' error
+  const WaveFormFull = dynamic(
+    () => import('../../components/WaveFormFull'),
+    { ssr: false }
+  )
+
+  // Generate the presigned url
+  const url = GETSignedS3URL({
+    bucket: process.env.S3_BUCKET_NAME,
+    key: `${track.fileName}`,
+    expires: 60
+  })
+
+  // Function to match the user's name with the track
+  const userTrackMatch = (userId, users) => {
+    const user = _.find(users, { id: userId })
+    return user ? user.name : 'Unknown'
+  }
+
   return (
-    <Container>
-      <h1>Track Owner Page</h1>
-    </Container>
+    <>
+      {session && (
+        <Container>
+          <h2>{track.title}</h2>
+          <p>by {track.composer}</p>
+          <p>
+            Uploaded by {userTrackMatch(track.userId, users)} on{' '}
+            {track.uploadedAt}
+          </p>
+          <p>Key: {track.key}</p>
+          <p>Instrumentation: {track.instrumentation}</p>
+          <p>
+            Additional Information:
+            <br />
+            {track.additionalInfo}
+          </p>
+
+          <br />
+
+          <WaveFormFull url={url} />
+          <br />
+          <br />
+          <div>
+            Comments:
+            <br />
+            {comments.map((comment, key) => (
+              <div key={comment.id}>
+                <p>
+                  {key + 1} - by {userTrackMatch(comment.userId, users)}
+                  <br />
+                  {comment.content}
+                </p>
+                <br />
+              </div>
+            ))}
+            {comments.length === 0 && (
+              <p>
+                No comments yet - After purchasing this track you will be able
+                to leave comments about it!
+              </p>
+            )}
+          </div>
+          <br />
+          <br />
+          <hr />
+          <div>
+            <Link href={'/catalogue'}>
+              <a>Back to the Catalogue</a>
+            </Link>
+          </div>
+        </Container>
+      )}
+    </>
   )
 }
 

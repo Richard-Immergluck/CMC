@@ -3,7 +3,7 @@ import GetSignedS3URL from './GETSignedS3URL'
 import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
 const PlayTrack = props => {
-  const WaveForm = dynamic(() => import("./WaveForm"), { ssr: false }); // needed for 'Self is not defined' error
+  const WaveForm = dynamic(() => import("./WaveFormFullRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
   const { track } = props
 
   //Create presigned URL
