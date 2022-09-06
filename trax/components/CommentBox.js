@@ -20,6 +20,7 @@ export const getServerSideProps = async ({ req, res }) => {
 
 // Upload a comment to the DB
 const uploadComment = async (values, actions, trackId, user) => {
+  
   // console.log('The values:', values)
   // console.log('The actions:', actions)
   // console.log('The trackId:', trackId)

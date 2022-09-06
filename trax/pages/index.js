@@ -6,7 +6,7 @@ import { Table } from 'react-bootstrap'
 
 export const getServerSideProps = async () => {
   // Grab all the tracks from the DB in order they were uploaded descending
-  const rawTrackData = await prisma.track.findMany({
+  const fiveTracks = await prisma.track.findMany({
     orderBy: [
       {
         uploadedAt: 'desc'
@@ -16,19 +16,22 @@ export const getServerSideProps = async () => {
   })
 
   // Convert the date object to a locale date string
-  const tracks = rawTrackData.map(track => {
+  fiveTracks.map(track => {
     track.uploadedAt = track.uploadedAt.toLocaleDateString()
     return track
   })
 
+  const allTracks = await prisma.track.findMany()
+
   return {
     props: {
-      tracks
+      tracks,
+      allTracks
     }
   }
 }
 
-const Home = ({ tracks }) => {
+const Home = ({ tracks, allTracks }) => {
 
   return (
     <>
