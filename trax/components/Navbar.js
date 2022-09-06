@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
