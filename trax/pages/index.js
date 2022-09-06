@@ -2,6 +2,7 @@ import Head from 'next/head'
 import prisma from '/components/prisma'
 import PlaySample from '/components/PlaySample'
 import { Table, Container, Row, Col } from 'react-bootstrap'
+import Link from 'next/link'
 
 export const getServerSideProps = async () => {
   // Grab all the tracks from the DB in order they were uploaded descending
@@ -58,7 +59,10 @@ const Home = ({ fiveTracks, allTracks }) => {
               </Col>
             </Row>
           </Container>
-          <Container className='bg-light border mt-5 p-3' style={{width: 700}}>
+          <Container
+            className='bg-light border mt-5 p-3'
+            style={{ width: 700 }}
+          >
             <h5 className='mt-1 text-center'>
               Here is a short list of the most recent uploads!
             </h5>
@@ -74,9 +78,33 @@ const Home = ({ fiveTracks, allTracks }) => {
               <tbody>
                 {fiveTracks.map((track, key) => (
                   <tr key={track.id}>
-                    <td>{key + 1}</td>
-                    <td>{track.title}</td>
-                    <td>{track.composer}</td>
+                    <td>
+                      {' '}
+                      <Link
+                        href='/catalogue/[id]'
+                        as={`/catalogue/${track.id}`}
+                      >
+                        {key + 1}
+                      </Link>
+                    </td>
+                    <td>
+                      {' '}
+                      <Link
+                        href='/catalogue/[id]'
+                        as={`/catalogue/${track.id}`}
+                      >
+                        {track.title}
+                      </Link>
+                    </td>
+                    <td>
+                      {' '}
+                      <Link
+                        href='/catalogue/[id]'
+                        as={`/catalogue/${track.id}`}
+                      >
+                        {track.composer}
+                      </Link>
+                    </td>
                     <td>
                       <PlaySample track={track} />
                     </td>
