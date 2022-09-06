@@ -15,23 +15,30 @@ export const getServerSideProps = async () => {
     take: 5
   })
 
-  // Convert the date object to a locale date string
+  // Convert the date object in fiveTracks to a locale date string
   fiveTracks.map(track => {
     track.uploadedAt = track.uploadedAt.toLocaleDateString()
     return track
   })
 
   const allTracks = await prisma.track.findMany()
+  
+  // Convert the date object in all tracks to a locale date string
+  allTracks.map(track => {
+    track.uploadedAt = track.uploadedAt.toLocaleDateString()
+    return track
+  })
+
 
   return {
     props: {
-      tracks,
+      fiveTracks,
       allTracks
     }
   }
 }
 
-const Home = ({ tracks, allTracks }) => {
+const Home = ({ fiveTracks, allTracks }) => {
 
   return (
     <>
@@ -63,7 +70,7 @@ const Home = ({ tracks, allTracks }) => {
               </tr>
             </thead>
             <tbody>
-              {tracks.map((track, key) => (
+              {fiveTracks.map((track, key) => (
                 <tr key={track.id}>
                   <td>{key + 1}</td>
                   <td>{track.title}</td>
