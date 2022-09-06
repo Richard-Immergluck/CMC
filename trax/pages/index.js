@@ -1,8 +1,7 @@
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
 import prisma from '/components/prisma'
 import PlaySample from '/components/PlaySample'
-import { Table } from 'react-bootstrap'
+import { Table, Container, Row, Col } from 'react-bootstrap'
 
 export const getServerSideProps = async () => {
   // Grab all the tracks from the DB in order they were uploaded descending
@@ -22,13 +21,12 @@ export const getServerSideProps = async () => {
   })
 
   const allTracks = await prisma.track.findMany()
-  
+
   // Convert the date object in all tracks to a locale date string
   allTracks.map(track => {
     track.uploadedAt = track.uploadedAt.toLocaleDateString()
     return track
   })
-
 
   return {
     props: {
@@ -39,52 +37,55 @@ export const getServerSideProps = async () => {
 }
 
 const Home = ({ fiveTracks, allTracks }) => {
-
   return (
     <>
-      <div className={styles.container}>
+      <div>
         <Head>
-          <title>CMC</title>
+          <title>CMBC</title>
           <meta
-            name='Classical Music Catalogue'
-            content='Classical Backing Track Catalogue'
+            name='Classical Music Backing-Track Catalogue'
+            content='Classical Music Backing-Track Catalogue'
           />
-          <link rel='icon' href='/favicon.ico' />
         </Head>
 
-        <main className={styles.main}>
-          <h2>Welcome to</h2>
-          <h1 className={styles.title}>C.M.B.C</h1>
-          <h4> - the Classical Music Backing-Track Catalogue - </h4>
-
-          <h5 className='mt-5'>
-            Here is a short list of the most recent uploads!
-          </h5>
-          <Table striped bordered hover responsive size='sm'>
-            <thead>
-              <tr className='table-info'>
-                <th>#</th>
-                <th>Title</th>
-                <th>Composer</th>
-                <th>Play Track</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fiveTracks.map((track, key) => (
-                <tr key={track.id}>
-                  <td>{key + 1}</td>
-                  <td>{track.title}</td>
-                  <td>{track.composer}</td>
-                  <td>
-                    <PlaySample track={track} />
-                  </td>
+        <main>
+          <Container className='text-center mt-5'>
+            <Row className='justify-content-md-center'>
+              <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
+                <h2>Welcome to</h2>
+                <h1>C.M.B.C</h1>
+                <h4>Classical Music Backing-Track Catalogue</h4>
+              </Col>
+            </Row>
+          </Container>
+          <Container className='bg-light border mt-5 p-3' style={{width: 700}}>
+            <h5 className='mt-1 text-center'>
+              Here is a short list of the most recent uploads!
+            </h5>
+            <Table striped bordered hover responsive size='sm'>
+              <thead>
+                <tr className='table-info'>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Composer</th>
+                  <th>Play Track</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {fiveTracks.map((track, key) => (
+                  <tr key={track.id}>
+                    <td>{key + 1}</td>
+                    <td>{track.title}</td>
+                    <td>{track.composer}</td>
+                    <td>
+                      <PlaySample track={track} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Container>
         </main>
-
-        <footer className={styles.footer}></footer>
       </div>
     </>
   )
