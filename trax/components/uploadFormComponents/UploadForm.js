@@ -198,7 +198,6 @@ function UploadForm() {
             handleSubmit, 
             handleChange, 
             values, 
-            isValid, 
             errors 
           }) => (
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
