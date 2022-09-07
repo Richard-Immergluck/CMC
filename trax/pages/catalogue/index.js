@@ -36,7 +36,7 @@ const Catalogue = ({ tracks, users }) => {
 
   useEffect(() => {
     setPaginatedTracks(() => _(tracks).slice(0).take(pageSize).value())
-  }, [])
+  }, [tracks])
 
   const pageCount = tracks ? Math.ceil(tracks.length / pageSize) : 0
 
