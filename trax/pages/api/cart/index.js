@@ -3,9 +3,6 @@ import prisma from '/components/prisma'
 
 // Update DB when tracks are bought
 export default async function handler(req, res) {
-  // Destructure the req.body
-  const { ...cartItems } = req.body
-
   // Check if user has already purchased the track
   if (req.method === 'GET') {
     try {
