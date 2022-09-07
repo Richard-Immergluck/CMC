@@ -1,5 +1,5 @@
-// Next-Auth Imports
-import { SessionProvider } from 'next-auth/react'
+// Session Provider
+import { SessionProvider } from 'next-auth/react' 
 
 // Style Imports
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -8,7 +8,7 @@ import '../styles/globals.css'
 // Cart Provider
 import { CartProvider } from 'react-use-cart'
 
-// Consistent ID generation between client and server
+// Consistent ID generation between client and server for Bootstrap
 import { SSRProvider } from 'react-bootstrap'
 
 // Component imports
