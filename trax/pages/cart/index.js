@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useCart } from 'react-use-cart'
 import Link from 'next/link'
@@ -30,6 +30,9 @@ export const getStaticProps = async () => {
 }
 
 function Cart({ tracks }) {
+  const [manipulatedTest, setmanipulationCheckTest] = useState(false)
+  const [alreadyPurchasedTest, setAlreadyPurchasedTest] = useState(false)
+
   // Retrieve the user from the session
   const { data: session } = useSession()
 
@@ -59,9 +62,11 @@ function Cart({ tracks }) {
               `Sorry, but the item price for ${items[arrayObject].title} have changed. The cart will now be emptied and items will need to be added again - apologies for the inconvenience.`
             )
             emptyCart()
+
             return
           } else {
             console.log('price check passed')
+            setmanipulationCheckTest(true)
           }
         }
       }
@@ -78,42 +83,42 @@ function Cart({ tracks }) {
     })
     const userTracksObject = await getUserTracks.json()
 
-    // Check GET request against cart items
-    const matchedItemArray = []
+    const alreadyPurchasedArray = []
+
     // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
-      // Loop through purchased items
-      for (
-        var trackObject = 0;
-        trackObject < userTracksObject.length;
-        trackObject++
-      ) {
-        // Match the cart item with the purchased item
+      // For each cart item, loop through DB tracks
+      for (var trackObject = 0; trackObject < userTracksObject.length; trackObject++) {
+        // Match the cart item ID to the DB track ID
         if (userTracksObject[trackObject].trackId === items[arrayObject].id) {
-          // Add the matched item to the matchedItemArray
-          matchedItemArray.push(items[arrayObject])
+          alreadyPurchasedArray.push(items[arrayObject])
         }
       }
     }
 
+    console.log('The already purchased tracks', alreadyPurchasedArray)
+
     // Create message if user has already purchased the track
     // First check if the matchedItemArray is empty
-    if (matchedItemArray.length !== 0) {
+    if (alreadyPurchasedArray.length === 0) {
+      console.log('matched item check passed')
+      setAlreadyPurchasedTest(true)
+    } else {
       // If there is one matched item
-      if (matchedItemArray.length === 1) {
+      if (alreadyPurchasedArray.length === 1) {
         alert(
-          `Sorry, but "${matchedItemArray[0].title} by ${matchedItemArray[0].composer}" has already been purchased. Please revise your shopping cart.`
+          `Sorry, but "${alreadyPurchasedArray[0].title} by ${alreadyPurchasedArray[0].composer}" has already been purchased. Please revise your shopping cart.`
         )
       }
       // If there are multiple matched items
-      if (matchedItemArray.length > 1) {
+      if (alreadyPurchasedArray.length > 1) {
         var itemList = ``
         for (
           var arrayObject = 0;
-          arrayObject < matchedItemArray.length;
+          arrayObject < alreadyPurchasedArray.length;
           arrayObject++
         ) {
-          itemList += `"${matchedItemArray[arrayObject].title} by ${matchedItemArray[arrayObject].composer}", `
+          itemList += `"${alreadyPurchasedArray[arrayObject].title} by ${alreadyPurchasedArray[arrayObject].composer}", `
         }
         alert(
           `Sorry, but the following items have already been purchased: ${itemList} Please revise your shopping cart.`
@@ -122,14 +127,37 @@ function Cart({ tracks }) {
     }
     // ------ END already purchased check ------
 
-    // --- START Stripe Checkout ---
+    // If both checks pass, then proceed to checkout
+    if (manipulatedTest && alreadyPurchasedTest) {
+      // Update the user's purchased tracks in DB
+      try {
+        const response = await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: session.user.id,
+            tracks: items
+          })
+        })
+        const data = await response.json()
+        console.log(data)
+        alert('Thank you for your purchase!')
+      } catch (error) {
+        console.log(error)
+      }
 
-    const lineitemsBody = JSON.stringify({})
+      // Empty the cart
+      emptyCart()
 
-    console.log(lineitemsBody)
+      // Redirect to the user's profile page
+      window.location.href = '/profile'
+    } else {
+      console.log('checkout failed')
+    }
   }
   // --- END of Checkout ---
-
   if (session && session.user) {
     return (
       <>
