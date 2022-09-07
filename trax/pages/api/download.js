@@ -1,4 +1,3 @@
-import { DeleteBucketOwnershipControlsCommand } from '@aws-sdk/client-s3'
 import AWS from 'aws-sdk'
 
 AWS.config.update({
