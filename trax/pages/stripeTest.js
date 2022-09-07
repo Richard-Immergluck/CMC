@@ -21,7 +21,7 @@ const PreviewPage = () => {
   }, [])
 
   return (
-    <form action='/api/checkout_sessions' method='POST'>
+    <form action='/api/stripe/checkout_sessions' method='POST'>
       <section>
         <button type='submit' role='link'>
           Checkout
