@@ -30,7 +30,7 @@ export const getStaticProps = async () => {
 }
 
 function Cart({ tracks }) {
-  const [manipulatedTest, setmanipulationCheckTest] = useState(false)
+  const [manipulationTest, setManipulationCheckTest] = useState(false)
   const [alreadyPurchasedTest, setAlreadyPurchasedTest] = useState(false)
 
   // Retrieve the user from the session
@@ -66,7 +66,7 @@ function Cart({ tracks }) {
             return
           } else {
             console.log('price check passed')
-            setmanipulationCheckTest(true)
+            setManipulationCheckTest(true)
           }
         }
       }
@@ -128,7 +128,7 @@ function Cart({ tracks }) {
     // ------ END already purchased check ------
 
     // If both checks pass, then proceed to checkout
-    if (manipulatedTest && alreadyPurchasedTest) {
+    if (manipulationTest && alreadyPurchasedTest) {
       // Update the user's purchased tracks in DB
       try {
         const response = await fetch('/api/cart', {
