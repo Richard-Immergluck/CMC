@@ -37,7 +37,7 @@ const secondMaker = timeSplit => {
 
 // DBUpload function
 const uploadToDB = async (values, newFileName) => {
-  const { title, composer, previewStartString, priceString } = values
+  const { title, composer, previewStartString, priceString, key, instrumentation, additionalInfo } = values
 
   // Dealing with various user inputs for the previewStart input field
   if (previewStartString.includes(':')) {

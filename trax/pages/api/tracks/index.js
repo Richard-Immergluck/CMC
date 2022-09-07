@@ -48,8 +48,6 @@ export default async function handler(req, res) {
         }
       })
 
-      console.log('the new track filename is ====>  ', newFileName)
-
       res.status(200).json(upTrack, newFileName)
 
       return newFileName
