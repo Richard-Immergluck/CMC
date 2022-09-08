@@ -98,8 +98,8 @@ const UserProfilePage = ({
   }
 
   return (
-    <>
-      <Container className='mt-5'>
+    < >
+      <Container suppressHydrationWarning={true} className='mt-5'>
         <Row>
           <Col md={5}>
             <Card style={{ width: '18rem' }}>
