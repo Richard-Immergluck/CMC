@@ -13,7 +13,7 @@ const GETSignedS3URL = ({ bucket, key, expires, fileName }) => {
   const signedUrl = s3.getSignedUrl("getObject", { 
     Key: key,
     Bucket: bucket,
-    Expires: expires || 900, // This is the S3 default value (15 minutes)
+    Expires: expires || 900, // Either the value brought in as props or the default value (15 minutes)
     ResponseContentDisposition: `attachment; filename="${fileName}"`,
   });
 

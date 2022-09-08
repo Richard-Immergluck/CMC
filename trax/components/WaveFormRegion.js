@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import Button from 'react-bootstrap/Button'
 
-const WaveForm = ({ url }) => {
-  const previewStart = 15
-  const previewEnd = 30
+const WaveForm = ( props ) => {
+  const { url, track } = props
+
+  const previewStart = track.previewStart
+  const previewEnd = track.previewEnd
 
   const containerRef = useRef()
   const waveSurferRef = useRef({

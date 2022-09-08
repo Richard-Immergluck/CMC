@@ -116,7 +116,7 @@ const SingleTrack = ({ track, users, comments }) => {
           {track.additionalInfo}
         </p>
         <br />
-        <WaveFormRegion url={url} />
+        <WaveFormRegion url={url} track={track} />
         <br />
         <br />
         <div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 
-// Bootstrap imports
+// React Bootstrap imports
 import {
   Container,
   Row,
@@ -9,7 +9,9 @@ import {
   Button,
   Stack,
   Form,
-  InputGroup
+  InputGroup,
+  Popover,
+  OverlayTrigger
 } from 'react-bootstrap'
 
 // AWS package
@@ -37,11 +39,22 @@ const secondMaker = timeSplit => {
 
 // DBUpload function
 const uploadToDB = async (values, newFileName) => {
-  const { title, composer, previewStartString, priceString, key, instrumentation, additionalInfo } = values
+  const {
+    title,
+    composer,
+    previewStartString,
+    priceString,
+    key,
+    instrumentation,
+    additionalInfo
+  } = values
 
-  // Dealing with various user inputs for the previewStart input field
+  // Dealing with various user inputs for the preview starting point input field
   if (previewStartString.includes(':')) {
     var timeSplit = previewStartString.split(':')
+    var previewStart = secondMaker(timeSplit)
+  } else if (previewStartString.includes(';')) {
+    var timeSplit = previewStartString.split(';')
     var previewStart = secondMaker(timeSplit)
   } else if (previewStartString.includes('.')) {
     var timeSplit = previewStartString.split('.')
@@ -103,7 +116,7 @@ const uploadToS3 = (newFileName, selectedFile) => {
   })
   // AWS config end
 
-  // File Upload object structure
+  // S3 file Upload params
   const params = {
     ACL: 'public-read',
     Body: selectedFile,
@@ -120,18 +133,21 @@ const uploadToS3 = (newFileName, selectedFile) => {
 function UploadForm() {
   const [validated, setValidated] = useState(false)
   const [validatedAfterSubmit, setValidatedAfterSubmit] = useState(false)
-  const [selectedFile, setSelectedFile] = useState(null) //Holds file selected from form
+  const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [uuid, setUuid] = useState('')
 
-  const ref = useRef()
-
+  // Get the session
   const { data: session } = useSession()
 
+  // ref for the file input field
+  const ref = useRef()
+
+  // Function to reset the file input field
   const fileReset = () => {
     ref.current.value = ''
   }
 
-  // Formik Setup
+  // --- Formik Setup ---
   const initialValues = {
     file: null,
     title: '',
@@ -163,12 +179,16 @@ function UploadForm() {
     previewStartString: yup.string().required('Required'),
     additionalInfo: yup.string().required('Please enter additional info'),
     priceString: yup.string().required('Price is required'),
-    terms: yup.bool().required().oneOf([true], 'Terms and Conditions must be accepted to submit a track')
+    terms: yup
+      .bool()
+      .required()
+      .oneOf([true], 'Terms and Conditions must be accepted to submit a track')
   })
-  // End Formik Setup
+  // --- End Formik Setup ---
 
+  // Monitor the UUID state
   useEffect(() => {
-    setUuid(`${uuidv4()}`) // Update the UUID generated for the track
+    setUuid(`${uuidv4()}`)
   }, [])
 
   const onSubmit = values => {
@@ -180,6 +200,24 @@ function UploadForm() {
     alert('Track uploaded successfully!')
     fileReset()
   }
+
+  const popover = (
+    <Popover id='popover-basic'>
+      <Popover.Header as='h3'>Terms and Conditions</Popover.Header>
+      <Popover.Body>
+        <p>
+          By submitting a track to the site, you agree to the following terms:
+        </p>
+        <ul>
+          <li>
+            You are the owner of the track and have the right to submit it to
+            the site.
+          </li>
+        </ul>
+        <p>etc</p>
+      </Popover.Body>
+    </Popover>
+  )
 
   if (session && session.user) {
     return (
@@ -194,12 +232,7 @@ function UploadForm() {
           validateOnChange={false} // should be set to true after first submission using validatedAfterSubmit and !isvalid in submit onclick - see below
           validateOnBlur={false}
         >
-          {({ 
-            handleSubmit, 
-            handleChange, 
-            values, 
-            errors 
-          }) => (
+          {({ handleSubmit, handleChange, values, errors }) => (
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
               <Container>
                 <Row className='justify-content-md-center'>
@@ -222,7 +255,6 @@ function UploadForm() {
                                 handleChange(e)
                                 setUuid(`${uuidv4()}`)
                                 setSelectedFile(file)
-                                console.log(file.type)
                               }}
                               isInvalid={!!errors.file}
                               accept='audio/*' // Points browser to audio files
@@ -298,10 +330,16 @@ function UploadForm() {
                         </div>
                         <div className='form-control p-2'>
                           <Form.Group md='3' control='input'>
-                            <Form.Label>Preview Start Time</Form.Label>
+                            <Form.Label>Preview Starting Point</Form.Label>
+                            <br />
+                            <small className='form-text text-muted'>
+                              Select the time from which you would like the
+                              preview of your track to start. This can be in
+                              seconds or 00:00:00 format
+                            </small>
                             <Form.Control
                               type='text'
-                              placeholder='Time in Seconds or 00:00:00'
+                              placeholder='eg. 00:35 or 35'
                               name='previewStartString'
                               value={values.previewStartString}
                               onChange={handleChange}
@@ -351,7 +389,17 @@ function UploadForm() {
                             </InputGroup>
                           </Form.Group>
                         </div>
+
                         <Form.Group className='mb-3'>
+                          <OverlayTrigger
+                            trigger='click'
+                            placement='right'
+                            overlay={popover}
+                          >
+                            <p>
+                              Click here to view the terms and conditions
+                            </p>
+                          </OverlayTrigger>
                           <Form.Check
                             required
                             name='terms'
@@ -365,6 +413,7 @@ function UploadForm() {
                         </Form.Group>
                       </Stack>
                       <Container className='d-grid gap-2 mt-2 mb-1'>
+                        <br />
                         <Button
                           size='lg'
                           variant='info'

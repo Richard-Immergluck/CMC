@@ -1,4 +1,3 @@
-import Head from 'next/head'
 import prisma from '/components/prisma'
 import PlaySample from '/components/PlaySample'
 import { Table, Container, Row, Col } from 'react-bootstrap'
@@ -6,24 +5,15 @@ import Link from 'next/link'
 
 export const getServerSideProps = async () => {
   // Grab all the tracks from the DB in order they were uploaded descending
-  const fiveTracks = await prisma.track.findMany({
+  const allTracks = await prisma.track.findMany({
     orderBy: [
       {
         uploadedAt: 'desc'
       }
-    ],
-    take: 5
+    ]
   })
 
-  // Convert the date object in fiveTracks to a locale date string
-  fiveTracks.map(track => {
-    track.uploadedAt = track.uploadedAt.toLocaleDateString()
-    return track
-  })
-
-  const allTracks = await prisma.track.findMany()
-
-  // Convert the date object in all tracks to a locale date string
+  // Convert the date object to a locale date string
   allTracks.map(track => {
     track.uploadedAt = track.uploadedAt.toLocaleDateString()
     return track
@@ -31,24 +21,14 @@ export const getServerSideProps = async () => {
 
   return {
     props: {
-      fiveTracks,
       allTracks
     }
   }
 }
 
-const Home = ({ fiveTracks, allTracks }) => {
+const Home = ({ allTracks }) => {
   return (
     <>
-      <div>
-        <Head>
-          <title>CMBC</title>
-          <meta
-            name='Classical Music Backing-Track Catalogue'
-            content='Classical Music Backing-Track Catalogue'
-          />
-        </Head>
-
         <main>
           <Container className='text-center mt-5'>
             <Row className='justify-content-md-center'>
@@ -76,7 +56,7 @@ const Home = ({ fiveTracks, allTracks }) => {
                 </tr>
               </thead>
               <tbody>
-                {fiveTracks.map((track, key) => (
+                {allTracks.slice(0, 5).map((track, key) => (
                   <tr key={track.id}>
                     <td>
                       {' '}
@@ -114,7 +94,6 @@ const Home = ({ fiveTracks, allTracks }) => {
             </Table>
           </Container>
         </main>
-      </div>
     </>
   )
 }
