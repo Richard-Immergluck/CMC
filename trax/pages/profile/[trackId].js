@@ -136,7 +136,7 @@ const TrackOwnerPage = params => {
   return (
     <>
       {session && (
-        <Container>
+        <Container className='bg-light border mt-5 p-3'>
           <h2>{track.title}</h2>
           <p>by {track.composer}</p>
           <p>

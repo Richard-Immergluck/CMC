@@ -1,9 +1,13 @@
+# Some of the structure and code taken from 
+# https://hub.docker.com/_/postgres/
+# PostgreSQL Docker file documentation
+
 version: '3.8'
 services:
   # In Docker
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/
-  # Outside Docker
-  # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/
+  # In the App (.env)
+  # - DATABASE_URL=postgres://prisma:prisma@localhost:5432/
 
   postgres:
     image: postgres:10.3

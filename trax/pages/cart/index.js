@@ -30,8 +30,8 @@ export const getStaticProps = async () => {
 }
 
 function Cart({ tracks }) {
-  const [manipulationTest, setManipulationCheckTest] = useState(false)
-  const [alreadyPurchasedTest, setAlreadyPurchasedTest] = useState(false)
+  const [manipulationTest, setManipulationCheckTest] = useState(true)
+  const [alreadyPurchasedTest, setAlreadyPurchasedTest] = useState(true)
 
   // Retrieve the user from the session
   const { data: session } = useSession()
@@ -62,11 +62,11 @@ function Cart({ tracks }) {
               `Sorry, but the item price for ${items[arrayObject].title} have changed. The cart will now be emptied and items will need to be added again - apologies for the inconvenience.`
             )
             emptyCart()
+            setManipulationCheckTest(false)
 
             return
           } else {
             console.log('price check passed')
-            setManipulationCheckTest(true)
           }
         }
       }
@@ -88,7 +88,11 @@ function Cart({ tracks }) {
     // Loop through cart items
     for (var arrayObject = 0; arrayObject < items.length; arrayObject++) {
       // For each cart item, loop through DB tracks
-      for (var trackObject = 0; trackObject < userTracksObject.length; trackObject++) {
+      for (
+        var trackObject = 0;
+        trackObject < userTracksObject.length;
+        trackObject++
+      ) {
         // Match the cart item ID to the DB track ID
         if (userTracksObject[trackObject].trackId === items[arrayObject].id) {
           alreadyPurchasedArray.push(items[arrayObject])
@@ -96,19 +100,18 @@ function Cart({ tracks }) {
       }
     }
 
-    console.log('The already purchased tracks', alreadyPurchasedArray)
-
     // Create message if user has already purchased the track
     // First check if the matchedItemArray is empty
     if (alreadyPurchasedArray.length === 0) {
       console.log('matched item check passed')
-      setAlreadyPurchasedTest(true)
     } else {
       // If there is one matched item
       if (alreadyPurchasedArray.length === 1) {
         alert(
           `Sorry, but "${alreadyPurchasedArray[0].title} by ${alreadyPurchasedArray[0].composer}" has already been purchased. Please revise your shopping cart.`
         )
+        setAlreadyPurchasedTest(false)
+        return
       }
       // If there are multiple matched items
       if (alreadyPurchasedArray.length > 1) {
@@ -123,6 +126,8 @@ function Cart({ tracks }) {
         alert(
           `Sorry, but the following items have already been purchased: ${itemList} Please revise your shopping cart.`
         )
+        setAlreadyPurchasedTest(false)
+        return
       }
     }
     // ------ END already purchased check ------
@@ -137,12 +142,11 @@ function Cart({ tracks }) {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            userId: session.user.id,
             tracks: items
           })
         })
         const data = await response.json()
-        console.log(data)
+        console.log('the data respons', data)
         alert('Thank you for your purchase!')
       } catch (error) {
         console.log(error)
