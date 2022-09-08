@@ -13,6 +13,7 @@ import { SSRProvider } from 'react-bootstrap'
 
 // Component imports
 import Navbar from '../components/Navbar'
+import Header from '../components/Header'
 
 import { useEffect } from 'react'
 
@@ -27,6 +28,7 @@ function MyApp({ session, Component, pageProps }) {
     <SessionProvider session={session}>
       <CartProvider>
         <Navbar />
+        <Header />
         <Component {...pageProps} />
       </CartProvider>
     </SessionProvider>

@@ -6,12 +6,17 @@ import { useEffect } from 'react'
 
 function MainNavbar() {
 
+  // Cart state
   const [cartItems, setCartItems] = useState(0)
-  
+
+
+  // instantiate cart
   const { emptyCart, items } = useCart()
 
+  // Get the session state
   const { data: session, status } = useSession()
   
+  // Monitor the cart for changes
   useEffect(() => {
     setCartItems(items.length)}, [items])
 

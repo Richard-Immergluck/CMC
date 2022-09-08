@@ -1,5 +1,9 @@
 module.exports = {
-  reactStrictMode: true, // https://nextjs.org/docs/api-reference/next.config.js/react-strict-mode - It is recommended to enable this for projects in development and not recommended in production.
+  // https://nextjs.org/docs/api-reference/next.config.js/react-strict-mode - 
+  // It is recommended to enable this for projects in development and not recommended in production.
+  reactStrictMode: true,
+  
+  // https://nextjs.org/docs/api-reference/next.config.js/environment-variables
   env: {
     // Stripe
     STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY,

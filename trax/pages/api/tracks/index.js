@@ -3,7 +3,7 @@ import prisma from '/components/prisma'
 
 export default async function handler(req, res) {
   
-  // Not POST error
+  // Anything other than POST not accepted
   if (req.method !== 'POST') {
     res.status(500).json({ message: 'Something went wrong' })
   }
@@ -24,12 +24,11 @@ export default async function handler(req, res) {
         formattedPrice,
         downloadName,
         downloadCount } = req.body
-      // console.log('req body is', req.body)
 
       // Use getSession Hook to access current user
       const session = await getSession({ req })
 
-      // DB entry that will be uploaded
+      // Create a new track in the database
       const upTrack = await prisma.track.create({
         data: {
           fileName: newFileName,
