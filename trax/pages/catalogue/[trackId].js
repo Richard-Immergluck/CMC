@@ -102,7 +102,7 @@ const SingleTrack = ({ track, users, comments }) => {
   // Render the JSX
   return (
     <>
-      <Container className='mt-5'>
+      <Container className='bg-light border mt-5 p-3'>
         <h2>{track.title}</h2>
         <p>by {track.composer}</p>
         <p>
@@ -115,9 +115,7 @@ const SingleTrack = ({ track, users, comments }) => {
           Additional Information:<br />
           {track.additionalInfo}
         </p>
-
         <br />
-
         <WaveFormRegion url={url} />
         <br />
         <br />

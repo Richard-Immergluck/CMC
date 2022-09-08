@@ -20,7 +20,7 @@ export default async function handler(req, res) {
           where: { userId: user.id }
         })
         res.status(200).json(userTracks)
-      } 
+      }
     } catch (err) {
       console.log('from API error', err)
       res.status(400).json({ message: 'Something went wrong' })
@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     try {
       // Destructure the req.body
       const { ...cartItems } = req.body
+      const { tracks } = cartItems
 
       // Use getSession Hook to access current user
       const session = await getSession({ req })
@@ -41,37 +42,15 @@ export default async function handler(req, res) {
         where: { email: session.user.email }
       })
 
-      console.log('The user ID is', user.id)
- 
-
       // Loop through the cartItems and update the DB
-      for (var arrayObject = 0; arrayObject < cartItems.tracks.length; arrayObject++) {
-        // Create a new TrackOwner record in the DB
-        const newTrackOwner = await prisma.TrackOwner.create({
+      for (var itemIndex in tracks) {
+        const updater = await prisma.TrackOwner.create({
           data: {
             userId: user.id,
-            trackId: cartItems.tracks[arrayObject].id
+            trackId: tracks[itemIndex].id
           }
         })
       }
-
-      // for (var itemIndex in cartItems) {
-      //   // DB update for each item in the cart
-      //   const purchasedTrack = await prisma.user.update({
-      //     data: {
-      //       TrackOwners: {
-      //         create: {
-      //           purchasedBy: user.id,
-      //           purchasedAt: new Date(),
-      //           track: { connect: { id: cartItems[itemIndex].id } }
-      //         }
-      //       }
-      //     },
-      //     where: {
-      //       id: user.id,
-      //     }
-      //   })
-      // }
 
       res.status(200).json(cartItems, "You've just bought some tracks!")
       return 'success!'

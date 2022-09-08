@@ -1,3 +1,7 @@
+// The models Account, Session, Verification and some of User were provided by
+// Next Auth @ https://next-auth.js.org/adapters/prisma
+// These are standardised models that are used by Next Auth across all platforms.  
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
