@@ -87,23 +87,20 @@ const UserProfilePage = ({
   // Image URL from user's OAuth provider test
   const [imageURL, setImageURL] = useState(currentUser.image)
 
-  // function to check if url is an image
-  const isImage = url => {
-    return url.match(/\.(jpeg|jpg|gif|png)$/) != null
-  }
-
-  // If the URL is an image, return the image
-  if (!isImage(imageURL)) {
-    setImageURL('https://robohash.org/${currentUser.name}.png')
-  }
-
   return (
-    < >
-      <Container suppressHydrationWarning={true} className='mt-5'>
+    <>
+      <Container className='mt-5'>
         <Row>
           <Col md={5}>
             <Card style={{ width: '18rem' }}>
-              <Card.Img variant='top' src={imageURL} />
+              {!imageURL ? (
+                <Card.Img
+                  variant='top'
+                  src={`https://robohash.org/${currentUser.name}.png`}
+                />
+              ) : (
+                <Card.Img variant='top' src={imageURL} />
+              )}
               <Card.Body>
                 <Card.Title>{currentUser.name}</Card.Title>
                 <Card.Subtitle className='mb-2 text-muted'>
@@ -188,9 +185,7 @@ const UserProfilePage = ({
                             role='button'
                             href={GETSignedS3URL({
                               bucket: 'backingtrackstorage',
-                              key: `${track.fileName}`,
-                              expires: 900,
-                              fileName: track.downloadName
+                              key: `${track.fileName}`
                             })}
                           >
                             Download
@@ -252,7 +247,6 @@ const UserProfilePage = ({
                             href={GETSignedS3URL({
                               bucket: 'backingtrackstorage',
                               key: `${track.fileName}`,
-                              expires: 60,
                               fileName: track.downloadName
                             })}
                           >

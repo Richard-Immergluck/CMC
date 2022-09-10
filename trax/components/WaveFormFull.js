@@ -1,3 +1,7 @@
+// Some of the code used on this page is taken directly from the WaveSurfer.js documentation
+// https://wavesurfer-js.org/docs.html
+// See WaveFormRegion.js for general comments
+
 import React, { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import { Button } from 'react-bootstrap'
@@ -18,7 +22,8 @@ const WaveForm = ({ url }) => {
       progressColor: '#242038',
       normalize: true,
       preload: 'auto',
-      height: 50
+      height: 100,
+      hideScrollbar: true,
     })
     waveSurfer.load(url)
     waveSurfer.on('ready', () => {

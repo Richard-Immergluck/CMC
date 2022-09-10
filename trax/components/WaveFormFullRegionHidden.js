@@ -1,3 +1,7 @@
+// Some of the code used on this page is taken directly from the WaveSurfer.js documentation
+// https://wavesurfer-js.org/docs.html
+// See WaveFormRegion.js for general comments
+
 import React, { useEffect, useRef, useState } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import { Button } from 'react-bootstrap'
@@ -28,7 +32,7 @@ const WaveForm = ({ url }) => {
     }
   }, [url])
 
-  const handlePlayPause = () => {
+  const togglePlayPause = () => {
     if (waveSurferRef.current.isPlaying()) {
       waveSurferRef.current.pause()
     } else {
@@ -40,8 +44,8 @@ const WaveForm = ({ url }) => {
   return (
     <>
     <div className='d-grid gap-2'>
-      <div ref={containerRef} hidden/>
-      <Button variant='info' size="sm" onClick={handlePlayPause} className="">
+      <div ref={containerRef} hidden/> {/* The waveform itself is hidden */}
+      <Button variant='info' size="sm" onClick={togglePlayPause} className="">
         {play ? 'pause' : 'play'}
       </Button>
       </div>
