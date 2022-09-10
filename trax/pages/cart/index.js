@@ -56,10 +56,12 @@ function Cart({ tracks }) {
       for (var trackObject = 0; trackObject < tracks.length; trackObject++) {
         // Match the cart item ID to the DB track ID
         if (tracks[trackObject].id === items[arrayObject].id) {
-          // Compare the prices
+          // If there is a match, compare the prices
           if (tracks[trackObject].price !== items[arrayObject].price) {
             alert(
-              `Sorry, but the item price for ${items[arrayObject].title} have changed. The cart will now be emptied and items will need to be added again - apologies for the inconvenience.`
+              `Sorry, but the price for ${items[arrayObject].title} 
+              have changed. The cart will now be emptied and items will 
+              need to be added again - apologies for the inconvenience.`
             )
             emptyCart()
             setManipulationCheckTest(false)
@@ -73,7 +75,7 @@ function Cart({ tracks }) {
     }
     // --- END manipulation check ---
 
-    // --- START Already purchased track check ---
+    // --- START already owned track check ---
     // GET request for tracks owned by user
     const getUserTracks = await fetch('/api/cart', {
       method: 'GET',
@@ -83,6 +85,7 @@ function Cart({ tracks }) {
     })
     const userTracksObject = await getUserTracks.json()
 
+    // Empty array to store tracks owned by user
     const alreadyPurchasedArray = []
 
     // Loop through cart items
@@ -130,11 +133,13 @@ function Cart({ tracks }) {
         return
       }
     }
-    // ------ END already purchased check ------
+    // ------ END already owned check ------
 
-    // If both checks pass, then proceed to checkout
+    // // Stripe Logic here
+    // if (manipulationTest && alreadyPurchasedTest) {...}
+
+    // If both checks pass, then update the DB
     if (manipulationTest && alreadyPurchasedTest) {
-      // Update the user's purchased tracks in DB
       try {
         const response = await fetch('/api/cart', {
           method: 'POST',
@@ -146,7 +151,6 @@ function Cart({ tracks }) {
           })
         })
         const data = await response.json()
-        console.log('the data respons', data)
         alert('Thank you for your purchase!')
       } catch (error) {
         console.log(error)
@@ -162,90 +166,95 @@ function Cart({ tracks }) {
     }
   }
   // --- END of Checkout ---
+  
   if (session && session.user) {
     return (
       <>
-        <Container suppressHydrationWarning className='mt-5'>
+        <Container className='mt-5 justify-content-md-center'>
           <Row>
             <Col></Col>
-            <Col md={7}>
-              <Card style={{ width: '25rem' }}>
-                <Card.Body>
-                  <Card.Title>Shopping Cart</Card.Title>
-                  <Card.Subtitle className='mb-2 text-muted'>
-                    Below is a list of the items in your cart.
-                  </Card.Subtitle>
-                  {items.length > 0 ? (
-                    <>
-                      <Card.Text>
-                        Please check your items before purchasing. Use the
-                        &#39;X&#39; on the right to remove items from the cart.
-                        When you are ready to buy, click &#39;Buy Now&#39;.
-                      </Card.Text>
-                      <hr />
-                      {items.map(item => (
-                        <Container
-                          className='border border-info mb-3'
-                          key={item.id}
-                        >
-                          <ListGroup variant='flush'>
-                            <ListGroup.Item>
-                              <h5>
-                                &quot;
-                                <Link href={`./catalogue/${item.id}`}>
-                                  {item.title}
-                                </Link>
-                                &quot;
-                              </h5>
-                              &nbsp;&nbsp;&nbsp;By &nbsp;&nbsp;{item.composer}
-                            </ListGroup.Item>
-                            <Row>
-                              <Col>
-                                <ListGroup.Item className='mt-3 border-0'>
-                                  {item.formattedPrice}
-                                </ListGroup.Item>
-                              </Col>
-                              <Col md={3}>
-                                <ListGroup.Item className='mt-3 border-0'>
-                                  <CloseButton
-                                    onClick={() => removeItem(item.id)}
-                                  ></CloseButton>
-                                </ListGroup.Item>
-                              </Col>
-                            </Row>
-                          </ListGroup>
-                        </Container>
-                      ))}
-                    </>
-                  ) : (
-                    <>
-                      <Card.Text className='primary'>
-                        Your cart is empty!
-                      </Card.Text>
-                      <Card.Text>
-                        Please got to the{' '}
-                        <Link href='/catalogue' className='text-primary'>
-                          CATALOGUE
-                        </Link>{' '}
-                        to add tracks to your cart
-                      </Card.Text>
-                    </>
-                  )}
-                  <Card.Text className='p-2 bg-info text-white'>
-                    Total = {total}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-              <Button
-                onClick={checkout}
-                className='btn btn-info mt-3 text-white'
-                disabled={items.length === 0}
-              >
-                Buy Now
-              </Button>
-            </Col>
-            <Col></Col>
-          </Row>
+            <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
+              <Container className='bg-light border mt-5 p-3'>
+                <Card>
+                  <Card.Body>
+                    <Card.Title>Shopping Cart</Card.Title>
+                    <Card.Subtitle className='mb-2 text-muted'>
+                      Below is a list of the items in your cart.
+                    </Card.Subtitle>
+                    {items.length > 0 ? (
+                      <>
+                        <Card.Text>
+                          Please check your items before purchasing. Use the
+                          &#39;X&#39; on the right to remove items from the
+                          cart. When you are ready to buy, click &#39;Buy
+                          Now&#39;.
+                        </Card.Text>
+                        <hr />
+                        {items.map(item => (
+                          <Container
+                            className='border border-info mb-3'
+                            key={item.id}
+                          >
+                            <ListGroup variant='flush'>
+                              <ListGroup.Item>
+                                <h5>
+                                  &quot;
+                                  <Link href={`./catalogue/${item.id}`}>
+                                    {item.title}
+                                  </Link>
+                                  &quot;
+                                </h5>
+                                &nbsp;&nbsp;&nbsp;By &nbsp;&nbsp;{item.composer}
+                              </ListGroup.Item>
+                              <Row>
+                                <Col>
+                                  <ListGroup.Item className='mt-3 border-0'>
+                                    {item.formattedPrice}
+                                  </ListGroup.Item>
+                                </Col>
+                                <Col md={3}>
+                                  <ListGroup.Item className='mt-3 border-0'>
+                                    <CloseButton
+                                      onClick={() => removeItem(item.id)}
+                                    ></CloseButton>
+                                  </ListGroup.Item>
+                                </Col>
+                              </Row>
+                            </ListGroup>
+                          </Container>
+                        ))}
+                      </>
+                    ) : (
+                      <>
+                        <Card.Text className='primary'>
+                          Your cart is empty!
+                        </Card.Text>
+                        <Card.Text>
+                          Please got to the{' '}
+                          <Link href='/catalogue' className='text-primary'>
+                            CATALOGUE
+                          </Link>{' '}
+                          to add tracks to your cart
+                        </Card.Text>
+                      </>
+                    )}
+                    <Card.Text className='p-2 bg-info text-white'>
+                      Total = {total}
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+                <Button
+                  onClick={checkout}
+                  className='btn btn-info mt-3 text-white'
+                  disabled={items.length === 0}
+                >
+                  Buy Now
+                </Button>
+                </Container>
+              </Col>
+              <Col></Col>
+            </Row>
+
         </Container>
       </>
     )
