@@ -14,7 +14,7 @@ const GETSignedS3URL = ({ bucket, key, expires, fileName }) => {
     Key: key,
     Bucket: bucket,
     Expires: expires || 900, // Either the value brought in as props or the default value (15 minutes)
-    ResponseContentDisposition: `attachment; filename="${fileName}"`,
+    ResponseContentDisposition: `attachment; filename="${fileName}"`, // custom header to set the file name
   });
 
   return signedUrl;

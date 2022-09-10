@@ -11,7 +11,12 @@ import CommentBox from '../../components/CommentBox'
 // Create dynamic routes
 export const getStaticPaths = async () => {
   // Get all the tracks from the DB
-  const allTracks = await prisma.track.findMany()
+  const allTracks = await prisma.track.findMany({
+    orderBy: {
+      downloadCount: 'desc'
+    },
+    take: 100
+  })
 
   const paths = allTracks.map(track => {
     return {
@@ -95,7 +100,9 @@ export const getStaticProps = async context => {
         comments,
         users,
         userId
-      }
+      },
+      revalidate: 30 // This will revalidate the page every 30 seconds
+      // Which will update the comments if a new comment is added
     }
   } else {
     // If conditions not met, show 404 page
@@ -156,6 +163,22 @@ const TrackOwnerPage = params => {
           <WaveFormFull url={url} />
           <br />
           <br />
+          <a
+            className='btn btn-info active'
+            rel='noreferrer'
+            target='_blank'
+            download={track.downloadName}
+            role='button'
+            href={GETSignedS3URL({
+              bucket: 'backingtrackstorage',
+              key: `${track.fileName}`,
+              expires: 900
+            })}
+          >
+            Download
+          </a>
+          <br />
+          <br />
           <div>
             Comments:
             <br />
@@ -178,7 +201,7 @@ const TrackOwnerPage = params => {
           </div>
           <hr />
           <br />
-          <CommentBox trackId={track.id} user={userId}/>
+          <CommentBox trackId={track.id} user={userId} />
           <hr />
           <div>
             <Link href={'/catalogue'}>

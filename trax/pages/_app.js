@@ -18,7 +18,8 @@ import Header from '../components/Header'
 import { useEffect } from 'react'
 
 function MyApp({ session, Component, pageProps }) {
-  // To allow Bootstrap to use javascript and stop forcing next to render client side only
+  
+  // Function to stop Bootstrap from throwing client/server mismatch errors
   useEffect(() => {
     import('bootstrap/dist/js/bootstrap')
   }, [])

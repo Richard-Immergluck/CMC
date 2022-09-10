@@ -1,30 +1,10 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react'
+import React from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
 
-// Pull comments from the DB
-export const getServerSideProps = async ({ req, res }) => {
-  const { trackId } = req.query
-  const comments = await prisma.comment.findMany({
-    where: {
-      trackId: Number(trackId)
-    }
-  })
-  return {
-    props: {
-      comments
-    }
-  }
-}
-
 // Upload a comment to the DB
 const uploadComment = async (values, actions, trackId, user) => {
-  
-  // console.log('The values:', values)
-  // console.log('The actions:', actions)
-  // console.log('The trackId:', trackId)
-  // console.log('The userId:', user)
 
   // Create the comment object
   const comment = {
@@ -76,6 +56,7 @@ const CommentBox = props => {
               <Form.Control
                 as='textarea'
                 rows={3}
+                placeholder='Enter your comment'
                 {...formik.getFieldProps('comment')}
               />
               {formik.errors.comment ? (

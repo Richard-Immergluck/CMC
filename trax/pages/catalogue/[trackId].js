@@ -10,8 +10,13 @@ import _ from 'lodash'
 
 // Create dynamic routes
 export const getStaticPaths = async () => {
-  const data = await prisma.track.findMany()
-
+  const data = await prisma.track.findMany({
+    orderBy: {
+      downloadCount: 'desc'
+    },
+    take: 100
+  })
+  
   const paths = data.map(track => {
     return {
       params: {
@@ -26,13 +31,16 @@ export const getStaticPaths = async () => {
   }
 }
 
-// Retrieve the individual track from DB
+// Fetch data for the page
 export const getStaticProps = async context => {
+  // Destructure the trackId from the context
   const { params } = context
+  const { trackId } = params
 
+  // Retrieve the individual track from DB
   const track = await prisma.track.findUnique({
     where: {
-      id: Number(params.trackId)
+      id: Number(trackId)
     }
   })
 
@@ -46,8 +54,8 @@ export const getStaticProps = async context => {
   const comments = await prisma.comment.findMany({
     where: {
       track: {
-        id: Number(params.trackId)
-      }
+        id: Number(trackId)
+      },
     }
   })
 
@@ -61,17 +69,21 @@ export const getStaticProps = async context => {
       track,
       users,
       comments
-    }
+    },
+    revalidate: 30, // This will revalidate the page every 30 seconds
+    // Which will update the comments if a new comment is added
   }
 }
 
 const SingleTrack = ({ track, users, comments }) => {
 
+  // Cart state
   const [cartotal, setCartotal] = useState(0)
 
+  // Get the session
   const { data: session} = useSession()
 
-  // needed for 'Self is not defined' error
+  // Dynamically import WaveSurfer to avoid 'Self is not defined' error
   const WaveFormRegion = dynamic(
     () => import('../../components/WaveFormRegion'),
     { ssr: false }
@@ -81,19 +93,20 @@ const SingleTrack = ({ track, users, comments }) => {
   const url = GETSignedS3URL({
     bucket: process.env.S3_BUCKET_NAME,
     key: `${track.fileName}`,
-    expires: 60
+    expires: 5
   })
 
   // Instantiate useCart hook
   const { addItem, items } = useCart()
 
-  // Add track to the cart function
+  // Add track to the cart
   const addToCart = () => {
     addItem({ ...track })
-    alert('Track added to cart!')
     setCartotal(items)
+    alert('Track added to cart!')
   }
 
+  // Function to return the user name
   const userTrackMatch = (userId, users) => {
     const user = _.find(users, { id: userId })
     return user ? user.name : 'Unknown'
@@ -134,10 +147,12 @@ const SingleTrack = ({ track, users, comments }) => {
         <div>Price: {track.formattedPrice}</div>
         <br />
         <div>
+        {/* If the user is logged in, display the add to cart button */}
         {session && <Button variant='info' size='md' onClick={addToCart}>
             Add to Cart
           </Button>}
-        {!session && <p>Please <Link href='/login'>login</Link> to add this track to your cart</p>}
+        {/* If the user is not logged in, display this message*/} 
+        {!session && <p>Please <Link href='/login'>login</Link> to add this track to your cart</p>} 
         </div>
         <hr />
         <div>
