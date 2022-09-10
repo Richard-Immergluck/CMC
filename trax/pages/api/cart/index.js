@@ -32,6 +32,8 @@ export default async function handler(req, res) {
     try {
       // Destructure the req.body
       const { ...cartItems } = req.body
+
+      // For clarity, rename the cartItems.tracks to tracks
       const { tracks } = cartItems
 
       // Use getSession Hook to access current user
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
         })
       }
 
-      res.status(200).json(cartItems, "You've just bought some tracks!")
+      res.status(200).json(tracks, "You've just bought some tracks!")
       return 'success!'
     } catch (err) {
       console.log('from API error', err)

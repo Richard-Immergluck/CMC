@@ -1,11 +1,15 @@
+// Code snippets taken from Stripe Checkout documentation
+// https://stripe.com/docs/payments/checkout
+
 import { useEffect } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
+import { Button, Container } from 'react-bootstrap'
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 loadStripe(process.env.STRIPE_PUBLISHABLE_KEY)
 
-const PreviewPage = () => {
+const TestPage = () => {
   useEffect(() => {
     // Check to see if this is a redirect back from Checkout
     const query = new URLSearchParams(window.location.search)
@@ -23,39 +27,15 @@ const PreviewPage = () => {
   return (
     <form action='/api/stripe/checkout_sessions' method='POST'>
       <section>
-        <button type='submit' role='link'>
-          Checkout
-        </button>
+        <br />
+        <Container className='mt-5'>
+        <Button type='submit' role='link' >
+          Checkout Test
+        </Button>
+        </Container>
       </section>
-      <style jsx>
-        {`
-          section {
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            width: 400px;
-            height: 112px;
-            border-radius: 6px;
-            justify-content: space-between;
-          }
-          button {
-            height: 36px;
-            background: #556cd6;
-            border-radius: 4px;
-            color: white;
-            border: 0;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0px 4px 5.5px 0px rgba(0, 0, 0, 0.07);
-          }
-          button:hover {
-            opacity: 0.8;
-          }
-        `}
-      </style>
     </form>
   )
 }
 
-export default PreviewPage
+export default TestPage
