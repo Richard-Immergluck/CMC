@@ -60,5 +60,8 @@
     "fs": false,
     "path": false,
     "os": false
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
