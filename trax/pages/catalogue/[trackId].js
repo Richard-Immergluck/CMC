@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import prisma from '/components/prisma'
+import prisma from '../../components/prisma'
 import Link from 'next/link'
 import GETSignedS3URL from '../../components/GETSignedS3URL'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
