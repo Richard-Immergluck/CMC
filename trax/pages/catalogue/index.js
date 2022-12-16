@@ -6,7 +6,6 @@ import { Container, Table, Button, Row, Col } from 'react-bootstrap'
 import _ from 'lodash'
 
 export const getServerSideProps = async () => {
-
   // Grab all the tracks from the DB
   const tracks = await prisma.track.findMany()
 
@@ -40,9 +39,13 @@ const Catalogue = ({ tracks, users }) => {
   return (
     <>
       <div>
-        <h1 className='title mt-3 mb-3' align='center'>
-          Track Listing
-        </h1>
+        <Container className='mt-5 mb-5'>
+          <Row className='justify-content-md-center'>
+            <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
+            <h1 className='title mt-3 mb-3 text-center'>Track Listing</h1>
+            </Col>
+          </Row>
+        </Container>
         {!searchPressed ? (
           <Container>
             <Row className='input-group justify-content-md-center'>
@@ -148,9 +151,7 @@ const Catalogue = ({ tracks, users }) => {
                     <td>{userTrackMatch(track.userId, users)}</td>
                     <td>{track.formattedPrice}</td>
                     <td>
-                      <PlaySample
-                        track={track}
-                      />
+                      <PlaySample track={track} />
                     </td>
                   </tr>
                 ))}
