@@ -1,5 +1,5 @@
 import React from 'react'
-import GetSignedS3URL from '/GETSignedS3URL'
+import GetSignedS3URL from ''
 import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
 const PlaySample = props => {
