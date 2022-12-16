@@ -1,6 +1,6 @@
 import { getSession } from 'next-auth/react'
 import React, { useState, memo } from 'react'
-import prisma from '../../components/prisma'
+import prisma from '/components/prisma'
 import Link from 'next/link'
 import {
   Container,
