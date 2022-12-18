@@ -17,6 +17,7 @@ export default NextAuth({
 
   session: {
     strategy: 'jwt',
+    
   },
   providers: [
     GithubProvider({
