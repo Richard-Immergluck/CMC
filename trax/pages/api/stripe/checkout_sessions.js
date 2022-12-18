@@ -6,6 +6,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
+      
       // Create Checkout Sessions from body params.
       const session = await stripe.checkout.sessions.create({
         line_items: [ // array of objects describing items in cart
