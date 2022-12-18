@@ -9,8 +9,9 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  output = "/node_modules/prisma/prisma-client"
-  binaryTargets = ["native"]
+  output = "../generated"
+  // output = "/node_modules/prisma/prisma-client"
+  // binaryTargets = ["native"]
 }
 
 model Account {
