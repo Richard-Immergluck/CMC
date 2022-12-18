@@ -9,9 +9,9 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import prisma from '/components/prisma'
 
 export default NextAuth({
-  site: process.env.URL,
+  site: process.env.NEXTAUTH_URL,
 
-  secret: process.env.SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
 
   adapter: PrismaAdapter(prisma), // NextAuth adapter for Prisma
 
