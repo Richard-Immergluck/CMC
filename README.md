@@ -1,4 +1,6 @@
-# CMC
+# CMC - Masters Degree Dissertation Project
+Mark: 75%
+
 Classical Music Catalogue
 
 A prototype full-stack application created using the following technologies:
