@@ -1,5 +1,8 @@
-# CMC
+# CMC - Masters Degree Dissertation Project
+Mark: 75%
+
 Classical Music Catalogue
+https://classical-music-catalogue.vercel.app/
 
 A prototype full-stack application created using the following technologies:
 
