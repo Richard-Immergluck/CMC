@@ -1,0 +1,61 @@
+[33mcommit c6a24ae7d33396be112f917b162454500c427125[m
+Author: Richard-Immergluck <97466331+Richard-Immergluck@users.noreply.github.com>
+Date:   Tue Sep 6 20:29:21 2022 +0100
+
+    Delete .env
+    
+    because it shouldn't be on here!
+
+[33mcommit 070c10c144ce3201c2d2153353611716f0591681[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Fri Jul 15 23:26:09 2022 +0100
+
+    All pages pretty. S3creds protected. small changes
+
+[33mcommit 1f2b7b966e8e802f03bffa22e1a99fc9554b66fa[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Thu Jul 14 14:43:44 2022 +0100
+
+    Initial stripe test and prittify Upload form
+
+[33mcommit 07f2dd02a478379fc788635f21c2792b7f385644[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Mon Jul 4 10:40:17 2022 +0100
+
+    Create S3 put presignedURL and test
+
+[33mcommit ac63de652bac8f8707fc8dda5bf6a32c276447d5[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Mon Jun 27 19:41:04 2022 +0100
+
+    presigned url working now making list foreach
+
+[33mcommit ff74440f25b88cc20b5ec79f965ee1932abccd99[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Tue May 24 14:05:34 2022 +0100
+
+    Upload works, env vars visible. Working on db side
+
+[33mcommit 4356bd2952f09039f3f39278604a19561e57577c[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Tue May 24 11:56:04 2022 +0100
+
+    upload working but process.env is not
+
+[33mcommit 3ffc2b0f1e2c67a631cab55afa428ef7d3664f39[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Mon May 23 22:19:53 2022 +0100
+
+    Basic upload setup. Working on event handling
+
+[33mcommit 0cf2230c5fdf842a0ef633125f0c61f72ac47220[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Tue May 10 23:29:23 2022 +0100
+
+    User into DB on login working!
+
+[33mcommit 06da5dc1b637d852d61531e09a5315df3dedb1b8[m
+Author: Richard Immergluck <rimmergluck@googlemail.com>
+Date:   Tue May 10 22:51:34 2022 +0100
+
+    Form work, schema, dockeryml
