@@ -27,6 +27,8 @@ export const getStaticPaths = async () => {
     }
   })
 
+  console.log(allTracks)
+
   return {
     paths,
     fallback: 'blocking'
