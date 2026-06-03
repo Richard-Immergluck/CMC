@@ -16,7 +16,6 @@ import {
 } from 'react-bootstrap'
 import _ from 'lodash'
 import PlayTrack from '../../components/PlayTrack'
-import GETSignedS3URL from '../../components/GETSignedS3URL'
 
 export const getServerSideProps = async context => {
   // Get the session from user
@@ -44,7 +43,7 @@ export const getServerSideProps = async context => {
     )
 
     // Grab all the purchases from the DB
-    const purchases = await prisma.TrackOwner.findMany()
+    const purchases = await prisma.trackOwner.findMany()
 
     // Convert the date object to a locale date string
     purchases.map(purchase => {
@@ -183,10 +182,7 @@ const UserProfilePage = ({
                             target='_blank'
                             download={track.downloadName}
                             role='button'
-                            href={GETSignedS3URL({
-                              bucket: 'backingtrackstorage',
-                              key: `${track.fileName}`
-                            })}
+                            href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
                           >
                             Download
                           </a>
@@ -244,11 +240,7 @@ const UserProfilePage = ({
                             target='_blank'
                             download={track.downloadName}
                             role='button'
-                            href={GETSignedS3URL({
-                              bucket: 'backingtrackstorage',
-                              key: `${track.fileName}`,
-                              fileName: track.downloadName
-                            })}
+                            href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
                           >
                             Download
                           </a>

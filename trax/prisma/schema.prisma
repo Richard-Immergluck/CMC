@@ -90,6 +90,8 @@ model TrackOwner {
   purchasedBy User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
   purchasedAt DateTime @default(now())
+
+  @@unique([trackId, userId])
 }
 
 model Comment {

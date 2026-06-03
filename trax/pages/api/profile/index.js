@@ -10,16 +10,22 @@ export default async function handler(req, res) {
       // Use getSession Hook to access current user
       const session = await getSession({ req })
 
+      if (!session?.user?.email) {
+        return res.status(401).json({ message: 'Authentication required' })
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      })
+
       // If user is logged in, get all tracks that have been purchased by the user
-      if (session?.user) {
-        const userTracks = await prisma.TrackOwner.findMany({
-          where: { userId: session.user.id }
-        })
-        res.status(200).json(userTracks)
-      } 
+      const userTracks = await prisma.trackOwner.findMany({
+        where: { userId: user.id }
+      })
+      return res.status(200).json(userTracks)
     } catch (err) {
       console.log('from API error', err)
-      res.status(400).json({ message: 'Something went wrong' })
+      return res.status(400).json({ message: 'Something went wrong' })
     }
   }
 
@@ -29,23 +35,28 @@ export default async function handler(req, res) {
       // Use getSession Hook to access current user
       const session = await getSession({ req })
 
+      if (!session?.user?.email) {
+        return res.status(401).json({ message: 'Authentication required' })
+      }
+
       // Destructure the req.body
-      const { trackId, comment, userId } = req.body
+      const { trackId, comment } = req.body
 
       // If user is logged in, upload a new comment to the DB
-      if (session?.user) {
-        const newComment = await prisma.Comment.create({
-          data: {
-            content: comment,
-            postedBy: { connect: { email: session?.user?.email } },
-            track: { connect: { id: trackId } } 
-          }
-        })
-        res.status(200).json(newComment)
-      } 
+      const newComment = await prisma.comment.create({
+        data: {
+          content: comment,
+          postedBy: { connect: { email: session.user.email } },
+          track: { connect: { id: Number(trackId) } } 
+        }
+      })
+      return res.status(200).json(newComment)
     } catch (err) {
       console.log('from API error', err)
-      res.status(400).json({ message: 'Something went wrong' })
+      return res.status(400).json({ message: 'Something went wrong' })
     }
   }
+
+  res.setHeader('Allow', 'GET, POST')
+  return res.status(405).json({ message: 'Method not allowed' })
 }

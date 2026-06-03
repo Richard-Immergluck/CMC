@@ -1,55 +1,27 @@
-import React, { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import React, { useEffect, useState } from 'react'
+import { getSession, useSession } from 'next-auth/react'
 import prisma from '../../components/prisma'
 import Link from 'next/link'
-import GETSignedS3URL from '../../components/GETSignedS3URL'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { Container } from 'react-bootstrap'
 import _ from 'lodash'
 import CommentBox from '../../components/CommentBox'
+import { canAccessFullTrack, getCurrentUser } from '../../lib/server/ownership'
 
-// Create dynamic routes
-export const getStaticPaths = async () => {
-  // Get all the tracks from the DB
-  const allTracks = await prisma.track.findMany({
-    orderBy: {
-      downloadCount: 'desc'
-    },
-    take: 100
-  })
+export const getServerSideProps = async context => {
+  const session = await getSession({ req: context.req })
+  const currentUser = await getCurrentUser(session)
 
-  const paths = allTracks.map(track => {
+  if (!currentUser) {
     return {
-      params: {
-        trackId: `${track.id}`,
-        userId: `${track.userId}`
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false
       }
     }
-  })
-
-  console.log(allTracks)
-
-  return {
-    paths,
-    fallback: 'blocking'
   }
-}
 
-// Retrieve the individual track from DB
-export const getStaticProps = async context => {
-  // Get the full url from the context
-  const { ...slug } = context.params
-
-  // Split the url to get the user id and track id
-  const trackId = slug.trackId.split('-')[0]
-  const userId = slug.trackId.split('-').pop()
-
-  // Get the user from the database
-  const currentUser = await prisma.user.findUnique({
-    where: {
-      id: userId
-    }
-  })
+  const trackId = context.params.trackId.split('-')[0]
 
   // Grab the track from DB using the params
   const track = await prisma.track.findUnique({
@@ -57,6 +29,12 @@ export const getStaticProps = async context => {
       id: Number(trackId)
     }
   })
+
+  if (!track) {
+    return {
+      notFound: true
+    }
+  }
 
   // Retrieve the comments from DB
   const comments = await prisma.comment.findMany({
@@ -75,36 +53,22 @@ export const getStaticProps = async context => {
   // Convert the date element of the track to a locale date string
   track.uploadedAt = track.uploadedAt.toLocaleDateString()
 
-  // Check if the track has been purchased by the current user
-  const isTrackOwnerQuery = await prisma.TrackOwner.findMany({
-    where: {
-      userId: currentUser.id
-    }
-  })
-
-  // create boolean to check if the track has been purchased
-  const isTrackOwner = isTrackOwnerQuery.length > 0
-
-  // Check if the track was uploaded by the current user
-  const isTrackUploader = track.userId === currentUser.id
-
-  // console.log('Are you the track owner?', isTrackOwner)
-  // console.log('Are you the track uploader?', isTrackUploader)
-
   // Pull all users for the userTrackMatch function
   const users = await prisma.user.findMany()
 
+  const { allowed } = await canAccessFullTrack({
+    userId: currentUser.id,
+    trackId
+  })
+
   // Return the track and comments to the page conditionally
-  if (isTrackOwner || isTrackUploader) {
+  if (allowed) {
     return {
       props: {
         track,
         comments,
-        users,
-        userId
-      },
-      revalidate: 30 // This will revalidate the page every 30 seconds
-      // Which will update the comments if a new comment is added
+        users
+      }
     }
   } else {
     // If conditions not met, show 404 page
@@ -119,7 +83,9 @@ export const getStaticProps = async context => {
 
 const TrackOwnerPage = params => {
   // Destructure params
-  const { track, comments, users, userId } = params
+  const { track, comments, users } = params
+  const [fullTrackUrl, setFullTrackUrl] = useState('')
+  const [downloadUrl, setDownloadUrl] = useState('')
 
   // Get the current user session
   const { data: session } = useSession()
@@ -129,12 +95,29 @@ const TrackOwnerPage = params => {
     ssr: false
   })
 
-  // Generate the presigned url
-  const url = GETSignedS3URL({
-    bucket: process.env.S3_BUCKET_NAME,
-    key: `${track.fileName}`,
-    expires: 60
-  })
+  useEffect(() => {
+    const fetchUrls = async () => {
+      const [fullResponse, downloadResponse] = await Promise.all([
+        fetch(`/api/tracks/${track.id}/signed-url?mode=full`),
+        fetch(`/api/tracks/${track.id}/signed-url?mode=download`)
+      ])
+
+      const [fullData, downloadData] = await Promise.all([
+        fullResponse.json(),
+        downloadResponse.json()
+      ])
+
+      if (fullResponse.ok) {
+        setFullTrackUrl(fullData.url)
+      }
+
+      if (downloadResponse.ok) {
+        setDownloadUrl(downloadData.url)
+      }
+    }
+
+    fetchUrls()
+  }, [track.id])
 
   // Function to match the user's name with the track
   const userTrackMatch = (userId, users) => {
@@ -162,7 +145,7 @@ const TrackOwnerPage = params => {
 
           <br />
 
-          <WaveFormFull url={url} />
+          {fullTrackUrl && <WaveFormFull url={fullTrackUrl} />}
           <br />
           <br />
           <a
@@ -171,11 +154,7 @@ const TrackOwnerPage = params => {
             target='_blank'
             download={track.downloadName}
             role='button'
-            href={GETSignedS3URL({
-              bucket: 'backingtrackstorage',
-              key: `${track.fileName}`,
-              expires: 900
-            })}
+            href={downloadUrl || '#'}
           >
             Download
           </a>
@@ -203,7 +182,7 @@ const TrackOwnerPage = params => {
           </div>
           <hr />
           <br />
-          <CommentBox trackId={track.id} user={userId} />
+          <CommentBox trackId={track.id} />
           <hr />
           <div>
             <Link href={'/catalogue'}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 
 // React Bootstrap imports
@@ -14,15 +14,9 @@ import {
   OverlayTrigger
 } from 'react-bootstrap'
 
-// AWS package
-import AWS from 'aws-sdk'
-
 // Formik Imports
 import { Formik } from 'formik'
 import * as yup from 'yup'
-
-//UUID package
-import { v4 as uuidv4 } from 'uuid' // For creating the unique ID for each track
 
 // Function to convert the time input into seconds
 const secondMaker = timeSplit => {
@@ -100,41 +94,43 @@ const uploadToDB = async (values, newFileName) => {
   return await response.json()
 }
 
-const uploadToS3 = (newFileName, selectedFile) => {
-  // AWS config
-  const S3_BUCKET = process.env.S3_BUCKET_NAME
-  const REGION = process.env.S3_REGION
-
-  AWS.config.update({
-    accessKeyId: process.env.S3_ACCESS_ID,
-    secretAccessKey: process.env.S3_APP_ACCESS_KEY
+const uploadToS3 = async selectedFile => {
+  const signedUrlResponse = await fetch('/api/uploads/signed-url', {
+    method: 'POST',
+    body: JSON.stringify({
+      fileName: selectedFile.name,
+      contentType: selectedFile.type
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
   })
 
-  const myBucket = new AWS.S3({
-    params: { Bucket: S3_BUCKET },
-    region: REGION
-  })
-  // AWS config end
+  const signedUrlData = await signedUrlResponse.json()
 
-  // S3 file Upload params
-  const params = {
-    ACL: 'public-read',
-    Body: selectedFile,
-    Bucket: S3_BUCKET,
-    Key: newFileName
+  if (!signedUrlResponse.ok) {
+    throw new Error(signedUrlData.message || 'Unable to prepare upload')
   }
 
-  // Upload the file to S3
-  myBucket.putObject(params).send(err => {
-    if (err) console.log(err)
+  const uploadResponse = await fetch(signedUrlData.url, {
+    method: 'PUT',
+    body: selectedFile,
+    headers: {
+      'Content-Type': selectedFile.type
+    }
   })
+
+  if (!uploadResponse.ok) {
+    throw new Error('Unable to upload file')
+  }
+
+  return signedUrlData.key
 }
 
 function UploadForm() {
   const [validated, setValidated] = useState(false)
   const [validatedAfterSubmit, setValidatedAfterSubmit] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
-  const [uuid, setUuid] = useState('')
 
   // Get the session
   const { data: session } = useSession()
@@ -186,17 +182,10 @@ function UploadForm() {
   })
   // --- End Formik Setup ---
 
-  // Monitor the UUID state
-  useEffect(() => {
-    setUuid(`${uuidv4()}`)
-  }, [])
-
-  const onSubmit = values => {
+  const onSubmit = async values => {
     setValidatedAfterSubmit(true)
-    var fileExtension = selectedFile.name.split('.').pop() // file extension minus dot
-    var uuidFileName = `${uuid}.${fileExtension}`
-    uploadToDB(values, uuidFileName)
-    uploadToS3(uuidFileName, selectedFile)
+    const uploadedKey = await uploadToS3(selectedFile)
+    await uploadToDB(values, uploadedKey)
     alert('Track uploaded successfully!')
     fileReset()
   }
@@ -224,8 +213,8 @@ function UploadForm() {
       <>
         <Formik
           validationSchema={validationSchema}
-          onSubmit={(values, { resetForm }) => {
-            onSubmit(values, selectedFile, uuid)
+          onSubmit={async (values, { resetForm }) => {
+            await onSubmit(values, selectedFile)
             resetForm(initialValues)
           }}
           initialValues={initialValues}
@@ -253,7 +242,6 @@ function UploadForm() {
                               onChange={e => {
                                 let file = e.target.files[0]
                                 handleChange(e)
-                                setUuid(`${uuidv4()}`)
                                 setSelectedFile(file)
                               }}
                               isInvalid={!!errors.file}
