@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import prisma from '../../components/prisma'
 import Link from 'next/link'
-import GETSignedS3URL from '../../components/GETSignedS3URL'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { useCart } from 'react-use-cart'
 import { Container, Button } from 'react-bootstrap'
@@ -79,6 +78,7 @@ const SingleTrack = ({ track, users, comments }) => {
 
   // Cart state
   const [cartotal, setCartotal] = useState(0)
+  const [url, setUrl] = useState('')
 
   // Get the session
   const { data: session} = useSession()
@@ -89,12 +89,18 @@ const SingleTrack = ({ track, users, comments }) => {
     { ssr: false }
   )
 
-  // Generate the presigned url
-  const url = GETSignedS3URL({
-    bucket: process.env.S3_BUCKET_NAME,
-    key: `${track.fileName}`,
-    expires: 5
-  })
+  useEffect(() => {
+    const fetchUrl = async () => {
+      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+      const data = await response.json()
+
+      if (response.ok) {
+        setUrl(data.url)
+      }
+    }
+
+    fetchUrl()
+  }, [track.id])
 
   // Instantiate useCart hook
   const { addItem, items } = useCart()
@@ -129,7 +135,7 @@ const SingleTrack = ({ track, users, comments }) => {
           {track.additionalInfo}
         </p>
         <br />
-        <WaveFormRegion url={url} track={track} />
+        {url && <WaveFormRegion url={url} track={track} />}
         <br />
         <br />
         <div>

@@ -1,22 +1,28 @@
-import React from 'react'
-import GetSignedS3URL from './GETSignedS3URL'
+import React, { useEffect, useState } from 'react'
 import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
 const PlayTrack = props => {
   const WaveForm = dynamic(() => import("./WaveFormFullRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
   const { track } = props
+  const [url, setUrl] = useState('')
 
-  //Create presigned URL
-  const url = GetSignedS3URL({
-    bucket: process.env.S3_BUCKET_NAME,
-    key: `${track.fileName}`,
-    expires: 600
-  })
+  useEffect(() => {
+    const fetchUrl = async () => {
+      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=full`)
+      const data = await response.json()
+
+      if (response.ok) {
+        setUrl(data.url)
+      }
+    }
+
+    fetchUrl()
+  }, [track.id])
 
   // Render the JSX
   return (
     <div key={track.id}>
-      <WaveForm url={url} />
+      {url && <WaveForm url={url} />}
     </div>
   )
 }

@@ -4,13 +4,12 @@ import { Formik } from 'formik'
 import * as Yup from 'yup'
 
 // Upload a comment to the DB
-const uploadComment = async (values, actions, trackId, user) => {
+const uploadComment = async (values, actions, trackId) => {
 
   // Create the comment object
   const comment = {
     comment: values.comment,
-    trackId: trackId,
-    userId: user
+    trackId: trackId
   }
 
   try {
@@ -29,7 +28,7 @@ const uploadComment = async (values, actions, trackId, user) => {
 
 const CommentBox = props => {
 
-  const { trackId, user } = props
+  const { trackId } = props
 
   return (
     <>
@@ -45,7 +44,7 @@ const CommentBox = props => {
             .required('Required')
         })}
         onSubmit={(values, actions) => {
-          uploadComment(values, actions, trackId, user)
+          uploadComment(values, actions, trackId)
           window.location.reload()
         }}
       >
