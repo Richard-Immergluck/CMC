@@ -1,5 +1,7 @@
 import { getSession } from 'next-auth/react'
-import React, { useState, memo } from 'react'
+import React, { useEffect, useState, memo } from 'react'
+import { useRouter } from 'next/router'
+import { useCart } from 'react-use-cart'
 import prisma from '/components/prisma'
 import Link from 'next/link'
 import {
@@ -14,7 +16,6 @@ import {
   Table,
   Badge
 } from 'react-bootstrap'
-import _ from 'lodash'
 import PlayTrack from '../../components/PlayTrack'
 
 export const getServerSideProps = async context => {
@@ -28,38 +29,42 @@ export const getServerSideProps = async context => {
       }
     })
 
-    // Grab all the tracks from the DB
-    const tracks = await prisma.track.findMany()
+    if (!currentUser) {
+      return {
+        redirect: {
+          destination: '/api/auth/signin',
+          permanent: false
+        }
+      }
+    }
 
-    // Convert the date object to a locale date string
-    tracks.map(track => {
+    const userUploadedTracks = await prisma.track.findMany({
+      where: {
+        userId: currentUser.id
+      }
+    })
+
+    userUploadedTracks.map(track => {
       track.uploadedAt = track.uploadedAt.toLocaleDateString()
       return track
     })
 
-    // Filter the tracks to only those uploaded by the current user
-    const userUploadedTracks = tracks.filter(
-      track => track.userId === currentUser.id
-    )
+    const purchases = await prisma.trackOwner.findMany({
+      where: {
+        userId: currentUser.id
+      },
+      include: {
+        track: true
+      }
+    })
 
-    // Grab all the purchases from the DB
-    const purchases = await prisma.trackOwner.findMany()
-
-    // Convert the date object to a locale date string
     purchases.map(purchase => {
       purchase.purchasedAt = purchase.purchasedAt.toLocaleDateString()
+      purchase.track.uploadedAt = purchase.track.uploadedAt.toLocaleDateString()
       return purchase
     })
 
-    // Filter purchases for those owned by the current user
-    const userPurchasedTrackNumbers = purchases.filter(
-      purchase => purchase.userId === currentUser.id
-    )
-
-    // Get the track objects from the purchase data
-    const userPurchasedTracks = tracks.filter(track =>
-      userPurchasedTrackNumbers.some(purchase => purchase.trackId === track.id)
-    )
+    const userPurchasedTracks = purchases.map(purchase => purchase.track)
 
     return {
       props: {
@@ -70,8 +75,10 @@ export const getServerSideProps = async context => {
     }
   } else {
     return {
-      redirect: '/login',
-      permanent: false
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
     }
   }
 }
@@ -82,9 +89,17 @@ const UserProfilePage = ({
   userPurchasedTracks
 }) => {
   const [key, setKey] = useState('purchased')
+  const router = useRouter()
+  const { emptyCart } = useCart()
 
   // Image URL from user's OAuth provider test
-  const [imageURL, setImageURL] = useState(currentUser.image)
+  const [imageURL] = useState(currentUser.image)
+
+  useEffect(() => {
+    if (router.query.checkout === 'success') {
+      emptyCart()
+    }
+  }, [emptyCart, router.query.checkout])
 
   return (
     <>

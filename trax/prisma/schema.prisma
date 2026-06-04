@@ -52,6 +52,7 @@ model User {
   Track         Track[]
   TrackOwners   TrackOwner[]
   Comment       Comment[]
+  orders        Order[]
 }
 
 model VerificationToken {
@@ -67,12 +68,16 @@ model Track {
   fileName        String
   title           String
   composer        String
+  status          TrackStatus  @default(PUBLISHED)
   uploadedAt      DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
   uploadedBy      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String
   previewStart    Int?
   previewEnd      Int?
   price           Float?
+  pricePence      Int?
+  currency        String       @default("gbp")
   formattedPrice  String?
   downloadName    String?
   downloadCount   Int?
@@ -81,6 +86,10 @@ model Track {
   additionalInfo  String?
   TrackOwner      TrackOwner[]
   Comments        Comment[]
+  orderItems      OrderItem[]
+
+  @@index([status])
+  @@index([userId])
 }
 
 model TrackOwner {
@@ -102,4 +111,58 @@ model Comment {
   userId    String
   content   String
   createdAt DateTime @default(now())
+}
+
+model Order {
+  id                    Int            @id @default(autoincrement())
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+  status                OrderStatus    @default(PENDING)
+  currency              String         @default("gbp")
+  amountTotal           Int
+  stripeCheckoutSession String?        @unique
+  stripePaymentIntent   String?        @unique
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  items                 OrderItem[]
+  paymentEvents         PaymentEvent[]
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      Int
+  track        Track    @relation(fields: [trackId], references: [id], onDelete: Restrict)
+  trackId      Int
+  title        String
+  composer     String
+  unitAmount   Int
+  currency     String   @default("gbp")
+
+  @@unique([orderId, trackId])
+}
+
+model PaymentEvent {
+  id             Int      @id @default(autoincrement())
+  stripeEventId  String   @unique
+  type           String
+  order          Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId        Int?
+  payload        String   @db.Text
+  processedAt    DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum TrackStatus {
+  DRAFT
+  PROCESSING
+  PUBLISHED
+  REJECTED
+  ARCHIVED
 }
