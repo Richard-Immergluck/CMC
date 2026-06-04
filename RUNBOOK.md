@@ -69,6 +69,8 @@ The GitHub workflow in `.github/workflows/trax-ci.yml` runs:
 
 The app currently uses legacy Next.js 12-era dependencies. CI is expected to surface dependency and lint debt that should be paid down in follow-up hardening PRs.
 
+The current runtime target is Node 18 because the installed NextAuth version rejects Node 20. Move to Node 20+ only as part of a dependency upgrade PR.
+
 ## Release Checklist
 
 - PR reviewed and CI green.

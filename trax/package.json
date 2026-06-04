@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "engines": {
-    "node": "20.x"
+    "node": "18.x"
   },
   "dependencies": {
     "@aws-sdk/abort-controller": "^3.78.0",
