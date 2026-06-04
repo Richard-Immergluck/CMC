@@ -1,0 +1,83 @@
+name: Trax CI
+
+on:
+  pull_request:
+    paths:
+      - 'trax/**'
+      - '.github/workflows/trax-ci.yml'
+      - 'HARDENING.md'
+  push:
+    branches:
+      - master
+    paths:
+      - 'trax/**'
+      - '.github/workflows/trax-ci.yml'
+      - 'HARDENING.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: trax
+
+    env:
+      DATABASE_URL: postgresql://prisma:prisma@localhost:5432/prisma?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-nextauth-secret
+      GITHUB_ID: ci-placeholder
+      GITHUB_SECRET: ci-placeholder
+      GOOGLE_CLIENT_ID: ci-placeholder
+      GOOGLE_CLIENT_SECRET: ci-placeholder
+      S3_ACCESS_ID: ci-placeholder
+      S3_APP_ACCESS_KEY: ci-placeholder
+      S3_BUCKET_NAME: ci-placeholder
+      S3_REGION: eu-west-2
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_ci_placeholder
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_placeholder
+      ALLOW_SIMULATED_PURCHASES: 'false'
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
+          POSTGRES_DB: prisma
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: trax/yarn.lock
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: yarn prisma generate
+
+      - name: Sanity checks
+        run: yarn sanity
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build

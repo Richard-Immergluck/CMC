@@ -1,10 +1,12 @@
 {
   "name": "trax",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "sanity": "node scripts/sanity-check.js",
     "lint": "next lint"
   },
   "engines": {
