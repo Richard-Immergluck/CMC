@@ -73,6 +73,9 @@ jobs:
       - name: Generate Prisma client
         run: yarn prisma generate
 
+      - name: Apply database migrations
+        run: yarn prisma migrate deploy
+
       - name: Sanity checks
         run: yarn sanity
 
