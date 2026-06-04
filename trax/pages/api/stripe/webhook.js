@@ -48,6 +48,14 @@ export default async function handler(req, res) {
       const checkoutSession = event.data.object
       const order = await findOrderByCheckoutSession(checkoutSession.id)
 
+      if (!order) {
+        await recordPaymentEvent({
+          stripeEvent: event
+        })
+
+        return res.status(200).json({ received: true })
+      }
+
       if (checkoutSession.payment_status === 'paid') {
         const fulfilledOrder = await fulfilPaidOrder({
           checkoutSessionId: checkoutSession.id,
