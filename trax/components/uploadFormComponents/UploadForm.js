@@ -63,6 +63,8 @@ const uploadToDB = async (values, newFileName) => {
   // Create additional submission variables
   var previewEnd = previewStart + 15
   var price = parseFloat(priceString)
+  var pricePence = Math.round(price * 100)
+  var currency = 'gbp'
   var formattedPrice = `£${price.toFixed(2)}`
   var downloadName = `${title}_${composer}.mp3`
   var downloadCount = 0
@@ -78,6 +80,8 @@ const uploadToDB = async (values, newFileName) => {
     previewEnd,
     additionalInfo,
     price,
+    pricePence,
+    currency,
     formattedPrice,
     downloadName,
     downloadCount
