@@ -79,6 +79,9 @@ jobs:
       - name: Sanity checks
         run: yarn sanity
 
+      - name: Dependency audit
+        run: yarn deps:audit
+
       - name: Lint
         run: yarn lint
 
