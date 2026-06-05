@@ -1,6 +1,6 @@
 # Dependency Audit Notes
 
-`trax/scripts/dependency-audit.js` performs a lightweight static import scan. It fails only when source files import packages that are not declared in `package.json`.
+`scripts/dependency-audit.js` performs a lightweight static import scan. It fails only when source files import packages that are not declared in `package.json`.
 
 It also reports dependencies that are declared but not currently imported by app source. Those are cleanup candidates, not automatic removals. Because this project uses a checked-in `yarn.lock`, package removals should be done with Yarn available so the lockfile remains consistent.
 
