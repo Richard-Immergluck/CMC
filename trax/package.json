@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "deps:audit": "node scripts/dependency-audit.js",
+    "deploy:check": "node scripts/deployment-readiness.js",
     "sanity": "node scripts/sanity-check.js",
     "lint": "next lint"
   },

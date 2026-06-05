@@ -32,6 +32,30 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ALLOW_SIMULATED_PURCHASES=false
 ```
 
+## Vercel Project Settings
+
+The live Vercel project is `classical-music-catalogue`.
+
+Observed platform state on 2026-06-05:
+
+- Latest production deployment failed before app build because Vercel was still using Node.js `14.x`.
+- The deployment entrypoint was `.`, while the Next.js app lives in `trax/`.
+
+Set these before deploying:
+
+- Root Directory: `trax`
+- Framework Preset: `Next.js`
+- Node.js Version: `18.x`
+- Install Command: default, or `yarn install --frozen-lockfile`
+- Build Command: default, or `yarn build`
+
+The app remains pinned to Node 18 until the dependency upgrade phase validates Next.js, NextAuth, Prisma, and Stripe on Node 20+. A deployment check is available locally:
+
+```text
+cd trax
+VERCEL_PROJECT_ROOT=trax VERCEL_NODE_VERSION=18.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
+```
+
 ## Stripe
 
 Create a webhook endpoint for each deployed environment:
@@ -52,11 +76,16 @@ The webhook secret must be stored as `STRIPE_WEBHOOK_SECRET`. Ownership grants h
 
 Before deploying migrations to production:
 
-1. Create or activate a Supabase development branch.
-2. Apply Prisma migrations against that branch.
-3. Run the Vercel preview deployment against the branch database.
-4. Verify signup/login, upload, checkout, webhook fulfilment, profile download, and unauthorized denial.
-5. Apply migrations to production only after the preview path is clean.
+1. Confirm the Supabase project is active.
+2. Create or activate a Supabase development branch.
+3. Apply Prisma migrations against that branch.
+4. Run the Vercel preview deployment against the branch database.
+5. Verify signup/login, upload, checkout, webhook fulfilment, profile download, and unauthorized denial.
+6. Apply migrations to production only after the preview path is clean.
+
+The current production Supabase project is `CMBC` (`ekuxltipaucirgkwnpwy`). If the Supabase connector reports that the project is inactive or requires reauthentication, migrations cannot be verified through automation yet.
+
+Observed platform state on 2026-06-05: the Supabase connector required reauthentication, and earlier checks reported the project as inactive.
 
 ## CI Expectations
 
@@ -64,6 +93,10 @@ The GitHub workflow in `.github/workflows/trax-ci.yml` runs:
 
 - `yarn install --frozen-lockfile`
 - `yarn prisma generate`
+- `yarn prisma migrate deploy`
+- `yarn sanity`
+- `yarn deps:audit`
+- `yarn deploy:check`
 - `yarn lint`
 - `yarn build`
 
