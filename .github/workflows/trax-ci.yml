@@ -82,6 +82,13 @@ jobs:
       - name: Dependency audit
         run: yarn deps:audit
 
+      - name: Deployment readiness
+        run: yarn deploy:check
+        env:
+          VERCEL_PROJECT_ROOT: trax
+          VERCEL_NODE_VERSION: 18.x
+          SUPABASE_PROJECT_STATUS: ACTIVE
+
       - name: Lint
         run: yarn lint
 
