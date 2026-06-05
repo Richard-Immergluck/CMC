@@ -2,7 +2,6 @@ const fs = require('fs')
 const path = require('path')
 
 const root = path.resolve(__dirname, '..')
-const repoRoot = path.resolve(root, '..')
 
 const requiredProductionEnvVars = [
   'DATABASE_URL',
@@ -36,12 +35,12 @@ const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'))
 const packageJson = readJson(path.join(root, 'package.json'))
 
 if (packageJson.engines?.node !== '18.x') {
-  fail('trax/package.json must pin engines.node to "18.x" until the dependency upgrade phase validates Node 20+')
+  fail('package.json must pin engines.node to "18.x" until the dependency upgrade phase validates Node 20+')
 }
 
 for (const scriptName of ['sanity', 'deps:audit', 'deploy:check']) {
   if (!packageJson.scripts?.[scriptName]) {
-    fail(`trax/package.json is missing the "${scriptName}" script`)
+    fail(`package.json is missing the "${scriptName}" script`)
   }
 }
 
@@ -49,7 +48,7 @@ const envExample = fs.readFileSync(path.join(root, '.env.example'), 'utf8')
 
 for (const envVar of requiredProductionEnvVars) {
   if (!envExample.includes(envVar)) {
-    fail(`trax/.env.example is missing ${envVar}`)
+    fail(`.env.example is missing ${envVar}`)
   }
 }
 
@@ -69,7 +68,7 @@ for (const migrationDir of requiredMigrationDirs) {
 const optionalPlatformChecks = [
   {
     name: 'VERCEL_PROJECT_ROOT',
-    expected: 'trax',
+    expected: '.',
     description: 'Vercel Project Settings > General > Root Directory'
   },
   {
@@ -95,11 +94,6 @@ for (const { name, expected, description } of optionalPlatformChecks) {
   if (actual !== expected) {
     fail(`${name} is "${actual}", expected "${expected}" (${description})`)
   }
-}
-
-const rootPackagePath = path.join(repoRoot, 'package.json')
-if (fs.existsSync(rootPackagePath)) {
-  warn('Repository root package.json exists; confirm Vercel Root Directory still points at trax/')
 }
 
 if (process.exitCode) {

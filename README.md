@@ -2,28 +2,21 @@
 
 Original master’s dissertation prototype for a classical music backing-track catalogue.
 
-The active app lives in:
-
-```text
-trax/
-```
-
-Production/project hardening is now in progress. See:
+The Next.js app now lives at the repository root. Production/project hardening is in progress. See:
 
 - `HARDENING.md`
 - `RUNBOOK.md`
-- `trax/.env.example`
+- `.env.example`
 
 ## Local Development
 
 ```bash
-cd trax
 yarn install
 yarn prisma generate
 yarn dev
 ```
 
-The app expects PostgreSQL, NextAuth provider credentials, Stripe keys, and S3 credentials. Use `trax/.env.example` as the source of truth for required variables.
+The app expects PostgreSQL, NextAuth provider credentials, Stripe keys, and S3 credentials. Use `.env.example` as the source of truth for required variables.
 
 ## Original Context
 

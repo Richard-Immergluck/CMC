@@ -1,11 +1,11 @@
 # CMC Operational Runbook
 
-This runbook captures the moving parts needed to operate the hardened CMC/Trax app.
+This runbook captures the moving parts needed to operate the hardened CMC app.
 
 ## Project Locations
 
 - GitHub: `Richard-Immergluck/CMC`
-- App directory: `trax/`
+- App directory: repository root
 - Vercel project: `classical-music-catalogue`
 - Supabase project: `CMBC` (`ekuxltipaucirgkwnpwy`)
 - Region target: `eu-west-2`
@@ -39,11 +39,11 @@ The live Vercel project is `classical-music-catalogue`.
 Observed platform state on 2026-06-05:
 
 - Latest production deployment failed before app build because Vercel was still using Node.js `14.x`.
-- The deployment entrypoint was `.`, while the Next.js app lives in `trax/`.
+- The app previously lived in `trax/`; it has now been promoted to the repository root so Vercel's entrypoint `.` is correct.
 
 Set these before deploying:
 
-- Root Directory: `trax`
+- Root Directory: repository root / `.`
 - Framework Preset: `Next.js`
 - Node.js Version: `18.x`
 - Install Command: default, or `yarn install --frozen-lockfile`
@@ -52,8 +52,7 @@ Set these before deploying:
 The app remains pinned to Node 18 until the dependency upgrade phase validates Next.js, NextAuth, Prisma, and Stripe on Node 20+. A deployment check is available locally:
 
 ```text
-cd trax
-VERCEL_PROJECT_ROOT=trax VERCEL_NODE_VERSION=18.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
+VERCEL_PROJECT_ROOT=. VERCEL_NODE_VERSION=18.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
 ```
 
 ## Stripe
@@ -89,7 +88,7 @@ Observed platform state on 2026-06-05: the Supabase connector required reauthent
 
 ## CI Expectations
 
-The GitHub workflow in `.github/workflows/trax-ci.yml` runs:
+The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 
 - `yarn install --frozen-lockfile`
 - `yarn prisma generate`

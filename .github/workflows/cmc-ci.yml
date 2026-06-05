@@ -1,25 +1,14 @@
-name: Trax CI
+name: CMC CI
 
 on:
   pull_request:
-    paths:
-      - 'trax/**'
-      - '.github/workflows/trax-ci.yml'
-      - 'HARDENING.md'
   push:
     branches:
       - master
-    paths:
-      - 'trax/**'
-      - '.github/workflows/trax-ci.yml'
-      - 'HARDENING.md'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: trax
 
     env:
       DATABASE_URL: postgresql://prisma:prisma@localhost:5432/prisma?schema=public
@@ -62,7 +51,7 @@ jobs:
         with:
           node-version: 18
           cache: yarn
-          cache-dependency-path: trax/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Enable Corepack
         run: corepack enable
@@ -85,7 +74,7 @@ jobs:
       - name: Deployment readiness
         run: yarn deploy:check
         env:
-          VERCEL_PROJECT_ROOT: trax
+          VERCEL_PROJECT_ROOT: .
           VERCEL_NODE_VERSION: 18.x
           SUPABASE_PROJECT_STATUS: ACTIVE
 

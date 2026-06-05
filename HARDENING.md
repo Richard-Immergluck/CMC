@@ -7,7 +7,7 @@ The hardening strategy is to preserve that product shape while moving authority 
 ## Target Architecture
 
 ```text
-trax/
+Repository root
   components/             React UI only
   pages/                  Next.js pages and API route adapters
   lib/
@@ -32,7 +32,7 @@ API handlers should be thin adapters. Business rules should live in services. Br
 - Rotate any credentials that have ever appeared in source control.
 - Keep all secrets in Vercel/Supabase/GitHub secret stores only.
 - Document required environment variables in `.env.example`.
-- Decide whether `trax/` remains the app directory or is promoted to repo root.
+- Promote the app from `trax/` to the repository root.
 - Remove unused binaries, generated artifacts, and experimental dependencies.
 - Add CI for install, lint, build, and tests.
 

@@ -1,5 +1,5 @@
 {
-  "name": "trax",
+  "name": "cmc",
   "private": true,
   "packageManager": "yarn@1.22.22",
   "scripts": {
