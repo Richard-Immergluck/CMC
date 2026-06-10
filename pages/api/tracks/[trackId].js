@@ -1,4 +1,4 @@
-import prisma from '/components/prisma'
+import prisma from '../../../components/prisma'
 
 export default async function getTrackById(req, res) {
   const trackId = Number(req.query.trackId)

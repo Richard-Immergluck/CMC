@@ -1,6 +1,6 @@
 import { getSession } from 'next-auth/react'
 
-import prisma from '/components/prisma'
+import prisma from '../../../components/prisma'
 
 // Update DB when tracks are bought
 export default async function handler(req, res) {

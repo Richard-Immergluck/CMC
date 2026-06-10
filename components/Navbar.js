@@ -1,24 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
-import { useEffect } from 'react'
 
 function MainNavbar() {
-
-  // Cart state
-  const [cartItems, setCartItems] = useState(0)
-
-
   // instantiate cart
   const { emptyCart, items } = useCart()
+  const cartItems = items.length
 
   // Get the session state
   const { data: session, status } = useSession()
-  
-  // Monitor the cart for changes
-  useEffect(() => {
-    setCartItems(items.length)}, [items])
 
   return (
     <>

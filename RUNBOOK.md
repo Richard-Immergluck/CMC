@@ -45,14 +45,14 @@ Set these before deploying:
 
 - Root Directory: repository root / `.`
 - Framework Preset: `Next.js`
-- Node.js Version: `18.x`
+- Node.js Version: `24.x`
 - Install Command: default, or `yarn install --frozen-lockfile`
 - Build Command: default, or `yarn build`
 
-The app remains pinned to Node 18 until the dependency upgrade phase validates Next.js, NextAuth, Prisma, and Stripe on Node 20+. A deployment check is available locally:
+The app is pinned to the current LTS runtime line, Node 24. A deployment check is available locally:
 
 ```text
-VERCEL_PROJECT_ROOT=. VERCEL_NODE_VERSION=18.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
+VERCEL_PROJECT_ROOT=. VERCEL_NODE_VERSION=24.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
 ```
 
 ## Stripe
@@ -99,9 +99,7 @@ The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 - `yarn lint`
 - `yarn build`
 
-The app currently uses legacy Next.js 12-era dependencies. CI is expected to surface dependency and lint debt that should be paid down in follow-up hardening PRs.
-
-The current runtime target is Node 18 because the installed NextAuth version rejects Node 20. Move to Node 20+ only as part of a dependency upgrade PR.
+The app targets Node 24 LTS with a modernized Next.js, React, Prisma, Stripe, and ESLint toolchain. CI is expected to surface dependency and lint debt that should be paid down in follow-up hardening PRs.
 
 ## Release Checklist
 

@@ -49,7 +49,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
           cache: yarn
           cache-dependency-path: yarn.lock
 
@@ -75,7 +75,7 @@ jobs:
         run: yarn deploy:check
         env:
           VERCEL_PROJECT_ROOT: .
-          VERCEL_NODE_VERSION: 18.x
+          VERCEL_NODE_VERSION: 24.x
           SUPABASE_PROJECT_STATUS: ACTIVE
 
       - name: Lint

@@ -1,5 +1,5 @@
-import prisma from '/components/prisma'
-import PlaySample from '/components/PlaySample'
+import prisma from '../components/prisma'
+import PlaySample from '../components/PlaySample'
 import { Table, Container, Row, Col } from 'react-bootstrap'
 import Link from 'next/link'
 

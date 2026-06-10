@@ -7,6 +7,12 @@ import { useCart } from 'react-use-cart'
 import { Container, Button } from 'react-bootstrap'
 import _ from 'lodash'
 
+// Dynamically import WaveSurfer to avoid 'Self is not defined' error
+const WaveFormRegion = dynamic(
+  () => import('../../components/WaveFormRegion'),
+  { ssr: false }
+)
+
 // Create dynamic routes
 export const getStaticPaths = async () => {
   const data = await prisma.track.findMany({
@@ -82,12 +88,6 @@ const SingleTrack = ({ track, users, comments }) => {
 
   // Get the session
   const { data: session} = useSession()
-
-  // Dynamically import WaveSurfer to avoid 'Self is not defined' error
-  const WaveFormRegion = dynamic(
-    () => import('../../components/WaveFormRegion'),
-    { ssr: false }
-  )
 
   useEffect(() => {
     const fetchUrl = async () => {

@@ -2,7 +2,7 @@ import { getSession } from 'next-auth/react'
 import React, { useEffect, useState, memo } from 'react'
 import { useRouter } from 'next/router'
 import { useCart } from 'react-use-cart'
-import prisma from '/components/prisma'
+import prisma from '../../components/prisma'
 import Link from 'next/link'
 import {
   Container,

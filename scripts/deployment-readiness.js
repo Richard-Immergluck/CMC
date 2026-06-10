@@ -33,9 +33,16 @@ const warn = message => {
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'))
 
 const packageJson = readJson(path.join(root, 'package.json'))
+const requiredFiles = ['prisma.config.ts', 'prisma/schema.prisma']
 
-if (packageJson.engines?.node !== '18.x') {
-  fail('package.json must pin engines.node to "18.x" until the dependency upgrade phase validates Node 20+')
+for (const file of requiredFiles) {
+  if (!fs.existsSync(path.join(root, file))) {
+    fail(`Missing required file: ${file}`)
+  }
+}
+
+if (packageJson.engines?.node !== '24.x') {
+  fail('package.json must pin engines.node to "24.x" for the current LTS runtime')
 }
 
 for (const scriptName of ['sanity', 'deps:audit', 'deploy:check']) {
@@ -73,7 +80,7 @@ const optionalPlatformChecks = [
   },
   {
     name: 'VERCEL_NODE_VERSION',
-    expected: '18.x',
+    expected: '24.x',
     description: 'Vercel Node.js setting, or the effective value from package.json engines'
   },
   {

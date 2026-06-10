@@ -8,6 +8,11 @@ import _ from 'lodash'
 import CommentBox from '../../components/CommentBox'
 import { canAccessFullTrack, getCurrentUser } from '../../lib/server/ownership'
 
+// needed for WaveForm 'Self is not defined' error
+const WaveFormFull = dynamic(() => import('../../components/WaveFormFull'), {
+  ssr: false
+})
+
 export const getServerSideProps = async context => {
   const session = await getSession({ req: context.req })
   const currentUser = await getCurrentUser(session)
@@ -89,11 +94,6 @@ const TrackOwnerPage = params => {
 
   // Get the current user session
   const { data: session } = useSession()
-
-  // needed for WaveForm 'Self is not defined' error
-  const WaveFormFull = dynamic(() => import('../../components/WaveFormFull'), {
-    ssr: false
-  })
 
   useEffect(() => {
     const fetchUrls = async () => {
