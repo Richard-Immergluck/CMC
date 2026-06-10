@@ -1,7 +1,7 @@
 import React, { useState, memo } from 'react'
 import Link from 'next/link'
 import PlaySample from '../../components/PlaySample'
-import prisma from '/components/prisma'
+import prisma from '../../components/prisma'
 import { Container, Table, Button, Row, Col } from 'react-bootstrap'
 import _ from 'lodash'
 

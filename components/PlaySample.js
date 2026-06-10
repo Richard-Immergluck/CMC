@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
 
+// dynamically import WaveSurfer to avoid 'Self is not defined' error
+const WaveFormRegionHidden = dynamic(() => import("../components/WaveFormRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
+
 const PlaySample = props => {
   // destructure props
   const { track } = props
   const [url, setUrl] = useState('')
-
-  // dynamically import WaveSurfer to avoid 'Self is not defined' error
-  const WaveFormRegionHidden = dynamic(() => import("../components/WaveFormRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
 
   useEffect(() => {
     const fetchUrl = async () => {

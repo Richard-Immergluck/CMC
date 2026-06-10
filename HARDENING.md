@@ -98,6 +98,7 @@ This branch starts Phase 0 and Phase 1 by removing direct browser-side S3 author
 Immediate platform decisions:
 
 - Move production runtime away from Node 14 because it is end-of-life.
+- Target Node 24 LTS for the modernized application runtime.
 - Use Supabase development branches before applying production DDL.
 - Keep simulated purchase fulfilment disabled in production.
 - Deploy hardening branches as previews only until payment and storage flows are verified end to end.
