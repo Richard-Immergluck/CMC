@@ -7,7 +7,7 @@ This runbook captures the moving parts needed to operate the hardened CMC app.
 - GitHub: `Richard-Immergluck/CMC`
 - App directory: repository root
 - Vercel project: `classical-music-catalogue`
-- Supabase project: `CMBC` (`ekuxltipaucirgkwnpwy`)
+- Supabase project: `CMBC Production` (`qliszqosnphiuwhyzgsj`)
 - Region target: `eu-west-2`
 
 ## Required Vercel Environment Variables
@@ -36,10 +36,11 @@ ALLOW_SIMULATED_PURCHASES=false
 
 The live Vercel project is `classical-music-catalogue`.
 
-Observed platform state on 2026-06-05:
+Observed platform state on 2026-06-11:
 
 - Latest production deployment failed before app build because Vercel was still using Node.js `14.x`.
 - The app previously lived in `trax/`; it has now been promoted to the repository root so Vercel's entrypoint `.` is correct.
+- The Vercel connector did not expose a direct deploy/settings mutation path. Deployments should be triggered by Git integration or the Vercel CLI after the project settings and environment variables below are updated.
 
 Set these before deploying:
 
@@ -82,9 +83,29 @@ Before deploying migrations to production:
 5. Verify signup/login, upload, checkout, webhook fulfilment, profile download, and unauthorized denial.
 6. Apply migrations to production only after the preview path is clean.
 
-The current production Supabase project is `CMBC` (`ekuxltipaucirgkwnpwy`). If the Supabase connector reports that the project is inactive or requires reauthentication, migrations cannot be verified through automation yet.
+The original Supabase project `CMBC` (`ekuxltipaucirgkwnpwy`) was paused for more than 90 days and could not be restored. It has been replaced by `CMBC Production` (`qliszqosnphiuwhyzgsj`).
 
-Observed platform state on 2026-06-05: the Supabase connector required reauthentication, and earlier checks reported the project as inactive.
+Current Supabase production details:
+
+- Project ref: `qliszqosnphiuwhyzgsj`
+- Project URL: `https://qliszqosnphiuwhyzgsj.supabase.co`
+- Database host: `db.qliszqosnphiuwhyzgsj.supabase.co`
+- PostgreSQL: `17`
+- Status observed on 2026-06-11: `ACTIVE_HEALTHY`
+
+Applied Supabase migrations on 2026-06-11:
+
+- `initial_auth_tables`
+- `add_track_catalogue_tables`
+- `track_owner_unique_constraint`
+- `add_orders_and_payment_events`
+- `harden_track_money_and_status`
+- `add_foreign_key_indexes`
+- `baseline_prisma_migration_history`
+
+The production database has also been baselined with Prisma's `_prisma_migrations` ledger for the matching source-controlled migration folders. This prevents future `prisma migrate deploy` runs from trying to replay migrations that were already applied through the Supabase migration API during recovery.
+
+Security gate before production traffic: Supabase advisors report Row Level Security disabled for public tables. Because this app currently uses Prisma server-side rather than browser-side Supabase clients, enabling RLS must be tested deliberately with the production connection role before rollout. Do not expose the Supabase anon key to the browser until RLS is enabled with explicit policies.
 
 ## CI Expectations
 
