@@ -30,6 +30,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -38,6 +39,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -100,6 +103,7 @@ model TrackOwner {
   purchasedAt DateTime @default(now())
 
   @@unique([trackId, userId])
+  @@index([userId])
 }
 
 model Comment {
@@ -110,6 +114,9 @@ model Comment {
   userId    String
   content   String
   createdAt DateTime @default(now())
+
+  @@index([trackId])
+  @@index([userId])
 }
 
 model Order {
@@ -125,6 +132,8 @@ model Order {
   updatedAt             DateTime       @updatedAt
   items                 OrderItem[]
   paymentEvents         PaymentEvent[]
+
+  @@index([userId])
 }
 
 model OrderItem {
@@ -139,6 +148,7 @@ model OrderItem {
   currency     String   @default("gbp")
 
   @@unique([orderId, trackId])
+  @@index([trackId])
 }
 
 model PaymentEvent {
@@ -149,6 +159,8 @@ model PaymentEvent {
   orderId        Int?
   payload        String   @db.Text
   processedAt    DateTime @default(now())
+
+  @@index([orderId])
 }
 
 enum OrderStatus {

@@ -88,17 +88,20 @@ This branch starts Phase 0 and Phase 1 by removing direct browser-side S3 author
 - Vercel project: `classical-music-catalogue`
 - Vercel project id: `prj_m8iuNH1ZouYKRXDjHqSBzzuTjcP5`
 - Current Vercel framework: `nextjs`
-- Current Vercel Node version: `14.x`
+- Current Vercel Node version observed before settings remediation: `14.x`
 - Latest recorded Vercel production deployment: `ERROR`
-- Supabase project: `CMBC`
-- Supabase project id/ref: `ekuxltipaucirgkwnpwy`
+- Supabase project: `CMBC Production`
+- Supabase project id/ref: `qliszqosnphiuwhyzgsj`
 - Supabase region: `eu-west-2`
-- Supabase status observed during this pass: `INACTIVE`
+- Supabase status observed during this pass: `ACTIVE_HEALTHY`
+- Original Supabase project `CMBC` (`ekuxltipaucirgkwnpwy`) could not be restored after being paused for more than 90 days.
 
 Immediate platform decisions:
 
 - Move production runtime away from Node 14 because it is end-of-life.
 - Target Node 24 LTS for the modernized application runtime.
-- Use Supabase development branches before applying production DDL.
+- Use Supabase development branches before future production DDL; the replacement production project has had the current Prisma schema applied.
+- Keep Prisma's `_prisma_migrations` ledger aligned with any emergency migrations applied through Supabase tooling.
 - Keep simulated purchase fulfilment disabled in production.
 - Deploy hardening branches as previews only until payment and storage flows are verified end to end.
+- Treat Supabase RLS as the next release gate. Advisors currently flag all public tables as RLS-disabled, including token/session/account tables; enabling it needs explicit policies and a smoke test of Prisma, NextAuth, checkout, webhook fulfilment, and downloads.
