@@ -9,6 +9,10 @@ const importPattern =
   /(?:import\s+(?:[^'"]+\s+from\s+)?['"]([^'".][^'"]*)['"]|require\(\s*['"]([^'".][^'"]*)['"]\s*\))/g
 
 const ignoredBuiltins = new Set(['fs', 'path'])
+const intentionalRuntimeDependencies = new Set([
+  // NextAuth's email provider loads nodemailer as an optional package.
+  'nodemailer'
+])
 
 const packageNameFor = specifier => {
   if (specifier.startsWith('/')) {
@@ -38,7 +42,7 @@ const sourceFiles = sourceDirs.flatMap(dir => walk(path.join(root, dir)))
 const usedPackages = new Set()
 
 for (const file of sourceFiles) {
-  if (!file.endsWith('.js')) {
+  if (!file.endsWith('.js') && !file.endsWith('.mjs')) {
     continue
   }
 
@@ -58,6 +62,10 @@ for (const file of sourceFiles) {
       usedPackages.add(packageName)
     }
   }
+}
+
+for (const packageName of intentionalRuntimeDependencies) {
+  usedPackages.add(packageName)
 }
 
 const declaredPackages = new Set([

@@ -76,6 +76,7 @@ API handlers should be thin adapters. Business rules should live in services. Br
 - Privacy/GDPR process documentation.
 - Infrastructure as code for production/staging.
 - Backup/restore drills and incident runbooks.
+- Dedicated production/preview data separation with repeatable non-production seed data.
 
 ## Current Hardening Pass
 
@@ -105,3 +106,4 @@ Immediate platform decisions:
 - Keep simulated purchase fulfilment disabled in production.
 - Deploy hardening branches as previews only until payment and storage flows are verified end to end.
 - Treat Supabase RLS as the next release gate. Advisors currently flag all public tables as RLS-disabled, including token/session/account tables; enabling it needs explicit policies and a smoke test of Prisma, NextAuth, checkout, webhook fulfilment, and downloads.
+- Treat Google and email magic-link as the musician-facing auth path; GitHub OAuth is not a production customer sign-in strategy.
