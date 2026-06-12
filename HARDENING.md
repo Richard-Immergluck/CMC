@@ -93,6 +93,8 @@ This branch starts Phase 0 and Phase 1 by removing direct browser-side S3 author
 - Latest recorded Vercel production deployment: `ERROR`
 - Supabase project: `CMBC Production`
 - Supabase project id/ref: `qliszqosnphiuwhyzgsj`
+- Supabase development project: `CMBC Development`
+- Supabase development project id/ref: `vsbemyullcrinlrlxbhr`
 - Supabase region: `eu-west-2`
 - Supabase status observed during this pass: `ACTIVE_HEALTHY`
 - Original Supabase project `CMBC` (`ekuxltipaucirgkwnpwy`) could not be restored after being paused for more than 90 days.

@@ -8,6 +8,7 @@ This runbook captures the moving parts needed to operate the hardened CMC app.
 - App directory: repository root
 - Vercel project: `classical-music-catalogue`
 - Supabase project: `CMBC Production` (`qliszqosnphiuwhyzgsj`)
+- Supabase development project: `CMBC Development` (`vsbemyullcrinlrlxbhr`)
 - Region target: `eu-west-2`
 
 ## Required Vercel Environment Variables
@@ -121,11 +122,23 @@ Security gate before production traffic: Supabase advisors report Row Level Secu
 
 Production traffic runs from Vercel production deployments and the `CMBC Production` Supabase project. Development and preview verification should use one of:
 
+- Vercel preview deployments against `CMBC Development`.
 - Vercel preview deployments against a Supabase development branch.
 - A separate Supabase development project if branch cost or lifecycle is undesirable.
 - Local Docker PostgreSQL for fast application checks.
 
 Supabase quoted development branch cost on 2026-06-12: `0.01344` hourly. Create branches deliberately and delete them when they are no longer needed.
+
+Current development Supabase details:
+
+- Project ref: `vsbemyullcrinlrlxbhr`
+- Project URL: `https://vsbemyullcrinlrlxbhr.supabase.co`
+- Database host: `db.vsbemyullcrinlrlxbhr.supabase.co`
+- PostgreSQL: `17`
+- Status observed on 2026-06-12: `ACTIVE_HEALTHY`
+- Monthly project cost quoted by Supabase on 2026-06-12: `0`
+
+The development schema has been aligned with production migrations and RLS posture. Vercel Preview should use this project through Preview-scoped `DATABASE_URL` once the development database password has been set/retrieved from Supabase.
 
 ## Seed Data
 
