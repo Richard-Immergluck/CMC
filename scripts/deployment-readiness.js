@@ -7,8 +7,6 @@ const requiredProductionEnvVars = [
   'DATABASE_URL',
   'NEXTAUTH_URL',
   'NEXTAUTH_SECRET',
-  'GITHUB_ID',
-  'GITHUB_SECRET',
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
   'S3_ACCESS_ID',
@@ -19,6 +17,13 @@ const requiredProductionEnvVars = [
   'STRIPE_WEBHOOK_SECRET',
   'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
   'ALLOW_SIMULATED_PURCHASES'
+]
+
+const optionalEnvVars = [
+  'EMAIL_SERVER',
+  'EMAIL_FROM',
+  'DEMO_SEED_USER_EMAIL',
+  'DEMO_SEED_USER_NAME'
 ]
 
 const fail = message => {
@@ -56,6 +61,12 @@ const envExample = fs.readFileSync(path.join(root, '.env.example'), 'utf8')
 for (const envVar of requiredProductionEnvVars) {
   if (!envExample.includes(envVar)) {
     fail(`.env.example is missing ${envVar}`)
+  }
+}
+
+for (const envVar of optionalEnvVars) {
+  if (!envExample.includes(envVar)) {
+    fail(`.env.example is missing optional documented variable ${envVar}`)
   }
 }
 

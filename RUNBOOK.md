@@ -18,10 +18,10 @@ Configure these for Preview and Production. Production values must come from the
 DATABASE_URL
 NEXTAUTH_URL
 NEXTAUTH_SECRET
-GITHUB_ID
-GITHUB_SECRET
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
+EMAIL_SERVER
+EMAIL_FROM
 S3_ACCESS_ID
 S3_APP_ACCESS_KEY
 S3_BUCKET_NAME
@@ -72,6 +72,16 @@ checkout.session.completed
 
 The webhook secret must be stored as `STRIPE_WEBHOOK_SECRET`. Ownership grants happen only from verified webhook events.
 
+## Authentication
+
+Production authentication is aimed at non-technical musicians and customers:
+
+- Google OAuth is the default social provider.
+- Email magic-link sign-in is available when `EMAIL_SERVER` and `EMAIL_FROM` are configured.
+- GitHub OAuth is intentionally not part of the production sign-in surface.
+
+Configure OAuth callback URLs against each deployed environment before enabling a provider for that environment.
+
 ## Supabase
 
 Before deploying migrations to production:
@@ -105,7 +115,27 @@ Applied Supabase migrations on 2026-06-11:
 
 The production database has also been baselined with Prisma's `_prisma_migrations` ledger for the matching source-controlled migration folders. This prevents future `prisma migrate deploy` runs from trying to replay migrations that were already applied through the Supabase migration API during recovery.
 
-Security gate before production traffic: Supabase advisors report Row Level Security disabled for public tables. Because this app currently uses Prisma server-side rather than browser-side Supabase clients, enabling RLS must be tested deliberately with the production connection role before rollout. Do not expose the Supabase anon key to the browser until RLS is enabled with explicit policies.
+Security gate before production traffic: Supabase advisors report Row Level Security disabled for public tables. Because this app currently uses Prisma server-side rather than browser-side Supabase clients, RLS should be enabled with no browser-side table policies and with direct table grants revoked from Supabase `anon` and `authenticated` roles. Do not expose the Supabase anon key to the browser unless explicit, least-privilege policies have been designed and tested.
+
+## Environment Separation
+
+Production traffic runs from Vercel production deployments and the `CMBC Production` Supabase project. Development and preview verification should use one of:
+
+- Vercel preview deployments against a Supabase development branch.
+- A separate Supabase development project if branch cost or lifecycle is undesirable.
+- Local Docker PostgreSQL for fast application checks.
+
+Supabase quoted development branch cost on 2026-06-12: `0.01344` hourly. Create branches deliberately and delete them when they are no longer needed.
+
+## Seed Data
+
+Use seed data only against development or preview environments unless production seeding is explicitly intended.
+
+```text
+yarn seed:demo
+```
+
+The seed script creates synthetic CC0 demo audio fixtures, uploads them to the configured S3 bucket, and creates catalogue rows for a demo uploader. It is intended for smoke tests, not production catalogue content.
 
 ## CI Expectations
 

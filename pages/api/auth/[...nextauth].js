@@ -1,12 +1,34 @@
 import NextAuth from 'next-auth'
 
 // Providers
-import GithubProvider from 'next-auth/providers/github'
-import GoogleProvider from "next-auth/providers/google"
+import EmailProvider from 'next-auth/providers/email'
+import GoogleProvider from 'next-auth/providers/google'
 
 // DB adapter and Client imports
-import { PrismaAdapter } from "@next-auth/prisma-adapter" 
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '../../../components/prisma'
+
+const hasEnv = names => names.every(name => Boolean(process.env[name]))
+
+const providers = []
+
+if (hasEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'])) {
+  providers.push(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+    })
+  )
+}
+
+if (hasEnv(['EMAIL_SERVER', 'EMAIL_FROM'])) {
+  providers.push(
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: process.env.EMAIL_FROM
+    })
+  )
+}
 
 export default NextAuth({
   site: process.env.NEXTAUTH_URL,
@@ -16,33 +38,23 @@ export default NextAuth({
   adapter: PrismaAdapter(prisma), // NextAuth adapter for Prisma
 
   session: {
-    strategy: 'jwt',
-
+    strategy: 'jwt'
   },
-  providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
-    }),
-  ],
+  providers,
   callbacks: {
-    async jwt({token, account}) {
+    async jwt({ token, account }) {
       if (account) {
         token.accessToken = account.access_token
       }
       return token
     },
-    async session({session, token, user}) {
+    async session({ session, token }) {
       session.accessToken = token.accessToken
       return session
-    },   
+    },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (url.startsWith('/')) return `${baseUrl}${url}`
       // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
