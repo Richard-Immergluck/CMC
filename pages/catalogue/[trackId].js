@@ -13,31 +13,8 @@ const WaveFormRegion = dynamic(
   { ssr: false }
 )
 
-// Create dynamic routes
-export const getStaticPaths = async () => {
-  const data = await prisma.track.findMany({
-    orderBy: {
-      downloadCount: 'desc'
-    },
-    take: 100
-  })
-  
-  const paths = data.map(track => {
-    return {
-      params: {
-        trackId: `${track.id}`
-      }
-    }
-  })
-
-  return {
-    paths,
-    fallback: 'blocking'
-  }
-}
-
 // Fetch data for the page
-export const getStaticProps = async context => {
+export const getServerSideProps = async context => {
   // Destructure the trackId from the context
   const { params } = context
   const { trackId } = params
@@ -48,6 +25,12 @@ export const getStaticProps = async context => {
       id: Number(trackId)
     }
   })
+
+  if (!track) {
+    return {
+      notFound: true
+    }
+  }
 
   // Convert the track date object to a locale date string
   track.uploadedAt = track.uploadedAt.toLocaleDateString()
@@ -74,9 +57,7 @@ export const getStaticProps = async context => {
       track,
       users,
       comments
-    },
-    revalidate: 30, // This will revalidate the page every 30 seconds
-    // Which will update the comments if a new comment is added
+    }
   }
 }
 

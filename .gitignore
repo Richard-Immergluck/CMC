@@ -20,3 +20,4 @@ yarn-error.log*
 # env files
 .env
 .env.local
+.vercel
