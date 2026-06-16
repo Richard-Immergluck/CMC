@@ -5,15 +5,7 @@ import {
   markOrderCheckoutSession
 } from '../../../lib/server/orders'
 import { getStripe } from '../../../lib/server/stripe'
-
-const getApplicationUrl = req => {
-  if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL
-  }
-
-  const protocol = req.headers['x-forwarded-proto'] || 'http'
-  return `${protocol}://${req.headers.host}`
-}
+import { getApplicationBaseUrl } from '../../../lib/server/url'
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -37,7 +29,7 @@ export default async function handler(req, res) {
       })
 
       const stripe = getStripe()
-      const applicationUrl = getApplicationUrl(req)
+      const applicationUrl = getApplicationBaseUrl(req)
 
       const checkoutSession = await stripe.checkout.sessions.create({
         line_items: order.items.map(item => ({
