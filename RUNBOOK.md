@@ -88,9 +88,9 @@ Configure OAuth callback URLs against each deployed environment before enabling 
 Before deploying migrations to production:
 
 1. Confirm the Supabase project is active.
-2. Create or activate a Supabase development branch.
-3. Apply Prisma migrations against that branch.
-4. Run the Vercel preview deployment against the branch database.
+2. Apply Prisma migrations against `CMBC Development`.
+3. Run the Vercel preview deployment against the development database.
+4. Run smoke tests against the Vercel preview URL.
 5. Verify signup/login, upload, checkout, webhook fulfilment, profile download, and unauthorized denial.
 6. Apply migrations to production only after the preview path is clean.
 
@@ -150,6 +150,16 @@ yarn seed:demo
 
 The seed script creates synthetic CC0 demo audio fixtures, uploads them to the configured S3 bucket, and creates catalogue rows for a demo uploader. It is intended for smoke tests, not production catalogue content.
 
+## Smoke Tests
+
+Run deployment smoke tests against Preview before promotion and against Production after release:
+
+```text
+SMOKE_BASE_URL=https://<deployment-host> yarn smoke
+```
+
+The smoke test checks the home page, catalogue page, and public sign-in page. It also guards that GitHub sign-in is not exposed in the musician/customer auth surface.
+
 ## CI Expectations
 
 The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
@@ -160,6 +170,7 @@ The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 - `yarn sanity`
 - `yarn deps:audit`
 - `yarn deploy:check`
+- `node --check scripts/smoke-test.js`
 - `yarn lint`
 - `yarn build`
 
@@ -168,7 +179,7 @@ The app targets Node 24 LTS with a modernized Next.js, React, Prisma, Stripe, an
 ## Release Checklist
 
 - PR reviewed and CI green.
-- Vercel Preview manually smoke-tested.
+- Vercel Preview smoke-tested with `SMOKE_BASE_URL=https://<preview-host> yarn smoke`.
 - Supabase migrations applied to the intended database.
 - Stripe webhook endpoint configured for the deployment URL.
 - AWS credentials rotated and scoped to least privilege.

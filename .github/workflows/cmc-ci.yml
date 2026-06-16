@@ -14,8 +14,6 @@ jobs:
       DATABASE_URL: postgresql://prisma:prisma@localhost:5432/prisma?schema=public
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: ci-nextauth-secret
-      GITHUB_ID: ci-placeholder
-      GITHUB_SECRET: ci-placeholder
       GOOGLE_CLIENT_ID: ci-placeholder
       GOOGLE_CLIENT_SECRET: ci-placeholder
       S3_ACCESS_ID: ci-placeholder
@@ -77,6 +75,9 @@ jobs:
           VERCEL_PROJECT_ROOT: .
           VERCEL_NODE_VERSION: 24.x
           SUPABASE_PROJECT_STATUS: ACTIVE
+
+      - name: Smoke test syntax
+        run: node --check scripts/smoke-test.js
 
       - name: Lint
         run: yarn lint

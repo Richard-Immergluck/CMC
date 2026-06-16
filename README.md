@@ -18,6 +18,14 @@ yarn dev
 
 The app expects PostgreSQL, NextAuth provider credentials, Stripe keys, and S3 credentials. Use `.env.example` as the source of truth for required variables.
 
+## Deployment Smoke Tests
+
+```bash
+SMOKE_BASE_URL=https://classical-music-catalogue.vercel.app yarn smoke
+```
+
+The smoke test checks the public home page, catalogue page, and sign-in provider surface. It is designed to run against Vercel Preview before promotion and Production after release.
+
 ## Original Context
 
 Classical Music Catalogue:
