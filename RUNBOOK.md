@@ -83,6 +83,8 @@ Production authentication is aimed at non-technical musicians and customers:
 
 Configure OAuth callback URLs against each deployed environment before enabling a provider for that environment.
 
+Use environment-scoped values for `NEXTAUTH_URL`. Production should point at the production domain. Preview deployments should either omit it or set it to the preview host; checkout return URLs deliberately use the request host outside production so test purchases stay inside the preview deployment.
+
 ## Supabase
 
 Before deploying migrations to production:

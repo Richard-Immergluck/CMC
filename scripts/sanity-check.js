@@ -8,6 +8,7 @@ const requiredFiles = [
   'lib/server/orders.js',
   'lib/server/s3.js',
   'lib/server/stripe.js',
+  'lib/server/url.js',
   'pages/api/stripe/checkout_sessions.js',
   'pages/api/stripe/webhook.js',
   'pages/api/tracks/[trackId]/signed-url.js',
