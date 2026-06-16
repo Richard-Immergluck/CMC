@@ -10,6 +10,7 @@
     "deploy:check": "node scripts/deployment-readiness.js",
     "seed:demo": "node scripts/seed-demo-data.mjs",
     "sanity": "node scripts/sanity-check.js",
+    "smoke": "node scripts/smoke-test.js",
     "lint": "eslint ."
   },
   "engines": {
