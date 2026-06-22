@@ -152,6 +152,8 @@ yarn seed:demo
 
 The seed script creates synthetic CC0 demo audio fixtures, uploads them to the configured S3 bucket, and creates catalogue rows for a demo uploader. It is intended for smoke tests, not production catalogue content.
 
+If S3 credentials are unavailable or quarantined in Preview, set `CMC_ENABLE_SYNTHETIC_FIXTURES=true` only for Preview/Development. Seeded `demo-fixtures/*` tracks will then stream generated CC0 WAV fixtures from the app instead of S3. Leave this disabled in Production.
+
 ## Smoke Tests
 
 Run deployment smoke tests against Preview before promotion and against Production after release:
