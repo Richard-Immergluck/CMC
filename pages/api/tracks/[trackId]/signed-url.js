@@ -1,9 +1,26 @@
 import { getSession } from 'next-auth/react'
 import prisma from '../../../../lib/server/prisma'
+import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/server/demo-fixtures'
 import { canAccessFullTrack, getCurrentUser } from '../../../../lib/server/ownership'
 import { getSignedTrackUrl } from '../../../../lib/server/s3'
+import { getApplicationBaseUrl } from '../../../../lib/server/url'
 
 const modes = ['sample', 'full', 'download']
+
+const getSyntheticFixtureUrl = ({ req, track, mode }) => {
+  if (!syntheticFixturesEnabled()) {
+    return null
+  }
+
+  const fixtureName = getDemoFixtureName(track.fileName)
+
+  if (!fixtureName) {
+    return null
+  }
+
+  const params = mode === 'download' ? '?download=1' : ''
+  return `${getApplicationBaseUrl(req)}/api/demo-fixtures/${fixtureName}${params}`
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -29,7 +46,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: 'Track not found' })
     }
 
-    const url = getSignedTrackUrl({
+    const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
       key: track.fileName,
       expires: 60
     })
@@ -63,7 +80,7 @@ export default async function handler(req, res) {
     return res.status(403).json({ message: 'Track access denied' })
   }
 
-  const url = getSignedTrackUrl({
+  const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
     key: track.fileName,
     expires: mode === 'download' ? 900 : 300,
     fileName: mode === 'download' ? track.downloadName : undefined
