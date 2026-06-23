@@ -5,6 +5,14 @@ import { getSignedTrackUploadUrl } from '../../../lib/server/s3'
 const allowedContentTypes = ['audio/mpeg', 'audio/mp3']
 const allowedExtensions = ['mp3']
 
+const normalizeS3Prefix = prefix => {
+  if (!prefix) {
+    return ''
+  }
+
+  return prefix.replace(/^\/+/, '').replace(/\/?$/, '/')
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -24,7 +32,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'Only MP3 uploads are currently supported' })
   }
 
-  const key = `${uuidv4()}.${extension}`
+  const key = `${normalizeS3Prefix(process.env.S3_KEY_PREFIX)}${uuidv4()}.${extension}`
   const url = await getSignedTrackUploadUrl({
     key,
     contentType

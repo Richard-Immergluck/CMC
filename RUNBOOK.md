@@ -27,6 +27,7 @@ S3_ACCESS_ID
 S3_APP_ACCESS_KEY
 S3_BUCKET_NAME
 S3_REGION
+S3_KEY_PREFIX
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -164,7 +165,7 @@ Before re-enabling S3-backed upload, preview, download, or seed flows:
 - Create separate least-privilege IAM credentials for Production and Development/Preview.
 - Prefer separate buckets, or at minimum separate prefixes, for production catalogue assets and development fixtures.
 - Grant only the required object actions for the intended bucket/prefix: `s3:GetObject`, `s3:PutObject`, and any narrowly required multipart/list actions.
-- Set `S3_ACCESS_ID`, `S3_APP_ACCESS_KEY`, `S3_BUCKET_NAME`, and `S3_REGION` in Vercel with environment-specific scoping.
+- Set `S3_ACCESS_ID`, `S3_APP_ACCESS_KEY`, `S3_BUCKET_NAME`, `S3_REGION`, and `S3_KEY_PREFIX` in Vercel with environment-specific scoping.
 - Keep `CMC_ENABLE_SYNTHETIC_FIXTURES=true` in Preview/Development until replacement dev storage is verified.
 - Leave `CMC_ENABLE_SYNTHETIC_FIXTURES` unset or `false` in Production.
 
