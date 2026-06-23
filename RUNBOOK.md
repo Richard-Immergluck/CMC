@@ -154,6 +154,20 @@ The seed script creates synthetic CC0 demo audio fixtures, uploads them to the c
 
 If S3 credentials are unavailable or quarantined in Preview, set `CMC_ENABLE_SYNTHETIC_FIXTURES=true` only for Preview/Development. Seeded `demo-fixtures/*` tracks will then stream generated CC0 WAV fixtures from the app instead of S3. Leave this disabled in Production.
 
+## AWS S3 Recovery
+
+On 2026-06-23 the existing AWS credentials were found to be quarantined by AWS with `AWSCompromisedKeyQuarantineV2`, blocking `s3:GetObject` for seeded audio fixtures. The Vercel S3 environment variables were removed while replacement credentials are prepared.
+
+Before re-enabling S3-backed upload, preview, download, or seed flows:
+
+- Delete or deactivate the compromised IAM access key in AWS.
+- Create separate least-privilege IAM credentials for Production and Development/Preview.
+- Prefer separate buckets, or at minimum separate prefixes, for production catalogue assets and development fixtures.
+- Grant only the required object actions for the intended bucket/prefix: `s3:GetObject`, `s3:PutObject`, and any narrowly required multipart/list actions.
+- Set `S3_ACCESS_ID`, `S3_APP_ACCESS_KEY`, `S3_BUCKET_NAME`, and `S3_REGION` in Vercel with environment-specific scoping.
+- Keep `CMC_ENABLE_SYNTHETIC_FIXTURES=true` in Preview/Development until replacement dev storage is verified.
+- Leave `CMC_ENABLE_SYNTHETIC_FIXTURES` unset or `false` in Production.
+
 ## Smoke Tests
 
 Run deployment smoke tests against Preview before promotion and against Production after release:
