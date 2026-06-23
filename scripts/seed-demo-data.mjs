@@ -35,6 +35,14 @@ const s3 = new AWS.S3({
 
 const writeAscii = (buffer, offset, value) => buffer.write(value, offset, 'ascii')
 
+const normalizeS3Prefix = prefix => {
+  if (!prefix) {
+    return ''
+  }
+
+  return `${prefix.replace(/^\/+/, '').replace(/\/+$/, '')}/`
+}
+
 const createToneWav = ({ frequency, seconds }) => {
   const sampleRate = 44100
   const channels = 1
@@ -100,7 +108,7 @@ const demoTracks = [
 ]
 
 const uploadFixture = async track => {
-  const key = `demo-fixtures/${track.slug}.wav`
+  const key = `${normalizeS3Prefix(process.env.S3_KEY_PREFIX)}demo-fixtures/${track.slug}.wav`
   const body = createToneWav({
     frequency: track.frequency,
     seconds: 12

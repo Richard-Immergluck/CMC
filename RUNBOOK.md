@@ -151,9 +151,9 @@ Use seed data only against development or preview environments unless production
 yarn seed:demo
 ```
 
-The seed script creates synthetic CC0 demo audio fixtures, uploads them to the configured S3 bucket, and creates catalogue rows for a demo uploader. It is intended for smoke tests, not production catalogue content.
+The seed script creates synthetic CC0 demo audio fixtures, uploads them to the configured S3 bucket, and creates catalogue rows for a demo uploader. It is intended for smoke tests, not production catalogue content. If `S3_KEY_PREFIX` is set, fixture objects and database `fileName` values are written under that prefix, for example `development/demo-fixtures/*` in Preview/Development.
 
-If S3 credentials are unavailable or quarantined in Preview, set `CMC_ENABLE_SYNTHETIC_FIXTURES=true` only for Preview/Development. Seeded `demo-fixtures/*` tracks will then stream generated CC0 WAV fixtures from the app instead of S3. Leave this disabled in Production.
+If S3 credentials are unavailable or quarantined in Preview, set `CMC_ENABLE_SYNTHETIC_FIXTURES=true` only for Preview/Development. Seeded `demo-fixtures/*` tracks will then stream generated CC0 WAV fixtures from the app instead of S3. Leave this disabled in Production, and prefer real S3-backed fixtures once development credentials have been verified.
 
 ## AWS S3 Recovery
 
