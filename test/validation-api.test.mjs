@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   checkoutSessionBodySchema,
+  createTrackBodySchema,
   signedTrackUrlQuerySchema,
   trackIdParamSchema,
   uploadSignedUrlBodySchema,
@@ -72,3 +73,47 @@ test('checkout body requires a bounded list of positive track ids', () => {
   )
 })
 
+test('track creation body normalizes upload metadata and preview bounds', () => {
+  assert.deepEqual(
+    validateInput(createTrackBodySchema, {
+      title: ' Bach Study ',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      newFileName: 'development/upload-id.mp3',
+      previewStart: '10',
+      previewEnd: '25',
+      additionalInfo: 'Practice backing track',
+      price: '2.99',
+      currency: 'GBP'
+    }),
+    {
+      title: 'Bach Study',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      newFileName: 'development/upload-id.mp3',
+      previewStart: 10,
+      previewEnd: 25,
+      additionalInfo: 'Practice backing track',
+      price: 2.99,
+      currency: 'gbp',
+      downloadCount: 0
+    }
+  )
+
+  assert.throws(
+    () => validateInput(createTrackBodySchema, {
+      title: 'Bach Study',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      newFileName: 'development/upload-id.mp3',
+      previewStart: '30',
+      previewEnd: '10',
+      additionalInfo: 'Practice backing track',
+      price: '2.99'
+    }),
+    error => error.statusCode === 400
+  )
+})
