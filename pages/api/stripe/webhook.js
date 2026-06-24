@@ -1,11 +1,6 @@
 import { buffer } from 'micro'
-import {
-  findOrderByCheckoutSession,
-  fulfilPaidOrder,
-  hasProcessedPaymentEvent,
-  recordPaymentEvent
-} from '../../../lib/server/orders'
 import { getStripe } from '../../../lib/server/stripe'
+import { processStripeWebhookEvent } from '../../../lib/server/webhooks'
 
 export const config = {
   api: {
@@ -39,52 +34,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: `Webhook signature failed: ${error.message}` })
   }
 
-  if (await hasProcessedPaymentEvent(event.id)) {
-    return res.status(200).json({ received: true })
-  }
-
   try {
-    if (event.type === 'checkout.session.completed') {
-      const checkoutSession = event.data.object
-      const order = await findOrderByCheckoutSession(checkoutSession.id)
+    const result = await processStripeWebhookEvent(event)
 
-      if (!order) {
-        await recordPaymentEvent({
-          stripeEvent: event
-        })
-
-        return res.status(200).json({ received: true })
-      }
-
-      if (checkoutSession.payment_status === 'paid') {
-        const fulfilledOrder = await fulfilPaidOrder({
-          checkoutSessionId: checkoutSession.id,
-          paymentIntentId: checkoutSession.payment_intent
-        })
-
-        await recordPaymentEvent({
-          stripeEvent: event,
-          orderId: fulfilledOrder.id
-        })
-      } else {
-        await recordPaymentEvent({
-          stripeEvent: event,
-          orderId: order?.id
-        })
-      }
-    } else {
-      const checkoutSessionId = event.data?.object?.id
-      const order = checkoutSessionId
-        ? await findOrderByCheckoutSession(checkoutSessionId)
-        : null
-
-      await recordPaymentEvent({
-        stripeEvent: event,
-        orderId: order?.id
-      })
-    }
-
-    return res.status(200).json({ received: true })
+    return res.status(200).json({ received: true, status: result.status })
   } catch (error) {
     return res.status(500).json({ message: error.message })
   }
