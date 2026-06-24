@@ -79,6 +79,9 @@ jobs:
       - name: Smoke test syntax
         run: node --check scripts/smoke-test.js
 
+      - name: Unit tests
+        run: yarn test:unit
+
       - name: Lint
         run: yarn lint
 

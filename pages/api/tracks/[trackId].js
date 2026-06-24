@@ -1,21 +1,34 @@
 import prisma from '../../../components/prisma'
+import {
+  createNotFoundError,
+  createValidationError,
+  handleApiError,
+  requireMethod,
+  sendJson
+} from '../../../lib/server/api'
 
 export default async function getTrackById(req, res) {
-  const trackId = Number(req.query.trackId)
+  try {
+    requireMethod(req, res, ['GET'])
 
-  if (!Number.isInteger(trackId)) {
-    return res.status(400).json({ message: 'Invalid track id' })
-  }
+    const trackId = Number(req.query.trackId)
 
-  const track = await prisma.track.findUnique({
-    where: {
-      id: trackId
+    if (!Number.isInteger(trackId)) {
+      throw createValidationError('Invalid track id')
     }
-  })
 
-  if (!track) {
-    return res.status(404).json({ message: 'Track not found' })
+    const track = await prisma.track.findUnique({
+      where: {
+        id: trackId
+      }
+    })
+
+    if (!track) {
+      throw createNotFoundError('Track not found')
+    }
+
+    return sendJson(res, 200, track)
+  } catch (error) {
+    return handleApiError(res, error)
   }
-
-  return res.status(200).json(track)
 }
