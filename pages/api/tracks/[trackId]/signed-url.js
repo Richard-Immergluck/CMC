@@ -6,6 +6,8 @@ import {
   sendJson
 } from '../../../../lib/server/api'
 import prisma from '../../../../lib/server/prisma'
+import { auditActions } from '../../../../lib/server/audit-core.mjs'
+import { recordAuditEvent } from '../../../../lib/server/audit'
 import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/server/demo-fixtures'
 import { canAccessFullTrack, getCurrentUser } from '../../../../lib/server/ownership'
 import { getSignedTrackUrl } from '../../../../lib/server/s3'
@@ -89,6 +91,17 @@ export default async function handler(req, res) {
       key: track.fileName,
       expires: mode === 'download' ? 900 : 300,
       fileName: mode === 'download' ? track.downloadName : undefined
+    })
+
+    await recordAuditEvent({
+      action: auditActions.trackAccessSignedUrlIssued,
+      actorId: currentUser.id,
+      entityType: 'Track',
+      entityId: track.id,
+      metadata: {
+        mode,
+        downloadName: mode === 'download' ? track.downloadName : undefined
+      }
     })
 
     if (redirect === '1') {

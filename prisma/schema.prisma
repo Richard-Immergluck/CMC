@@ -55,6 +55,7 @@ model User {
   TrackOwners   TrackOwner[]
   Comment       Comment[]
   orders        Order[]
+  auditEvents   AuditEvent[]
 }
 
 model VerificationToken {
@@ -161,6 +162,22 @@ model PaymentEvent {
   processedAt    DateTime @default(now())
 
   @@index([orderId])
+}
+
+model AuditEvent {
+  id         Int      @id @default(autoincrement())
+  action     String
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId    String?
+  entityType String
+  entityId   String
+  metadata   String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([action])
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
 
 enum OrderStatus {
