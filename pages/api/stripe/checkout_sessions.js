@@ -4,11 +4,7 @@ import {
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
-import {
-  createPendingOrder,
-  markOrderCheckoutSession
-} from '../../../lib/server/orders'
-import { getStripe } from '../../../lib/server/stripe'
+import { createCheckoutSessionForTracks } from '../../../lib/server/purchases'
 import { getApplicationBaseUrl } from '../../../lib/server/url'
 import {
   checkoutSessionBodySchema,
@@ -26,37 +22,10 @@ export default async function handler(req, res) {
       'Invalid checkout request'
     )
 
-    const order = await createPendingOrder({
+    const checkoutSession = await createCheckoutSessionForTracks({
       user,
-      trackIds
-    })
-
-    const stripe = getStripe()
-    const applicationUrl = getApplicationBaseUrl(req)
-
-    const checkoutSession = await stripe.checkout.sessions.create({
-      line_items: order.items.map(item => ({
-        price_data: {
-          currency: item.currency,
-          product_data: {
-            name: `${item.title} - ${item.composer}`
-          },
-          unit_amount: item.unitAmount
-        },
-        quantity: 1
-      })),
-      mode: 'payment',
-      success_url: `${applicationUrl}/profile?checkout=success`,
-      cancel_url: `${applicationUrl}/cart?checkout=canceled`,
-      client_reference_id: `${order.id}`,
-      metadata: {
-        orderId: `${order.id}`
-      }
-    })
-
-    await markOrderCheckoutSession({
-      orderId: order.id,
-      checkoutSessionId: checkoutSession.id
+      trackIds,
+      applicationUrl: getApplicationBaseUrl(req)
     })
 
     return sendJson(res, 200, { url: checkoutSession.url })
