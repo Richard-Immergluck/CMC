@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   ApiError,
   createAuthenticationError,
+  createConflictError,
   createMethodNotAllowedError,
   createValidationError,
   formatAllowHeader,
@@ -59,3 +60,11 @@ test('unexpected errors serialize as generic server failures', () => {
   })
 })
 
+test('conflict errors serialize as stable 409 responses', () => {
+  assert.deepEqual(toErrorResponse(createConflictError('Already owned')), {
+    statusCode: 409,
+    body: {
+      message: 'Already owned'
+    }
+  })
+})
