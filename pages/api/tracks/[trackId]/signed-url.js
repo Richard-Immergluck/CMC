@@ -1,11 +1,19 @@
 import { getSession } from 'next-auth/react'
+import {
+  createNotFoundError,
+  handleApiError,
+  requireMethod,
+  sendJson
+} from '../../../../lib/server/api'
 import prisma from '../../../../lib/server/prisma'
 import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/server/demo-fixtures'
 import { canAccessFullTrack, getCurrentUser } from '../../../../lib/server/ownership'
 import { getSignedTrackUrl } from '../../../../lib/server/s3'
 import { getApplicationBaseUrl } from '../../../../lib/server/url'
-
-const modes = ['sample', 'full', 'download']
+import {
+  signedTrackUrlQuerySchema,
+  validateInput
+} from '../../../../lib/validation/api.mjs'
 
 const getSyntheticFixtureUrl = ({ req, track, mode }) => {
   if (!syntheticFixturesEnabled()) {
@@ -23,72 +31,72 @@ const getSyntheticFixtureUrl = ({ req, track, mode }) => {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET')
-    return res.status(405).json({ message: 'Method not allowed' })
-  }
+  try {
+    requireMethod(req, res, ['GET'])
 
-  const trackId = Number(req.query.trackId)
-  const mode = req.query.mode || 'sample'
+    const { trackId, mode, redirect } = validateInput(
+      signedTrackUrlQuerySchema,
+      req.query,
+      'Invalid signed URL request'
+    )
 
-  if (!Number.isInteger(trackId) || !modes.includes(mode)) {
-    return res.status(400).json({ message: 'Invalid signed URL request' })
-  }
+    if (mode === 'sample') {
+      const track = await prisma.track.findUnique({
+        where: {
+          id: trackId
+        }
+      })
 
-  if (mode === 'sample') {
-    const track = await prisma.track.findUnique({
-      where: {
-        id: trackId
+      if (!track) {
+        throw createNotFoundError('Track not found')
       }
+
+      const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
+        key: track.fileName,
+        expires: 60
+      })
+
+      const sampleUrl = `${url}#t=${track.previewStart},${track.previewEnd}`
+
+      if (redirect === '1') {
+        return res.redirect(302, sampleUrl)
+      }
+
+      return sendJson(res, 200, { url: sampleUrl })
+    }
+
+    const session = await getSession({ req })
+    const currentUser = await getCurrentUser(session)
+
+    if (!currentUser) {
+      return sendJson(res, 401, { message: 'Authentication required' })
+    }
+
+    const { allowed, track } = await canAccessFullTrack({
+      userId: currentUser.id,
+      trackId
     })
 
     if (!track) {
-      return res.status(404).json({ message: 'Track not found' })
+      throw createNotFoundError('Track not found')
+    }
+
+    if (!allowed) {
+      return sendJson(res, 403, { message: 'Track access denied' })
     }
 
     const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
       key: track.fileName,
-      expires: 60
+      expires: mode === 'download' ? 900 : 300,
+      fileName: mode === 'download' ? track.downloadName : undefined
     })
 
-    const sampleUrl = `${url}#t=${track.previewStart},${track.previewEnd}`
-
-    if (req.query.redirect === '1') {
-      return res.redirect(302, sampleUrl)
+    if (redirect === '1') {
+      return res.redirect(302, url)
     }
 
-    return res.status(200).json({ url: sampleUrl })
+    return sendJson(res, 200, { url })
+  } catch (error) {
+    return handleApiError(res, error)
   }
-
-  const session = await getSession({ req })
-  const currentUser = await getCurrentUser(session)
-
-  if (!currentUser) {
-    return res.status(401).json({ message: 'Authentication required' })
-  }
-
-  const { allowed, track } = await canAccessFullTrack({
-    userId: currentUser.id,
-    trackId
-  })
-
-  if (!track) {
-    return res.status(404).json({ message: 'Track not found' })
-  }
-
-  if (!allowed) {
-    return res.status(403).json({ message: 'Track access denied' })
-  }
-
-  const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
-    key: track.fileName,
-    expires: mode === 'download' ? 900 : 300,
-    fileName: mode === 'download' ? track.downloadName : undefined
-  })
-
-  if (req.query.redirect === '1') {
-    return res.redirect(302, url)
-  }
-
-  return res.status(200).json({ url })
 }

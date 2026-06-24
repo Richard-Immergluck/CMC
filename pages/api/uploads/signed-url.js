@@ -1,9 +1,15 @@
-import { getSession } from 'next-auth/react'
 import { v4 as uuidv4 } from 'uuid'
+import {
+  handleApiError,
+  requireCurrentUser,
+  requireMethod,
+  sendJson
+} from '../../../lib/server/api'
 import { getSignedTrackUploadUrl } from '../../../lib/server/s3'
-
-const allowedContentTypes = ['audio/mpeg', 'audio/mp3']
-const allowedExtensions = ['mp3']
+import {
+  uploadSignedUrlBodySchema,
+  validateInput
+} from '../../../lib/validation/api.mjs'
 
 const normalizeS3Prefix = prefix => {
   if (!prefix) {
@@ -14,32 +20,27 @@ const normalizeS3Prefix = prefix => {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST')
-    return res.status(405).json({ message: 'Method not allowed' })
+  try {
+    requireMethod(req, res, ['POST'])
+    await requireCurrentUser(req)
+
+    const { fileName, contentType } = validateInput(
+      uploadSignedUrlBodySchema,
+      req.body,
+      'Invalid upload request'
+    )
+    const extension = fileName.split('.').pop().toLowerCase()
+    const key = `${normalizeS3Prefix(process.env.S3_KEY_PREFIX)}${uuidv4()}.${extension}`
+    const url = await getSignedTrackUploadUrl({
+      key,
+      contentType
+    })
+
+    return sendJson(res, 200, {
+      key,
+      url
+    })
+  } catch (error) {
+    return handleApiError(res, error)
   }
-
-  const session = await getSession({ req })
-
-  if (!session?.user) {
-    return res.status(401).json({ message: 'Authentication required' })
-  }
-
-  const { fileName, contentType } = req.body
-  const extension = fileName?.split('.').pop()?.toLowerCase()
-
-  if (!allowedContentTypes.includes(contentType) || !allowedExtensions.includes(extension)) {
-    return res.status(400).json({ message: 'Only MP3 uploads are currently supported' })
-  }
-
-  const key = `${normalizeS3Prefix(process.env.S3_KEY_PREFIX)}${uuidv4()}.${extension}`
-  const url = await getSignedTrackUploadUrl({
-    key,
-    contentType
-  })
-
-  return res.status(200).json({
-    key,
-    url
-  })
 }

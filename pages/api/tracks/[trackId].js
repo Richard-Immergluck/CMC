@@ -1,21 +1,20 @@
 import prisma from '../../../components/prisma'
 import {
   createNotFoundError,
-  createValidationError,
   handleApiError,
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
+import {
+  trackIdParamSchema,
+  validateInput
+} from '../../../lib/validation/api.mjs'
 
 export default async function getTrackById(req, res) {
   try {
     requireMethod(req, res, ['GET'])
 
-    const trackId = Number(req.query.trackId)
-
-    if (!Number.isInteger(trackId)) {
-      throw createValidationError('Invalid track id')
-    }
+    const { trackId } = validateInput(trackIdParamSchema, req.query, 'Invalid track id')
 
     const track = await prisma.track.findUnique({
       where: {

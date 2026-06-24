@@ -1,67 +1,66 @@
-import { getSession } from 'next-auth/react'
-import { getCurrentUser } from '../../../lib/server/ownership'
+import {
+  handleApiError,
+  requireCurrentUser,
+  requireMethod,
+  sendJson
+} from '../../../lib/server/api'
 import {
   createPendingOrder,
   markOrderCheckoutSession
 } from '../../../lib/server/orders'
 import { getStripe } from '../../../lib/server/stripe'
 import { getApplicationBaseUrl } from '../../../lib/server/url'
+import {
+  checkoutSessionBodySchema,
+  validateInput
+} from '../../../lib/validation/api.mjs'
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const authSession = await getSession({ req })
-      const user = await getCurrentUser(authSession)
+  try {
+    requireMethod(req, res, ['POST'])
 
-      if (!user) {
-        return res.status(401).json({ message: 'Authentication required' })
-      }
+    const user = await requireCurrentUser(req)
+    const { trackIds } = validateInput(
+      checkoutSessionBodySchema,
+      req.body,
+      'Invalid checkout request'
+    )
 
-      const { trackIds } = req.body
+    const order = await createPendingOrder({
+      user,
+      trackIds
+    })
 
-      if (!Array.isArray(trackIds)) {
-        return res.status(400).json({ message: 'trackIds must be an array' })
-      }
+    const stripe = getStripe()
+    const applicationUrl = getApplicationBaseUrl(req)
 
-      const order = await createPendingOrder({
-        user,
-        trackIds
-      })
-
-      const stripe = getStripe()
-      const applicationUrl = getApplicationBaseUrl(req)
-
-      const checkoutSession = await stripe.checkout.sessions.create({
-        line_items: order.items.map(item => ({
-          price_data: {
-            currency: item.currency,
-            product_data: {
-              name: `${item.title} - ${item.composer}`
-            },
-            unit_amount: item.unitAmount
+    const checkoutSession = await stripe.checkout.sessions.create({
+      line_items: order.items.map(item => ({
+        price_data: {
+          currency: item.currency,
+          product_data: {
+            name: `${item.title} - ${item.composer}`
           },
-          quantity: 1
-        })),
-        mode: 'payment',
-        success_url: `${applicationUrl}/profile?checkout=success`,
-        cancel_url: `${applicationUrl}/cart?checkout=canceled`,
-        client_reference_id: `${order.id}`,
-        metadata: {
-          orderId: `${order.id}`
-        }
-      })
+          unit_amount: item.unitAmount
+        },
+        quantity: 1
+      })),
+      mode: 'payment',
+      success_url: `${applicationUrl}/profile?checkout=success`,
+      cancel_url: `${applicationUrl}/cart?checkout=canceled`,
+      client_reference_id: `${order.id}`,
+      metadata: {
+        orderId: `${order.id}`
+      }
+    })
 
-      await markOrderCheckoutSession({
-        orderId: order.id,
-        checkoutSessionId: checkoutSession.id
-      })
+    await markOrderCheckoutSession({
+      orderId: order.id,
+      checkoutSessionId: checkoutSession.id
+    })
 
-      return res.status(200).json({ url: checkoutSession.url })
-    } catch (err) {
-      return res.status(err.statusCode || 500).json({ message: err.message })
-    }
-  } else {
-    res.setHeader('Allow', 'POST')
-    return res.status(405).end('Method Not Allowed')
+    return sendJson(res, 200, { url: checkoutSession.url })
+  } catch (error) {
+    return handleApiError(res, error)
   }
 }
