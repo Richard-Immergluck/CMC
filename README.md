@@ -5,6 +5,7 @@ Original master’s dissertation prototype for a classical music backing-track c
 The Next.js app now lives at the repository root. Production/project hardening is in progress. See:
 
 - `HARDENING.md`
+- `ENTERPRISE_ROADMAP.md`
 - `RUNBOOK.md`
 - `.env.example`
 

@@ -4,6 +4,8 @@ This repo is starting from a working dissertation prototype. The product intent 
 
 The hardening strategy is to preserve that product shape while moving authority to server-side code, replacing simulated commerce with verified payment events, and gradually separating infrastructure, domain logic, and UI.
 
+The delivery breakdown for this work lives in `ENTERPRISE_ROADMAP.md`. Use that roadmap to plan sprint scope and PR sequencing; use this document for the architectural hardening principles and phase intent.
+
 ## Target Architecture
 
 ```text
