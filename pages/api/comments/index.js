@@ -1,20 +1,19 @@
 import prisma from '../../../components/prisma'
 import {
-  createValidationError,
   handleApiError,
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
+import {
+  commentQuerySchema,
+  validateInput
+} from '../../../lib/validation/api.mjs'
 
 export default async function handler(req, res) {
   try {
     requireMethod(req, res, ['GET'])
 
-    const trackId = Number(req.query.trackId)
-
-    if (!Number.isInteger(trackId)) {
-      throw createValidationError('Invalid track id')
-    }
+    const { trackId } = validateInput(commentQuerySchema, req.query, 'Invalid track id')
 
     const comments = await prisma.comment.findMany({
       where: {
