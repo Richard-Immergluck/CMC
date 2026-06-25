@@ -35,6 +35,6 @@ export default async function handler(req, res) {
       url
     })
   } catch (error) {
-    return handleApiError(res, error)
+    return handleApiError(res, error, req)
   }
 }

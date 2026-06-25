@@ -30,6 +30,6 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, { url: checkoutSession.url })
   } catch (error) {
-    return handleApiError(res, error)
+    return handleApiError(res, error, req)
   }
 }
