@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   createDownloadName,
   normalizeTrackPrice,
+  publicTrackWhere,
   toTrackCreateData
 } from '../lib/server/tracks-core.mjs'
 
@@ -24,8 +25,6 @@ const input = {
   price: 2.99,
   currency: 'gbp'
 }
-
-const now = new Date('2026-06-25T12:30:00.000Z')
 
 test('normalizeTrackPrice derives minor units from decimal price', () => {
   assert.deepEqual(normalizeTrackPrice({ price: 2.99 }), {
@@ -53,15 +52,13 @@ test('createDownloadName uses fallback when provided', () => {
 })
 
 test('toTrackCreateData maps upload input into Prisma create data', () => {
-  assert.deepEqual(toTrackCreateData({ input, user, now }), {
+  assert.deepEqual(toTrackCreateData({ input, user }), {
     fileName: 'development/upload-id.mp3',
     title: 'Bach Study',
     composer: 'Synthetic Composer',
-    status: 'PUBLISHED',
-    moderationStatus: 'APPROVED',
+    status: 'DRAFT',
+    moderationStatus: 'PENDING',
     processingStatus: 'READY',
-    publishedAt: now,
-    reviewedAt: now,
     key: 'D minor',
     instrumentation: 'Piano',
     durationSeconds: 180,
@@ -80,5 +77,13 @@ test('toTrackCreateData maps upload input into Prisma create data', () => {
     formattedPrice: 'GBP 2.99',
     downloadName: 'Bach Study_Synthetic Composer.mp3',
     downloadCount: 0
+  })
+})
+
+test('publicTrackWhere exposes only published approved ready tracks', () => {
+  assert.deepEqual(publicTrackWhere, {
+    status: 'PUBLISHED',
+    moderationStatus: 'APPROVED',
+    processingStatus: 'READY'
   })
 })

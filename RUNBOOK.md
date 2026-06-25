@@ -92,6 +92,8 @@ Use environment-scoped values for `NEXTAUTH_URL`. Production should point at the
 
 Server-side permissions are centralised in `lib/server/permissions.mjs`. Track upload APIs require an active `UPLOADER` with `uploaderStatus=APPROVED`, or an active `ADMIN`. Customer purchasing remains independent from uploader approval. `SUPPORT` can be used for future operational read/support surfaces without granting full admin mutation authority.
 
+New uploader submissions are created as `DRAFT` tracks with `moderationStatus=PENDING` and are not visible in the public catalogue until they are moved to `PUBLISHED`, `APPROVED`, and `READY`. Seeded demo fixtures remain explicitly published for Preview smoke testing.
+
 ## Supabase
 
 Before deploying migrations to production:
