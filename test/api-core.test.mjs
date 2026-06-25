@@ -4,6 +4,7 @@ import {
   ApiError,
   createAuthenticationError,
   createConflictError,
+  createForbiddenError,
   createMethodNotAllowedError,
   createValidationError,
   formatAllowHeader,
@@ -47,6 +48,13 @@ test('method and auth helpers produce consistent API errors', () => {
     statusCode: 401,
     body: {
       message: 'Authentication required'
+    }
+  })
+
+  assert.deepEqual(toErrorResponse(createForbiddenError('Admin access required')), {
+    statusCode: 403,
+    body: {
+      message: 'Admin access required'
     }
   })
 })
