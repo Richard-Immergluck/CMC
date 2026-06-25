@@ -36,6 +36,13 @@ test('signed track URL query defaults to sample mode', () => {
   })
 })
 
+test('signed track URL query accepts review mode', () => {
+  assert.deepEqual(validateInput(signedTrackUrlQuerySchema, { trackId: '7', mode: 'review' }), {
+    mode: 'review',
+    trackId: 7
+  })
+})
+
 test('signed track URL query rejects unsupported modes', () => {
   assert.throws(
     () => validateInput(signedTrackUrlQuerySchema, { trackId: '7', mode: 'admin' }),
