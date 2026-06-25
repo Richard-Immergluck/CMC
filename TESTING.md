@@ -2,8 +2,8 @@
 
 This project should treat manual HITL testing as acceptance evidence, not as the
 only regression control. The automated suite is layered so fast checks catch
-logic errors, route checks catch deployment-shape regressions, and future
-browser tests cover full user journeys.
+logic errors, route checks catch deployment-shape regressions, and browser tests
+cover full user journeys.
 
 ## Current Automated Gates
 
@@ -16,6 +16,9 @@ browser tests cover full user journeys.
 - `yarn build` verifies the production Next.js build.
 - `yarn routes:check` verifies critical built routes exist in the Next route
   manifest after `yarn build`.
+- `yarn test:e2e` runs Playwright smoke tests against the built app. CI starts a
+  disposable Postgres service, applies Prisma migrations, builds the app, and
+  verifies public navigation plus unauthenticated API denial contracts.
 - `yarn sanity`, `yarn deps:audit`, `yarn security:rls`, and
   `yarn deploy:check` cover structural, dependency, RLS/grant, and deployment
   readiness checks.
@@ -40,20 +43,14 @@ These are the manually validated flows that should become browser E2E tests:
 
 ## Browser E2E Plan
 
-The recommended next tool is Playwright. Add it once package-manager access is
-available locally:
+Playwright is installed and wired into CI. To run the smoke suite locally, use
+the same disposable database pattern as CI:
 
 ```bash
-yarn add --dev @playwright/test
-yarn playwright install --with-deps chromium
-```
-
-Initial CI shape:
-
-```bash
-yarn build
-yarn start
-yarn test:e2e
+yarn db:local:up
+yarn db:local:migrate
+DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn build
+DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn test:e2e
 ```
 
 Use deterministic demo data and synthetic audio fixtures. Avoid real external
