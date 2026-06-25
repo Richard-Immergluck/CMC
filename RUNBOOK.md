@@ -188,7 +188,7 @@ Run deployment smoke tests against Preview before promotion and against Producti
 SMOKE_BASE_URL=https://<deployment-host> yarn smoke
 ```
 
-The smoke test checks the home page, catalogue page, and public sign-in page. It also guards that GitHub sign-in is not exposed in the musician/customer auth surface.
+The smoke test checks the home page, catalogue page, public sign-in page, unauthenticated denial for privileged upload/checkout/full-track URL APIs, and the absence of GitHub sign-in from the musician/customer auth surface. When `CMC_ENABLE_SYNTHETIC_FIXTURES=true`, it also verifies a generated demo audio fixture stream.
 
 ## Database Integration Tests
 
