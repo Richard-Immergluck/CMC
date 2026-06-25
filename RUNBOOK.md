@@ -99,6 +99,7 @@ Privileged backend foundations:
 - `GET /api/admin/summary` requires `ADMIN` or `SUPPORT`.
 - `GET /api/admin/tracks` requires `ADMIN` or `SUPPORT` and returns pending moderation items.
 - `GET /api/admin/users` requires `ADMIN`.
+- `PATCH /api/admin/users/:userId` requires `ADMIN`, updates only role/account/uploader status fields, and records `user_access.updated` audit events.
 
 These are API foundations for the future admin console; support/admin UI and mutation actions still need explicit product work and audit logging.
 
