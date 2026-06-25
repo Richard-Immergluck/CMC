@@ -5,6 +5,7 @@ import {
   adminTrackModerationBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
+  reconcileCheckoutSessionBodySchema,
   signedTrackUrlQuerySchema,
   trackIdParamSchema,
   uploadSignedUrlBodySchema,
@@ -78,6 +79,25 @@ test('checkout body requires a bounded list of positive track ids', () => {
 
   assert.throws(
     () => validateInput(checkoutSessionBodySchema, { trackIds: [] }),
+    error => error.statusCode === 400
+  )
+})
+
+test('checkout reconciliation body accepts optional checkout session ids', () => {
+  assert.deepEqual(validateInput(reconcileCheckoutSessionBodySchema, {}), {})
+  assert.deepEqual(
+    validateInput(reconcileCheckoutSessionBodySchema, {
+      sessionId: 'cs_test_123'
+    }),
+    {
+      sessionId: 'cs_test_123'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(reconcileCheckoutSessionBodySchema, {
+      sessionId: 'pi_test_123'
+    }),
     error => error.statusCode === 400
   )
 })
