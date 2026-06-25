@@ -11,9 +11,11 @@ import {
   Stack,
   Form,
   InputGroup,
+  Modal,
   Popover,
   OverlayTrigger
 } from 'react-bootstrap'
+import Link from 'next/link'
 
 // Formik Imports
 import { Formik } from 'formik'
@@ -147,7 +149,7 @@ function UploadForm() {
   const [validatedAfterSubmit, setValidatedAfterSubmit] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [uploadError, setUploadError] = useState('')
-  const [uploadSuccess, setUploadSuccess] = useState('')
+  const [showUploadComplete, setShowUploadComplete] = useState(false)
 
   // Get the session
   const { data: session } = useSession()
@@ -204,12 +206,21 @@ function UploadForm() {
   const onSubmit = async values => {
     setValidatedAfterSubmit(true)
     setUploadError('')
-    setUploadSuccess('')
     const uploadedKey = await uploadToS3(selectedFile)
     await uploadToDB(values, uploadedKey)
-    setUploadSuccess('Track uploaded as a draft for review.')
+    setShowUploadComplete(true)
     fileReset()
     setSelectedFile(null)
+  }
+
+  const uploadAnotherTrack = () => {
+    setShowUploadComplete(false)
+    setUploadError('')
+    setSelectedFile(null)
+
+    if (ref.current) {
+      fileReset()
+    }
   }
 
   const popover = (
@@ -256,7 +267,6 @@ function UploadForm() {
                   <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
                     <Container className='bg-light border mt-5 p-3'>
                       {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
-                      {uploadSuccess && <Alert variant='success'>{uploadSuccess}</Alert>}
                       <Stack gap={3}>
                         <div className='form-control p-2'>
                           <Form.Group
@@ -449,6 +459,41 @@ function UploadForm() {
             </Form>
           )}
         </Formik>
+        <Modal
+          show={showUploadComplete}
+          onHide={() => setShowUploadComplete(false)}
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Track submitted for review</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>
+              Your track has been uploaded as a draft and is now waiting for
+              review. It will not appear in the public catalogue until it has
+              been checked and approved.
+            </p>
+            <p className='mb-0'>
+              You can upload another track now, return to the catalogue, or open
+              the admin console to review pending submissions.
+            </p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant='outline-secondary' onClick={uploadAnotherTrack}>
+              Upload Another
+            </Button>
+            <Link href='/catalogue' passHref>
+              <Button as='a' variant='outline-info'>
+                Catalogue
+              </Button>
+            </Link>
+            <Link href='/admin' passHref>
+              <Button as='a' variant='info'>
+                Review Submissions
+              </Button>
+            </Link>
+          </Modal.Footer>
+        </Modal>
       </>
     )
   } else {
