@@ -3,7 +3,6 @@ import test from 'node:test'
 import { createCheckoutSessionReconciler } from '../lib/server/purchases-core.mjs'
 
 const createHarness = ({
-  latestOrder = null,
   orderBySession = null,
   checkoutSession = {
     id: 'cs_test_1',
@@ -12,7 +11,6 @@ const createHarness = ({
   }
 } = {}) => {
   const calls = {
-    findLatestPendingOrderForUser: [],
     findOrderByCheckoutSession: [],
     fulfilPaidOrder: [],
     recordPaymentEvent: [],
@@ -20,10 +18,6 @@ const createHarness = ({
   }
 
   const reconcile = createCheckoutSessionReconciler({
-    findLatestPendingOrderForUser: async userId => {
-      calls.findLatestPendingOrderForUser.push(userId)
-      return latestOrder
-    },
     findOrderByCheckoutSession: async checkoutSessionId => {
       calls.findOrderByCheckoutSession.push(checkoutSessionId)
       return orderBySession
@@ -144,35 +138,4 @@ test('checkout reconciliation is idempotent for already paid orders', async () =
   })
   assert.deepEqual(calls.retrieveCheckoutSession, [])
   assert.deepEqual(calls.fulfilPaidOrder, [])
-})
-
-test('checkout reconciliation can fall back to the signed-in users latest pending order', async () => {
-  const { calls, reconcile } = createHarness({
-    latestOrder: {
-      id: 10,
-      userId: activeUser.id,
-      status: 'PENDING',
-      stripeCheckoutSession: 'cs_test_latest'
-    },
-    checkoutSession: {
-      id: 'cs_test_latest',
-      payment_status: 'paid',
-      payment_intent: {
-        id: 'pi_test_object'
-      }
-    }
-  })
-
-  assert.deepEqual(await reconcile({
-    user: activeUser
-  }), {
-    status: 'fulfilled',
-    orderId: 10
-  })
-  assert.deepEqual(calls.findLatestPendingOrderForUser, [activeUser.id])
-  assert.deepEqual(calls.retrieveCheckoutSession, ['cs_test_latest'])
-  assert.deepEqual(calls.fulfilPaidOrder, [{
-    checkoutSessionId: 'cs_test_latest',
-    paymentIntentId: 'pi_test_object'
-  }])
 })
