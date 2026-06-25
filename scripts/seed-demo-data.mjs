@@ -139,16 +139,23 @@ const seed = async () => {
       email
     },
     update: {
-      name
+      name,
+      role: 'UPLOADER',
+      uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
     },
     create: {
       email,
-      name
+      name,
+      role: 'UPLOADER',
+      uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
     }
   })
 
   for (const track of demoTracks) {
     const fileName = await uploadFixture(track)
+    const now = new Date()
     const existing = await prisma.track.findFirst({
       where: {
         title: track.title,
@@ -162,6 +169,10 @@ const seed = async () => {
       title: track.title,
       composer: track.composer,
       status: 'PUBLISHED',
+      moderationStatus: 'APPROVED',
+      processingStatus: 'READY',
+      publishedAt: now,
+      reviewedAt: now,
       uploadedBy: {
         connect: {
           id: user.id
@@ -169,6 +180,8 @@ const seed = async () => {
       },
       previewStart: 0,
       previewEnd: 10,
+      durationSeconds: 12,
+      sourceContentType: 'audio/wav',
       price: track.pricePence / 100,
       pricePence: track.pricePence,
       currency: 'gbp',

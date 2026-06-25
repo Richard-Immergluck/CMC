@@ -83,6 +83,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       newFileName: 'development/upload-id.mp3',
       previewStart: '10',
       previewEnd: '25',
+      durationSeconds: '180',
+      sourceContentType: ' audio/mpeg ',
       additionalInfo: 'Practice backing track',
       price: '2.99',
       currency: 'GBP'
@@ -95,6 +97,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       newFileName: 'development/upload-id.mp3',
       previewStart: 10,
       previewEnd: 25,
+      durationSeconds: 180,
+      sourceContentType: 'audio/mpeg',
       additionalInfo: 'Practice backing track',
       price: 2.99,
       currency: 'gbp',
