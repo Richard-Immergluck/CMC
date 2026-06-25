@@ -44,18 +44,25 @@ model Session {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  email         String?      @unique
-  image         String?
-  emailVerified String?
-  accounts      Account[]
-  sessions      Session[]
-  Track         Track[]
-  TrackOwners   TrackOwner[]
-  Comment       Comment[]
-  orders        Order[]
-  auditEvents   AuditEvent[]
+  id             String            @id @default(cuid())
+  name           String?
+  email          String?           @unique
+  image          String?
+  emailVerified  String?
+  role           UserRole          @default(CUSTOMER)
+  accountStatus  UserAccountStatus @default(ACTIVE)
+  uploaderStatus UploaderStatus    @default(NOT_REQUESTED)
+  accounts       Account[]
+  sessions       Session[]
+  Track          Track[]
+  TrackOwners    TrackOwner[]
+  Comment        Comment[]
+  orders         Order[]
+  auditEvents    AuditEvent[]
+
+  @@index([role])
+  @@index([accountStatus])
+  @@index([uploaderStatus])
 }
 
 model VerificationToken {
@@ -67,32 +74,43 @@ model VerificationToken {
 }
 
 model Track {
-  id              Int          @id @default(autoincrement())
-  fileName        String
-  title           String
-  composer        String
-  status          TrackStatus  @default(PUBLISHED)
-  uploadedAt      DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  uploadedBy      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String
-  previewStart    Int?
-  previewEnd      Int?
-  price           Float?
-  pricePence      Int?
-  currency        String       @default("gbp")
-  formattedPrice  String?
-  downloadName    String?
-  downloadCount   Int?
-  key             String?
-  instrumentation String?
-  additionalInfo  String?
-  TrackOwner      TrackOwner[]
-  Comments        Comment[]
-  orderItems      OrderItem[]
+  id                  Int                   @id @default(autoincrement())
+  fileName            String
+  title               String
+  composer            String
+  status              TrackStatus           @default(PUBLISHED)
+  moderationStatus    TrackModerationStatus @default(APPROVED)
+  processingStatus    TrackProcessingStatus @default(READY)
+  uploadedAt          DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  publishedAt         DateTime?
+  reviewedAt          DateTime?
+  uploadedBy          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String
+  previewStart        Int?
+  previewEnd          Int?
+  durationSeconds     Int?
+  sourceContentType   String?
+  price               Float?
+  pricePence          Int?
+  currency            String                @default("gbp")
+  formattedPrice      String?
+  downloadName        String?
+  downloadCount       Int?
+  key                 String?
+  instrumentation     String?
+  additionalInfo      String?
+  moderationNotes     String?               @db.Text
+  processingError     String?               @db.Text
+  TrackOwner          TrackOwner[]
+  Comments            Comment[]
+  orderItems          OrderItem[]
 
   @@index([status])
   @@index([userId])
+  @@index([status, moderationStatus, processingStatus])
+  @@index([status, uploadedAt])
+  @@index([userId, status])
 }
 
 model TrackOwner {
@@ -105,6 +123,8 @@ model TrackOwner {
 
   @@unique([trackId, userId])
   @@index([userId])
+  @@index([userId, purchasedAt])
+  @@index([trackId, purchasedAt])
 }
 
 model Comment {
@@ -135,6 +155,7 @@ model Order {
   paymentEvents         PaymentEvent[]
 
   @@index([userId])
+  @@index([userId, status, createdAt])
 }
 
 model OrderItem {
@@ -193,4 +214,36 @@ enum TrackStatus {
   PUBLISHED
   REJECTED
   ARCHIVED
+}
+
+enum UserRole {
+  CUSTOMER
+  UPLOADER
+  ADMIN
+}
+
+enum UserAccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum UploaderStatus {
+  NOT_REQUESTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TrackModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TrackProcessingStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
 }

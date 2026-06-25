@@ -18,10 +18,14 @@ const input = {
   newFileName: 'development/upload-id.mp3',
   previewStart: 10,
   previewEnd: 25,
+  durationSeconds: 180,
+  sourceContentType: 'audio/mpeg',
   additionalInfo: 'Practice backing track',
   price: 2.99,
   currency: 'gbp'
 }
+
+const now = new Date('2026-06-25T12:30:00.000Z')
 
 test('normalizeTrackPrice derives minor units from decimal price', () => {
   assert.deepEqual(normalizeTrackPrice({ price: 2.99 }), {
@@ -49,12 +53,19 @@ test('createDownloadName uses fallback when provided', () => {
 })
 
 test('toTrackCreateData maps upload input into Prisma create data', () => {
-  assert.deepEqual(toTrackCreateData({ input, user }), {
+  assert.deepEqual(toTrackCreateData({ input, user, now }), {
     fileName: 'development/upload-id.mp3',
     title: 'Bach Study',
     composer: 'Synthetic Composer',
+    status: 'PUBLISHED',
+    moderationStatus: 'APPROVED',
+    processingStatus: 'READY',
+    publishedAt: now,
+    reviewedAt: now,
     key: 'D minor',
     instrumentation: 'Piano',
+    durationSeconds: 180,
+    sourceContentType: 'audio/mpeg',
     uploadedBy: {
       connect: {
         id: 'user-1'

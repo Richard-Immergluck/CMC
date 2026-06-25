@@ -123,6 +123,15 @@ Security gate before production traffic: Supabase advisors report Row Level Secu
 
 The intended RLS and Data API grant posture is documented in `RLS_POLICY.md`.
 
+### Data Model Normalization Promotion
+
+The `normalize_users_and_tracks` migration adds role/status fields, track moderation and processing fields, backfills existing published tracks as `APPROVED` and `READY`, and creates catalogue/order/ownership indexes. Before production promotion:
+
+1. Apply the migration to `CMBC Development` with `prisma migrate deploy`.
+2. Verify existing catalogue rows still appear in Preview and newly uploaded tracks remain immediately visible while the moderation workflow is not yet enabled.
+3. Confirm `yarn security:rls` passes after the migration.
+4. Promote to Production only after Preview smoke tests pass for catalogue, upload, checkout, webhook fulfilment, profile playback/download, and unauthorized denial.
+
 ## Environment Separation
 
 Production traffic runs from Vercel production deployments and the `CMBC Production` Supabase project. Development and preview verification should use one of:
