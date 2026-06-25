@@ -5,6 +5,7 @@ import {
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
+import { publicTrackWhere } from '../../../lib/server/tracks-core.mjs'
 import {
   trackIdParamSchema,
   validateInput
@@ -16,9 +17,10 @@ export default async function getTrackById(req, res) {
 
     const { trackId } = validateInput(trackIdParamSchema, req.query, 'Invalid track id')
 
-    const track = await prisma.track.findUnique({
+    const track = await prisma.track.findFirst({
       where: {
-        id: trackId
+        id: trackId,
+        ...publicTrackWhere
       }
     })
 

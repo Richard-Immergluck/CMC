@@ -2,10 +2,12 @@ import prisma from '../components/prisma'
 import PlaySample from '../components/PlaySample'
 import { Table, Container, Row, Col } from 'react-bootstrap'
 import Link from 'next/link'
+import { publicTrackWhere } from '../lib/server/tracks-core.mjs'
 
 export const getServerSideProps = async () => {
   // Grab all the tracks from the DB in order they were uploaded descending
   const allTracks = await prisma.track.findMany({
+    where: publicTrackWhere,
     orderBy: [
       {
         uploadedAt: 'desc'

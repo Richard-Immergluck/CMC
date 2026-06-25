@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { useCart } from 'react-use-cart'
 import { Container, Button } from 'react-bootstrap'
 import _ from 'lodash'
+import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
 // Dynamically import WaveSurfer to avoid 'Self is not defined' error
 const WaveFormRegion = dynamic(
@@ -20,9 +21,10 @@ export const getServerSideProps = async context => {
   const { trackId } = params
 
   // Retrieve the individual track from DB
-  const track = await prisma.track.findUnique({
+  const track = await prisma.track.findFirst({
     where: {
-      id: Number(trackId)
+      id: Number(trackId),
+      ...publicTrackWhere
     }
   })
 

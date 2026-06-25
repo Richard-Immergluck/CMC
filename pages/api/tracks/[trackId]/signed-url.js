@@ -12,6 +12,7 @@ import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/se
 import { getOrCreateRequestId, logServerEvent } from '../../../../lib/server/logging'
 import { canAccessFullTrack, getCurrentUser } from '../../../../lib/server/ownership'
 import { getSignedTrackUrl } from '../../../../lib/server/s3'
+import { publicTrackWhere } from '../../../../lib/server/tracks-core.mjs'
 import { getApplicationBaseUrl } from '../../../../lib/server/url'
 import {
   signedTrackUrlQuerySchema,
@@ -46,9 +47,10 @@ export default async function handler(req, res) {
     )
 
     if (mode === 'sample') {
-      const track = await prisma.track.findUnique({
+      const track = await prisma.track.findFirst({
         where: {
-          id: trackId
+          id: trackId,
+          ...publicTrackWhere
         }
       })
 

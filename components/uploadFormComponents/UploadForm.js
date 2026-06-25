@@ -190,7 +190,7 @@ function UploadForm() {
     setValidatedAfterSubmit(true)
     const uploadedKey = await uploadToS3(selectedFile)
     await uploadToDB(values, uploadedKey)
-    alert('Track uploaded successfully!')
+    alert('Track uploaded as a draft for review.')
     fileReset()
   }
 

@@ -4,10 +4,13 @@ import PlaySample from '../../components/PlaySample'
 import prisma from '../../components/prisma'
 import { Container, Table, Button, Row, Col } from 'react-bootstrap'
 import _ from 'lodash'
+import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
 export const getServerSideProps = async () => {
   // Grab all the tracks from the DB
-  const tracks = await prisma.track.findMany()
+  const tracks = await prisma.track.findMany({
+    where: publicTrackWhere
+  })
 
   // Convert the date object to a locale date string
   tracks.map(track => {
