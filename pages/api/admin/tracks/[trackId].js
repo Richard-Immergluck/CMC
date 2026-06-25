@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   try {
     requireMethod(req, res, ['PATCH'])
 
-    const user = await requireCurrentUser(req)
+    const user = await requireCurrentUser(req, res)
     requireSupportPermission(user)
 
     const { trackId } = validateInput(trackIdParamSchema, req.query, 'Invalid track id')

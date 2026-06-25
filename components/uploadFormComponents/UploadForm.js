@@ -6,6 +6,7 @@ import {
   Container,
   Row,
   Col,
+  Alert,
   Button,
   Stack,
   Form,
@@ -95,10 +96,20 @@ const uploadToDB = async (values, newFileName) => {
       'Content-Type': 'application/json'
     }
   })
-  return await response.json()
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Unable to create track')
+  }
+
+  return data
 }
 
 const uploadToS3 = async selectedFile => {
+  if (!selectedFile) {
+    throw new Error('Please select an MP3 file to upload')
+  }
+
   const signedUrlResponse = await fetch('/api/uploads/signed-url', {
     method: 'POST',
     body: JSON.stringify({
@@ -135,6 +146,8 @@ function UploadForm() {
   const [validated, setValidated] = useState(false)
   const [validatedAfterSubmit, setValidatedAfterSubmit] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
+  const [uploadError, setUploadError] = useState('')
+  const [uploadSuccess, setUploadSuccess] = useState('')
 
   // Get the session
   const { data: session } = useSession()
@@ -167,10 +180,12 @@ function UploadForm() {
       .mixed()
       .required('Please select a file to upload')
       .test('format', 'File format not supported', value => {
-        var fileExtension = value.split('.').pop() // pull file extension from string
-        if (value) {
-          return supportedFormats.includes(fileExtension)
+        if (!value) {
+          return false
         }
+
+        var fileExtension = value.split('.').pop().toLowerCase() // pull file extension from string
+        return supportedFormats.includes(`.${fileExtension}`)
       }),
     title: yup.string().required('Please enter a title'),
     composer: yup.string().required('Please enter the composer'),
@@ -188,10 +203,13 @@ function UploadForm() {
 
   const onSubmit = async values => {
     setValidatedAfterSubmit(true)
+    setUploadError('')
+    setUploadSuccess('')
     const uploadedKey = await uploadToS3(selectedFile)
     await uploadToDB(values, uploadedKey)
-    alert('Track uploaded as a draft for review.')
+    setUploadSuccess('Track uploaded as a draft for review.')
     fileReset()
+    setSelectedFile(null)
   }
 
   const popover = (
@@ -217,20 +235,28 @@ function UploadForm() {
       <>
         <Formik
           validationSchema={validationSchema}
-          onSubmit={async (values, { resetForm }) => {
-            await onSubmit(values, selectedFile)
-            resetForm(initialValues)
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
+            try {
+              await onSubmit(values)
+              resetForm(initialValues)
+            } catch (error) {
+              setUploadError(error.message || 'Unable to upload track')
+            } finally {
+              setSubmitting(false)
+            }
           }}
           initialValues={initialValues}
           validateOnChange={false} // should be set to true after first submission using validatedAfterSubmit and !isvalid in submit onclick - see below
           validateOnBlur={false}
         >
-          {({ handleSubmit, handleChange, values, errors }) => (
+          {({ handleSubmit, handleChange, setFieldValue, values, errors, isSubmitting }) => (
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
               <Container>
                 <Row className='justify-content-md-center'>
                   <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
                     <Container className='bg-light border mt-5 p-3'>
+                      {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
+                      {uploadSuccess && <Alert variant='success'>{uploadSuccess}</Alert>}
                       <Stack gap={3}>
                         <div className='form-control p-2'>
                           <Form.Group
@@ -245,7 +271,7 @@ function UploadForm() {
                               ref={ref}
                               onChange={e => {
                                 let file = e.target.files[0]
-                                handleChange(e)
+                                setFieldValue('file', file?.name || '')
                                 setSelectedFile(file)
                               }}
                               isInvalid={!!errors.file}
@@ -410,9 +436,10 @@ function UploadForm() {
                           size='lg'
                           variant='info'
                           type='submit'
+                          disabled={isSubmitting}
                           // disabled={!isValid} // Disables button if form is invalid - needs to be fixed in conjunction with validation on change
                         >
-                          Submit
+                          {isSubmitting ? 'Uploading...' : 'Submit'}
                         </Button>
                       </Container>
                     </Container>

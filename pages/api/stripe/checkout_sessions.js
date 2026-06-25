@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   try {
     requireMethod(req, res, ['POST'])
 
-    const user = await requireCurrentUser(req)
+    const user = await requireCurrentUser(req, res)
     const { trackIds } = validateInput(
       checkoutSessionBodySchema,
       req.body,

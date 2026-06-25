@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   try {
     requireMethod(req, res, ['GET'])
 
-    const user = await requireCurrentUser(req)
+    const user = await requireCurrentUser(req, res)
     requireSupportPermission(user)
 
     const tracks = await prisma.track.findMany({
