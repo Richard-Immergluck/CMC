@@ -1,26 +1,15 @@
 import {
   handleApiError,
-  createValidationError,
   requireCurrentUser,
   requireMethod,
   sendJson
 } from '../../../../lib/server/api'
 import { reconcileCheckoutSession } from '../../../../lib/server/purchases'
 import { getOrCreateRequestId, logServerEvent } from '../../../../lib/server/logging'
-
-const getCheckoutSessionId = req => {
-  const sessionId = req.body?.sessionId
-
-  if (!sessionId) {
-    return null
-  }
-
-  if (typeof sessionId !== 'string' || !sessionId.startsWith('cs_')) {
-    throw createValidationError('Valid checkout session id is required')
-  }
-
-  return sessionId
-}
+import {
+  reconcileCheckoutSessionBodySchema,
+  validateInput
+} from '../../../../lib/validation/api.mjs'
 
 export default async function handler(req, res) {
   const requestId = getOrCreateRequestId(req)
@@ -29,7 +18,11 @@ export default async function handler(req, res) {
     requireMethod(req, res, ['POST'])
 
     const user = await requireCurrentUser(req, res)
-    const sessionId = getCheckoutSessionId(req)
+    const { sessionId = null } = validateInput(
+      reconcileCheckoutSessionBodySchema,
+      req.body,
+      'Invalid checkout reconciliation request'
+    )
     const result = await reconcileCheckoutSession({
       checkoutSessionId: sessionId,
       user
