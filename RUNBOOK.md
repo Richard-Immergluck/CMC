@@ -190,6 +190,16 @@ SMOKE_BASE_URL=https://<deployment-host> yarn smoke
 
 The smoke test checks the home page, catalogue page, and public sign-in page. It also guards that GitHub sign-in is not exposed in the musician/customer auth surface.
 
+## Database Integration Tests
+
+CI runs database integration tests after Prisma migrations and the RLS/grant posture check. To run the same tests locally, point `DATABASE_URL` at a disposable migrated database, then run:
+
+```text
+CMC_RUN_INTEGRATION_TESTS=true yarn test:integration
+```
+
+Do not run integration tests against Production. The test suite creates and deletes synthetic users, tracks, orders, payment events, ownership rows, and audit events.
+
 ## CI Expectations
 
 The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
@@ -197,10 +207,13 @@ The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 - `yarn install --frozen-lockfile`
 - `yarn prisma generate`
 - `yarn prisma migrate deploy`
+- `yarn security:rls`
+- `yarn test:integration`
 - `yarn sanity`
 - `yarn deps:audit`
 - `yarn deploy:check`
 - `node --check scripts/smoke-test.js`
+- `yarn test:unit`
 - `yarn lint`
 - `yarn build`
 

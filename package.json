@@ -12,6 +12,7 @@
     "security:rls": "node scripts/rls-grant-check.mjs",
     "sanity": "node scripts/sanity-check.js",
     "smoke": "node scripts/smoke-test.js",
+    "test:integration": "node --test test/integration/**/*.test.mjs",
     "test:unit": "node --test test/**/*.test.mjs",
     "lint": "eslint ."
   },
