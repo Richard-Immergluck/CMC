@@ -1,0 +1,70 @@
+# Testing Strategy
+
+This project should treat manual HITL testing as acceptance evidence, not as the
+only regression control. The automated suite is layered so fast checks catch
+logic errors, route checks catch deployment-shape regressions, and future
+browser tests cover full user journeys.
+
+## Current Automated Gates
+
+- `yarn test:unit` runs Node test suites for validation, permissions, order
+  pricing, checkout reconciliation, webhook handling, upload helpers, and admin
+  serialization.
+- `yarn test:integration` runs database-backed purchase/ownership/audit checks
+  when `CMC_RUN_INTEGRATION_TESTS=true`.
+- `yarn lint` enforces Next/React and code quality rules.
+- `yarn build` verifies the production Next.js build.
+- `yarn routes:check` verifies critical built routes exist in the Next route
+  manifest after `yarn build`.
+- `yarn sanity`, `yarn deps:audit`, `yarn security:rls`, and
+  `yarn deploy:check` cover structural, dependency, RLS/grant, and deployment
+  readiness checks.
+
+## HITL Journeys To Automate Next
+
+These are the manually validated flows that should become browser E2E tests:
+
+1. Admin sign-in reaches the operations console.
+2. Catalogue loads, track detail opens, and the Back action returns cleanly.
+3. Authenticated upload rejects invalid submissions and accepts a valid MP3.
+4. Upload completion modal offers Upload Another, Catalogue, and Review
+   Submissions.
+5. Admin Track Review can listen to a pending track and approve it.
+6. Approved tracks appear in the public catalogue.
+7. Customer checkout creates an order and returns to profile.
+8. Checkout reconciliation grants ownership only after Stripe confirms payment.
+9. Purchased tracks appear in the profile Purchased tab and can be played or
+   downloaded.
+10. Logged-out users cannot access admin, upload signing, checkout, or protected
+    full-track URLs.
+
+## Browser E2E Plan
+
+The recommended next tool is Playwright. Add it once package-manager access is
+available locally:
+
+```bash
+yarn add --dev @playwright/test
+yarn playwright install --with-deps chromium
+```
+
+Initial CI shape:
+
+```bash
+yarn build
+yarn start
+yarn test:e2e
+```
+
+Use deterministic demo data and synthetic audio fixtures. Avoid real external
+payment calls in E2E; use a mocked Stripe adapter or a test-only reconciliation
+fixture that still exercises the server-side ownership path.
+
+## Enterprise Direction
+
+- Keep payment ownership rules unit-tested in pure services.
+- Keep route existence checks post-build.
+- Add API-level tests for admin, upload, checkout, profile, and signed URL
+  contracts.
+- Add Playwright smoke coverage before large UI refactors.
+- Keep HITL as release acceptance for UX and audio/payment edge cases.
