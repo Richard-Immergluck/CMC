@@ -52,7 +52,7 @@ if (packageJson.engines?.node !== '24.x') {
   fail('package.json must pin engines.node to "24.x" for the current LTS runtime')
 }
 
-for (const scriptName of ['sanity', 'deps:audit', 'deploy:check', 'smoke']) {
+for (const scriptName of ['sanity', 'deps:audit', 'deploy:check', 'routes:check', 'smoke']) {
   if (!packageJson.scripts?.[scriptName]) {
     fail(`package.json is missing the "${scriptName}" script`)
   }
