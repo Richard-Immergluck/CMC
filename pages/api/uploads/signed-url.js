@@ -6,6 +6,7 @@ import {
 } from '../../../lib/server/api'
 import { getSignedTrackUploadUrl } from '../../../lib/server/s3'
 import { getOrCreateRequestId, logServerEvent } from '../../../lib/server/logging'
+import { requireTrackUploadPermission } from '../../../lib/server/permissions.mjs'
 import { createUploadObjectKey } from '../../../lib/server/uploads.mjs'
 import {
   uploadSignedUrlBodySchema,
@@ -18,6 +19,7 @@ export default async function handler(req, res) {
   try {
     requireMethod(req, res, ['POST'])
     const user = await requireCurrentUser(req)
+    requireTrackUploadPermission(user)
 
     const { fileName, contentType } = validateInput(
       uploadSignedUrlBodySchema,

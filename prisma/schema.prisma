@@ -220,6 +220,7 @@ enum UserRole {
   CUSTOMER
   UPLOADER
   ADMIN
+  SUPPORT
 }
 
 enum UserAccountStatus {

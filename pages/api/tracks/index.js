@@ -4,6 +4,7 @@ import {
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
+import { requireTrackUploadPermission } from '../../../lib/server/permissions.mjs'
 import { createUploadedTrack } from '../../../lib/server/tracks.mjs'
 import {
   createTrackBodySchema,
@@ -15,6 +16,7 @@ export default async function handler(req, res) {
     requireMethod(req, res, ['POST'])
 
     const user = await requireCurrentUser(req)
+    requireTrackUploadPermission(user)
     const input = validateInput(createTrackBodySchema, req.body, 'Invalid track upload request')
     const track = await createUploadedTrack({
       input,
