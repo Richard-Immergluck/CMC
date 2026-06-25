@@ -66,6 +66,11 @@ jobs:
       - name: RLS and grant posture
         run: yarn security:rls
 
+      - name: Database integration tests
+        run: yarn test:integration
+        env:
+          CMC_RUN_INTEGRATION_TESTS: 'true'
+
       - name: Sanity checks
         run: yarn sanity
 
