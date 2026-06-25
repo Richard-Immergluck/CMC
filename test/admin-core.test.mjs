@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  buildUserAccessChangeMetadata,
   toAdminSummary,
   toTrackReviewItem,
   toUserAdminItem
@@ -83,6 +84,49 @@ test('user admin items expose role and status without provider account data', ()
       role: 'CUSTOMER',
       accountStatus: 'ACTIVE',
       uploaderStatus: 'NOT_REQUESTED'
+    }
+  )
+})
+
+test('user access change metadata captures before and after safe fields', () => {
+  assert.deepEqual(
+    buildUserAccessChangeMetadata({
+      before: {
+        id: 'user-1',
+        name: 'Uploader',
+        email: 'uploader@example.com',
+        role: 'CUSTOMER',
+        accountStatus: 'ACTIVE',
+        uploaderStatus: 'NOT_REQUESTED',
+        access_token: 'should-not-leak'
+      },
+      after: {
+        id: 'user-1',
+        name: 'Uploader',
+        email: 'uploader@example.com',
+        role: 'UPLOADER',
+        accountStatus: 'ACTIVE',
+        uploaderStatus: 'APPROVED',
+        access_token: 'should-not-leak'
+      }
+    }),
+    {
+      before: {
+        id: 'user-1',
+        name: 'Uploader',
+        email: 'uploader@example.com',
+        role: 'CUSTOMER',
+        accountStatus: 'ACTIVE',
+        uploaderStatus: 'NOT_REQUESTED'
+      },
+      after: {
+        id: 'user-1',
+        name: 'Uploader',
+        email: 'uploader@example.com',
+        role: 'UPLOADER',
+        accountStatus: 'ACTIVE',
+        uploaderStatus: 'APPROVED'
+      }
     }
   )
 })

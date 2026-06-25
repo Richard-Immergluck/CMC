@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  adminUserUpdateBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
   signedTrackUrlQuerySchema,
@@ -69,6 +70,32 @@ test('checkout body requires a bounded list of positive track ids', () => {
 
   assert.throws(
     () => validateInput(checkoutSessionBodySchema, { trackIds: [] }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin user update body accepts only role and status fields', () => {
+  assert.deepEqual(
+    validateInput(adminUserUpdateBodySchema, {
+      role: 'UPLOADER',
+      accountStatus: 'ACTIVE',
+      uploaderStatus: 'APPROVED',
+      ignored: 'removed'
+    }),
+    {
+      role: 'UPLOADER',
+      accountStatus: 'ACTIVE',
+      uploaderStatus: 'APPROVED'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(adminUserUpdateBodySchema, {}),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(adminUserUpdateBodySchema, { role: 'OWNER' }),
     error => error.statusCode === 400
   )
 })
