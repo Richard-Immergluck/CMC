@@ -121,6 +121,8 @@ The production database has also been baselined with Prisma's `_prisma_migration
 
 Security gate before production traffic: Supabase advisors report Row Level Security disabled for public tables. Because this app currently uses Prisma server-side rather than browser-side Supabase clients, RLS should be enabled with no browser-side table policies and with direct table grants revoked from Supabase `anon` and `authenticated` roles. Do not expose the Supabase anon key to the browser unless explicit, least-privilege policies have been designed and tested.
 
+The intended RLS and Data API grant posture is documented in `RLS_POLICY.md`.
+
 ## Environment Separation
 
 Production traffic runs from Vercel production deployments and the `CMBC Production` Supabase project. Development and preview verification should use one of:
