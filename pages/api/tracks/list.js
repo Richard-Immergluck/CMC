@@ -8,6 +8,6 @@ export default async function getCatalogue(req, res) {
     const catalogue = await prisma.track.findMany()
     return sendJson(res, 200, catalogue)
   } catch (error) {
-    return handleApiError(res, error)
+    return handleApiError(res, error, req)
   }
 }

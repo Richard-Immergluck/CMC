@@ -60,6 +60,24 @@ test('unexpected errors serialize as generic server failures', () => {
   })
 })
 
+test('error responses include request id when provided', () => {
+  assert.deepEqual(toErrorResponse(createAuthenticationError(), { requestId: 'req-123' }), {
+    statusCode: 401,
+    body: {
+      message: 'Authentication required',
+      requestId: 'req-123'
+    }
+  })
+
+  assert.deepEqual(toErrorResponse(new Error('database exploded'), { requestId: 'req-123' }), {
+    statusCode: 500,
+    body: {
+      message: 'Internal server error',
+      requestId: 'req-123'
+    }
+  })
+})
+
 test('conflict errors serialize as stable 409 responses', () => {
   assert.deepEqual(toErrorResponse(createConflictError('Already owned')), {
     statusCode: 409,
