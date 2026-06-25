@@ -21,6 +21,13 @@ yarn dev
 
 The app expects PostgreSQL, NextAuth provider credentials, Stripe keys, and S3 credentials. Use `.env.example` as the source of truth for required variables.
 
+For local database-backed tests, use the Docker Postgres service that mirrors CI:
+
+```bash
+yarn db:local:up
+yarn db:local:migrate
+```
+
 ## Deployment Smoke Tests
 
 ```bash

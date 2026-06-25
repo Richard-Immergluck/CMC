@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:local:migrate": "DATABASE_URL='postgresql://prisma:prisma@localhost:5432/prisma?schema=public' yarn prisma migrate deploy",
+    "db:local:up": "docker compose up -d postgres",
     "deps:audit": "node scripts/dependency-audit.js",
     "deploy:check": "node scripts/deployment-readiness.js",
     "seed:demo": "node scripts/seed-demo-data.mjs",
