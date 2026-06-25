@@ -34,13 +34,21 @@ test('database flow creates a paid order, ownership grant, and audit trail', { s
       })
     }
 
-    await prisma.user.deleteMany({
-      where: {
-        id: {
-          in: [buyerId, uploaderId].filter(Boolean)
+    if (buyerId) {
+      await prisma.user.delete({
+        where: {
+          id: buyerId
         }
-      }
-    })
+      })
+    }
+
+    if (uploaderId) {
+      await prisma.user.delete({
+        where: {
+          id: uploaderId
+        }
+      })
+    }
 
     await prisma.$disconnect()
   })
