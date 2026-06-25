@@ -16,6 +16,8 @@
 # debug
 yarn-debug.log*
 yarn-error.log*
+playwright-report/
+test-results/
 
 # env files
 .env
