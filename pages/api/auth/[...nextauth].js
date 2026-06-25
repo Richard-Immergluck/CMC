@@ -16,7 +16,10 @@ if (hasEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'])) {
   providers.push(
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Google verifies email ownership, so this lets invited/pre-seeded users
+      // claim the matching account on first sign-in.
+      allowDangerousEmailAccountLinking: true
     })
   )
 }
