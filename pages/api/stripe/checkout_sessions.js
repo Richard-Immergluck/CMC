@@ -5,6 +5,7 @@ import {
   sendJson
 } from '../../../lib/server/api'
 import { createCheckoutSessionForTracks } from '../../../lib/server/purchases'
+import { getOrCreateRequestId, logServerEvent } from '../../../lib/server/logging'
 import { getApplicationBaseUrl } from '../../../lib/server/url'
 import {
   checkoutSessionBodySchema,
@@ -12,6 +13,8 @@ import {
 } from '../../../lib/validation/api.mjs'
 
 export default async function handler(req, res) {
+  const requestId = getOrCreateRequestId(req)
+
   try {
     requireMethod(req, res, ['POST'])
 
@@ -26,6 +29,17 @@ export default async function handler(req, res) {
       user,
       trackIds,
       applicationUrl: getApplicationBaseUrl(req)
+    })
+
+    logServerEvent({
+      event: 'checkout.session_created',
+      message: 'Stripe checkout session created',
+      requestId,
+      metadata: {
+        userId: user.id,
+        trackCount: trackIds.length,
+        stripeCheckoutSession: checkoutSession.id
+      }
     })
 
     return sendJson(res, 200, { url: checkoutSession.url })

@@ -5,6 +5,7 @@ import {
   sendJson
 } from '../../../lib/server/api'
 import { getSignedTrackUploadUrl } from '../../../lib/server/s3'
+import { getOrCreateRequestId, logServerEvent } from '../../../lib/server/logging'
 import { createUploadObjectKey } from '../../../lib/server/uploads.mjs'
 import {
   uploadSignedUrlBodySchema,
@@ -12,9 +13,11 @@ import {
 } from '../../../lib/validation/api.mjs'
 
 export default async function handler(req, res) {
+  const requestId = getOrCreateRequestId(req)
+
   try {
     requireMethod(req, res, ['POST'])
-    await requireCurrentUser(req)
+    const user = await requireCurrentUser(req)
 
     const { fileName, contentType } = validateInput(
       uploadSignedUrlBodySchema,
@@ -28,6 +31,17 @@ export default async function handler(req, res) {
     const url = await getSignedTrackUploadUrl({
       key,
       contentType
+    })
+
+    logServerEvent({
+      event: 'upload.signed_url_issued',
+      message: 'Upload signed URL issued',
+      requestId,
+      metadata: {
+        userId: user.id,
+        contentType,
+        key
+      }
     })
 
     return sendJson(res, 200, {

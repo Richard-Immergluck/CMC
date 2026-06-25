@@ -9,6 +9,7 @@ import prisma from '../../../../lib/server/prisma'
 import { auditActions } from '../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../lib/server/audit'
 import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/server/demo-fixtures'
+import { getOrCreateRequestId, logServerEvent } from '../../../../lib/server/logging'
 import { canAccessFullTrack, getCurrentUser } from '../../../../lib/server/ownership'
 import { getSignedTrackUrl } from '../../../../lib/server/s3'
 import { getApplicationBaseUrl } from '../../../../lib/server/url'
@@ -33,6 +34,8 @@ const getSyntheticFixtureUrl = ({ req, track, mode }) => {
 }
 
 export default async function handler(req, res) {
+  const requestId = getOrCreateRequestId(req)
+
   try {
     requireMethod(req, res, ['GET'])
 
@@ -53,12 +56,25 @@ export default async function handler(req, res) {
         throw createNotFoundError('Track not found')
       }
 
-      const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
+      const syntheticFixtureUrl = getSyntheticFixtureUrl({ req, track, mode })
+      const url = syntheticFixtureUrl || getSignedTrackUrl({
         key: track.fileName,
         expires: 60
       })
 
       const sampleUrl = `${url}#t=${track.previewStart},${track.previewEnd}`
+
+      logServerEvent({
+        event: 'track.signed_url_issued',
+        message: 'Sample track URL issued',
+        requestId,
+        metadata: {
+          trackId: track.id,
+          mode,
+          redirect: redirect === '1',
+          syntheticFixture: Boolean(syntheticFixtureUrl)
+        }
+      })
 
       if (redirect === '1') {
         return res.redirect(302, sampleUrl)
@@ -87,7 +103,8 @@ export default async function handler(req, res) {
       return sendJson(res, 403, { message: 'Track access denied' })
     }
 
-    const url = getSyntheticFixtureUrl({ req, track, mode }) || getSignedTrackUrl({
+    const syntheticFixtureUrl = getSyntheticFixtureUrl({ req, track, mode })
+    const url = syntheticFixtureUrl || getSignedTrackUrl({
       key: track.fileName,
       expires: mode === 'download' ? 900 : 300,
       fileName: mode === 'download' ? track.downloadName : undefined
@@ -101,6 +118,19 @@ export default async function handler(req, res) {
       metadata: {
         mode,
         downloadName: mode === 'download' ? track.downloadName : undefined
+      }
+    })
+
+    logServerEvent({
+      event: 'track.signed_url_issued',
+      message: 'Owned track URL issued',
+      requestId,
+      metadata: {
+        userId: currentUser.id,
+        trackId: track.id,
+        mode,
+        redirect: redirect === '1',
+        syntheticFixture: Boolean(syntheticFixtureUrl)
       }
     })
 
