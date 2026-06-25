@@ -57,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Install Playwright browser
+        run: yarn test:e2e:install
+
       - name: Generate Prisma client
         run: yarn prisma generate
 
@@ -98,3 +101,6 @@ jobs:
 
       - name: Route manifest checks
         run: yarn routes:check
+
+      - name: Browser smoke tests
+        run: yarn test:e2e

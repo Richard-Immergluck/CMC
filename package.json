@@ -13,8 +13,10 @@
     "routes:check": "node scripts/route-manifest-check.js",
     "sanity": "node scripts/sanity-check.js",
     "smoke": "node scripts/smoke-test.js",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
     "test:integration": "node --test test/integration/**/*.test.mjs",
-    "test:unit": "node --test test/**/*.test.mjs",
+    "test:unit": "node --test test/*.test.mjs",
     "lint": "eslint ."
   },
   "engines": {
@@ -46,6 +48,7 @@
     "yup": "^0.32.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.9",
     "typescript": "6.0.3"
