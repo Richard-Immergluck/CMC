@@ -219,6 +219,12 @@ The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 
 The app targets Node 24 LTS with a modernized Next.js, React, Prisma, Stripe, and ESLint toolchain. CI is expected to surface dependency and lint debt that should be paid down in follow-up hardening PRs.
 
+## Structured Logs
+
+API failures include `requestId` in the response body and `X-Request-Id` header when the shared API handler is used. Runtime logs are JSON lines with `level`, `event`, `message`, `requestId`, `metadata`, and `timestamp`.
+
+Critical flow events currently include checkout session creation, upload signed URL issuance, track signed URL issuance, and Stripe webhook processing. Do not log signed URLs, raw webhook payloads, cookies, authorization headers, passwords, provider secrets, or API keys.
+
 ## Release Checklist
 
 - PR reviewed and CI green.
