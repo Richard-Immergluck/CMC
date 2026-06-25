@@ -14,7 +14,8 @@ import {
   Tabs,
   Tab,
   Table,
-  Badge
+  Badge,
+  Alert
 } from 'react-bootstrap'
 import PlayTrack from '../../components/PlayTrack'
 
@@ -89,6 +90,7 @@ const UserProfilePage = ({
   userPurchasedTracks
 }) => {
   const [key, setKey] = useState('purchased')
+  const [checkoutError, setCheckoutError] = useState('')
   const router = useRouter()
   const { emptyCart } = useCart()
 
@@ -96,14 +98,59 @@ const UserProfilePage = ({
   const [imageURL] = useState(currentUser.image)
 
   useEffect(() => {
-    if (router.query.checkout === 'success') {
-      emptyCart()
+    const reconcileCheckout = async () => {
+      if (router.query.checkout !== 'success') {
+        return
+      }
+
+      try {
+        const response = await fetch('/api/stripe/checkout_sessions/reconcile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(
+            router.query.session_id
+              ? { sessionId: router.query.session_id }
+              : {}
+          )
+        })
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Unable to confirm purchase')
+        }
+
+        if (data.status === 'fulfilled' || data.status === 'already_fulfilled') {
+          emptyCart()
+          router.replace('/profile?purchase=confirmed', undefined, { shallow: false })
+          return
+        }
+
+        setCheckoutError('Stripe has not marked this payment as complete yet. Please refresh shortly.')
+      } catch (error) {
+        setCheckoutError(error.message || 'Unable to confirm purchase')
+      }
     }
-  }, [emptyCart, router.query.checkout])
+
+    reconcileCheckout()
+  }, [emptyCart, router, router.query.checkout, router.query.session_id])
+
+  const purchaseConfirmed = router.query.purchase === 'confirmed'
 
   return (
     <>
       <Container className='mt-5'>
+        {purchaseConfirmed && (
+          <Alert variant='success'>
+            Purchase confirmed. Your track is now available below.
+          </Alert>
+        )}
+        {checkoutError && (
+          <Alert variant='danger'>
+            {checkoutError}
+          </Alert>
+        )}
         <Row>
           <Col md={5}>
             <Card style={{ width: '18rem' }}>
