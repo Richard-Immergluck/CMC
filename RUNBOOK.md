@@ -225,11 +225,30 @@ CMC_RUN_INTEGRATION_TESTS=true yarn test:integration
 
 Do not run integration tests against Production. The test suite creates and deletes synthetic users, tracks, orders, payment events, ownership rows, and audit events.
 
+## Local Browser E2E Tests
+
+Playwright browser smoke tests run in CI against a disposable Postgres 15 service. To mirror that locally, start and migrate the local database:
+
+```text
+yarn db:local:up
+yarn db:local:migrate
+```
+
+Then build and run the browser suite with the same local database URL:
+
+```text
+DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn build
+DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn test:e2e
+```
+
+Playwright supplies safe placeholder values for auth, Stripe, and S3 when they are not present in the shell environment. Do not point browser or integration tests at Production.
+
 ## CI Expectations
 
 The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 
 - `yarn install --frozen-lockfile`
+- `yarn test:e2e:install`
 - `yarn prisma generate`
 - `yarn prisma migrate deploy`
 - `yarn security:rls`
@@ -241,6 +260,8 @@ The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
 - `yarn test:unit`
 - `yarn lint`
 - `yarn build`
+- `yarn routes:check`
+- `yarn test:e2e`
 
 The app targets Node 24 LTS with a modernized Next.js, React, Prisma, Stripe, and ESLint toolchain. CI is expected to surface dependency and lint debt that should be paid down in follow-up hardening PRs.
 
