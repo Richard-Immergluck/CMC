@@ -23,6 +23,13 @@ const checks = [
     excludes: ['GitHub']
   },
   {
+    name: 'profile requires sign-in',
+    path: '/profile',
+    status: 200,
+    includes: ['Sign in with Google'],
+    excludes: ['This page could not be found']
+  },
+  {
     name: 'upload signing requires authentication',
     path: '/api/uploads/signed-url',
     method: 'POST',
