@@ -2,6 +2,8 @@
 
 This runbook captures the moving parts needed to operate the hardened CMC app.
 
+Incident-specific recovery steps are in `OPERATIONS_RUNBOOKS.md`.
+
 ## Project Locations
 
 - GitHub: `Richard-Immergluck/CMC`
@@ -232,4 +234,5 @@ Critical flow events currently include checkout session creation, upload signed 
 - Supabase migrations applied to the intended database.
 - Stripe webhook endpoint configured for the deployment URL.
 - AWS credentials rotated and scoped to least privilege.
+- Relevant incident runbook checked or updated for any changed operational behaviour.
 - Production deployment monitored for checkout and webhook errors.
