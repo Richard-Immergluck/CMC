@@ -63,6 +63,9 @@ jobs:
       - name: Apply database migrations
         run: yarn prisma migrate deploy
 
+      - name: RLS and grant posture
+        run: yarn security:rls
+
       - name: Sanity checks
         run: yarn sanity
 

@@ -81,6 +81,7 @@ Each migration touching grants, RLS, or public-schema tables must verify:
 - New public tables are covered by this policy.
 - Prisma server-side application flows still work in Preview against CMBC Development.
 - GitHub CI `prisma migrate deploy` passes.
+- GitHub CI `yarn security:rls` passes.
 
 Critical application flows to smoke after RLS/grant changes:
 
@@ -102,4 +103,3 @@ Production promotion requires:
 - Preview smoke test green.
 - No new Supabase advisor findings for public application tables.
 - Rollback path documented in the PR if grants are broadened.
-
