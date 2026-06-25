@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 import prisma from '../../components/prisma'
 import Link from 'next/link'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
@@ -64,6 +65,7 @@ export const getServerSideProps = async context => {
 }
 
 const SingleTrack = ({ track, users, comments }) => {
+  const router = useRouter()
 
   // Cart state
   const [cartotal, setCartotal] = useState(0)
@@ -95,6 +97,15 @@ const SingleTrack = ({ track, users, comments }) => {
     alert('Track added to cart!')
   }
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      router.back()
+      return
+    }
+
+    router.push('/catalogue')
+  }
+
   // Function to return the user name
   const userTrackMatch = (userId, users) => {
     const user = _.find(users, { id: userId })
@@ -105,6 +116,9 @@ const SingleTrack = ({ track, users, comments }) => {
   return (
     <>
       <Container className='bg-light border mt-5 p-3'>
+        <Button variant='outline-secondary' size='sm' onClick={goBack} className='mb-3'>
+          Back
+        </Button>
         <h2>{track.title}</h2>
         <p>by {track.composer}</p>
         <p>

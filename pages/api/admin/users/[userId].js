@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   try {
     requireMethod(req, res, ['PATCH'])
 
-    const admin = await requireCurrentUser(req)
+    const admin = await requireCurrentUser(req, res)
     requireAdminPermission(admin)
 
     const userId = Array.isArray(req.query.userId) ? req.query.userId[0] : req.query.userId

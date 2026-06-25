@@ -33,7 +33,7 @@ if (hasEnv(['EMAIL_SERVER', 'EMAIL_FROM'])) {
   )
 }
 
-export default NextAuth({
+export const authOptions = {
   site: process.env.NEXTAUTH_URL,
 
   secret: process.env.NEXTAUTH_SECRET,
@@ -53,4 +53,6 @@ export default NextAuth({
       return baseUrl
     }
   },
-})
+}
+
+export default NextAuth(authOptions)
