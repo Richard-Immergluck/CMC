@@ -95,3 +95,6 @@ jobs:
 
       - name: Build
         run: yarn build
+
+      - name: Route manifest checks
+        run: yarn routes:check
