@@ -101,7 +101,15 @@ Privileged backend foundations:
 - `GET /api/admin/users` requires `ADMIN`.
 - `PATCH /api/admin/users/:userId` requires `ADMIN`, updates only role/account/uploader status fields, and records `user_access.updated` audit events.
 
-These are API foundations for the future admin console; support/admin UI and mutation actions still need explicit product work and audit logging.
+The admin console is available at `/admin`. For the first HITL test account, bootstrap one trusted user directly in the intended Supabase environment:
+
+```sql
+UPDATE "User"
+SET "role" = 'ADMIN', "accountStatus" = 'ACTIVE'
+WHERE "email" = 'admin@example.com';
+```
+
+Replace the email with the real tester account. After one admin exists, further role and uploader-status changes should be made through `/admin` so they are audited.
 
 ## Supabase
 

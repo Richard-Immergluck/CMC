@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  buildTrackModerationChangeMetadata,
   buildUserAccessChangeMetadata,
   toAdminSummary,
   toTrackReviewItem,
@@ -126,6 +127,37 @@ test('user access change metadata captures before and after safe fields', () => 
         role: 'UPLOADER',
         accountStatus: 'ACTIVE',
         uploaderStatus: 'APPROVED'
+      }
+    }
+  )
+})
+
+test('track moderation metadata captures workflow status changes', () => {
+  assert.deepEqual(
+    buildTrackModerationChangeMetadata({
+      before: {
+        status: 'DRAFT',
+        moderationStatus: 'PENDING',
+        processingStatus: 'READY',
+        title: 'Ignored'
+      },
+      after: {
+        status: 'PUBLISHED',
+        moderationStatus: 'APPROVED',
+        processingStatus: 'READY',
+        title: 'Ignored'
+      }
+    }),
+    {
+      before: {
+        status: 'DRAFT',
+        moderationStatus: 'PENDING',
+        processingStatus: 'READY'
+      },
+      after: {
+        status: 'PUBLISHED',
+        moderationStatus: 'APPROVED',
+        processingStatus: 'READY'
       }
     }
   )

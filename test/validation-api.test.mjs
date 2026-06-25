@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   adminUserUpdateBodySchema,
+  adminTrackModerationBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
   signedTrackUrlQuerySchema,
@@ -96,6 +97,24 @@ test('admin user update body accepts only role and status fields', () => {
 
   assert.throws(
     () => validateInput(adminUserUpdateBodySchema, { role: 'OWNER' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin track moderation body accepts supported decisions', () => {
+  assert.deepEqual(
+    validateInput(adminTrackModerationBodySchema, {
+      decision: 'approve',
+      moderationNotes: ' Ready for catalogue '
+    }),
+    {
+      decision: 'approve',
+      moderationNotes: 'Ready for catalogue'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(adminTrackModerationBodySchema, { decision: 'publish' }),
     error => error.statusCode === 400
   )
 })
