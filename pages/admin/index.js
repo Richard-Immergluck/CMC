@@ -128,6 +128,79 @@ const UserAccessRow = ({ user, onSaved }) => {
   )
 }
 
+const TrackReviewRow = ({ track, onModerate }) => {
+  const [reviewUrl, setReviewUrl] = useState('')
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const [error, setError] = useState('')
+
+  const loadReviewAudio = async () => {
+    setLoadingPreview(true)
+    setError('')
+
+    try {
+      const data = await fetchJson(`/api/tracks/${track.id}/signed-url?mode=review`)
+      setReviewUrl(data.url)
+    } catch (previewError) {
+      setError(previewError.message)
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  return (
+    <tr>
+      <td>
+        <strong>{track.title}</strong>
+        <div className='text-muted small'>{track.composer}</div>
+        <div className='mt-2'>
+          {reviewUrl ? (
+            <audio controls src={reviewUrl} className='w-100'>
+              Your browser does not support audio playback.
+            </audio>
+          ) : (
+            <Button
+              size='sm'
+              variant='outline-info'
+              disabled={loadingPreview}
+              onClick={loadReviewAudio}
+            >
+              {loadingPreview ? 'Loading audio...' : 'Listen'}
+            </Button>
+          )}
+          {error && <Alert className='mt-2 mb-0 py-1' variant='danger'>{error}</Alert>}
+        </div>
+      </td>
+      <td>
+        {track.uploader?.name || 'Unknown'}
+        <div className='text-muted small'>{track.uploader?.email}</div>
+      </td>
+      <td>
+        <StatusBadge value={track.status} />{' '}
+        <StatusBadge value={track.moderationStatus} />{' '}
+        <StatusBadge value={track.processingStatus} />
+      </td>
+      <td>{formatDate(track.uploadedAt)}</td>
+      <td className='text-end'>
+        <Button
+          className='me-2'
+          size='sm'
+          variant='success'
+          onClick={() => onModerate({ trackId: track.id, decision: 'approve' })}
+        >
+          Approve
+        </Button>
+        <Button
+          size='sm'
+          variant='outline-danger'
+          onClick={() => onModerate({ trackId: track.id, decision: 'reject' })}
+        >
+          Reject
+        </Button>
+      </td>
+    </tr>
+  )
+}
+
 export const getServerSideProps = async context => {
   const session = await getSession({ req: context.req })
 
@@ -359,39 +432,11 @@ const AdminConsole = ({
               </thead>
               <tbody>
                 {tracks.map(track => (
-                  <tr key={track.id}>
-                    <td>
-                      <strong>{track.title}</strong>
-                      <div className='text-muted small'>{track.composer}</div>
-                    </td>
-                    <td>
-                      {track.uploader?.name || 'Unknown'}
-                      <div className='text-muted small'>{track.uploader?.email}</div>
-                    </td>
-                    <td>
-                      <StatusBadge value={track.status} />{' '}
-                      <StatusBadge value={track.moderationStatus} />{' '}
-                      <StatusBadge value={track.processingStatus} />
-                    </td>
-                    <td>{formatDate(track.uploadedAt)}</td>
-                    <td className='text-end'>
-                      <Button
-                        className='me-2'
-                        size='sm'
-                        variant='success'
-                        onClick={() => moderateTrack({ trackId: track.id, decision: 'approve' })}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size='sm'
-                        variant='outline-danger'
-                        onClick={() => moderateTrack({ trackId: track.id, decision: 'reject' })}
-                      >
-                        Reject
-                      </Button>
-                    </td>
-                  </tr>
+                  <TrackReviewRow
+                    key={track.id}
+                    track={track}
+                    onModerate={moderateTrack}
+                  />
                 ))}
                 {tracks.length === 0 && (
                   <tr>

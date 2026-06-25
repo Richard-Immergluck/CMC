@@ -1,7 +1,7 @@
-import { getSession } from 'next-auth/react'
 import {
   createNotFoundError,
   handleApiError,
+  requireCurrentUser,
   requireMethod,
   sendJson
 } from '../../../../lib/server/api'
@@ -10,7 +10,8 @@ import { auditActions } from '../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../lib/server/audit'
 import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/server/demo-fixtures'
 import { getOrCreateRequestId, logServerEvent } from '../../../../lib/server/logging'
-import { canAccessFullTrack, getCurrentUser } from '../../../../lib/server/ownership'
+import { canAccessFullTrack } from '../../../../lib/server/ownership'
+import { canAccessSupportSurface } from '../../../../lib/server/permissions.mjs'
 import { getSignedTrackUrl } from '../../../../lib/server/s3'
 import { publicTrackWhere } from '../../../../lib/server/tracks-core.mjs'
 import { getApplicationBaseUrl } from '../../../../lib/server/url'
@@ -85,11 +86,57 @@ export default async function handler(req, res) {
       return sendJson(res, 200, { url: sampleUrl })
     }
 
-    const session = await getSession({ req })
-    const currentUser = await getCurrentUser(session)
+    const currentUser = await requireCurrentUser(req, res)
 
-    if (!currentUser) {
-      return sendJson(res, 401, { message: 'Authentication required' })
+    if (mode === 'review') {
+      if (!canAccessSupportSurface(currentUser)) {
+        return sendJson(res, 403, { message: 'Review access denied' })
+      }
+
+      const track = await prisma.track.findUnique({
+        where: {
+          id: trackId
+        }
+      })
+
+      if (!track) {
+        throw createNotFoundError('Track not found')
+      }
+
+      const syntheticFixtureUrl = getSyntheticFixtureUrl({ req, track, mode })
+      const url = syntheticFixtureUrl || getSignedTrackUrl({
+        key: track.fileName,
+        expires: 300
+      })
+
+      await recordAuditEvent({
+        action: auditActions.trackAccessSignedUrlIssued,
+        actorId: currentUser.id,
+        entityType: 'Track',
+        entityId: track.id,
+        metadata: {
+          mode
+        }
+      })
+
+      logServerEvent({
+        event: 'track.signed_url_issued',
+        message: 'Review track URL issued',
+        requestId,
+        metadata: {
+          userId: currentUser.id,
+          trackId: track.id,
+          mode,
+          redirect: redirect === '1',
+          syntheticFixture: Boolean(syntheticFixtureUrl)
+        }
+      })
+
+      if (redirect === '1') {
+        return res.redirect(302, url)
+      }
+
+      return sendJson(res, 200, { url })
     }
 
     const { allowed, track } = await canAccessFullTrack({
