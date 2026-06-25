@@ -103,17 +103,21 @@ const UserProfilePage = ({
         return
       }
 
+      if (!router.query.session_id) {
+        emptyCart()
+        setCheckoutError('Checkout returned without a session id, so the purchase could not be confirmed automatically.')
+        return
+      }
+
       try {
         const response = await fetch('/api/stripe/checkout_sessions/reconcile', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(
-            router.query.session_id
-              ? { sessionId: router.query.session_id }
-              : {}
-          )
+          body: JSON.stringify({
+            sessionId: router.query.session_id
+          })
         })
         const data = await response.json()
 

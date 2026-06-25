@@ -83,8 +83,7 @@ test('checkout body requires a bounded list of positive track ids', () => {
   )
 })
 
-test('checkout reconciliation body accepts optional checkout session ids', () => {
-  assert.deepEqual(validateInput(reconcileCheckoutSessionBodySchema, {}), {})
+test('checkout reconciliation body requires checkout session ids', () => {
   assert.deepEqual(
     validateInput(reconcileCheckoutSessionBodySchema, {
       sessionId: 'cs_test_123'
@@ -92,6 +91,11 @@ test('checkout reconciliation body accepts optional checkout session ids', () =>
     {
       sessionId: 'cs_test_123'
     }
+  )
+
+  assert.throws(
+    () => validateInput(reconcileCheckoutSessionBodySchema, {}),
+    error => error.statusCode === 400
   )
 
   assert.throws(
