@@ -94,6 +94,14 @@ Server-side permissions are centralised in `lib/server/permissions.mjs`. Track u
 
 New uploader submissions are created as `DRAFT` tracks with `moderationStatus=PENDING` and are not visible in the public catalogue until they are moved to `PUBLISHED`, `APPROVED`, and `READY`. Seeded demo fixtures remain explicitly published for Preview smoke testing.
 
+Privileged backend foundations:
+
+- `GET /api/admin/summary` requires `ADMIN` or `SUPPORT`.
+- `GET /api/admin/tracks` requires `ADMIN` or `SUPPORT` and returns pending moderation items.
+- `GET /api/admin/users` requires `ADMIN`.
+
+These are API foundations for the future admin console; support/admin UI and mutation actions still need explicit product work and audit logging.
+
 ## Supabase
 
 Before deploying migrations to production:
