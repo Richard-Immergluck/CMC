@@ -7,6 +7,7 @@ The Next.js app now lives at the repository root. Production/project hardening i
 - `HARDENING.md`
 - `ENTERPRISE_ROADMAP.md`
 - `RUNBOOK.md`
+- `OPERATIONS_RUNBOOKS.md`
 - `.env.example`
 
 ## Local Development
@@ -25,7 +26,7 @@ The app expects PostgreSQL, NextAuth provider credentials, Stripe keys, and S3 c
 SMOKE_BASE_URL=https://classical-music-catalogue.vercel.app yarn smoke
 ```
 
-The smoke test checks the public home page, catalogue page, and sign-in provider surface. It is designed to run against Vercel Preview before promotion and Production after release.
+The smoke test checks public pages, sign-in provider surface, unauthenticated denial for privileged APIs, and optional synthetic fixture streaming. It is designed to run against Vercel Preview before promotion and Production after release.
 
 ## Original Context
 
