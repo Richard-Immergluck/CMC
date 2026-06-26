@@ -2,6 +2,13 @@ const DEFAULT_BASE_URL = 'http://localhost:3000'
 
 const baseUrl = (process.env.SMOKE_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
 
+const requestIdHeader = [
+  {
+    name: 'x-request-id',
+    present: true
+  }
+]
+
 const checks = [
   {
     name: 'home page',
@@ -61,12 +68,27 @@ const checks = [
     },
     status: 401,
     includes: ['Authentication required'],
-    headers: [
-      {
-        name: 'x-request-id',
-        present: true
-      }
-    ]
+    headers: requestIdHeader
+  },
+  {
+    name: 'track creation requires authentication',
+    path: '/api/tracks',
+    method: 'POST',
+    json: {
+      title: 'Anonymous Smoke Upload Attempt',
+      composer: 'Smoke Test',
+      key: 'C major',
+      instrumentation: 'Piano',
+      newFileName: 'anonymous-smoke-upload.mp3',
+      previewStart: 0,
+      previewEnd: 30,
+      additionalInfo: 'Anonymous users should not be able to create tracks.',
+      price: 1,
+      downloadCount: 0
+    },
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
   },
   {
     name: 'checkout requires authentication',
@@ -77,36 +99,90 @@ const checks = [
     },
     status: 401,
     includes: ['Authentication required'],
-    headers: [
-      {
-        name: 'x-request-id',
-        present: true
-      }
-    ]
+    headers: requestIdHeader
+  },
+  {
+    name: 'checkout reconciliation requires authentication',
+    path: '/api/stripe/checkout_sessions/reconcile',
+    method: 'POST',
+    json: {
+      checkoutSessionId: 'cs_test_smoke'
+    },
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
   },
   {
     name: 'full track URL requires authentication',
     path: '/api/tracks/1/signed-url?mode=full',
     status: 401,
     includes: ['Authentication required'],
-    headers: [
-      {
-        name: 'x-request-id',
-        present: true
-      }
-    ]
+    headers: requestIdHeader
+  },
+  {
+    name: 'admin summary requires authentication',
+    path: '/api/admin/summary',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'admin track queue requires authentication',
+    path: '/api/admin/tracks',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'admin users requires authentication',
+    path: '/api/admin/users',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
   },
   {
     name: 'admin operations requires authentication',
     path: '/api/admin/operations',
     status: 401,
     includes: ['Authentication required'],
-    headers: [
-      {
-        name: 'x-request-id',
-        present: true
-      }
-    ]
+    headers: requestIdHeader
+  },
+  {
+    name: 'profile ownership data requires authentication',
+    path: '/api/profile',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'profile comments require authentication',
+    path: '/api/profile',
+    method: 'POST',
+    json: {
+      trackId: 1,
+      comment: 'Anonymous smoke comment attempt'
+    },
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'cart ownership data requires authentication',
+    path: '/api/cart',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'simulated cart fulfilment requires authentication',
+    path: '/api/cart',
+    method: 'POST',
+    json: {
+      tracks: [{ id: 1 }]
+    },
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
   }
 ]
 
