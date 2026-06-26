@@ -11,6 +11,17 @@ const signInAs = async (request, email) => {
   return response.json()
 }
 
+const signInPageAs = async (page, email) => {
+  const response = await page.request.post('/api/e2e/session', {
+    data: {
+      email
+    }
+  })
+
+  expect(response.status()).toBe(200)
+  return response.json()
+}
+
 const createTrackInput = suffix => ({
   title: `E2E Pending Review ${suffix}`,
   composer: 'Synthetic Review Fixture',
@@ -100,5 +111,60 @@ test.describe('track review API flow', () => {
         composer: 'Synthetic Review Fixture'
       })
     )
+  })
+
+  test('admins can review, listen to, and approve pending tracks in the browser', async ({ page }) => {
+    const suffix = `ui-${Date.now()}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const createResponse = await page.request.post('/api/tracks', {
+      data: createTrackInput(suffix)
+    })
+    const createdTrack = await createResponse.json()
+
+    expect(createResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+    await page.goto('/admin')
+
+    await expect(page.getByRole('heading', { name: 'Operations Console' })).toBeVisible()
+    await expect(page.getByText(/Signed in as e2e-admin@example\.com/)).toBeVisible()
+
+    await page.getByRole('tab', { name: /Track Review/i }).click()
+
+    const reviewRow = page.getByRole('row').filter({
+      hasText: createdTrack.title
+    })
+
+    await expect(reviewRow).toBeVisible()
+    await expect(reviewRow.getByText('e2e-uploader@example.com')).toBeVisible()
+    await expect(reviewRow.locator('.badge', { hasText: 'PENDING' })).toBeVisible()
+
+    await reviewRow.getByRole('button', { name: 'Listen' }).click()
+    await expect(reviewRow.locator('audio')).toBeVisible()
+
+    await reviewRow.getByRole('button', { name: 'Approve' }).click()
+
+    await expect.poll(async () => {
+      const publicTrackResponse = await page.request.get(`/api/tracks/${createdTrack.id}`)
+
+      if (!publicTrackResponse.ok()) {
+        return null
+      }
+
+      const publicTrack = await publicTrackResponse.json()
+      return {
+        id: publicTrack.id,
+        title: publicTrack.title,
+        status: publicTrack.status,
+        moderationStatus: publicTrack.moderationStatus
+      }
+    }).toEqual({
+      id: createdTrack.id,
+      title: createdTrack.title,
+      status: 'PUBLISHED',
+      moderationStatus: 'APPROVED'
+    })
   })
 })
