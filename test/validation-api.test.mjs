@@ -7,6 +7,7 @@ import {
   createTrackBodySchema,
   profileCommentBodySchema,
   reconcileCheckoutSessionBodySchema,
+  simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
   trackIdParamSchema,
   uploadSignedUrlBodySchema,
@@ -80,6 +81,27 @@ test('checkout body requires a bounded list of positive track ids', () => {
 
   assert.throws(
     () => validateInput(checkoutSessionBodySchema, { trackIds: [] }),
+    error => error.statusCode === 400
+  )
+})
+
+test('simulated cart body accepts only a bounded list of track ids', () => {
+  assert.deepEqual(
+    validateInput(simulatedCartBodySchema, {
+      tracks: [{ id: '1', title: 'ignored' }, { id: 2 }]
+    }),
+    {
+      tracks: [{ id: 1 }, { id: 2 }]
+    }
+  )
+
+  assert.throws(
+    () => validateInput(simulatedCartBodySchema, { tracks: [] }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(simulatedCartBodySchema, { tracks: [{ id: 'abc' }] }),
     error => error.statusCode === 400
   )
 })
