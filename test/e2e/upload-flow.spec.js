@@ -20,6 +20,23 @@ const createTinyMp3 = () => {
 }
 
 test.describe('upload browser flow', () => {
+  test('approved uploaders see validation feedback for empty submissions', async ({ page }) => {
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload')
+
+    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Submit' }).click()
+
+    await expect(page.getByText('Please select a file to upload')).toBeVisible()
+    await expect(page.getByText('Please enter a title')).toBeVisible()
+    await expect(page.getByText('Please enter the composer')).toBeVisible()
+    await expect(page.getByText('Please enter a key signature')).toBeVisible()
+    await expect(page.getByText('Price is required')).toBeVisible()
+    await expect(page.getByText('Terms and Conditions must be accepted to submit a track')).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Track submitted for review' })).toHaveCount(0)
+  })
+
   test('approved uploaders can submit a track and see the review modal', async ({ page }) => {
     const suffix = Date.now()
     const title = `E2E Browser Upload ${suffix}`
