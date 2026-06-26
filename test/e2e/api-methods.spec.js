@@ -35,6 +35,14 @@ test.describe('API method contracts', () => {
     expect(await response.text()).toContain('Method not allowed')
   })
 
+  test('E2E session creation only accepts POST', async ({ request }) => {
+    const response = await request.get('/api/e2e/session')
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('POST')
+    expect(await response.text()).toContain('Method not allowed')
+  })
+
   test('admin summary only accepts GET', async ({ request }) => {
     const response = await request.post('/api/admin/summary', {
       data: {}
