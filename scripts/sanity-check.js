@@ -5,17 +5,28 @@ const root = path.resolve(__dirname, '..')
 
 const requiredFiles = [
   '.env.example',
+  'lib/server/admin-core.mjs',
+  'lib/server/admin-operations.js',
+  'lib/server/api-core.mjs',
+  'lib/server/audit-core.mjs',
   'lib/server/orders.js',
+  'lib/server/permissions.mjs',
   'lib/server/s3.js',
   'lib/server/stripe.js',
+  'lib/server/tracks-core.mjs',
   'lib/server/demo-fixtures.js',
   'lib/server/url.js',
+  'lib/validation/api.mjs',
+  'pages/api/admin/operations.js',
   'pages/api/demo-fixtures/[fixtureName].js',
   'pages/api/stripe/checkout_sessions.js',
   'pages/api/stripe/webhook.js',
   'pages/api/tracks/[trackId]/signed-url.js',
   'pages/api/uploads/signed-url.js',
-  'prisma/schema.prisma'
+  'prisma/schema.prisma',
+  'scripts/deployment-readiness.js',
+  'scripts/route-manifest-check.js',
+  'scripts/smoke-test.js'
 ]
 
 const requiredEnvVars = [
