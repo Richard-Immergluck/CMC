@@ -18,7 +18,8 @@ cover full user journeys.
   manifest after `yarn build`.
 - `yarn test:e2e` runs Playwright smoke tests against the built app. CI starts a
   disposable Postgres service, applies Prisma migrations, builds the app, and
-  verifies public navigation plus unauthenticated API denial contracts.
+  verifies public navigation, unauthenticated API denial contracts, and seeded
+  authenticated ownership checks.
 - `yarn sanity`, `yarn deps:audit`, `yarn security:rls`, and
   `yarn deploy:check` cover structural, dependency, RLS/grant, and deployment
   readiness checks.
@@ -52,6 +53,15 @@ yarn db:local:migrate
 DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn build
 DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn test:e2e
 ```
+
+Use `yarn seed:e2e` before the build when you need deterministic local data. The
+seed creates local-only `e2e-*@example.com` users and a customer-owned catalogue
+track for authenticated smoke tests.
+
+The `/api/e2e/session` helper is guarded by `CMC_ENABLE_E2E_AUTH=true`,
+`VERCEL_ENV !== "production"`, and a localhost/127.0.0.1 `NEXTAUTH_URL`. It
+exists only to mint realistic NextAuth JWT sessions for Playwright and must not
+be enabled in deployed production environments.
 
 Use deterministic demo data and synthetic audio fixtures. Avoid real external
 payment calls in E2E; use a mocked Stripe adapter or a test-only reconciliation

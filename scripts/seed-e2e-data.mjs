@@ -35,6 +35,44 @@ const seed = async () => {
     }
   })
 
+  const customer = await prisma.user.upsert({
+    where: {
+      email: 'e2e-customer@example.com'
+    },
+    update: {
+      name: 'E2E Customer',
+      role: 'CUSTOMER',
+      uploaderStatus: 'NOT_REQUESTED',
+      accountStatus: 'ACTIVE'
+    },
+    create: {
+      email: 'e2e-customer@example.com',
+      name: 'E2E Customer',
+      role: 'CUSTOMER',
+      uploaderStatus: 'NOT_REQUESTED',
+      accountStatus: 'ACTIVE'
+    }
+  })
+
+  await prisma.user.upsert({
+    where: {
+      email: 'e2e-admin@example.com'
+    },
+    update: {
+      name: 'E2E Admin',
+      role: 'ADMIN',
+      uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
+    },
+    create: {
+      email: 'e2e-admin@example.com',
+      name: 'E2E Admin',
+      role: 'ADMIN',
+      uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
+    }
+  })
+
   const trackData = {
     fileName: 'e2e-fixtures/catalogue-navigation.wav',
     title: 'E2E Catalogue Navigation Study',
@@ -72,20 +110,33 @@ const seed = async () => {
     }
   })
 
-  if (existingTrack) {
-    await prisma.track.update({
+  const track = existingTrack
+    ? await prisma.track.update({
       where: {
         id: existingTrack.id
       },
       data: trackData
     })
-  } else {
-    await prisma.track.create({
+    : await prisma.track.create({
       data: trackData
     })
-  }
+
+  await prisma.trackOwner.upsert({
+    where: {
+      trackId_userId: {
+        trackId: track.id,
+        userId: customer.id
+      }
+    },
+    update: {},
+    create: {
+      trackId: track.id,
+      userId: customer.id
+    }
+  })
 
   console.log(`Seeded E2E catalogue track for ${uploader.email}`)
+  console.log(`Seeded E2E customer ownership for ${customer.email}`)
 }
 
 try {
