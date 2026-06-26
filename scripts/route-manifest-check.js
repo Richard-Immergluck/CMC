@@ -19,11 +19,18 @@ const requiredRoutes = [
   '/api/admin/tracks/[trackId]',
   '/api/admin/users',
   '/api/admin/users/[userId]',
+  '/api/auth/[...nextauth]',
+  '/api/cart',
+  '/api/comments',
+  '/api/demo-fixtures/[fixtureName]',
+  '/api/profile',
   '/api/stripe/checkout_sessions',
   '/api/stripe/checkout_sessions/reconcile',
   '/api/stripe/webhook',
   '/api/tracks',
+  '/api/tracks/[trackId]',
   '/api/tracks/[trackId]/signed-url',
+  '/api/tracks/list',
   '/api/uploads/signed-url'
 ]
 
