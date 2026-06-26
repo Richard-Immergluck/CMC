@@ -102,6 +102,9 @@ jobs:
       - name: Route manifest checks
         run: yarn routes:check
 
+      - name: Seed browser smoke data
+        run: yarn seed:e2e
+
       - name: Browser smoke tests
         run: yarn test:e2e
 
