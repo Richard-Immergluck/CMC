@@ -77,6 +77,12 @@ const checks = [
     path: '/api/tracks/1/signed-url?mode=full',
     status: 401,
     includes: ['Authentication required']
+  },
+  {
+    name: 'admin operations requires authentication',
+    path: '/api/admin/operations',
+    status: 401,
+    includes: ['Authentication required']
   }
 ]
 
