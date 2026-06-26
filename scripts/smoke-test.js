@@ -26,6 +26,14 @@ const requestIdHeader = [
   }
 ]
 
+const allowHeader = methods => [
+  {
+    name: 'allow',
+    includes: [methods]
+  },
+  ...requestIdHeader
+]
+
 const checks = [
   {
     name: 'home page',
@@ -200,6 +208,45 @@ const checks = [
     status: 401,
     includes: ['Authentication required'],
     headers: requestIdHeader
+  },
+  {
+    name: 'API home rejects POST',
+    path: '/api',
+    method: 'POST',
+    json: {},
+    status: 405,
+    includes: ['Method not allowed'],
+    headers: allowHeader('GET')
+  },
+  {
+    name: 'checkout rejects GET',
+    path: '/api/stripe/checkout_sessions',
+    status: 405,
+    includes: ['Method not allowed'],
+    headers: allowHeader('POST')
+  },
+  {
+    name: 'upload signing rejects GET',
+    path: '/api/uploads/signed-url',
+    status: 405,
+    includes: ['Method not allowed'],
+    headers: allowHeader('POST')
+  },
+  {
+    name: 'admin summary rejects POST',
+    path: '/api/admin/summary',
+    method: 'POST',
+    json: {},
+    status: 405,
+    includes: ['Method not allowed'],
+    headers: allowHeader('GET')
+  },
+  {
+    name: 'stripe webhook rejects GET',
+    path: '/api/stripe/webhook',
+    status: 405,
+    includes: ['Method not allowed'],
+    headers: allowHeader('POST')
   }
 ]
 
