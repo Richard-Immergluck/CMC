@@ -1,62 +1,68 @@
-import { getSession } from 'next-auth/react'
-import prisma from '../../../components/prisma'
+import {
+  createForbiddenError,
+  handleApiError,
+  requireCurrentUser,
+  requireMethod,
+  sendJson
+} from '../../../lib/server/api'
+import prisma from '../../../lib/server/prisma'
+import {
+  profileCommentBodySchema,
+  validateInput
+} from '../../../lib/validation/api.mjs'
 
 export default async function handler(req, res) {
+  try {
+    requireMethod(req, res, ['GET', 'POST'])
+    const user = await requireCurrentUser(req, res)
 
-// GET all tracks purchased and uploaded by user
-  if (req.method === 'GET') {
-    try {
-
-      // Use getSession Hook to access current user
-      const session = await getSession({ req })
-
-      if (!session?.user?.email) {
-        return res.status(401).json({ message: 'Authentication required' })
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email }
-      })
-
+    // GET all tracks purchased by user
+    if (req.method === 'GET') {
       // If user is logged in, get all tracks that have been purchased by the user
       const userTracks = await prisma.trackOwner.findMany({
         where: { userId: user.id }
       })
-      return res.status(200).json(userTracks)
-    } catch (err) {
-      console.log('from API error', err)
-      return res.status(400).json({ message: 'Something went wrong' })
+      return sendJson(res, 200, userTracks)
     }
-  }
 
-  // POST a new comment to the DB
-  if (req.method === 'POST') {
-    try {
-      // Use getSession Hook to access current user
-      const session = await getSession({ req })
+    // POST a new comment to the DB
+    const { trackId, comment } = validateInput(
+      profileCommentBodySchema,
+      req.body,
+      'Invalid comment request'
+    )
 
-      if (!session?.user?.email) {
-        return res.status(401).json({ message: 'Authentication required' })
-      }
-
-      // Destructure the req.body
-      const { trackId, comment } = req.body
-
-      // If user is logged in, upload a new comment to the DB
-      const newComment = await prisma.comment.create({
-        data: {
-          content: comment,
-          postedBy: { connect: { email: session.user.email } },
-          track: { connect: { id: Number(trackId) } } 
+    const ownership = await prisma.trackOwner.findUnique({
+      where: {
+        trackId_userId: {
+          trackId,
+          userId: user.id
         }
-      })
-      return res.status(200).json(newComment)
-    } catch (err) {
-      console.log('from API error', err)
-      return res.status(400).json({ message: 'Something went wrong' })
-    }
-  }
+      }
+    })
 
-  res.setHeader('Allow', 'GET, POST')
-  return res.status(405).json({ message: 'Method not allowed' })
+    if (!ownership) {
+      throw createForbiddenError('Track ownership required to comment')
+    }
+
+    // If user owns the track, upload a new comment to the DB
+    const newComment = await prisma.comment.create({
+      data: {
+        content: comment,
+        postedBy: {
+          connect: {
+            id: user.id
+          }
+        },
+        track: {
+          connect: {
+            id: trackId
+          }
+        }
+      }
+    })
+    return sendJson(res, 200, newComment)
+  } catch (error) {
+    return handleApiError(res, error, req)
+  }
 }
