@@ -247,7 +247,6 @@ const UserProfilePage = ({
                             rel='noreferrer'
                             target='_blank'
                             download={track.downloadName}
-                            role='button'
                             href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
                           >
                             Download
@@ -305,7 +304,6 @@ const UserProfilePage = ({
                             rel='noreferrer'
                             target='_blank'
                             download={track.downloadName}
-                            role='button'
                             href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
                           >
                             Download
