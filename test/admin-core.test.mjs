@@ -3,7 +3,10 @@ import test from 'node:test'
 import {
   buildTrackModerationChangeMetadata,
   buildUserAccessChangeMetadata,
+  toAuditEventAdminItem,
   toAdminSummary,
+  toOrderAdminItem,
+  toPaymentEventAdminItem,
   toTrackReviewItem,
   toUserAdminItem
 } from '../lib/server/admin-core.mjs'
@@ -85,6 +88,114 @@ test('user admin items expose role and status without provider account data', ()
       role: 'CUSTOMER',
       accountStatus: 'ACTIVE',
       uploaderStatus: 'NOT_REQUESTED'
+    }
+  )
+})
+
+test('order admin items expose commerce context without provider user data', () => {
+  assert.deepEqual(
+    toOrderAdminItem({
+      id: 12,
+      status: 'PAID',
+      amountTotal: 475,
+      currency: 'gbp',
+      stripeCheckoutSession: 'cs_test_1',
+      stripePaymentIntent: 'pi_test_1',
+      createdAt: new Date('2026-06-25T12:00:00.000Z'),
+      updatedAt: new Date('2026-06-25T12:05:00.000Z'),
+      user: {
+        id: 'user-1',
+        name: 'Customer',
+        email: 'customer@example.com',
+        access_token: 'should-not-leak'
+      },
+      items: [
+        {
+          id: 1,
+          trackId: 3,
+          title: 'Study',
+          composer: 'Composer',
+          unitAmount: 475,
+          currency: 'gbp',
+          internalCost: 'ignored'
+        }
+      ]
+    }),
+    {
+      id: 12,
+      status: 'PAID',
+      amountTotal: 475,
+      currency: 'gbp',
+      stripeCheckoutSession: 'cs_test_1',
+      stripePaymentIntent: 'pi_test_1',
+      createdAt: new Date('2026-06-25T12:00:00.000Z'),
+      updatedAt: new Date('2026-06-25T12:05:00.000Z'),
+      user: {
+        id: 'user-1',
+        name: 'Customer',
+        email: 'customer@example.com'
+      },
+      items: [
+        {
+          id: 1,
+          trackId: 3,
+          title: 'Study',
+          composer: 'Composer',
+          unitAmount: 475,
+          currency: 'gbp'
+        }
+      ]
+    }
+  )
+})
+
+test('payment event admin items omit raw Stripe payloads', () => {
+  assert.deepEqual(
+    toPaymentEventAdminItem({
+      id: 1,
+      stripeEventId: 'evt_1',
+      type: 'checkout.session.completed',
+      orderId: 12,
+      payload: '{"secret":"should-not-leak"}',
+      processedAt: new Date('2026-06-25T12:00:00.000Z')
+    }),
+    {
+      id: 1,
+      stripeEventId: 'evt_1',
+      type: 'checkout.session.completed',
+      orderId: 12,
+      processedAt: new Date('2026-06-25T12:00:00.000Z')
+    }
+  )
+})
+
+test('audit event admin items expose actor identity without metadata payloads', () => {
+  assert.deepEqual(
+    toAuditEventAdminItem({
+      id: 1,
+      action: 'ownership.granted',
+      entityType: 'Track',
+      entityId: '3',
+      metadata: '{"stripeCheckoutSession":"cs_test_1"}',
+      createdAt: new Date('2026-06-25T12:00:00.000Z'),
+      actor: {
+        id: 'user-1',
+        name: 'Customer',
+        email: 'customer@example.com',
+        access_token: 'should-not-leak'
+      }
+    }),
+    {
+      id: 1,
+      action: 'ownership.granted',
+      entityType: 'Track',
+      entityId: '3',
+      createdAt: new Date('2026-06-25T12:00:00.000Z'),
+      actor: {
+        id: 'user-1',
+        name: 'Customer',
+        email: 'customer@example.com'
+      }
     }
   )
 })

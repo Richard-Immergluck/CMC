@@ -13,6 +13,7 @@ const requiredRoutes = [
   '/profile',
   '/profile/[trackId]',
   '/upload',
+  '/api/admin/operations',
   '/api/admin/summary',
   '/api/admin/tracks',
   '/api/admin/tracks/[trackId]',
