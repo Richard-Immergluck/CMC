@@ -39,6 +39,17 @@ const warn = message => {
 
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'))
 
+const isTruthyString = value => ['1', 'true', 'yes'].includes(String(value || '').toLowerCase())
+
+const isLocalhostUrl = value => {
+  try {
+    const url = new URL(value)
+    return ['localhost', '127.0.0.1', '::1'].includes(url.hostname)
+  } catch {
+    return false
+  }
+}
+
 const packageJson = readJson(path.join(root, 'package.json'))
 const requiredFiles = ['prisma.config.ts', 'prisma/schema.prisma']
 
@@ -131,6 +142,24 @@ for (const { name, expected, description } of optionalPlatformChecks) {
 
   if (actual !== expected) {
     fail(`${name} is "${actual}", expected "${expected}" (${description})`)
+  }
+}
+
+if (process.env.VERCEL_ENV === 'production') {
+  if (isTruthyString(process.env.ALLOW_SIMULATED_PURCHASES)) {
+    fail('ALLOW_SIMULATED_PURCHASES must be false or unset in Production')
+  }
+
+  if (isTruthyString(process.env.CMC_ENABLE_SYNTHETIC_FIXTURES)) {
+    fail('CMC_ENABLE_SYNTHETIC_FIXTURES must be false or unset in Production')
+  }
+
+  if (!process.env.NEXTAUTH_URL) {
+    fail('NEXTAUTH_URL must be set in Production')
+  } else if (!process.env.NEXTAUTH_URL.startsWith('https://')) {
+    fail('NEXTAUTH_URL must use https:// in Production')
+  } else if (isLocalhostUrl(process.env.NEXTAUTH_URL)) {
+    fail('NEXTAUTH_URL must not point at localhost in Production')
   }
 }
 
