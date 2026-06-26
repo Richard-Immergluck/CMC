@@ -36,4 +36,12 @@ test.describe('API method contracts', () => {
     expect(response.headers()['allow']).toBe('GET')
     expect(await response.text()).toContain('Method not allowed')
   })
+
+  test('stripe webhooks only accept POST', async ({ request }) => {
+    const response = await request.get('/api/stripe/webhook')
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('POST')
+    expect(await response.text()).toContain('Method not allowed')
+  })
 })
