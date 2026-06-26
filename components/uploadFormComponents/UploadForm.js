@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 // React Bootstrap imports
 import {
@@ -11,11 +12,9 @@ import {
   Stack,
   Form,
   InputGroup,
-  Modal,
   Popover,
   OverlayTrigger
 } from 'react-bootstrap'
-import Link from 'next/link'
 
 // Formik Imports
 import { Formik } from 'formik'
@@ -249,7 +248,7 @@ function UploadForm() {
           onSubmit={async (values, { resetForm, setSubmitting }) => {
             try {
               await onSubmit(values)
-              resetForm(initialValues)
+              resetForm({ values: initialValues })
             } catch (error) {
               setUploadError(error.message || 'Unable to upload track')
             } finally {
@@ -459,41 +458,53 @@ function UploadForm() {
             </Form>
           )}
         </Formik>
-        <Modal
-          show={showUploadComplete}
-          onHide={() => setShowUploadComplete(false)}
-          centered
-        >
-          <Modal.Header closeButton>
-            <Modal.Title>Track submitted for review</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <p>
-              Your track has been uploaded as a draft and is now waiting for
-              review. It will not appear in the public catalogue until it has
-              been checked and approved.
-            </p>
-            <p className='mb-0'>
-              You can upload another track now, return to the catalogue, or open
-              the admin console to review pending submissions.
-            </p>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant='outline-secondary' onClick={uploadAnotherTrack}>
-              Upload Another
-            </Button>
-            <Link href='/catalogue' passHref>
-              <Button as='a' variant='outline-info'>
-                Catalogue
-              </Button>
-            </Link>
-            <Link href='/admin' passHref>
-              <Button as='a' variant='info'>
-                Review Submissions
-              </Button>
-            </Link>
-          </Modal.Footer>
-        </Modal>
+        {showUploadComplete && (
+          <div
+            className='modal d-block'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='upload-complete-title'
+            tabIndex='-1'
+          >
+            <div className='modal-dialog modal-dialog-centered'>
+              <div className='modal-content'>
+                <div className='modal-header'>
+                  <h5 className='modal-title' id='upload-complete-title'>
+                    Track submitted for review
+                  </h5>
+                  <button
+                    type='button'
+                    className='btn-close'
+                    aria-label='Close'
+                    onClick={() => setShowUploadComplete(false)}
+                  />
+                </div>
+                <div className='modal-body'>
+                  <p>
+                    Your track has been uploaded as a draft and is now waiting
+                    for review. It will not appear in the public catalogue until
+                    it has been checked and approved.
+                  </p>
+                  <p className='mb-0'>
+                    You can upload another track now, return to the catalogue,
+                    or open the admin console to review pending submissions.
+                  </p>
+                </div>
+                <div className='modal-footer'>
+                  <Button variant='outline-secondary' onClick={uploadAnotherTrack}>
+                    Upload Another
+                  </Button>
+                  <Link href='/catalogue' passHref legacyBehavior>
+                    <a className='btn btn-outline-info'>Catalogue</a>
+                  </Link>
+                  <Link href='/admin' passHref legacyBehavior>
+                    <a className='btn btn-info'>Review Submissions</a>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     )
   } else {
