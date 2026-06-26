@@ -45,4 +45,12 @@ test.describe('API validation contracts', () => {
       ])
     )
   })
+
+  test('demo fixtures are hidden unless synthetic fixtures are enabled', async ({ request }) => {
+    const response = await request.get('/api/demo-fixtures/bach-style-warmup.wav')
+    const body = await response.json()
+
+    expect(response.status()).toBe(404)
+    expect(body.message).toBe('Demo fixtures are not enabled')
+  })
 })
