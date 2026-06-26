@@ -1,9 +1,9 @@
-import prisma from '../../../components/prisma'
 import {
   handleApiError,
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
+import prisma from '../../../lib/server/prisma'
 import {
   commentQuerySchema,
   validateInput

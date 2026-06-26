@@ -53,4 +53,27 @@ test.describe('API validation contracts', () => {
     expect(response.status()).toBe(404)
     expect(body.message).toBe('Demo fixtures are not enabled')
   })
+
+  test('catalogue detail requires a valid track id', async ({ request }) => {
+    const response = await request.get('/api/tracks/not-a-track')
+    const body = await response.json()
+
+    expect(response.status()).toBe(400)
+    expect(body.message).toBe('Invalid track id')
+    expect(body.details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'trackId'
+        })
+      ])
+    )
+  })
+
+  test('catalogue detail returns a typed not found response', async ({ request }) => {
+    const response = await request.get('/api/tracks/999999')
+    const body = await response.json()
+
+    expect(response.status()).toBe(404)
+    expect(body.message).toBe('Track not found')
+  })
 })
