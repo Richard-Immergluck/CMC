@@ -4,6 +4,8 @@ This runbook captures the moving parts needed to operate the hardened CMC app.
 
 Incident-specific recovery steps are in `OPERATIONS_RUNBOOKS.md`.
 
+Release promotion gates are in `RELEASE_GATES.md`.
+
 ## Project Locations
 
 - GitHub: `Richard-Immergluck/CMC`
@@ -278,6 +280,7 @@ Critical flow events currently include checkout session creation, upload signed 
 ## Release Checklist
 
 - PR reviewed and CI green.
+- `RELEASE_GATES.md` checked for the promoted commit and target environment.
 - Vercel Preview smoke-tested with `SMOKE_BASE_URL=https://<preview-host> yarn smoke`.
 - Supabase migrations applied to the intended database.
 - Stripe webhook endpoint configured for the deployment URL.
