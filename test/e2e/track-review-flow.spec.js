@@ -131,6 +131,11 @@ test.describe('track review API flow', () => {
     await expect(page.getByRole('heading', { name: 'Operations Console' })).toBeVisible()
     await expect(page.getByText(/Signed in as e2e-admin@example\.com/)).toBeVisible()
 
+    await page.getByRole('tab', { name: 'Operations' }).click()
+    await expect(page.getByRole('heading', { name: 'Recent Orders' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Recent Payment Events' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Recent Audit Events' })).toBeVisible()
+
     await page.getByRole('tab', { name: /Track Review/i }).click()
 
     const reviewRow = page.getByRole('row').filter({

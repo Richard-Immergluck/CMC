@@ -18,6 +18,7 @@ import {
   toTrackReviewItem,
   toUserAdminItem
 } from '../../lib/server/admin-core.mjs'
+import { getAdminOperationsData } from '../../lib/server/admin-operations'
 import {
   canAccessAdminSurface,
   canAccessSupportSurface
@@ -51,6 +52,13 @@ const StatusBadge = ({ value }) => {
       : 'secondary'
 
   return <Badge bg={variant}>{value}</Badge>
+}
+
+const formatMoney = ({ amountTotal, currency }) => {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: (currency || 'gbp').toUpperCase()
+  }).format((amountTotal || 0) / 100)
 }
 
 const UserAccessRow = ({ user, onSaved }) => {
@@ -125,6 +133,110 @@ const UserAccessRow = ({ user, onSaved }) => {
         </Button>
       </td>
     </tr>
+  )
+}
+
+const OperationsTables = ({ operations }) => {
+  const orders = operations?.orders || []
+  const paymentEvents = operations?.paymentEvents || []
+  const auditEvents = operations?.auditEvents || []
+
+  return (
+    <>
+      <h2 className='h5 mt-2'>Recent Orders</h2>
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Items</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map(order => (
+            <tr key={order.id}>
+              <td>
+                #{order.id}
+                <div className='text-muted small'>{order.stripeCheckoutSession || 'No checkout session'}</div>
+              </td>
+              <td>
+                {order.user?.name || 'Unknown'}
+                <div className='text-muted small'>{order.user?.email}</div>
+              </td>
+              <td><StatusBadge value={order.status} /></td>
+              <td>{formatMoney(order)}</td>
+              <td>{order.items.map(item => item.title).join(', ') || 'No items'}</td>
+              <td>{formatDate(order.createdAt)}</td>
+            </tr>
+          ))}
+          {orders.length === 0 && (
+            <tr>
+              <td colSpan='6' className='text-center text-muted'>No orders found.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+
+      <h2 className='h5 mt-4'>Recent Payment Events</h2>
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Type</th>
+            <th>Order</th>
+            <th>Processed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paymentEvents.map(paymentEvent => (
+            <tr key={paymentEvent.id}>
+              <td>{paymentEvent.stripeEventId}</td>
+              <td>{paymentEvent.type}</td>
+              <td>{paymentEvent.orderId ? `#${paymentEvent.orderId}` : 'n/a'}</td>
+              <td>{formatDate(paymentEvent.processedAt)}</td>
+            </tr>
+          ))}
+          {paymentEvents.length === 0 && (
+            <tr>
+              <td colSpan='4' className='text-center text-muted'>No payment events found.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+
+      <h2 className='h5 mt-4'>Recent Audit Events</h2>
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Actor</th>
+            <th>Entity</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {auditEvents.map(auditEvent => (
+            <tr key={auditEvent.id}>
+              <td>{auditEvent.action}</td>
+              <td>
+                {auditEvent.actor?.name || 'System'}
+                <div className='text-muted small'>{auditEvent.actor?.email}</div>
+              </td>
+              <td>{auditEvent.entityType} #{auditEvent.entityId}</td>
+              <td>{formatDate(auditEvent.createdAt)}</td>
+            </tr>
+          ))}
+          {auditEvents.length === 0 && (
+            <tr>
+              <td colSpan='4' className='text-center text-muted'>No audit events found.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+    </>
   )
 }
 
@@ -277,6 +389,7 @@ export const getServerSideProps = async context => {
         take: 100
       })
     : []
+  const operations = await getAdminOperationsData()
 
   return {
     props: {
@@ -300,7 +413,8 @@ export const getServerSideProps = async context => {
         ...toTrackReviewItem(track),
         uploadedAt: track.uploadedAt.toISOString()
       })),
-      initialUsers: users.map(toUserAdminItem)
+      initialUsers: users.map(toUserAdminItem),
+      initialOperations: JSON.parse(JSON.stringify(operations))
     }
   }
 }
@@ -311,11 +425,13 @@ const AdminConsole = ({
   forbidden = false,
   initialSummary = null,
   initialTracks = [],
-  initialUsers = []
+  initialUsers = [],
+  initialOperations = null
 }) => {
   const [summary, setSummary] = useState(initialSummary)
   const [tracks, setTracks] = useState(initialTracks)
   const [users, setUsers] = useState(initialUsers)
+  const [operations, setOperations] = useState(initialOperations)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -329,15 +445,17 @@ const AdminConsole = ({
     setError('')
 
     try {
-      const [summaryData, trackData, userData] = await Promise.all([
+      const [summaryData, trackData, userData, operationsData] = await Promise.all([
         fetchJson('/api/admin/summary'),
         fetchJson('/api/admin/tracks'),
-        canManageUsers ? fetchJson('/api/admin/users') : Promise.resolve({ users: [] })
+        canManageUsers ? fetchJson('/api/admin/users') : Promise.resolve({ users: [] }),
+        fetchJson('/api/admin/operations')
       ])
 
       setSummary(summaryData)
       setTracks(trackData.tracks)
       setUsers(userData.users)
+      setOperations(operationsData)
     } catch (loadError) {
       setError(loadError.message)
     } finally {
@@ -445,6 +563,10 @@ const AdminConsole = ({
                 )}
               </tbody>
             </Table>
+          </Tab>
+
+          <Tab eventKey='operations' title='Operations'>
+            <OperationsTables operations={operations} />
           </Tab>
 
           {canManageUsers && (

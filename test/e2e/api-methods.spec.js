@@ -53,6 +53,16 @@ test.describe('API method contracts', () => {
     expect(await response.text()).toContain('Method not allowed')
   })
 
+  test('admin operations only accepts GET', async ({ request }) => {
+    const response = await request.post('/api/admin/operations', {
+      data: {}
+    })
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('GET')
+    expect(await response.text()).toContain('Method not allowed')
+  })
+
   test('demo fixtures only accept GET', async ({ request }) => {
     const response = await request.post('/api/demo-fixtures/bach-style-warmup.wav', {
       data: {}
