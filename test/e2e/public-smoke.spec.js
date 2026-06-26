@@ -30,3 +30,10 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await expect(page).toHaveURL(/\/catalogue$/)
   await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
 })
+
+test('invalid catalogue track routes render a not found page', async ({ page }) => {
+  const response = await page.goto('/catalogue/not-a-track')
+
+  expect(response.status()).toBe(404)
+  await expect(page.getByText(/404/i)).toBeVisible()
+})
