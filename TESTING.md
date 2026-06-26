@@ -18,29 +18,35 @@ cover full user journeys.
   manifest after `yarn build`.
 - `yarn test:e2e` runs Playwright smoke tests against the built app. CI starts a
   disposable Postgres service, applies Prisma migrations, builds the app, and
-  verifies public navigation, unauthenticated API denial contracts, and seeded
-  authenticated ownership checks.
+  verifies public navigation, unauthenticated API denial contracts, seeded
+  authenticated ownership checks, purchased-track profile flows, owned-track
+  commenting, and admin review approval.
 - `yarn sanity`, `yarn deps:audit`, `yarn security:rls`, and
   `yarn deploy:check` cover structural, dependency, RLS/grant, and deployment
   readiness checks.
 
-## HITL Journeys To Automate Next
+## Automated HITL Journeys
 
-These are the manually validated flows that should become browser E2E tests:
+These formerly manual flows now have automated Playwright coverage:
 
 1. Admin sign-in reaches the operations console.
 2. Catalogue loads, track detail opens, and the Back action returns cleanly.
-3. Authenticated upload rejects invalid submissions and accepts a valid MP3.
-4. Upload completion modal offers Upload Another, Catalogue, and Review
-   Submissions.
-5. Admin Track Review can listen to a pending track and approve it.
-6. Approved tracks appear in the public catalogue.
-7. Customer checkout creates an order and returns to profile.
-8. Checkout reconciliation grants ownership only after Stripe confirms payment.
-9. Purchased tracks appear in the profile Purchased tab and can be played or
-   downloaded.
-10. Logged-out users cannot access admin, upload signing, checkout, or protected
+3. Admin Track Review can listen to a pending track and approve it.
+4. Approved tracks appear in the public catalogue.
+5. Purchased tracks appear in the profile Purchased tab and can be opened for
+   playback, download, and commenting.
+6. Logged-out users cannot access admin, upload signing, checkout, or protected
     full-track URLs.
+
+## HITL Journeys To Automate Next
+
+These flows still need deeper browser-level automation:
+
+1. Authenticated upload rejects invalid submissions and accepts a valid MP3.
+2. Upload completion modal offers Upload Another, Catalogue, and Review
+   Submissions.
+3. Customer checkout creates an order and returns to profile.
+4. Checkout reconciliation grants ownership only after Stripe confirms payment.
 
 ## Browser E2E Plan
 
@@ -50,6 +56,7 @@ the same disposable database pattern as CI:
 ```bash
 yarn db:local:up
 yarn db:local:migrate
+DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn seed:e2e
 DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn build
 DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" yarn test:e2e
 ```
