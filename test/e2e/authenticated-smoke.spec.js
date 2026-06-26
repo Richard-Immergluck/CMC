@@ -84,6 +84,45 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
     await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Download' })).toBeVisible()
-    await expect(page.getByText(/No comments yet/i)).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Comment' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+  })
+
+  test('seeded customers can comment on purchased tracks', async ({ request }) => {
+    await signInAs(request, 'e2e-customer@example.com')
+
+    const profileResponse = await request.get('/api/profile')
+    const profile = await profileResponse.json()
+    const trackId = profile[0].trackId
+    const comment = `E2E ownership comment ${Date.now()}`
+
+    const commentResponse = await request.post('/api/profile', {
+      data: {
+        trackId,
+        comment
+      }
+    })
+    const createdComment = await commentResponse.json()
+
+    expect(commentResponse.status()).toBe(200)
+    expect(createdComment).toEqual(
+      expect.objectContaining({
+        trackId,
+        content: comment
+      })
+    )
+
+    const publicCommentsResponse = await request.get(`/api/comments?trackId=${trackId}`)
+    const publicComments = await publicCommentsResponse.json()
+
+    expect(publicCommentsResponse.status()).toBe(200)
+    expect(publicComments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdComment.id,
+          content: comment
+        })
+      ])
+    )
   })
 })
