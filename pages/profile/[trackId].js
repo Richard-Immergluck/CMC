@@ -13,6 +13,12 @@ const WaveFormFull = dynamic(() => import('../../components/WaveFormFull'), {
   ssr: false
 })
 
+const parseTrackIdSlug = value => {
+  const [rawTrackId] = String(value || '').split('-')
+  const trackId = Number(rawTrackId)
+  return Number.isInteger(trackId) && trackId > 0 ? trackId : null
+}
+
 export const getServerSideProps = async context => {
   const session = await getSession({ req: context.req })
   const currentUser = await getCurrentUser(session)
@@ -26,12 +32,18 @@ export const getServerSideProps = async context => {
     }
   }
 
-  const trackId = context.params.trackId.split('-')[0]
+  const trackId = parseTrackIdSlug(context.params.trackId)
+
+  if (!trackId) {
+    return {
+      notFound: true
+    }
+  }
 
   // Grab the track from DB using the params
   const track = await prisma.track.findUnique({
     where: {
-      id: Number(trackId)
+      id: trackId
     }
   })
 

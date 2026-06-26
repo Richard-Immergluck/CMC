@@ -15,16 +15,27 @@ const WaveFormRegion = dynamic(
   { ssr: false }
 )
 
+const parseTrackIdParam = value => {
+  const trackId = Number(value)
+  return Number.isInteger(trackId) && trackId > 0 ? trackId : null
+}
+
 // Fetch data for the page
 export const getServerSideProps = async context => {
   // Destructure the trackId from the context
   const { params } = context
-  const { trackId } = params
+  const trackId = parseTrackIdParam(params.trackId)
+
+  if (!trackId) {
+    return {
+      notFound: true
+    }
+  }
 
   // Retrieve the individual track from DB
   const track = await prisma.track.findFirst({
     where: {
-      id: Number(trackId),
+      id: trackId,
       ...publicTrackWhere
     }
   })
@@ -45,7 +56,7 @@ export const getServerSideProps = async context => {
   const comments = await prisma.comment.findMany({
     where: {
       track: {
-        id: Number(trackId)
+        id: trackId
       },
     }
   })
