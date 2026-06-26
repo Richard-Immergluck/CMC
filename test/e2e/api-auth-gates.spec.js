@@ -13,6 +13,26 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('track creation requires authentication', async ({ request }) => {
+    const response = await request.post('/api/tracks', {
+      data: {
+        title: 'Anonymous Upload Attempt',
+        composer: 'Smoke Test',
+        key: 'C major',
+        instrumentation: 'Piano',
+        newFileName: 'anonymous-upload.mp3',
+        previewStart: 0,
+        previewEnd: 30,
+        additionalInfo: 'Anonymous users should not be able to create tracks.',
+        price: 1,
+        downloadCount: 0
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('checkout requires authentication', async ({ request }) => {
     const response = await request.post('/api/stripe/checkout_sessions', {
       data: {
