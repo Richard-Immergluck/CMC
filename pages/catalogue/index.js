@@ -1,9 +1,9 @@
 import React, { useState, memo } from 'react'
 import Link from 'next/link'
 import PlaySample from '../../components/PlaySample'
-import prisma from '../../components/prisma'
 import { Container, Table, Button, Row, Col } from 'react-bootstrap'
 import _ from 'lodash'
+import prisma from '../../lib/server/prisma'
 import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
 export const getServerSideProps = async () => {

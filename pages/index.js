@@ -1,7 +1,7 @@
-import prisma from '../components/prisma'
 import PlaySample from '../components/PlaySample'
 import { Table, Container, Row, Col } from 'react-bootstrap'
 import Link from 'next/link'
+import prisma from '../lib/server/prisma'
 import { publicTrackWhere } from '../lib/server/tracks-core.mjs'
 
 export const getServerSideProps = async () => {

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import prisma from '../../components/prisma'
 import Link from 'next/link'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { useCart } from 'react-use-cart'
 import { Container, Button } from 'react-bootstrap'
 import _ from 'lodash'
+import prisma from '../../lib/server/prisma'
 import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
 // Dynamically import WaveSurfer to avoid 'Self is not defined' error
