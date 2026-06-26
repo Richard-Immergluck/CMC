@@ -63,4 +63,15 @@ test.describe('anonymous API access', () => {
     expect(response.status()).toBe(401)
     expect(await response.text()).toContain('Authentication required')
   })
+
+  test('simulated cart fulfilment requires authentication', async ({ request }) => {
+    const response = await request.post('/api/cart', {
+      data: {
+        tracks: [{ id: 1 }]
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
 })
