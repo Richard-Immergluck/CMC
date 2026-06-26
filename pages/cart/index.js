@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 import { useCart } from 'react-use-cart'
 import Link from 'next/link'
 import {
@@ -12,9 +13,13 @@ import {
   Button
 } from 'react-bootstrap'
 
+const checkoutCanceledMessage = 'Checkout was cancelled. Your cart has been kept so you can review it or try again when you are ready.'
+
 function Cart() {
   const [checkoutError, setCheckoutError] = useState('')
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const router = useRouter()
+  const checkoutCanceled = router.query.checkout === 'canceled'
 
   // Retrieve the user from the session
   const { data: session } = useSession()
@@ -64,6 +69,11 @@ function Cart() {
     return (
       <>
         <Container className='mt-5 justify-content-md-center'>
+          {checkoutCanceled && (
+            <div className='alert alert-warning' role='alert'>
+              {checkoutCanceledMessage}
+            </div>
+          )}
           <Row>
             <Col></Col>
             <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
