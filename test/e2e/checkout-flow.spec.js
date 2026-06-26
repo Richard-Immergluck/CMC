@@ -125,6 +125,9 @@ test.describe('checkout browser flow', () => {
     await page.getByRole('button', { name: 'Buy Now' }).click()
 
     await expect(page).toHaveURL(/\/cart\?checkout=canceled/)
+    await expect(
+      page.getByText('Checkout was cancelled. Your cart has been kept so you can review it or try again when you are ready.')
+    ).toBeVisible()
     await expect(page.getByRole('link', { name: track.title })).toBeVisible()
     await denyDownload(page, track.id)
   })
