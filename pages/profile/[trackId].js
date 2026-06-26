@@ -165,7 +165,6 @@ const TrackOwnerPage = params => {
             rel='noreferrer'
             target='_blank'
             download={track.downloadName}
-            role='button'
             href={downloadUrl || '#'}
           >
             Download
