@@ -43,15 +43,16 @@ These formerly manual flows now have automated Playwright coverage:
 8. Customers can buy a catalogue track through the cart and receive ownership
    only after checkout reconciliation.
 9. Approved uploaders see validation feedback for empty upload submissions.
+10. Cancelled checkout returns customers to the cart without granting ownership.
+11. Unpaid checkout reconciliation leaves ownership and download access denied.
 
 ## HITL Journeys To Automate Next
 
 These flows still need deeper browser-level automation:
 
-1. Checkout cancellation returns customers to the cart without granting
-   ownership.
-2. Checkout reconciliation handles unpaid Stripe sessions without granting
-   ownership.
+1. Checkout failure responses show clear cart/profile recovery guidance.
+2. Role-specific admin workflows cover support-only access boundaries in the
+   browser.
 
 ## Browser E2E Plan
 
