@@ -213,7 +213,9 @@ Run deployment smoke tests against Preview before promotion and against Producti
 SMOKE_BASE_URL=https://<deployment-host> yarn smoke
 ```
 
-The smoke test checks the home page, catalogue page, public sign-in page, unauthenticated denial for privileged upload/checkout/full-track URL APIs, and the absence of GitHub sign-in from the musician/customer auth surface. When `CMC_ENABLE_SYNTHETIC_FIXTURES=true`, it also verifies a generated demo audio fixture stream.
+The smoke test checks the home page, catalogue page, public sign-in page, baseline security headers, unauthenticated denial for privileged upload/checkout/full-track URL/admin operations APIs, and the absence of GitHub sign-in from the musician/customer auth surface. When `CMC_ENABLE_SYNTHETIC_FIXTURES=true`, it also verifies a generated demo audio fixture stream.
+
+If smoke tests fail on security headers, inspect `next.config.js` before promotion. The expected deployment baseline includes `Content-Security-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, and `Permissions-Policy`.
 
 ## Database Integration Tests
 
