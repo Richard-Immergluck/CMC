@@ -7,7 +7,29 @@ const checks = [
     name: 'home page',
     path: '/',
     status: 200,
-    includes: ['C.M.B.C', 'Classical Music Backing-Track Catalogue']
+    includes: ['C.M.B.C', 'Classical Music Backing-Track Catalogue'],
+    headers: [
+      {
+        name: 'content-security-policy',
+        includes: ["default-src 'self'", "frame-ancestors 'none'", "object-src 'none'"]
+      },
+      {
+        name: 'referrer-policy',
+        includes: ['strict-origin-when-cross-origin']
+      },
+      {
+        name: 'x-content-type-options',
+        includes: ['nosniff']
+      },
+      {
+        name: 'x-frame-options',
+        includes: ['DENY']
+      },
+      {
+        name: 'permissions-policy',
+        includes: ['camera=()', 'microphone=()', 'geolocation=()']
+      }
+    ]
   },
   {
     name: 'catalogue page',
@@ -122,6 +144,16 @@ const run = async () => {
     for (const forbiddenText of check.excludes || []) {
       if (body.includes(forbiddenText)) {
         fail(`${check.name || url} included forbidden text: ${forbiddenText}`)
+      }
+    }
+
+    for (const expectedHeader of check.headers || []) {
+      const headerValue = response.headers.get(expectedHeader.name) || ''
+
+      for (const expectedHeaderText of expectedHeader.includes || []) {
+        if (!headerValue.includes(expectedHeaderText)) {
+          fail(`${check.name || url} header ${expectedHeader.name} did not include: ${expectedHeaderText}`)
+        }
       }
     }
   }
