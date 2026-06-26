@@ -1,6 +1,16 @@
 const { expect, test } = require('@playwright/test')
 
 test.describe('API method contracts', () => {
+  test('API home only accepts GET', async ({ request }) => {
+    const response = await request.post('/api', {
+      data: {}
+    })
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('GET')
+    expect(await response.text()).toContain('Method not allowed')
+  })
+
   test('checkout creation only accepts POST', async ({ request }) => {
     const response = await request.get('/api/stripe/checkout_sessions')
 
@@ -11,6 +21,14 @@ test.describe('API method contracts', () => {
 
   test('upload signing only accepts POST', async ({ request }) => {
     const response = await request.get('/api/uploads/signed-url')
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('POST')
+    expect(await response.text()).toContain('Method not allowed')
+  })
+
+  test('track creation only accepts POST', async ({ request }) => {
+    const response = await request.get('/api/tracks')
 
     expect(response.status()).toBe(405)
     expect(response.headers()['allow']).toBe('POST')
