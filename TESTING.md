@@ -42,15 +42,15 @@ These formerly manual flows now have automated Playwright coverage:
    modal.
 8. Customers can buy a catalogue track through the cart and receive ownership
    only after checkout reconciliation.
+9. Approved uploaders see validation feedback for empty upload submissions.
 
 ## HITL Journeys To Automate Next
 
 These flows still need deeper browser-level automation:
 
-1. Authenticated upload rejects invalid submissions with clear inline feedback.
-2. Checkout cancellation returns customers to the cart without granting
+1. Checkout cancellation returns customers to the cart without granting
    ownership.
-3. Checkout reconciliation handles unpaid Stripe sessions without granting
+2. Checkout reconciliation handles unpaid Stripe sessions without granting
    ownership.
 
 ## Browser E2E Plan
