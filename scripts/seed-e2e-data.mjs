@@ -5,6 +5,10 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is required to seed E2E data')
 }
 
+if (process.env.VERCEL_ENV === 'production' && process.env.CMC_ALLOW_E2E_SEED !== 'true') {
+  throw new Error('Refusing to seed E2E data in production without CMC_ALLOW_E2E_SEED=true')
+}
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: process.env.DATABASE_URL

@@ -243,6 +243,8 @@ DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" ya
 
 Playwright supplies safe placeholder values for auth, Stripe, and S3 when they are not present in the shell environment. Do not point browser or integration tests at Production.
 
+The `yarn seed:e2e` script is intended for CI, local Docker databases, and disposable Preview-style databases. It refuses to run with `VERCEL_ENV=production` unless `CMC_ALLOW_E2E_SEED=true` is explicitly set.
+
 ## CI Expectations
 
 The GitHub workflow in `.github/workflows/cmc-ci.yml` runs:
