@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { getSession, useSession } from 'next-auth/react'
-import prisma from '../../components/prisma'
 import Link from 'next/link'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { Container } from 'react-bootstrap'
 import _ from 'lodash'
 import CommentBox from '../../components/CommentBox'
 import { canAccessFullTrack, getCurrentUser } from '../../lib/server/ownership'
+import prisma from '../../lib/server/prisma'
 
 // needed for WaveForm 'Self is not defined' error
 const WaveFormFull = dynamic(() => import('../../components/WaveFormFull'), {

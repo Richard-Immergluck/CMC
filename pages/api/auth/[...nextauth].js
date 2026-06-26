@@ -6,7 +6,7 @@ import GoogleProvider from 'next-auth/providers/google'
 
 // DB adapter and Client imports
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import prisma from '../../../components/prisma'
+import prisma from '../../../lib/server/prisma'
 
 const hasEnv = names => names.every(name => Boolean(process.env[name]))
 

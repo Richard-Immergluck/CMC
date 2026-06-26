@@ -2,7 +2,6 @@ import { getSession } from 'next-auth/react'
 import React, { useEffect, useState, memo } from 'react'
 import { useRouter } from 'next/router'
 import { useCart } from 'react-use-cart'
-import prisma from '../../components/prisma'
 import Link from 'next/link'
 import {
   Container,
@@ -18,6 +17,7 @@ import {
   Alert
 } from 'react-bootstrap'
 import PlayTrack from '../../components/PlayTrack'
+import prisma from '../../lib/server/prisma'
 
 export const getServerSideProps = async context => {
   // Get the session from user

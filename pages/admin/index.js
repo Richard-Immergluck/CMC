@@ -13,7 +13,6 @@ import {
   Table,
   Tabs
 } from 'react-bootstrap'
-import prisma from '../../components/prisma'
 import {
   toAdminSummary,
   toTrackReviewItem,
@@ -23,6 +22,7 @@ import {
   canAccessAdminSurface,
   canAccessSupportSurface
 } from '../../lib/server/permissions.mjs'
+import prisma from '../../lib/server/prisma'
 
 const fetchJson = async (url, options) => {
   const response = await fetch(url, options)
