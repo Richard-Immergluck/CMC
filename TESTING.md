@@ -20,7 +20,8 @@ cover full user journeys.
   disposable Postgres service, applies Prisma migrations, builds the app, and
   verifies public navigation, unauthenticated API denial contracts, seeded
   authenticated ownership checks, purchased-track profile flows, owned-track
-  commenting, and admin review approval.
+  commenting, admin review approval, upload submission, and checkout
+  reconciliation.
 - `yarn sanity`, `yarn deps:audit`, `yarn security:rls`, and
   `yarn deploy:check` cover structural, dependency, RLS/grant, and deployment
   readiness checks.
@@ -37,16 +38,20 @@ These formerly manual flows now have automated Playwright coverage:
    playback, download, and commenting.
 6. Logged-out users cannot access admin, upload signing, checkout, or protected
     full-track URLs.
+7. Approved uploaders can submit a valid MP3 and see the post-upload review
+   modal.
+8. Customers can buy a catalogue track through the cart and receive ownership
+   only after checkout reconciliation.
 
 ## HITL Journeys To Automate Next
 
 These flows still need deeper browser-level automation:
 
-1. Authenticated upload rejects invalid submissions and accepts a valid MP3.
-2. Upload completion modal offers Upload Another, Catalogue, and Review
-   Submissions.
-3. Customer checkout creates an order and returns to profile.
-4. Checkout reconciliation grants ownership only after Stripe confirms payment.
+1. Authenticated upload rejects invalid submissions with clear inline feedback.
+2. Checkout cancellation returns customers to the cart without granting
+   ownership.
+3. Checkout reconciliation handles unpaid Stripe sessions without granting
+   ownership.
 
 ## Browser E2E Plan
 
