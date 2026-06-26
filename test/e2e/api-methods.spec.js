@@ -44,4 +44,34 @@ test.describe('API method contracts', () => {
     expect(response.headers()['allow']).toBe('POST')
     expect(await response.text()).toContain('Method not allowed')
   })
+
+  test('comments only accept GET', async ({ request }) => {
+    const response = await request.post('/api/comments?trackId=1', {
+      data: {}
+    })
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('GET')
+    expect(await response.text()).toContain('Method not allowed')
+  })
+
+  test('catalogue list only accepts GET', async ({ request }) => {
+    const response = await request.post('/api/tracks/list', {
+      data: {}
+    })
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('GET')
+    expect(await response.text()).toContain('Method not allowed')
+  })
+
+  test('catalogue detail only accepts GET', async ({ request }) => {
+    const response = await request.post('/api/tracks/1', {
+      data: {}
+    })
+
+    expect(response.status()).toBe(405)
+    expect(response.headers()['allow']).toBe('GET')
+    expect(await response.text()).toContain('Method not allowed')
+  })
 })

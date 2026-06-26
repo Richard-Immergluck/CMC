@@ -1,10 +1,10 @@
-import prisma from '../../../components/prisma'
 import {
   createNotFoundError,
   handleApiError,
   requireMethod,
   sendJson
 } from '../../../lib/server/api'
+import prisma from '../../../lib/server/prisma'
 import { publicTrackWhere } from '../../../lib/server/tracks-core.mjs'
 import {
   trackIdParamSchema,
