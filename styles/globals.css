@@ -1,9 +1,10 @@
+@import './tokens.css';
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: var(--cmc-font-family-base);
 }
 
 a {
@@ -13,6 +14,75 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+.cmc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: var(--cmc-space-2) var(--cmc-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--cmc-radius-sm);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cmc-button:focus-visible,
+.cmc-panel:focus-visible {
+  outline: none;
+  box-shadow: var(--cmc-focus-ring);
+}
+
+.cmc-button--primary {
+  color: var(--cmc-color-accent-contrast);
+  background: var(--cmc-color-accent);
+  border-color: var(--cmc-color-accent);
+}
+
+.cmc-button--primary:hover {
+  color: var(--cmc-color-accent-contrast);
+  background: var(--cmc-color-accent-strong);
+  border-color: var(--cmc-color-accent-strong);
+}
+
+.cmc-button--secondary {
+  color: var(--cmc-color-accent-strong);
+  background: var(--cmc-color-surface);
+  border-color: var(--cmc-color-border);
+}
+
+.cmc-button--subtle {
+  color: var(--cmc-color-text);
+  background: transparent;
+  border-color: transparent;
+}
+
+.cmc-panel {
+  padding: var(--cmc-space-4);
+  background: var(--cmc-color-surface);
+  border: 1px solid var(--cmc-color-border);
+  border-radius: var(--cmc-radius-md);
+  box-shadow: var(--cmc-shadow-sm);
+}
+
+.cmc-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmc-stack--sm {
+  gap: var(--cmc-space-2);
+}
+
+.cmc-stack--md {
+  gap: var(--cmc-space-4);
+}
+
+.cmc-stack--lg {
+  gap: var(--cmc-space-6);
 }
 
 

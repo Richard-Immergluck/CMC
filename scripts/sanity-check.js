@@ -25,6 +25,13 @@ const requiredFiles = [
   '.env.example',
   'RELEASE_GATES.md',
   'UI_DEVELOPMENT.md',
+  'components/ui/README.md',
+  'components/ui/primitives/Button.js',
+  'components/ui/primitives/Panel.js',
+  'components/ui/primitives/Stack.js',
+  'components/ui/primitives/index.js',
+  'lib/design/theme.js',
+  'lib/design/tokens.js',
   'lib/server/admin-core.mjs',
   'lib/server/admin-operations.js',
   'lib/server/api-core.mjs',
@@ -46,7 +53,8 @@ const requiredFiles = [
   'prisma/schema.prisma',
   'scripts/deployment-readiness.js',
   'scripts/route-manifest-check.js',
-  'scripts/smoke-test.js'
+  'scripts/smoke-test.js',
+  'styles/tokens.css'
 ]
 
 const requiredEnvVars = [
