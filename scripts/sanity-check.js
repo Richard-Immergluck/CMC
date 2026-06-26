@@ -3,6 +3,24 @@ const path = require('path')
 
 const root = path.resolve(__dirname, '..')
 
+const listFiles = directory => {
+  const absoluteDirectory = path.join(root, directory)
+
+  if (!fs.existsSync(absoluteDirectory)) {
+    return []
+  }
+
+  return fs.readdirSync(absoluteDirectory, { withFileTypes: true }).flatMap(entry => {
+    const relativePath = path.join(directory, entry.name)
+
+    if (entry.isDirectory()) {
+      return listFiles(relativePath)
+    }
+
+    return [relativePath]
+  })
+}
+
 const requiredFiles = [
   '.env.example',
   'lib/server/admin-core.mjs',
@@ -79,26 +97,62 @@ for (const envVar of optionalDocumentedEnvVars) {
   }
 }
 
-const forbiddenClientPatterns = [
-  {
-    file: 'components/uploadFormComponents/UploadForm.js',
-    pattern: 'aws-sdk'
-  },
-  {
-    file: 'next.config.js',
-    pattern: 'S3_APP_ACCESS_KEY'
-  },
-  {
-    file: 'next.config.js',
-    pattern: 'STRIPE_SECRET_KEY'
-  }
+const componentFiles = listFiles('components').filter(file => /\.(js|jsx|ts|tsx)$/.test(file))
+const pageFiles = listFiles('pages')
+  .filter(file => !file.startsWith(path.join('pages', 'api')))
+  .filter(file => /\.(js|jsx|ts|tsx)$/.test(file))
+
+const forbiddenBrowserPatterns = [
+  'process.env.',
+  'DATABASE_URL',
+  'DIRECT_URL',
+  'NEXTAUTH_SECRET',
+  'GOOGLE_CLIENT_SECRET',
+  'EMAIL_SERVER',
+  'S3_ACCESS_ID',
+  'S3_APP_ACCESS_KEY',
+  'S3_BUCKET_NAME',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'aws-sdk',
+  "from 'stripe'",
+  'from "stripe"'
 ]
 
-for (const { file, pattern } of forbiddenClientPatterns) {
+const forbiddenComponentPatterns = [
+  ...forbiddenBrowserPatterns,
+  "from '../lib/server",
+  'from "../lib/server',
+  "from '../../lib/server",
+  'from "../../lib/server'
+]
+
+for (const file of componentFiles) {
   const contents = fs.readFileSync(path.join(root, file), 'utf8')
 
-  if (contents.includes(pattern)) {
-    fail(`Forbidden client/config pattern "${pattern}" found in ${file}`)
+  for (const pattern of forbiddenComponentPatterns) {
+    if (contents.includes(pattern)) {
+      fail(`Forbidden component pattern "${pattern}" found in ${file}`)
+    }
+  }
+}
+
+for (const file of pageFiles) {
+  const contents = fs.readFileSync(path.join(root, file), 'utf8')
+
+  for (const pattern of forbiddenBrowserPatterns) {
+    if (contents.includes(pattern)) {
+      fail(`Forbidden page pattern "${pattern}" found in ${file}`)
+    }
+  }
+}
+
+const forbiddenConfigPatterns = ['S3_APP_ACCESS_KEY', 'STRIPE_SECRET_KEY', 'DATABASE_URL']
+const nextConfig = fs.readFileSync(path.join(root, 'next.config.js'), 'utf8')
+
+for (const pattern of forbiddenConfigPatterns) {
+  if (nextConfig.includes(pattern)) {
+    fail(`Forbidden config pattern "${pattern}" found in next.config.js`)
   }
 }
 
