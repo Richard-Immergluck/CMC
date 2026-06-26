@@ -2,6 +2,23 @@ const DEFAULT_BASE_URL = 'http://localhost:3000'
 
 const baseUrl = (process.env.SMOKE_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '')
 
+const isLocalSmokeTarget = url => ['localhost', '127.0.0.1', '::1'].includes(url.hostname)
+
+const validateBaseUrl = () => {
+  let parsedUrl
+
+  try {
+    parsedUrl = new URL(baseUrl)
+  } catch {
+    fail(`SMOKE_BASE_URL is not a valid URL: ${baseUrl}`)
+    return
+  }
+
+  if (parsedUrl.protocol !== 'https:' && !isLocalSmokeTarget(parsedUrl)) {
+    fail('SMOKE_BASE_URL must use https:// for non-local smoke targets')
+  }
+}
+
 const requestIdHeader = [
   {
     name: 'x-request-id',
@@ -222,6 +239,11 @@ const fetchCheck = async check => {
 
 const run = async () => {
   console.log(`Running smoke tests against ${baseUrl}`)
+  validateBaseUrl()
+
+  if (process.exitCode) {
+    process.exit()
+  }
 
   for (const check of checks) {
     const { url, response, body } = await fetchCheck(check)
