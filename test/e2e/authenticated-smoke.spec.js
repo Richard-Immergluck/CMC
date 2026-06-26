@@ -88,6 +88,39 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
   })
 
+  test('seeded support users can inspect operations without user management access', async ({ page }) => {
+    const session = await signInPageAs(page, 'e2e-support@example.com')
+
+    expect(session.user.email).toBe('e2e-support@example.com')
+    expect(session.user.role).toBe('SUPPORT')
+
+    const operationsResponse = await page.request.get('/api/admin/operations')
+    const operations = await operationsResponse.json()
+
+    expect(operationsResponse.status()).toBe(200)
+    expect(operations).toEqual(
+      expect.objectContaining({
+        orders: expect.any(Array),
+        paymentEvents: expect.any(Array),
+        auditEvents: expect.any(Array)
+      })
+    )
+
+    const usersResponse = await page.request.get('/api/admin/users')
+    const usersBody = await usersResponse.json()
+
+    expect(usersResponse.status()).toBe(403)
+    expect(usersBody.message).toBe('Admin access required')
+
+    await page.goto('/admin')
+
+    await expect(page.getByRole('heading', { name: 'Operations Console' })).toBeVisible()
+    await expect(page.getByText(/Signed in as e2e-support@example\.com/)).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Operations' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: /Track Review/i })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Users' })).toHaveCount(0)
+  })
+
   test('seeded customers can comment on purchased tracks', async ({ request }) => {
     await signInAs(request, 'e2e-customer@example.com')
 

@@ -180,6 +180,25 @@ const seed = async () => {
     }
   })
 
+  await prisma.user.upsert({
+    where: {
+      email: 'e2e-support@example.com'
+    },
+    update: {
+      name: 'E2E Support',
+      role: 'SUPPORT',
+      uploaderStatus: 'NOT_REQUESTED',
+      accountStatus: 'ACTIVE'
+    },
+    create: {
+      email: 'e2e-support@example.com',
+      name: 'E2E Support',
+      role: 'SUPPORT',
+      uploaderStatus: 'NOT_REQUESTED',
+      accountStatus: 'ACTIVE'
+    }
+  })
+
   const trackData = {
     fileName: 'e2e-fixtures/catalogue-navigation.wav',
     title: 'E2E Catalogue Navigation Study',
