@@ -60,7 +60,13 @@ const checks = [
       contentType: 'audio/mpeg'
     },
     status: 401,
-    includes: ['Authentication required']
+    includes: ['Authentication required'],
+    headers: [
+      {
+        name: 'x-request-id',
+        present: true
+      }
+    ]
   },
   {
     name: 'checkout requires authentication',
@@ -70,19 +76,37 @@ const checks = [
       trackIds: [1]
     },
     status: 401,
-    includes: ['Authentication required']
+    includes: ['Authentication required'],
+    headers: [
+      {
+        name: 'x-request-id',
+        present: true
+      }
+    ]
   },
   {
     name: 'full track URL requires authentication',
     path: '/api/tracks/1/signed-url?mode=full',
     status: 401,
-    includes: ['Authentication required']
+    includes: ['Authentication required'],
+    headers: [
+      {
+        name: 'x-request-id',
+        present: true
+      }
+    ]
   },
   {
     name: 'admin operations requires authentication',
     path: '/api/admin/operations',
     status: 401,
-    includes: ['Authentication required']
+    includes: ['Authentication required'],
+    headers: [
+      {
+        name: 'x-request-id',
+        present: true
+      }
+    ]
   }
 ]
 
@@ -155,6 +179,10 @@ const run = async () => {
 
     for (const expectedHeader of check.headers || []) {
       const headerValue = response.headers.get(expectedHeader.name) || ''
+
+      if (expectedHeader.present && !headerValue) {
+        fail(`${check.name || url} header ${expectedHeader.name} was missing`)
+      }
 
       for (const expectedHeaderText of expectedHeader.includes || []) {
         if (!headerValue.includes(expectedHeaderText)) {
