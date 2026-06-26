@@ -23,6 +23,7 @@ const listFiles = directory => {
 
 const requiredFiles = [
   '.env.example',
+  'RELEASE_GATES.md',
   'lib/server/admin-core.mjs',
   'lib/server/admin-operations.js',
   'lib/server/api-core.mjs',
