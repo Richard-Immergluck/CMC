@@ -33,6 +33,8 @@ const requiredEnvVars = [
   'DATABASE_URL',
   'NEXTAUTH_URL',
   'NEXTAUTH_SECRET',
+  'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET',
   'S3_ACCESS_ID',
   'S3_APP_ACCESS_KEY',
   'S3_BUCKET_NAME',
@@ -40,7 +42,16 @@ const requiredEnvVars = [
   'S3_KEY_PREFIX',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
-  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'
+  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+  'ALLOW_SIMULATED_PURCHASES'
+]
+
+const optionalDocumentedEnvVars = [
+  'EMAIL_SERVER',
+  'EMAIL_FROM',
+  'CMC_ENABLE_SYNTHETIC_FIXTURES',
+  'DEMO_SEED_USER_EMAIL',
+  'DEMO_SEED_USER_NAME'
 ]
 
 const fail = message => {
@@ -59,6 +70,12 @@ const envExample = fs.readFileSync(path.join(root, '.env.example'), 'utf8')
 for (const envVar of requiredEnvVars) {
   if (!envExample.includes(envVar)) {
     fail(`Missing ${envVar} from .env.example`)
+  }
+}
+
+for (const envVar of optionalDocumentedEnvVars) {
+  if (!envExample.includes(envVar)) {
+    fail(`Missing optional documented env var ${envVar} from .env.example`)
   }
 }
 
