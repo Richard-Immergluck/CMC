@@ -5,6 +5,7 @@ import {
   adminTrackModerationBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
+  profileCommentBodySchema,
   reconcileCheckoutSessionBodySchema,
   signedTrackUrlQuerySchema,
   trackIdParamSchema,
@@ -101,6 +102,35 @@ test('checkout reconciliation body requires checkout session ids', () => {
   assert.throws(
     () => validateInput(reconcileCheckoutSessionBodySchema, {
       sessionId: 'pi_test_123'
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('profile comment body requires an owned track id and bounded comment', () => {
+  assert.deepEqual(
+    validateInput(profileCommentBodySchema, {
+      trackId: '12',
+      comment: ' Useful practice track '
+    }),
+    {
+      trackId: 12,
+      comment: 'Useful practice track'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(profileCommentBodySchema, {
+      trackId: 'abc',
+      comment: 'Nice'
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(profileCommentBodySchema, {
+      trackId: '12',
+      comment: ''
     }),
     error => error.statusCode === 400
   )
