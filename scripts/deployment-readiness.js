@@ -59,6 +59,7 @@ for (const scriptName of ['sanity', 'deps:audit', 'deploy:check', 'routes:check'
 }
 
 const envExample = fs.readFileSync(path.join(root, '.env.example'), 'utf8')
+const nextConfig = fs.readFileSync(path.join(root, 'next.config.js'), 'utf8')
 
 for (const envVar of requiredProductionEnvVars) {
   if (!envExample.includes(envVar)) {
@@ -82,6 +83,23 @@ for (const migrationDir of requiredMigrationDirs) {
   const migrationPath = path.join(root, 'prisma', 'migrations', migrationDir, 'migration.sql')
   if (!fs.existsSync(migrationPath)) {
     fail(`Missing required Prisma migration: ${migrationDir}`)
+  }
+}
+
+const requiredSecurityHeaderTokens = [
+  'Content-Security-Policy',
+  'Referrer-Policy',
+  'X-Content-Type-Options',
+  'X-Frame-Options',
+  'Permissions-Policy',
+  "default-src 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'"
+]
+
+for (const token of requiredSecurityHeaderTokens) {
+  if (!nextConfig.includes(token)) {
+    fail(`next.config.js is missing security header token: ${token}`)
   }
 }
 
