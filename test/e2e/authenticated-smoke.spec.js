@@ -121,6 +121,37 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('tab', { name: 'Users' })).toHaveCount(0)
   })
 
+  test('download URL issuance is visible in support audit operations', async ({ page }) => {
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    const profileResponse = await page.request.get('/api/profile')
+    const profile = await profileResponse.json()
+    const trackId = profile[0].trackId
+
+    const signedUrlResponse = await page.request.get(`/api/tracks/${trackId}/signed-url?mode=download`)
+
+    expect(signedUrlResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-support@example.com')
+
+    const operationsResponse = await page.request.get('/api/admin/operations')
+    const operations = await operationsResponse.json()
+
+    expect(operationsResponse.status()).toBe(200)
+    expect(operations.auditEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'track_access.signed_url_issued',
+          entityType: 'Track',
+          entityId: `${trackId}`,
+          actor: expect.objectContaining({
+            email: 'e2e-customer@example.com'
+          })
+        })
+      ])
+    )
+  })
+
   test('seeded customers can comment on purchased tracks', async ({ request }) => {
     await signInAs(request, 'e2e-customer@example.com')
 
