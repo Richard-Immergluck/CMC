@@ -12,6 +12,20 @@ import {
   validateInput
 } from '../../../lib/validation/api.mjs'
 
+const e2eCheckoutModes = new Set(['cancel', 'unpaid'])
+
+const getE2ECheckoutMode = req => {
+  if (
+    process.env.CMC_ENABLE_E2E_STRIPE !== 'true' ||
+    process.env.VERCEL_ENV === 'production'
+  ) {
+    return null
+  }
+
+  const mode = req.headers['x-cmc-e2e-checkout-mode']
+  return e2eCheckoutModes.has(mode) ? mode : null
+}
+
 export default async function handler(req, res) {
   const requestId = getOrCreateRequestId(req)
 
@@ -28,7 +42,8 @@ export default async function handler(req, res) {
     const checkoutSession = await createCheckoutSessionForTracks({
       user,
       trackIds,
-      applicationUrl: getApplicationBaseUrl(req)
+      applicationUrl: getApplicationBaseUrl(req),
+      e2eCheckoutMode: getE2ECheckoutMode(req)
     })
 
     logServerEvent({
