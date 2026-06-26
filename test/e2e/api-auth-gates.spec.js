@@ -30,4 +30,25 @@ test.describe('anonymous API access', () => {
     expect(response.status()).toBe(401)
     expect(await response.text()).toContain('Authentication required')
   })
+
+  test('admin summary requires authentication', async ({ request }) => {
+    const response = await request.get('/api/admin/summary')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
+  test('profile ownership data requires authentication', async ({ request }) => {
+    const response = await request.get('/api/profile')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
+  test('cart ownership data requires authentication', async ({ request }) => {
+    const response = await request.get('/api/cart')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
 })
