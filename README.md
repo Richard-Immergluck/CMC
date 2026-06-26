@@ -34,7 +34,7 @@ yarn db:local:migrate
 SMOKE_BASE_URL=https://classical-music-catalogue.vercel.app yarn smoke
 ```
 
-The smoke test checks public pages, sign-in provider surface, unauthenticated denial for privileged APIs, and optional synthetic fixture streaming. It is designed to run against Vercel Preview before promotion and Production after release.
+The smoke test checks public pages, baseline security headers, sign-in provider surface, unauthenticated denial for privileged APIs including admin operations, and optional synthetic fixture streaming. It is designed to run against Vercel Preview before promotion and Production after release.
 
 ## Original Context
 
