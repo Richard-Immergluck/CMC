@@ -12,6 +12,7 @@
     "deploy:check": "node scripts/deployment-readiness.js",
     "seed:demo": "node scripts/seed-demo-data.mjs",
     "security:rls": "node scripts/rls-grant-check.mjs",
+    "seed:e2e": "node scripts/seed-e2e-data.mjs",
     "routes:check": "node scripts/route-manifest-check.js",
     "sanity": "node scripts/sanity-check.js",
     "smoke": "node scripts/smoke-test.js",
