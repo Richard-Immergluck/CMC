@@ -67,7 +67,8 @@ DATABASE_URL="postgresql://prisma:prisma@localhost:5432/prisma?schema=public" ya
 ```
 
 Use `yarn seed:e2e` before the build when you need deterministic local data. The
-seed creates local-only `e2e-*@example.com` users and a customer-owned catalogue
+seed removes generated browser-test tracks/orders from previous runs, then
+creates local-only `e2e-*@example.com` users and a customer-owned catalogue
 track for authenticated smoke tests.
 
 The `/api/e2e/session` helper is guarded by `CMC_ENABLE_E2E_AUTH=true`,

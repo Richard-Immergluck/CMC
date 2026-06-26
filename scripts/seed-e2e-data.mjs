@@ -15,7 +15,114 @@ const prisma = new PrismaClient({
   })
 })
 
+const generatedTrackTitlePrefixes = [
+  'E2E Browser Upload ',
+  'E2E Checkout Study ',
+  'E2E Pending Review '
+]
+
+const titlePrefixFilters = generatedTrackTitlePrefixes.map(prefix => ({
+  title: {
+    startsWith: prefix
+  }
+}))
+
+const cleanGeneratedE2EData = async () => {
+  const generatedTracks = await prisma.track.findMany({
+    where: {
+      OR: titlePrefixFilters
+    },
+    select: {
+      id: true
+    }
+  })
+  const generatedTrackIds = generatedTracks.map(track => track.id)
+
+  if (generatedTrackIds.length === 0) {
+    return
+  }
+
+  const generatedOrderItems = await prisma.orderItem.findMany({
+    where: {
+      trackId: {
+        in: generatedTrackIds
+      }
+    },
+    select: {
+      orderId: true
+    }
+  })
+  const generatedOrderIds = [...new Set(generatedOrderItems.map(item => item.orderId))]
+  const generatedTrackEntityIds = generatedTrackIds.map(id => `${id}`)
+  const generatedOrderEntityIds = generatedOrderIds.map(id => `${id}`)
+
+  await prisma.$transaction([
+    prisma.paymentEvent.deleteMany({
+      where: {
+        orderId: {
+          in: generatedOrderIds
+        }
+      }
+    }),
+    prisma.auditEvent.deleteMany({
+      where: {
+        OR: [
+          {
+            entityType: 'Track',
+            entityId: {
+              in: generatedTrackEntityIds
+            }
+          },
+          {
+            entityType: 'Order',
+            entityId: {
+              in: generatedOrderEntityIds
+            }
+          }
+        ]
+      }
+    }),
+    prisma.orderItem.deleteMany({
+      where: {
+        orderId: {
+          in: generatedOrderIds
+        }
+      }
+    }),
+    prisma.order.deleteMany({
+      where: {
+        id: {
+          in: generatedOrderIds
+        }
+      }
+    }),
+    prisma.comment.deleteMany({
+      where: {
+        trackId: {
+          in: generatedTrackIds
+        }
+      }
+    }),
+    prisma.trackOwner.deleteMany({
+      where: {
+        trackId: {
+          in: generatedTrackIds
+        }
+      }
+    }),
+    prisma.track.deleteMany({
+      where: {
+        id: {
+          in: generatedTrackIds
+        }
+      }
+    })
+  ])
+}
+
 const seed = async () => {
+  await cleanGeneratedE2EData()
+
   const uploader = await prisma.user.upsert({
     where: {
       email: 'e2e-uploader@example.com'
