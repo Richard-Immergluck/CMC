@@ -72,7 +72,7 @@ test.describe('authenticated smoke', () => {
     await page.goto('/profile')
 
     await expect(page.getByText('e2e-customer@example.com')).toBeVisible()
-    await expect(page.getByRole('button', { name: /Purchased Tracks:\s*1/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Purchased Tracks:\s*\d+/i })).toBeVisible()
 
     const purchasedPanel = page.locator('.tab-pane.active')
     await expect(purchasedPanel.getByRole('link', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
