@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { demoCatalogueTracks } from '../lib/demo/catalogue-fixtures.mjs'
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is required to seed E2E data')
@@ -18,7 +19,8 @@ const prisma = new PrismaClient({
 const generatedTrackTitlePrefixes = [
   'E2E Browser Upload ',
   'E2E Checkout Study ',
-  'E2E Pending Review '
+  'E2E Pending Review ',
+  'E2E Catalogue '
 ]
 
 const titlePrefixFilters = generatedTrackTitlePrefixes.map(prefix => ({
@@ -261,7 +263,59 @@ const seed = async () => {
     }
   })
 
-  console.log(`Seeded E2E catalogue track for ${uploader.email}`)
+  const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
+    fileName: `demo-fixtures/${demoTrack.slug}.wav`,
+    title: `E2E Catalogue ${demoTrack.title}`,
+    composer: demoTrack.composer,
+    status: 'PUBLISHED',
+    moderationStatus: 'APPROVED',
+    processingStatus: 'READY',
+    publishedAt: new Date(`2026-06-${String(1 + (index % 25)).padStart(2, '0')}T12:00:00.000Z`),
+    reviewedAt: new Date(`2026-06-${String(1 + (index % 25)).padStart(2, '0')}T12:00:00.000Z`),
+    uploadedBy: {
+      connect: {
+        id: uploader.id
+      }
+    },
+    previewStart: 0,
+    previewEnd: Math.min(10, demoTrack.seconds),
+    durationSeconds: demoTrack.durationSeconds,
+    sourceContentType: 'audio/wav',
+    price: demoTrack.pricePence / 100,
+    pricePence: demoTrack.pricePence,
+    currency: 'gbp',
+    formattedPrice: demoTrack.formattedPrice,
+    downloadName: `${demoTrack.slug}.wav`,
+    downloadCount: 0,
+    key: demoTrack.key,
+    instrumentation: demoTrack.instrumentation,
+    additionalInfo: demoTrack.additionalInfo
+  }))
+
+  for (const extraTrack of extraCatalogueTracks) {
+    const existingExtraTrack = await prisma.track.findFirst({
+      where: {
+        title: extraTrack.title,
+        composer: extraTrack.composer,
+        userId: uploader.id
+      }
+    })
+
+    if (existingExtraTrack) {
+      await prisma.track.update({
+        where: {
+          id: existingExtraTrack.id
+        },
+        data: extraTrack
+      })
+    } else {
+      await prisma.track.create({
+        data: extraTrack
+      })
+    }
+  }
+
+  console.log(`Seeded ${extraCatalogueTracks.length + 1} E2E catalogue tracks for ${uploader.email}`)
   console.log(`Seeded E2E customer ownership for ${customer.email}`)
 }
 

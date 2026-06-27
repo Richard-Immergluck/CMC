@@ -44,6 +44,15 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
 })
 
+test('anonymous visitor can search catalogue tracks', async ({ page }) => {
+  await page.goto('/catalogue')
+  await page.getByLabel('Search catalogue').fill('Mendelssohn')
+  await page.getByRole('button', { name: 'Search' }).click()
+
+  await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: /Bach/i })).toHaveCount(0)
+})
+
 test('invalid catalogue track routes render a not found page', async ({ page }) => {
   const response = await page.goto('/catalogue/not-a-track')
 

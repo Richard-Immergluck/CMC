@@ -1,6 +1,7 @@
 import AWS from 'aws-sdk'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { demoCatalogueTracks } from '../lib/demo/catalogue-fixtures.mjs'
 
 const requiredEnv = [
   'DATABASE_URL',
@@ -74,44 +75,11 @@ const createToneWav = ({ frequency, seconds }) => {
   return buffer
 }
 
-const demoTracks = [
-  {
-    slug: 'bach-style-warmup',
-    title: 'Bach-Style Warmup Study',
-    composer: 'Synthetic CC0 Fixture',
-    frequency: 220,
-    key: 'D minor',
-    instrumentation: 'Piano guide tone',
-    pricePence: 299,
-    formattedPrice: 'GBP 2.99'
-  },
-  {
-    slug: 'mozart-style-phrase',
-    title: 'Mozart-Style Phrase Study',
-    composer: 'Synthetic CC0 Fixture',
-    frequency: 330,
-    key: 'G major',
-    instrumentation: 'Practice tone',
-    pricePence: 399,
-    formattedPrice: 'GBP 3.99'
-  },
-  {
-    slug: 'romantic-cadence-study',
-    title: 'Romantic Cadence Study',
-    composer: 'Synthetic CC0 Fixture',
-    frequency: 440,
-    key: 'E-flat major',
-    instrumentation: 'Reference tone',
-    pricePence: 499,
-    formattedPrice: 'GBP 4.99'
-  }
-]
-
 const uploadFixture = async track => {
   const key = `${normalizeS3Prefix(process.env.S3_KEY_PREFIX)}demo-fixtures/${track.slug}.wav`
   const body = createToneWav({
     frequency: track.frequency,
-    seconds: 12
+    seconds: track.seconds
   })
 
   await s3
@@ -153,7 +121,7 @@ const seed = async () => {
     }
   })
 
-  for (const track of demoTracks) {
+  for (const track of demoCatalogueTracks) {
     const fileName = await uploadFixture(track)
     const now = new Date()
     const existing = await prisma.track.findFirst({
@@ -179,8 +147,8 @@ const seed = async () => {
         }
       },
       previewStart: 0,
-      previewEnd: 10,
-      durationSeconds: 12,
+      previewEnd: Math.min(10, track.seconds),
+      durationSeconds: track.durationSeconds,
       sourceContentType: 'audio/wav',
       price: track.pricePence / 100,
       pricePence: track.pricePence,
@@ -190,8 +158,7 @@ const seed = async () => {
       downloadCount: 0,
       key: track.key,
       instrumentation: track.instrumentation,
-      additionalInfo:
-        'Synthetic CC0 demo fixture generated for smoke testing. Not a commercial backing track.'
+      additionalInfo: track.additionalInfo
     }
 
     if (existing) {
@@ -208,7 +175,7 @@ const seed = async () => {
     }
   }
 
-  console.log(`Seeded ${demoTracks.length} demo tracks for ${email}`)
+  console.log(`Seeded ${demoCatalogueTracks.length} demo tracks for ${email}`)
 }
 
 try {
