@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
 import { useCart } from 'react-use-cart'
-import { Container, Button } from 'react-bootstrap'
+import { Button } from 'react-bootstrap'
 import _ from 'lodash'
 import prisma from '../../lib/server/prisma'
 import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
@@ -78,8 +78,6 @@ export const getServerSideProps = async context => {
 const SingleTrack = ({ track, users, comments }) => {
   const router = useRouter()
 
-  // Cart state
-  const [cartotal, setCartotal] = useState(0)
   const [url, setUrl] = useState('')
 
   // Get the session
@@ -99,12 +97,11 @@ const SingleTrack = ({ track, users, comments }) => {
   }, [track.id])
 
   // Instantiate useCart hook
-  const { addItem, items } = useCart()
+  const { addItem } = useCart()
 
   // Add track to the cart
   const addToCart = () => {
     addItem({ ...track })
-    setCartotal(items)
     alert('Track added to cart!')
   }
 
@@ -123,59 +120,109 @@ const SingleTrack = ({ track, users, comments }) => {
     return user ? user.name : 'Unknown'
   }
 
+  const metadata = [
+    ['Key', track.key],
+    ['Instrumentation', track.instrumentation],
+    ['Uploaded by', userTrackMatch(track.userId, users)],
+    ['Uploaded', track.uploadedAt]
+  ].filter(([, value]) => value)
+
   // Render the JSX
   return (
-    <>
-      <Container className='bg-light border mt-5 p-3'>
-        <Button variant='outline-secondary' size='sm' onClick={goBack} className='mb-3'>
+    <main className='cmc-track-page'>
+      <div className='container'>
+        <Button variant='outline-secondary' size='sm' onClick={goBack} className='cmc-track-back-button'>
           Back
         </Button>
-        <h2>{track.title}</h2>
-        <p>by {track.composer}</p>
-        <p>
-          Uploaded by {userTrackMatch(track.userId, users)} on{' '}
-          {track.uploadedAt}
-        </p>
-        <p>Key: {track.key}</p>
-        <p>Instrumentation: {track.instrumentation}</p>
-        <p>
-          Additional Information:<br />
-          {track.additionalInfo}
-        </p>
-        <br />
-        {url && <WaveFormRegion url={url} track={track} />}
-        <br />
-        <br />
-        <div>
-          Comments:<br />
-          {comments.map((comment, key) => (
-            <div key={comment.id}>
-              <p>{key + 1} - by {userTrackMatch(comment.userId, users)}<br />{comment.content}</p>
-              <br />
-            </div> 
-          )
-          )}
-          {comments.length === 0 && <p>No comments yet - After purchasing this track you will be able to leave comments about it!</p>}
-        </div>
-        <br />
-        <div>Price: {track.formattedPrice}</div>
-        <br />
-        <div>
-        {/* If the user is logged in, display the add to cart button */}
-        {session && <Button variant='info' size='md' onClick={addToCart}>
-            Add to Cart
-          </Button>}
-        {/* If the user is not logged in, display this message*/} 
-        {!session && <p>Please <Link href='/login'>login</Link> to add this track to your cart</p>} 
-        </div>
-        <hr />
-        <div>
-          <Link href={'/catalogue'}>
-            <a>Back to the Catalogue</a>
-          </Link>
-        </div>
-      </Container>
-    </>
+
+        <section className='cmc-track-hero'>
+          <div>
+            <p className='cmc-kicker'>Catalogue detail</p>
+            <h1>{track.title}</h1>
+            <p className='cmc-track-composer'>by {track.composer}</p>
+          </div>
+
+          <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
+            <span>Price</span>
+            <strong>{track.formattedPrice || 'Price unavailable'}</strong>
+            {session && (
+              <Button variant='info' size='md' onClick={addToCart}>
+                Add to Cart
+              </Button>
+            )}
+            {!session && (
+              <p>
+                Please <Link href='/login'>login</Link> to add this track to your cart.
+              </p>
+            )}
+          </aside>
+        </section>
+
+        <section className='cmc-track-layout'>
+          <article className='cmc-track-main-panel'>
+            <div className='cmc-track-section-header'>
+              <h2>Preview</h2>
+              <p>Listen to the approved sample before adding this track to your cart.</p>
+            </div>
+            <div className='cmc-track-waveform'>
+              {url ? (
+                <WaveFormRegion url={url} track={track} />
+              ) : (
+                <p>Preparing preview...</p>
+              )}
+            </div>
+          </article>
+
+          <aside className='cmc-track-meta-panel'>
+            <h2>Track Details</h2>
+            <dl className='cmc-track-meta-list'>
+              {metadata.map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        </section>
+
+        <section className='cmc-track-info-grid'>
+          <article className='cmc-track-main-panel'>
+            <div className='cmc-track-section-header'>
+              <h2>Additional Information</h2>
+            </div>
+            <p className='cmc-track-notes'>
+              {track.additionalInfo || 'No additional information has been supplied for this track.'}
+            </p>
+          </article>
+
+          <article className='cmc-track-main-panel'>
+            <div className='cmc-track-section-header'>
+              <h2>Comments</h2>
+              <p>Purchasers can leave notes and performance feedback here.</p>
+            </div>
+            <div className='cmc-track-comments'>
+              {comments.map((comment, key) => (
+                <div className='cmc-track-comment' key={comment.id}>
+                  <span>{key + 1}</span>
+                  <p>{comment.content}</p>
+                  <small>by {userTrackMatch(comment.userId, users)}</small>
+                </div>
+              ))}
+              {comments.length === 0 && (
+                <p className='cmc-track-empty'>
+                  No comments yet. After purchasing this track you will be able to leave comments about it.
+                </p>
+              )}
+            </div>
+          </article>
+        </section>
+
+        <Link href='/catalogue' className='cmc-track-catalogue-link'>
+          Back to the Catalogue
+        </Link>
+      </div>
+    </main>
   )
 }
 
