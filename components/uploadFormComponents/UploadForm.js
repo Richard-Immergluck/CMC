@@ -139,6 +139,13 @@ const uploadToS3 = async selectedFile => {
   return signedUrlData.key
 }
 
+const canUploadTracks = user => {
+  return user?.accountStatus === 'ACTIVE' && (
+    user.role === 'ADMIN' ||
+    (user.role === 'UPLOADER' && user.uploaderStatus === 'APPROVED')
+  )
+}
+
 function UploadForm() {
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [uploadError, setUploadError] = useState('')
@@ -233,7 +240,7 @@ function UploadForm() {
     </Popover>
   )
 
-  if (session && session.user) {
+  if (session && session.user && canUploadTracks(session.user)) {
     return (
       <>
         <Formik
@@ -506,6 +513,21 @@ function UploadForm() {
           </div>
         )}
       </>
+    )
+  } else if (session && session.user) {
+    return (
+      <main className='cmc-upload-page'>
+        <div className='container'>
+          <section className='cmc-upload-auth-panel'>
+            <p className='cmc-kicker'>Uploader workspace</p>
+            <h1>Upload Form</h1>
+            <p>Approved uploader access is required before you can submit tracks.</p>
+            <Link href='/profile' className='cmc-button cmc-button--secondary'>
+              Go to Profile
+            </Link>
+          </section>
+        </div>
+      </main>
     )
   } else {
     return (

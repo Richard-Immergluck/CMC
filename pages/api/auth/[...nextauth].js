@@ -12,6 +12,38 @@ const hasEnv = names => names.every(name => Boolean(process.env[name]))
 
 const providers = []
 
+const enrichTokenWithUserAccess = async token => {
+  const email = token.email
+
+  if (!email) {
+    return token
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email
+    },
+    select: {
+      id: true,
+      role: true,
+      accountStatus: true,
+      uploaderStatus: true
+    }
+  })
+
+  if (!user) {
+    return token
+  }
+
+  return {
+    ...token,
+    sub: user.id,
+    role: user.role,
+    accountStatus: user.accountStatus,
+    uploaderStatus: user.uploaderStatus
+  }
+}
+
 if (hasEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'])) {
   providers.push(
     GoogleProvider({
@@ -45,6 +77,19 @@ export const authOptions = {
   },
   providers,
   callbacks: {
+    async jwt({ token }) {
+      return enrichTokenWithUserAccess(token)
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub
+        session.user.role = token.role
+        session.user.accountStatus = token.accountStatus
+        session.user.uploaderStatus = token.uploaderStatus
+      }
+
+      return session
+    },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith('/')) return `${baseUrl}${url}`

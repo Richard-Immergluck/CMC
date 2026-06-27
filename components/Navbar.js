@@ -3,6 +3,17 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
 
+const canUploadTracks = user => {
+  return user?.accountStatus === 'ACTIVE' && (
+    user.role === 'ADMIN' ||
+    (user.role === 'UPLOADER' && user.uploaderStatus === 'APPROVED')
+  )
+}
+
+const canAccessAdmin = user => {
+  return user?.accountStatus === 'ACTIVE' && ['ADMIN', 'SUPPORT'].includes(user.role)
+}
+
 function MainNavbar() {
   // instantiate cart
   const { emptyCart, items } = useCart()
@@ -10,6 +21,7 @@ function MainNavbar() {
 
   // Get the session state
   const { data: session, status } = useSession()
+  const user = session?.user
 
   return (
     <>
@@ -25,8 +37,8 @@ function MainNavbar() {
             >
               {session && <Nav.Link href='/profile'>Profile</Nav.Link>}
               <Nav.Link href='/catalogue'>Catalogue</Nav.Link>
-              {session && <Nav.Link href='/upload'>Upload</Nav.Link>}
-              {session && <Nav.Link href='/admin'>Admin</Nav.Link>}
+              {canUploadTracks(user) && <Nav.Link href='/upload'>Upload</Nav.Link>}
+              {canAccessAdmin(user) && <Nav.Link href='/admin'>Admin</Nav.Link>}
               
               {status !== 'authenticated' && (
                 <Nav.Link

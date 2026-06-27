@@ -88,6 +88,22 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
   })
 
+  test('seeded customers do not see uploader or admin navigation', async ({ page }) => {
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    await page.goto('/')
+
+    await expect(page.getByRole('link', { name: 'Upload' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Admin' })).toHaveCount(0)
+
+    await page.goto('/upload')
+
+    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+    await expect(page.getByText('Approved uploader access is required before you can submit tracks.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Go to Profile' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Submit' })).toHaveCount(0)
+  })
+
   test('seeded support users can inspect operations without user management access', async ({ page }) => {
     const session = await signInPageAs(page, 'e2e-support@example.com')
 
