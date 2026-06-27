@@ -30,6 +30,7 @@ const requiredFiles = [
   'components/ui/primitives/Panel.js',
   'components/ui/primitives/Stack.js',
   'components/ui/primitives/index.js',
+  'lib/access-control.mjs',
   'lib/design/theme.js',
   'lib/design/tokens.js',
   'lib/server/admin-core.mjs',
