@@ -15,6 +15,7 @@ import {
 // Formik Imports
 import { Formik } from 'formik'
 import * as yup from 'yup'
+import { canUploadTracks } from '../../lib/access-control.mjs'
 
 // Function to convert the time input into seconds
 const secondMaker = timeSplit => {
@@ -137,13 +138,6 @@ const uploadToS3 = async selectedFile => {
   }
 
   return signedUrlData.key
-}
-
-const canUploadTracks = user => {
-  return user?.accountStatus === 'ACTIVE' && (
-    user.role === 'ADMIN' ||
-    (user.role === 'UPLOADER' && user.uploaderStatus === 'APPROVED')
-  )
 }
 
 function UploadForm() {

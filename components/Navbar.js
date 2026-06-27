@@ -2,17 +2,7 @@ import React from 'react'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
-
-const canUploadTracks = user => {
-  return user?.accountStatus === 'ACTIVE' && (
-    user.role === 'ADMIN' ||
-    (user.role === 'UPLOADER' && user.uploaderStatus === 'APPROVED')
-  )
-}
-
-const canAccessAdmin = user => {
-  return user?.accountStatus === 'ACTIVE' && ['ADMIN', 'SUPPORT'].includes(user.role)
-}
+import { canAccessSupportSurface, canUploadTracks } from '../lib/access-control.mjs'
 
 function MainNavbar() {
   // instantiate cart
@@ -38,7 +28,7 @@ function MainNavbar() {
               {session && <Nav.Link href='/profile'>Profile</Nav.Link>}
               <Nav.Link href='/catalogue'>Catalogue</Nav.Link>
               {canUploadTracks(user) && <Nav.Link href='/upload'>Upload</Nav.Link>}
-              {canAccessAdmin(user) && <Nav.Link href='/admin'>Admin</Nav.Link>}
+              {canAccessSupportSurface(user) && <Nav.Link href='/admin'>Admin</Nav.Link>}
               
               {status !== 'authenticated' && (
                 <Nav.Link
