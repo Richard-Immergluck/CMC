@@ -89,9 +89,7 @@ a {
   min-height: 100vh;
   padding: var(--cmc-space-6) 0;
   color: var(--cmc-color-text);
-  background:
-    linear-gradient(180deg, rgba(247, 248, 245, 0.96), rgba(238, 241, 236, 0.78)),
-    var(--cmc-color-background);
+  background: var(--cmc-theme-page-background);
 }
 
 .cmc-catalogue-hero {
@@ -114,7 +112,7 @@ a {
 
 .cmc-catalogue-hero h1 {
   margin: 0;
-  color: #121a24;
+  color: var(--cmc-theme-heading);
   font-size: 3rem;
   line-height: 1.05;
 }
@@ -172,7 +170,7 @@ a {
 }
 
 .cmc-catalogue-panel label {
-  color: #121a24;
+  color: var(--cmc-theme-heading);
   font-weight: 700;
 }
 
@@ -204,7 +202,7 @@ a {
 }
 
 .cmc-featured-track strong {
-  color: #121a24;
+  color: var(--cmc-theme-heading);
 }
 
 .cmc-featured-track small {
@@ -222,12 +220,12 @@ a {
   justify-content: space-between;
   padding: var(--cmc-space-4) var(--cmc-space-5);
   border-bottom: 1px solid var(--cmc-color-border);
-  background: #f9faf7;
+  background: var(--cmc-theme-section-background);
 }
 
 .cmc-catalogue-table-header h2 {
   margin: 0;
-  color: #121a24;
+  color: var(--cmc-theme-heading);
   font-size: 1.25rem;
 }
 
@@ -256,9 +254,9 @@ a {
   position: sticky;
   top: 0;
   z-index: 1;
-  color: #f7f8f5;
-  background: #121a24;
-  border-color: #263241;
+  color: var(--cmc-theme-table-header-text);
+  background: var(--cmc-theme-table-header-background);
+  border-color: var(--cmc-theme-table-header-border);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -267,7 +265,7 @@ a {
 
 .cmc-catalogue-table tbody td {
   vertical-align: middle;
-  border-color: #e3e7df;
+  border-color: var(--cmc-theme-table-border);
 }
 
 .cmc-catalogue-table th:nth-child(7),
