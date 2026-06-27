@@ -58,6 +58,8 @@ Create tokens before redesigning screens:
 
 Token output should be plain CSS variables in `styles/tokens.css`, optionally mirrored by `lib/design/tokens.js` for component logic.
 
+Theme variants should override semantic variables through `[data-cmc-theme="..."]` or `.cmc-theme-*` classes. Keep page styles pointed at semantic variables, such as `--cmc-theme-page-background` and `--cmc-theme-heading`, so light and dark palettes can be changed without rewriting components.
+
 ## AI-Assisted Theme Workflow
 
 Use AI for exploration, not direct unreviewed production styling:
