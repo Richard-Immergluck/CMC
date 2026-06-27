@@ -4,12 +4,8 @@ import Link from 'next/link'
 
 // React Bootstrap imports
 import {
-  Container,
-  Row,
-  Col,
   Alert,
   Button,
-  Stack,
   Form,
   InputGroup,
   Popover,
@@ -144,8 +140,6 @@ const uploadToS3 = async selectedFile => {
 }
 
 function UploadForm() {
-  const [validated, setValidated] = useState(false)
-  const [validatedAfterSubmit, setValidatedAfterSubmit] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [uploadError, setUploadError] = useState('')
   const [showUploadComplete, setShowUploadComplete] = useState(false)
@@ -203,7 +197,6 @@ function UploadForm() {
   // --- End Formik Setup ---
 
   const onSubmit = async values => {
-    setValidatedAfterSubmit(true)
     setUploadError('')
     const uploadedKey = await uploadToS3(selectedFile)
     await uploadToDB(values, uploadedKey)
@@ -260,39 +253,62 @@ function UploadForm() {
           validateOnBlur={false}
         >
           {({ handleSubmit, handleChange, setFieldValue, values, errors, isSubmitting }) => (
-            <Form noValidate validated={validated} onSubmit={handleSubmit}>
-              <Container>
-                <Row className='justify-content-md-center'>
-                  <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
-                    <Container className='bg-light border mt-5 p-3'>
+            <Form noValidate onSubmit={handleSubmit} className='cmc-upload-form'>
+              <main className='cmc-upload-page'>
+                <div className='container'>
+                  <section className='cmc-upload-hero'>
+                    <div>
+                      <p className='cmc-kicker'>Uploader workspace</p>
+                      <h1>Upload Form</h1>
+                      <p className='cmc-upload-copy'>
+                        Submit an MP3 backing track for review. Approved tracks are published to the catalogue after moderation.
+                      </p>
+                    </div>
+                    <aside className='cmc-upload-status-panel' aria-label='Upload review process'>
+                      <span>Review process</span>
+                      <strong>Draft to approval</strong>
+                      <p>Uploads are stored privately and checked by an admin before buyers can see them.</p>
+                    </aside>
+                  </section>
+
+                  <section className='cmc-upload-layout'>
+                    <aside className='cmc-upload-guidance'>
+                      <h2>Before You Submit</h2>
+                      <ul>
+                        <li>Use MP3 audio only.</li>
+                        <li>Choose a short preview start point for buyers.</li>
+                        <li>Add performance notes that help musicians assess the track.</li>
+                        <li>Only upload material you own or are allowed to distribute.</li>
+                      </ul>
+                    </aside>
+
+                    <div className='cmc-upload-panel'>
                       {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
-                      <Stack gap={3}>
-                        <div className='form-control p-2'>
-                          <Form.Group
-                            className='position-relative'
-                            control='fileInput'
-                          >
-                            <Form.Label>Select a File</Form.Label>
-                            <Form.Control
-                              type='file'
-                              required
-                              name='file'
-                              ref={ref}
-                              onChange={e => {
-                                let file = e.target.files[0]
-                                setFieldValue('file', file?.name || '')
-                                setSelectedFile(file)
-                              }}
-                              isInvalid={!!errors.file}
-                              accept='audio/*' // Points browser to audio files
-                            />
-                            <Form.Control.Feedback type='invalid'>
-                              {errors.file}
-                            </Form.Control.Feedback>
-                          </Form.Group>
-                        </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
+
+                      <div className='cmc-upload-fields'>
+                        <Form.Group className='cmc-upload-field' controlId='upload-file'>
+                          <Form.Label>Select a File</Form.Label>
+                          <Form.Control
+                            type='file'
+                            required
+                            name='file'
+                            ref={ref}
+                            onChange={e => {
+                              let file = e.target.files[0]
+                              setFieldValue('file', file?.name || '')
+                              setSelectedFile(file)
+                            }}
+                            isInvalid={!!errors.file}
+                            accept='audio/mpeg,audio/mp3'
+                          />
+                          <Form.Text>MP3 files only.</Form.Text>
+                          <Form.Control.Feedback type='invalid'>
+                            {errors.file}
+                          </Form.Control.Feedback>
+                        </Form.Group>
+
+                        <div className='cmc-upload-field-grid'>
+                          <Form.Group className='cmc-upload-field' controlId='upload-title'>
                             <Form.Label>Title</Form.Label>
                             <Form.Control
                               type='text'
@@ -306,9 +322,8 @@ function UploadForm() {
                               {errors.title}
                             </Form.Control.Feedback>
                           </Form.Group>
-                        </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
+
+                          <Form.Group className='cmc-upload-field' controlId='upload-composer'>
                             <Form.Label>Composer</Form.Label>
                             <Form.Control
                               type='text'
@@ -323,8 +338,9 @@ function UploadForm() {
                             </Form.Control.Feedback>
                           </Form.Group>
                         </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
+
+                        <div className='cmc-upload-field-grid'>
+                          <Form.Group className='cmc-upload-field' controlId='upload-key'>
                             <Form.Label>Key</Form.Label>
                             <Form.Control
                               type='text'
@@ -338,9 +354,8 @@ function UploadForm() {
                               {errors.key}
                             </Form.Control.Feedback>
                           </Form.Group>
-                        </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
+
+                          <Form.Group className='cmc-upload-field' controlId='upload-instrumentation'>
                             <Form.Label>Instrumentation</Form.Label>
                             <Form.Control
                               type='text'
@@ -355,15 +370,10 @@ function UploadForm() {
                             </Form.Control.Feedback>
                           </Form.Group>
                         </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
+
+                        <div className='cmc-upload-field-grid'>
+                          <Form.Group className='cmc-upload-field' controlId='upload-preview-start'>
                             <Form.Label>Preview Starting Point</Form.Label>
-                            <br />
-                            <small className='form-text text-muted'>
-                              Select the time from which you would like the
-                              preview of your track to start. This can be in
-                              seconds or 00:00:00 format
-                            </small>
                             <Form.Control
                               type='text'
                               placeholder='eg. 00:35 or 35'
@@ -371,37 +381,20 @@ function UploadForm() {
                               value={values.previewStartString}
                               onChange={handleChange}
                               isInvalid={!!errors.previewStartString}
+                              aria-describedby='upload-preview-help'
                             />
+                            <Form.Text id='upload-preview-help'>
+                              Seconds or 00:00:00 format.
+                            </Form.Text>
                             <Form.Control.Feedback type='invalid'>
                               {errors.previewStartString}
                             </Form.Control.Feedback>
                           </Form.Group>
-                        </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
-                            <Form.Label>Additional Information</Form.Label>
-                            <Form.Control
-                              type='text'
-                              as='textarea'
-                              style={{ height: 90 }}
-                              placeholder='Tempo, cuts, recitatives, cadenzas etc. Add as much detail as you can. The more detail you add, the more likely your track will be purchased.'
-                              name='additionalInfo'
-                              value={values.additionalInfo}
-                              onChange={handleChange}
-                              isInvalid={!!errors.additionalInfo}
-                            />
-                            <Form.Control.Feedback type='invalid'>
-                              {errors.additionalInfo}
-                            </Form.Control.Feedback>
-                          </Form.Group>
-                        </div>
-                        <div className='form-control p-2'>
-                          <Form.Group md='3' control='input'>
+
+                          <Form.Group className='cmc-upload-field' controlId='upload-price'>
                             <Form.Label>Price</Form.Label>
                             <InputGroup hasValidation>
-                              <InputGroup.Text id='inputGroupPrepend'>
-                                £
-                              </InputGroup.Text>
+                              <InputGroup.Text>£</InputGroup.Text>
                               <Form.Control
                                 type='text'
                                 placeholder='0.00'
@@ -417,15 +410,28 @@ function UploadForm() {
                           </Form.Group>
                         </div>
 
-                        <Form.Group className='mb-3'>
-                          <OverlayTrigger
-                            trigger='click'
-                            placement='right'
-                            overlay={popover}
-                          >
-                            <p>
-                              Click here to view the terms and conditions
-                            </p>
+                        <Form.Group className='cmc-upload-field' controlId='upload-additional-info'>
+                          <Form.Label>Additional Information</Form.Label>
+                          <Form.Control
+                            type='text'
+                            as='textarea'
+                            rows={5}
+                            placeholder='Tempo, cuts, recitatives, cadenzas etc. Add as much detail as you can.'
+                            name='additionalInfo'
+                            value={values.additionalInfo}
+                            onChange={handleChange}
+                            isInvalid={!!errors.additionalInfo}
+                          />
+                          <Form.Control.Feedback type='invalid'>
+                            {errors.additionalInfo}
+                          </Form.Control.Feedback>
+                        </Form.Group>
+
+                        <Form.Group className='cmc-upload-terms' controlId='upload-terms'>
+                          <OverlayTrigger trigger='click' placement='top' overlay={popover}>
+                            <button className='cmc-upload-terms-button' type='button'>
+                              View terms and conditions
+                            </button>
                           </OverlayTrigger>
                           <Form.Check
                             required
@@ -435,26 +441,20 @@ function UploadForm() {
                             isInvalid={!!errors.terms}
                             feedback={errors.terms}
                             feedbackType='invalid'
-                            id='validationFormik'
+                            id='upload-terms-check'
                           />
                         </Form.Group>
-                      </Stack>
-                      <Container className='d-grid gap-2 mt-2 mb-1'>
-                        <br />
-                        <Button
-                          size='lg'
-                          variant='info'
-                          type='submit'
-                          disabled={isSubmitting}
-                          // disabled={!isValid} // Disables button if form is invalid - needs to be fixed in conjunction with validation on change
-                        >
+                      </div>
+
+                      <div className='cmc-upload-submit'>
+                        <Button size='lg' variant='info' type='submit' disabled={isSubmitting}>
                           {isSubmitting ? 'Uploading...' : 'Submit'}
                         </Button>
-                      </Container>
-                    </Container>
-                  </Col>
-                </Row>
-              </Container>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </main>
             </Form>
           )}
         </Formik>
@@ -509,9 +509,18 @@ function UploadForm() {
     )
   } else {
     return (
-      <>
-        <p>You must be logged in to upload a track.</p>
-      </>
+      <main className='cmc-upload-page'>
+        <div className='container'>
+          <section className='cmc-upload-auth-panel'>
+            <p className='cmc-kicker'>Uploader workspace</p>
+            <h1>Upload Form</h1>
+            <p>You must be logged in to upload a track.</p>
+            <Link href='/login' className='cmc-button cmc-button--primary'>
+              Sign In
+            </Link>
+          </section>
+        </div>
+      </main>
     )
   }
 }

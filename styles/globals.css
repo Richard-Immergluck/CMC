@@ -492,6 +492,159 @@ a {
   margin-top: var(--cmc-space-5);
 }
 
+.cmc-upload-page {
+  min-height: 100vh;
+  padding: var(--cmc-space-6) 0;
+  color: var(--cmc-color-text);
+  background: var(--cmc-theme-page-background);
+}
+
+.cmc-upload-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: var(--cmc-space-5);
+  align-items: end;
+  padding: 0 0 var(--cmc-space-5);
+  border-bottom: 1px solid var(--cmc-color-border);
+}
+
+.cmc-upload-hero h1,
+.cmc-upload-auth-panel h1 {
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-size: 3rem;
+  line-height: 1.05;
+}
+
+.cmc-upload-copy {
+  max-width: 48rem;
+  margin: var(--cmc-space-3) 0 0;
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-status-panel,
+.cmc-upload-guidance,
+.cmc-upload-panel,
+.cmc-upload-auth-panel {
+  background: var(--cmc-color-surface);
+  border: 1px solid var(--cmc-color-border);
+  border-radius: var(--cmc-radius-md);
+  box-shadow: var(--cmc-shadow-sm);
+}
+
+.cmc-upload-status-panel {
+  display: grid;
+  gap: var(--cmc-space-2);
+  padding: var(--cmc-space-4);
+}
+
+.cmc-upload-status-panel span {
+  color: var(--cmc-color-text-muted);
+  font-size: var(--cmc-font-size-small);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cmc-upload-status-panel strong {
+  color: var(--cmc-theme-heading);
+  font-size: 1.4rem;
+}
+
+.cmc-upload-status-panel p {
+  margin: 0;
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-layout {
+  display: grid;
+  grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
+  gap: var(--cmc-space-5);
+  align-items: start;
+  margin-top: var(--cmc-space-5);
+}
+
+.cmc-upload-guidance,
+.cmc-upload-panel,
+.cmc-upload-auth-panel {
+  padding: var(--cmc-space-5);
+}
+
+.cmc-upload-guidance {
+  position: sticky;
+  top: var(--cmc-space-4);
+}
+
+.cmc-upload-guidance h2 {
+  margin: 0 0 var(--cmc-space-3);
+  color: var(--cmc-theme-heading);
+  font-size: 1.25rem;
+}
+
+.cmc-upload-guidance ul {
+  display: grid;
+  gap: var(--cmc-space-3);
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-fields {
+  display: grid;
+  gap: var(--cmc-space-4);
+}
+
+.cmc-upload-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cmc-space-4);
+}
+
+.cmc-upload-field label {
+  color: var(--cmc-theme-heading);
+  font-weight: 700;
+}
+
+.cmc-upload-field .form-control:focus {
+  border-color: var(--cmc-color-accent);
+  box-shadow: var(--cmc-focus-ring);
+}
+
+.cmc-upload-field .form-text {
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-terms {
+  padding: var(--cmc-space-4);
+  border: 1px solid var(--cmc-color-border);
+  border-radius: var(--cmc-radius-sm);
+  background: var(--cmc-theme-section-background);
+}
+
+.cmc-upload-terms-button {
+  padding: 0;
+  margin-bottom: var(--cmc-space-2);
+  color: var(--cmc-color-accent-strong);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+}
+
+.cmc-upload-submit {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--cmc-space-5);
+}
+
+.cmc-upload-auth-panel {
+  max-width: 44rem;
+  margin: var(--cmc-space-6) auto 0;
+}
+
+.cmc-upload-auth-panel p:not(.cmc-kicker) {
+  color: var(--cmc-color-text-muted);
+}
+
 @media (max-width: 991px) {
   .cmc-catalogue-hero {
     grid-template-columns: 1fr;
@@ -503,8 +656,14 @@ a {
 
   .cmc-track-hero,
   .cmc-track-layout,
-  .cmc-track-info-grid {
+  .cmc-track-info-grid,
+  .cmc-upload-hero,
+  .cmc-upload-layout {
     grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-guidance {
+    position: static;
   }
 }
 
@@ -517,12 +676,30 @@ a {
     padding-top: var(--cmc-space-4);
   }
 
+  .cmc-upload-page {
+    padding-top: var(--cmc-space-4);
+  }
+
   .cmc-catalogue-hero h1 {
     font-size: 2.2rem;
   }
 
-  .cmc-track-hero h1 {
+  .cmc-track-hero h1,
+  .cmc-upload-hero h1,
+  .cmc-upload-auth-panel h1 {
     font-size: 2.2rem;
+  }
+
+  .cmc-upload-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-submit {
+    justify-content: stretch;
+  }
+
+  .cmc-upload-submit .btn {
+    width: 100%;
   }
 
   .cmc-catalogue-stats {
