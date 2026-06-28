@@ -106,11 +106,6 @@ const SingleTrack = ({ track, users, comments }) => {
   }
 
   const goBack = () => {
-    if (window.history.length > 1) {
-      router.back()
-      return
-    }
-
     router.push('/catalogue')
   }
 

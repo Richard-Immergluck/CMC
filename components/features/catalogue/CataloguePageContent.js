@@ -1,44 +1,9 @@
-import React, { useMemo, useState, memo } from 'react'
+'use client'
+
+import { memo, useMemo, useState } from 'react'
 import Link from 'next/link'
-import PlaySample from '../../components/PlaySample'
-import { Container, Button, Row, Col, Form } from 'react-bootstrap'
-import prisma from '../../lib/server/prisma'
-import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
-
-export const getServerSideProps = async () => {
-  const tracks = await prisma.track.findMany({
-    where: publicTrackWhere,
-    include: {
-      uploadedBy: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    },
-    orderBy: [
-      {
-        composer: 'asc'
-      },
-      {
-        title: 'asc'
-      }
-    ]
-  })
-
-  const catalogueTracks = tracks.map(track => ({
-    ...track,
-    uploadedAt: track.uploadedAt.toLocaleDateString(),
-    uploaderName: track.uploadedBy?.name || 'Unknown',
-    uploadedBy: null
-  }))
-
-  return {
-    props: {
-      tracks: catalogueTracks
-    }
-  }
-}
+import { Button, Col, Container, Form, Row } from 'react-bootstrap'
+import PlaySample from '../../PlaySample'
 
 const normalise = value => `${value || ''}`.toLowerCase()
 
@@ -53,7 +18,7 @@ const formatDuration = seconds => {
   return `${minutes}:${String(remainder).padStart(2, '0')}`
 }
 
-const Catalogue = ({ tracks }) => {
+const CataloguePageContent = ({ tracks }) => {
   const [searchParam, setSearchParam] = useState('')
   const [previewTrackId, setPreviewTrackId] = useState(null)
 
@@ -160,7 +125,7 @@ const Catalogue = ({ tracks }) => {
 
                     <div className='cmc-catalogue-track-main'>
                       <div className='cmc-catalogue-track-heading'>
-                        <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
+                        <Link href={`/catalogue/${track.id}`}>
                           {track.title}
                         </Link>
                         <p>{track.composer}</p>
@@ -190,7 +155,7 @@ const Catalogue = ({ tracks }) => {
 
                     <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
                       <strong>{track.formattedPrice || 'TBC'}</strong>
-                      <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`} className='cmc-button cmc-button--secondary'>
+                      <Link href={`/catalogue/${track.id}`} className='cmc-button cmc-button--secondary'>
                         Details
                       </Link>
                       <Button
@@ -224,4 +189,4 @@ const Catalogue = ({ tracks }) => {
   )
 }
 
-export default memo(Catalogue)
+export default memo(CataloguePageContent)
