@@ -10,6 +10,7 @@ The Next.js app now lives at the repository root. Production/project hardening i
 - `OPERATIONS_RUNBOOKS.md`
 - `RELEASE_GATES.md`
 - `UI_DEVELOPMENT.md`
+- `APP_ROUTER_MIGRATION_PLAN.md`
 - `TESTING.md`
 - `.env.example`
 
@@ -33,10 +34,11 @@ yarn db:local:migrate
 ## Deployment Smoke Tests
 
 ```bash
+SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.vercel.app yarn smoke
 SMOKE_BASE_URL=https://classical-music-catalogue.vercel.app yarn smoke
 ```
 
-The smoke test checks public pages, baseline security headers, sign-in provider surface, unauthenticated denial for privileged APIs including admin operations, and optional synthetic fixture streaming. It is designed to run against Vercel Preview before promotion and Production after release.
+Use the stable `richardimmerglucks-projects` preview alias for login-testable HITL links; random Vercel preview URLs will not be accepted by Google OAuth unless each callback URL is registered. The smoke test checks public pages, baseline security headers, sign-in provider surface, unauthenticated denial for privileged APIs including admin operations, and optional synthetic fixture streaming. It is designed to run against Vercel Preview before promotion and Production after release.
 
 ## Original Context
 

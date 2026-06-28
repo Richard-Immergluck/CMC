@@ -7,10 +7,23 @@ Use this checklist before promoting a Preview deployment to Production. Keep evi
 - GitHub CI is green on the exact commit being promoted.
 - `yarn sanity`, `yarn deps:audit`, `yarn deploy:check`, `yarn routes:check`, `yarn test:unit`, `yarn test:integration`, and `yarn test:e2e` have passed in CI.
 - Vercel Preview is deployed from the intended branch and points at the development database, not Production.
+- If HITL login testing is required, the Preview deployment is assigned to the stable OAuth-safe alias:
+
+```text
+vercel alias set <random-preview-host> classical-music-catalogue-richardimmerglucks-projects.vercel.app
+```
+
+- Google OAuth has authorised callback URLs for the stable Preview alias and Production domain:
+
+```text
+https://classical-music-catalogue-richardimmerglucks-projects.vercel.app/api/auth/callback/google
+https://classical-music-catalogue.vercel.app/api/auth/callback/google
+```
+
 - Preview smoke tests pass with:
 
 ```text
-SMOKE_BASE_URL=https://<preview-host> yarn smoke
+SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.vercel.app yarn smoke
 ```
 
 - Production readiness passes with production-scoped platform values:
@@ -45,6 +58,7 @@ SMOKE_BASE_URL=https://<production-host> yarn smoke
 Do not promote if any of these are true:
 
 - Preview is connected to the production database.
+- A random Vercel Preview deployment URL is shared for OAuth HITL testing instead of the stable preview alias.
 - Production uses plain HTTP, localhost, or a Preview host for `NEXTAUTH_URL`.
 - Simulated purchases or synthetic fixtures are enabled in Production.
 - Smoke tests fail on security headers, auth gates, method contracts, or request-id headers.
