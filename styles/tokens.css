@@ -1,25 +1,26 @@
 :root {
   color-scheme: light;
 
-  --cmc-color-background: #f7f8f5;
-  --cmc-color-surface: #ffffff;
-  --cmc-color-surface-muted: #eef1ec;
-  --cmc-color-border: #cfd6cc;
-  --cmc-color-text: #20241f;
-  --cmc-color-text-muted: #5f685b;
-  --cmc-color-accent: #37685b;
-  --cmc-color-accent-strong: #214b41;
+  --cmc-color-background: #f4efe4;
+  --cmc-color-surface: #fffdf8;
+  --cmc-color-surface-muted: #ebe2d2;
+  --cmc-color-border: #d4c6b2;
+  --cmc-color-text: #211f1a;
+  --cmc-color-text-muted: #6b6255;
+  --cmc-color-accent: #496f64;
+  --cmc-color-accent-strong: #173f38;
   --cmc-color-accent-contrast: #ffffff;
-  --cmc-color-accent-gold: #b5812d;
-  --cmc-color-accent-gold-soft: #f6ead4;
-  --cmc-color-accent-rose: #a45f5f;
-  --cmc-color-accent-rose-soft: #f4e3df;
+  --cmc-color-accent-gold: #a87322;
+  --cmc-color-accent-gold-soft: #ead7b9;
+  --cmc-color-accent-rose: #8f3d3d;
+  --cmc-color-accent-rose-soft: #ead1ca;
   --cmc-color-success: #2f6b45;
   --cmc-color-warning: #8a6417;
   --cmc-color-danger: #9b2f2f;
 
   --cmc-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --cmc-font-family-display: Georgia, "Times New Roman", Times, serif;
   --cmc-font-size-body: 1rem;
   --cmc-font-size-small: 0.875rem;
   --cmc-font-size-heading: 1.5rem;
@@ -39,9 +40,9 @@
   --cmc-shadow-sm: 0 1px 2px rgba(32, 36, 31, 0.08);
 
   --cmc-theme-page-background:
-    linear-gradient(135deg, rgba(246, 234, 212, 0.62), rgba(244, 227, 223, 0.24) 35%, rgba(238, 241, 236, 0.86)),
+    linear-gradient(180deg, #f8f4ea 0%, #f2ebdf 42%, #e9efe8 100%),
     var(--cmc-color-background);
-  --cmc-theme-heading: #121a24;
+  --cmc-theme-heading: #181f26;
   --cmc-theme-table-header-background: #121a24;
   --cmc-theme-table-header-border: #263241;
   --cmc-theme-table-header-text: #f7f8f5;
