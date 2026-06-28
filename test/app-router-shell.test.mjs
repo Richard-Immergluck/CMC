@@ -7,6 +7,7 @@ const root = process.cwd()
 
 test('app router shell and first public routes are present', () => {
   const appLayout = fs.readFileSync(path.join(root, 'app/layout.js'), 'utf8')
+  const appCartPage = fs.readFileSync(path.join(root, 'app/cart/page.js'), 'utf8')
   const appCataloguePage = fs.readFileSync(path.join(root, 'app/catalogue/page.js'), 'utf8')
   const appCatalogueTrackPage = fs.readFileSync(path.join(root, 'app/catalogue/[trackId]/page.js'), 'utf8')
   const appHomePage = fs.readFileSync(path.join(root, 'app/page.js'), 'utf8')
@@ -17,6 +18,7 @@ test('app router shell and first public routes are present', () => {
 
   assert.match(appLayout, /AppProviders/)
   assert.match(appLayout, /metadata/)
+  assert.match(appCartPage, /CartPageContent/)
   assert.match(appCataloguePage, /publicTrackWhere/)
   assert.match(appCataloguePage, /CataloguePageContent/)
   assert.match(appCatalogueTrackPage, /notFound/)
