@@ -291,6 +291,121 @@ a {
   line-height: 1;
 }
 
+.cmc-auth-page {
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  align-items: center;
+  padding: clamp(3.5rem, 8vw, 7rem) 0;
+  color: var(--cmc-color-text);
+  background:
+    linear-gradient(90deg, rgba(23, 63, 56, 0.12), transparent 42%),
+    var(--cmc-theme-page-background);
+}
+
+.cmc-auth-page h1 {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.cmc-auth-copy {
+  max-width: 44rem;
+  margin: var(--cmc-space-5) 0 0;
+  color: #4d473d;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+}
+
+.cmc-auth-panel {
+  display: grid;
+  gap: var(--cmc-space-4);
+  padding: var(--cmc-space-5);
+  color: var(--cmc-color-accent-contrast);
+  background:
+    linear-gradient(180deg, rgba(143, 61, 61, 0.16), transparent 46%),
+    var(--cmc-color-accent-strong);
+  border-top: 5px solid var(--cmc-color-accent-gold);
+  box-shadow: 0 18px 34px rgba(23, 63, 56, 0.16);
+}
+
+.cmc-auth-panel span {
+  display: block;
+  color: var(--cmc-color-accent-gold-soft);
+  font-size: var(--cmc-font-size-small);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cmc-auth-panel h2 {
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-accent-contrast);
+  font-family: var(--cmc-font-family-display);
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.cmc-auth-panel p {
+  margin: var(--cmc-space-2) 0 0;
+  color: rgba(255, 253, 248, 0.76);
+}
+
+.cmc-auth-provider-list,
+.cmc-auth-email-form {
+  display: grid;
+  gap: var(--cmc-space-3);
+}
+
+.cmc-auth-email-form {
+  padding-top: var(--cmc-space-4);
+  border-top: 1px solid rgba(255, 253, 248, 0.2);
+}
+
+.cmc-auth-email-form label {
+  color: rgba(255, 253, 248, 0.86);
+  font-weight: 700;
+}
+
+.cmc-auth-email-form .form-control {
+  color: var(--cmc-color-text);
+  background: var(--cmc-color-surface);
+  border-color: rgba(255, 253, 248, 0.34);
+  border-radius: 0;
+}
+
+.cmc-auth-email-form .form-control:focus {
+  border-color: var(--cmc-color-accent-gold);
+  box-shadow: var(--cmc-focus-ring);
+}
+
+.cmc-auth-provider-button {
+  width: 100%;
+  color: var(--cmc-color-accent-strong);
+  background: var(--cmc-color-accent-gold-soft);
+  border-color: var(--cmc-color-accent-gold-soft);
+  border-radius: 0;
+  font-weight: 700;
+}
+
+.cmc-auth-provider-button:hover,
+.cmc-auth-provider-button:focus {
+  color: var(--cmc-color-accent-contrast);
+  background: var(--cmc-color-accent);
+  border-color: var(--cmc-color-accent);
+}
+
+.cmc-auth-alert {
+  margin: 0;
+  border-radius: 0;
+}
+
+.cmc-auth-home-link {
+  color: var(--cmc-color-accent-gold-soft);
+  font-weight: 700;
+}
+
 .cmc-catalogue-page {
   min-height: 100vh;
   padding: 0 0 var(--cmc-space-6);

@@ -319,7 +319,7 @@ export const getServerSideProps = async context => {
   if (!session?.user?.email) {
     return {
       redirect: {
-        destination: '/api/auth/signin',
+        destination: '/auth/signin?callbackUrl=/admin',
         permanent: false
       }
     }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { signIn, signOut, useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
 import { canAccessSupportSurface, canUploadTracks } from '../lib/access-control.mjs'
@@ -33,11 +33,7 @@ function MainNavbar() {
               
               {status === 'unauthenticated' && (
                 <Nav.Link
-                  href='/api/auth/signin'
-                  onClick={e => {
-                    e.preventDefault()
-                    signIn()
-                  }}
+                  href='/auth/signin?callbackUrl=/catalogue'
                 >
                   Sign In / Register
                 </Nav.Link>

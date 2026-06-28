@@ -26,7 +26,7 @@ export const getServerSideProps = async context => {
   if (!currentUser) {
     return {
       redirect: {
-        destination: '/api/auth/signin',
+        destination: `/auth/signin?callbackUrl=${encodeURIComponent(context.resolvedUrl || '/profile')}`,
         permanent: false
       }
     }

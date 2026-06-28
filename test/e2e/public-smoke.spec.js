@@ -28,8 +28,20 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
   await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
 
   await page.goto('/profile')
-  await expect(page).toHaveURL(/\/api\/auth\/signin/)
-  await expect(page.getByText('Sign in with Google')).toBeVisible()
+  await expect(page).toHaveURL(/\/auth\/signin\?callbackUrl=(%2F|\/)profile/)
+  await expect(page.getByRole('heading', { name: 'Sign in to your catalogue workspace.' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible()
+  await expect(page.getByText('GitHub')).toHaveCount(0)
+})
+
+test('anonymous visitor can use the bespoke sign-in entry point', async ({ page }) => {
+  await page.goto('/')
+
+  await page.getByRole('link', { name: /Sign In \/ Register/i }).click()
+
+  await expect(page).toHaveURL(/\/auth\/signin/)
+  await expect(page.getByRole('heading', { name: 'Sign in to your catalogue workspace.' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible()
   await expect(page.getByText('GitHub')).toHaveCount(0)
 })
 

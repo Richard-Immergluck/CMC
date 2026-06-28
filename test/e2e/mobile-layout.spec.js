@@ -66,6 +66,14 @@ test.describe('mobile layout smoke', () => {
     await expectNoDocumentHorizontalOverflow(page)
   })
 
+  test('bespoke sign-in page fits a mobile viewport', async ({ page }) => {
+    await page.goto('/auth/signin?callbackUrl=/catalogue')
+
+    await expect(page.getByRole('heading', { name: 'Sign in to your catalogue workspace.' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible()
+    await expectNoDocumentHorizontalOverflow(page)
+  })
+
   test('approved uploader form fits a mobile viewport', async ({ page }) => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload')
