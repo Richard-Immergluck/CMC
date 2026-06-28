@@ -15,9 +15,12 @@ test('public routes include baseline security headers', async ({ request }) => {
 
 test('anonymous visitor can reach the public catalogue and auth gate', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'C.M.B.C' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Backing tracks should not gather dust.' })).toBeVisible()
+  await expect(page.getByText(/publish useful home-made backing tracks/i)).toBeVisible()
+  await expect(page.getByText(/Upload\. Discover\. Discuss\. Request\./i)).toBeVisible()
   await expect(page.getByRole('link', { name: 'Catalogue', exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: /Sign In \/ Register/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Browse catalogue' })).toBeVisible()
 
   await page.getByRole('link', { name: 'Catalogue', exact: true }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
