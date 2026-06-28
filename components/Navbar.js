@@ -12,12 +12,13 @@ function MainNavbar() {
   // Get the session state
   const { data: session, status } = useSession()
   const user = session?.user
+  const isAuthenticated = status === 'authenticated'
 
   return (
     <>
       <Navbar className='shadow' bg='light' variant='light' expand='sm'>
         <Container>
-          <Navbar.Brand href={session ? '/catalogue' : '/'}>C.M.B.C (working title)</Navbar.Brand>
+          <Navbar.Brand href={isAuthenticated ? '/catalogue' : '/'}>C.M.B.C (working title)</Navbar.Brand>
           <Navbar.Toggle aria-controls='navbarScroll' />
           <Navbar.Collapse id='navbarScroll'>
             <Nav
@@ -25,12 +26,12 @@ function MainNavbar() {
               style={{ maxHeight: '100px' }}
               navbarScroll
             >
-              {session && <Nav.Link href='/profile'>Profile</Nav.Link>}
+              {isAuthenticated && <Nav.Link href='/profile'>Profile</Nav.Link>}
               <Nav.Link href='/catalogue'>Catalogue</Nav.Link>
               {canUploadTracks(user) && <Nav.Link href='/upload'>Upload</Nav.Link>}
               {canAccessSupportSurface(user) && <Nav.Link href='/admin'>Admin</Nav.Link>}
               
-              {status !== 'authenticated' && (
+              {status === 'unauthenticated' && (
                 <Nav.Link
                   href='/api/auth/signin'
                   onClick={e => {
@@ -41,7 +42,7 @@ function MainNavbar() {
                   Sign In / Register
                 </Nav.Link>
               )}
-              {session && (
+              {isAuthenticated && (
                 <Nav.Link
                   href='/api/auth/signout'
                   onClick={e => {
@@ -56,7 +57,7 @@ function MainNavbar() {
                 </Nav.Link>
               )}
 
-              {session && <Nav.Link href='/cart'>Cart ({cartItems})</Nav.Link>}
+              {isAuthenticated && <Nav.Link href='/cart'>Cart ({cartItems})</Nav.Link>}
             </Nav>
           </Navbar.Collapse>
         </Container>
