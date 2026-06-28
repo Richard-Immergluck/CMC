@@ -4,7 +4,7 @@ const path = require('path')
 const root = path.resolve(__dirname, '..')
 const packageJson = require(path.join(root, 'package.json'))
 
-const sourceDirs = ['components', 'lib', 'pages', 'scripts']
+const sourceDirs = ['app', 'components', 'lib', 'pages', 'scripts']
 const importPattern =
   /(?:import\s+(?:[^'"]+\s+from\s+)?['"]([^'".][^'"]*)['"]|require\(\s*['"]([^'".][^'"]*)['"]\s*\))/g
 
@@ -38,7 +38,11 @@ const walk = dir => {
   })
 }
 
-const sourceFiles = sourceDirs.flatMap(dir => walk(path.join(root, dir)))
+const sourceFiles = sourceDirs.flatMap(dir => {
+  const fullPath = path.join(root, dir)
+
+  return fs.existsSync(fullPath) ? walk(fullPath) : []
+})
 const usedPackages = new Set()
 
 for (const file of sourceFiles) {
