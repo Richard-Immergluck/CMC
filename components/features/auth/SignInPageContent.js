@@ -1,4 +1,6 @@
-import { getProviders, getSession, signIn } from 'next-auth/react'
+'use client'
+
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap'
@@ -13,48 +15,7 @@ const errorMessages = {
   Verification: 'That sign-in link has expired or has already been used.'
 }
 
-const normaliseCallbackUrl = value => {
-  if (!value || Array.isArray(value)) {
-    return '/catalogue'
-  }
-
-  if (value.startsWith('/')) {
-    return value
-  }
-
-  try {
-    const url = new URL(value)
-    return `${url.pathname}${url.search}${url.hash}` || '/catalogue'
-  } catch {
-    return '/catalogue'
-  }
-}
-
-export const getServerSideProps = async context => {
-  const session = await getSession({ req: context.req })
-  const callbackUrl = normaliseCallbackUrl(context.query.callbackUrl)
-
-  if (session) {
-    return {
-      redirect: {
-        destination: callbackUrl,
-        permanent: false
-      }
-    }
-  }
-
-  const providers = await getProviders()
-
-  return {
-    props: {
-      callbackUrl,
-      error: context.query.error || null,
-      providers: providers || {}
-    }
-  }
-}
-
-const SignInPage = ({ callbackUrl, error, providers }) => {
+const SignInPageContent = ({ callbackUrl, error, providers }) => {
   const [email, setEmail] = useState('')
   const [emailSubmitting, setEmailSubmitting] = useState(false)
   const providerList = Object.values(providers).filter(provider => provider.id !== 'email')
@@ -151,4 +112,4 @@ const SignInPage = ({ callbackUrl, error, providers }) => {
   )
 }
 
-export default SignInPage
+export default SignInPageContent
