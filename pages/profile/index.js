@@ -33,7 +33,7 @@ export const getServerSideProps = async context => {
     if (!currentUser) {
       return {
         redirect: {
-          destination: '/api/auth/signin',
+          destination: '/auth/signin?callbackUrl=/profile',
           permanent: false
         }
       }
@@ -77,7 +77,7 @@ export const getServerSideProps = async context => {
   } else {
     return {
       redirect: {
-        destination: '/api/auth/signin',
+        destination: '/auth/signin?callbackUrl=/profile',
         permanent: false
       }
     }

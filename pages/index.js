@@ -62,7 +62,7 @@ const Home = () => {
                 </Link>
                 <Button
                   variant='outline-secondary'
-                  href='/api/auth/signin'
+                  href='/auth/signin?callbackUrl=/catalogue'
                   className='cmc-home-auth-button'
                 >
                   Sign in or register
