@@ -1,7 +1,7 @@
 import React, { useMemo, useState, memo } from 'react'
 import Link from 'next/link'
 import PlaySample from '../../components/PlaySample'
-import { Container, Table, Button, Row, Col, Form } from 'react-bootstrap'
+import { Container, Button, Row, Col, Form } from 'react-bootstrap'
 import prisma from '../../lib/server/prisma'
 import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
@@ -41,6 +41,17 @@ export const getServerSideProps = async () => {
 }
 
 const normalise = value => `${value || ''}`.toLowerCase()
+
+const formatDuration = seconds => {
+  if (!seconds) {
+    return 'Duration TBC'
+  }
+
+  const minutes = Math.floor(seconds / 60)
+  const remainder = seconds % 60
+
+  return `${minutes}:${String(remainder).padStart(2, '0')}`
+}
 
 const Catalogue = ({ tracks }) => {
   const [searchParam, setSearchParam] = useState('')
@@ -131,70 +142,79 @@ const Catalogue = ({ tracks }) => {
           </Col>
 
           <Col lg={8} xl={9}>
-            <section className='cmc-catalogue-table-shell' aria-label='Catalogue results'>
+            <section className='cmc-catalogue-results-shell' aria-label='Catalogue results'>
               <div className='cmc-catalogue-table-header'>
                 <div>
                   <h2>Available tracks</h2>
-                  <p>{filteredTracks.length} result{filteredTracks.length === 1 ? '' : 's'} ready for review.</p>
+                  <p>{filteredTracks.length} result{filteredTracks.length === 1 ? '' : 's'} ready for preview.</p>
                 </div>
                 <Link href='/' className='cmc-catalogue-home-link'>
                   Home
                 </Link>
               </div>
-              <div className='cmc-catalogue-table-scroll'>
-                <Table responsive hover size='sm' className='cmc-catalogue-table'>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Track</th>
-                      <th>Composer</th>
-                      <th>Key</th>
-                      <th>Instrumentation</th>
-                      <th>Uploader</th>
-                      <th>Price</th>
-                      <th>Preview</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTracks.map((track, index) => (
-                      <tr key={track.id}>
-                        <td>{index + 1}</td>
-                        <td>
-                          <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
-                            {track.title}
-                          </Link>
-                          <div className='cmc-catalogue-row-meta'>{track.uploadedAt}</div>
-                        </td>
-                        <td>{track.composer}</td>
-                        <td>{track.key || 'Unspecified'}</td>
-                        <td>{track.instrumentation || 'Unspecified'}</td>
-                        <td>{track.uploaderName}</td>
-                        <td>{track.formattedPrice || 'TBC'}</td>
-                        <td className='cmc-preview-cell'>
-                          <Button
-                            variant={previewTrackId === track.id ? 'secondary' : 'outline-secondary'}
-                            size='sm'
-                            onClick={() => setPreviewTrackId(previewTrackId === track.id ? null : track.id)}
-                          >
-                            {previewTrackId === track.id ? 'Hide' : 'Preview'}
-                          </Button>
-                          {previewTrackId === track.id && (
-                            <div className='cmc-preview-player'>
-                              <PlaySample track={track} />
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredTracks.length === 0 && (
-                      <tr>
-                        <td colSpan='8' className='cmc-empty-results'>
-                          No tracks matched that search.
-                        </td>
-                      </tr>
+
+              <div className='cmc-catalogue-result-list'>
+                {filteredTracks.map((track, index) => (
+                  <article className='cmc-catalogue-track-card' key={track.id}>
+                    <div className='cmc-catalogue-track-index'>{index + 1}</div>
+
+                    <div className='cmc-catalogue-track-main'>
+                      <div className='cmc-catalogue-track-heading'>
+                        <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`}>
+                          {track.title}
+                        </Link>
+                        <p>{track.composer}</p>
+                      </div>
+
+                      <dl className='cmc-catalogue-track-meta'>
+                        <div>
+                          <dt>Key</dt>
+                          <dd>{track.key || 'Unspecified'}</dd>
+                        </div>
+                        <div>
+                          <dt>Instrumentation</dt>
+                          <dd>{track.instrumentation || 'Unspecified'}</dd>
+                        </div>
+                        <div>
+                          <dt>Uploader</dt>
+                          <dd>{track.uploaderName}</dd>
+                        </div>
+                        <div>
+                          <dt>Duration</dt>
+                          <dd>{formatDuration(track.durationSeconds)}</dd>
+                        </div>
+                      </dl>
+
+                      <div className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</div>
+                    </div>
+
+                    <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
+                      <strong>{track.formattedPrice || 'TBC'}</strong>
+                      <Link href='/catalogue/[id]' as={`/catalogue/${track.id}`} className='cmc-button cmc-button--secondary'>
+                        Details
+                      </Link>
+                      <Button
+                        variant={previewTrackId === track.id ? 'secondary' : 'outline-secondary'}
+                        size='sm'
+                        onClick={() => setPreviewTrackId(previewTrackId === track.id ? null : track.id)}
+                      >
+                        {previewTrackId === track.id ? 'Hide Preview' : 'Preview'}
+                      </Button>
+                    </aside>
+
+                    {previewTrackId === track.id && (
+                      <div className='cmc-preview-player'>
+                        <PlaySample track={track} />
+                      </div>
                     )}
-                  </tbody>
-                </Table>
+                  </article>
+                ))}
+
+                {filteredTracks.length === 0 && (
+                  <div className='cmc-empty-results'>
+                    No tracks matched that search.
+                  </div>
+                )}
               </div>
             </section>
           </Col>
