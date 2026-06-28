@@ -90,6 +90,34 @@ Configure OAuth callback URLs against each deployed environment before enabling 
 
 Use environment-scoped values for `NEXTAUTH_URL`. Production should point at the production domain. Preview deployments should either omit it or set it to the preview host; checkout return URLs deliberately use the request host outside production so test purchases stay inside the preview deployment.
 
+### Login-Testable Preview Links
+
+Google OAuth does not allow arbitrary wildcard Vercel preview callback URLs. Random deployment hosts such as `classical-music-catalogue-<hash>-richardimmerglucks-projects.vercel.app` will produce `redirect_uri_mismatch` unless each exact callback URL is registered in Google Cloud.
+
+For HITL testing, always assign the current Preview deployment to the stable alias before sharing links:
+
+```text
+vercel alias set <random-preview-host> classical-music-catalogue-richardimmerglucks-projects.vercel.app
+```
+
+Then share links using:
+
+```text
+https://classical-music-catalogue-richardimmerglucks-projects.vercel.app
+```
+
+The Google OAuth client must include this authorised redirect URI:
+
+```text
+https://classical-music-catalogue-richardimmerglucks-projects.vercel.app/api/auth/callback/google
+```
+
+Production must use the production domain callback:
+
+```text
+https://classical-music-catalogue.vercel.app/api/auth/callback/google
+```
+
 ## Roles And Permissions
 
 Server-side permissions are centralised in `lib/server/permissions.mjs`. Track upload APIs require an active `UPLOADER` with `uploaderStatus=APPROVED`, or an active `ADMIN`. Customer purchasing remains independent from uploader approval. `SUPPORT` can be used for future operational read/support surfaces without granting full admin mutation authority.
@@ -215,7 +243,13 @@ Run deployment smoke tests against Preview before promotion and against Producti
 SMOKE_BASE_URL=https://<deployment-host> yarn smoke
 ```
 
-The smoke test checks the home page, catalogue page, public sign-in page, baseline security headers, unauthenticated denial for privileged upload/checkout/full-track URL/admin operations APIs, and the absence of GitHub sign-in from the musician/customer auth surface. When `CMC_ENABLE_SYNTHETIC_FIXTURES=true`, it also verifies a generated demo audio fixture stream.
+When login is part of HITL testing, use the stable preview alias as `SMOKE_BASE_URL`, not the random deployment host:
+
+```text
+SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.vercel.app yarn smoke
+```
+
+The smoke test checks the home page, catalogue page, bespoke public sign-in page, baseline security headers, unauthenticated denial for privileged upload/checkout/full-track URL/admin operations APIs, and the absence of GitHub sign-in from the musician/customer auth surface. When `CMC_ENABLE_SYNTHETIC_FIXTURES=true`, it also verifies a generated demo audio fixture stream.
 
 If smoke tests fail on security headers, inspect `next.config.js` before promotion. The expected deployment baseline includes `Content-Security-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, and `Permissions-Policy`.
 
@@ -281,7 +315,7 @@ Critical flow events currently include checkout session creation, upload signed 
 
 - PR reviewed and CI green.
 - `RELEASE_GATES.md` checked for the promoted commit and target environment.
-- Vercel Preview smoke-tested with `SMOKE_BASE_URL=https://<preview-host> yarn smoke`.
+- Vercel Preview smoke-tested with the stable login-testable alias when OAuth HITL testing is expected.
 - Supabase migrations applied to the intended database.
 - Stripe webhook endpoint configured for the deployment URL.
 - AWS credentials rotated and scoped to least privilege.

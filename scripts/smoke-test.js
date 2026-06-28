@@ -39,7 +39,7 @@ const checks = [
     name: 'home page',
     path: '/',
     status: 200,
-    includes: ['C.M.B.C', 'Classical Music Backing-Track Catalogue'],
+    includes: ['C.M.B.C', 'Backing tracks should not gather dust.', 'Sign in or register'],
     headers: [
       {
         name: 'content-security-policy',
@@ -71,16 +71,16 @@ const checks = [
   },
   {
     name: 'public sign-in page',
-    path: '/api/auth/signin',
+    path: '/auth/signin?callbackUrl=/catalogue',
     status: 200,
-    includes: ['Sign in with Google'],
+    includes: ['Sign in to your catalogue workspace.', 'Google'],
     excludes: ['GitHub']
   },
   {
     name: 'profile requires sign-in',
     path: '/profile',
     status: 200,
-    includes: ['Sign in with Google'],
+    includes: ['Sign in to your catalogue workspace.', 'Google'],
     excludes: ['This page could not be found']
   },
   {

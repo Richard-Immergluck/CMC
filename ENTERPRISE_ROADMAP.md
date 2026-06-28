@@ -53,6 +53,8 @@ Standing App Router checkpoint:
 - Default to "no" while active security, commerce, database, smoke-test, or product-surface work would be made riskier by a routing migration.
 - Switch to "yes" only when the current sprint benefits from route/layout restructuring, has enough Playwright coverage to protect behaviour, and can migrate one route family without weakening release confidence.
 
+The route-family migration sequence is tracked in `APP_ROUTER_MIGRATION_PLAN.md`.
+
 Default PR gates:
 
 - Local checks pass.
