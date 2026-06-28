@@ -1,23 +1,29 @@
 import {
-  createNotFoundError,
-  handleApiError,
-  requireCurrentUser,
-  requireMethod,
-  sendJson
-} from '../../../../lib/server/api'
+  createMethodNotAllowedHandler,
+  handleRouteError,
+  jsonResponse,
+  parseRouteJson,
+  requireRouteMethod
+} from '../../../../../lib/server/route-handlers'
+import {
+  createNotFoundError
+} from '../../../../../lib/server/api-core.mjs'
+import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import {
   buildTrackModerationChangeMetadata,
   toTrackReviewItem
-} from '../../../../lib/server/admin-core.mjs'
-import { auditActions } from '../../../../lib/server/audit-core.mjs'
-import { recordAuditEvent } from '../../../../lib/server/audit'
-import { requireSupportPermission } from '../../../../lib/server/permissions.mjs'
-import prisma from '../../../../lib/server/prisma'
+} from '../../../../../lib/server/admin-core.mjs'
+import { auditActions } from '../../../../../lib/server/audit-core.mjs'
+import { recordAuditEvent } from '../../../../../lib/server/audit'
+import { requireSupportPermission } from '../../../../../lib/server/permissions.mjs'
+import prisma from '../../../../../lib/server/prisma'
 import {
   adminTrackModerationBodySchema,
   trackIdParamSchema,
   validateInput
-} from '../../../../lib/validation/api.mjs'
+} from '../../../../../lib/validation/api.mjs'
+
+const methodNotAllowed = createMethodNotAllowedHandler(['PATCH'])
 
 const decisionData = {
   approve: {
@@ -34,17 +40,19 @@ const decisionData = {
   }
 }
 
-export default async function handler(req, res) {
+export async function PATCH(request, { params }) {
   try {
-    requireMethod(req, res, ['PATCH'])
+    requireRouteMethod(request, ['PATCH'])
 
-    const user = await requireCurrentUser(req, res)
+    const user = await requireRouteCurrentUser()
     requireSupportPermission(user)
 
-    const { trackId } = validateInput(trackIdParamSchema, req.query, 'Invalid track id')
+    const routeParams = await params
+    const { trackId } = validateInput(trackIdParamSchema, routeParams, 'Invalid track id')
+    const body = await parseRouteJson(request)
     const input = validateInput(
       adminTrackModerationBodySchema,
-      req.body,
+      body,
       'Invalid track moderation request'
     )
 
@@ -91,10 +99,17 @@ export default async function handler(req, res) {
       }
     })
 
-    return sendJson(res, 200, {
+    return jsonResponse(200, {
       track: toTrackReviewItem(after)
     })
   } catch (error) {
-    return handleApiError(res, error, req)
+    return handleRouteError(error, request)
   }
+}
+
+export {
+  methodNotAllowed as DELETE,
+  methodNotAllowed as GET,
+  methodNotAllowed as POST,
+  methodNotAllowed as PUT
 }
