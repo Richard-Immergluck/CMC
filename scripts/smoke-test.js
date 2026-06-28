@@ -80,8 +80,12 @@ const checks = [
     name: 'profile requires sign-in',
     path: '/profile',
     status: 200,
+    finalPath: '/auth/signin',
+    finalSearchParams: {
+      callbackUrl: '/profile'
+    },
     includes: ['Sign in to your catalogue workspace.', 'Google'],
-    excludes: ['This page could not be found']
+    excludes: ['GitHub']
   },
   {
     name: 'upload signing requires authentication',
@@ -298,6 +302,20 @@ const run = async () => {
     if (response.status !== check.status) {
       fail(`${check.name || url} returned ${response.status}; expected ${check.status}`)
       continue
+    }
+
+    if (check.finalPath) {
+      const finalUrl = new URL(response.url)
+
+      if (finalUrl.pathname !== check.finalPath) {
+        fail(`${check.name || url} ended at ${finalUrl.pathname}; expected ${check.finalPath}`)
+      }
+
+      for (const [name, expectedValue] of Object.entries(check.finalSearchParams || {})) {
+        if (finalUrl.searchParams.get(name) !== expectedValue) {
+          fail(`${check.name || url} final URL param ${name} was not ${expectedValue}`)
+        }
+      }
     }
 
     if (check.contentType) {

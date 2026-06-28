@@ -2,7 +2,8 @@ const fs = require('fs')
 const path = require('path')
 
 const root = path.resolve(__dirname, '..')
-const manifestPath = path.join(root, '.next', 'server', 'pages-manifest.json')
+const pagesManifestPath = path.join(root, '.next', 'server', 'pages-manifest.json')
+const appRoutesManifestPath = path.join(root, '.next', 'app-path-routes-manifest.json')
 
 const requiredRoutes = [
   '/',
@@ -39,15 +40,19 @@ const fail = message => {
   process.exitCode = 1
 }
 
-if (!fs.existsSync(manifestPath)) {
+if (!fs.existsSync(pagesManifestPath)) {
   fail('missing .next/server/pages-manifest.json; run next build first')
   process.exit()
 }
 
-const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+const pagesManifest = JSON.parse(fs.readFileSync(pagesManifestPath, 'utf8'))
+const appRoutesManifest = fs.existsSync(appRoutesManifestPath)
+  ? JSON.parse(fs.readFileSync(appRoutesManifestPath, 'utf8'))
+  : {}
+const builtAppRoutes = new Set(Object.values(appRoutesManifest))
 
 for (const route of requiredRoutes) {
-  if (!manifest[route]) {
+  if (!pagesManifest[route] && !builtAppRoutes.has(route)) {
     fail(`missing built route ${route}`)
   }
 }
