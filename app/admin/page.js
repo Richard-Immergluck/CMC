@@ -12,7 +12,7 @@ import {
   canAccessSupportSurface
 } from '../../lib/server/permissions.mjs'
 import prisma from '../../lib/server/prisma'
-import { authOptions } from '../../pages/api/auth/[...nextauth]'
+import { authOptions } from '../../lib/server/auth'
 
 export const dynamic = 'force-dynamic'
 
