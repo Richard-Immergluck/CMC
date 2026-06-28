@@ -1,87 +1,23 @@
-import React, { useEffect, useState } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import dynamic from 'next/dynamic' // needed for 'Self is not defined' error
+import dynamic from 'next/dynamic'
 import { useCart } from 'react-use-cart'
 import { Button } from 'react-bootstrap'
-import _ from 'lodash'
-import prisma from '../../lib/server/prisma'
-import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
-// Dynamically import WaveSurfer to avoid 'Self is not defined' error
 const WaveFormRegion = dynamic(
-  () => import('../../components/WaveFormRegion'),
+  () => import('../../WaveFormRegion'),
   { ssr: false }
 )
 
-const parseTrackIdParam = value => {
-  const trackId = Number(value)
-  return Number.isInteger(trackId) && trackId > 0 ? trackId : null
-}
-
-// Fetch data for the page
-export const getServerSideProps = async context => {
-  // Destructure the trackId from the context
-  const { params } = context
-  const trackId = parseTrackIdParam(params.trackId)
-
-  if (!trackId) {
-    return {
-      notFound: true
-    }
-  }
-
-  // Retrieve the individual track from DB
-  const track = await prisma.track.findFirst({
-    where: {
-      id: trackId,
-      ...publicTrackWhere
-    }
-  })
-
-  if (!track) {
-    return {
-      notFound: true
-    }
-  }
-
-  // Convert the track date object to a locale date string
-  track.uploadedAt = track.uploadedAt.toLocaleDateString()
-
-  // Retrieve the users from DB to match user with track
-  const users = await prisma.user.findMany()
-
-  // Retrieve the comments from DB
-  const comments = await prisma.comment.findMany({
-    where: {
-      track: {
-        id: trackId
-      },
-    }
-  })
-
-  // Convert the date element of each comment to a locale date string
-  comments.map(comment => {
-    return (comment.createdAt = comment.createdAt.toLocaleDateString())
-  })
-
-  return {
-    props: {
-      track,
-      users,
-      comments
-    }
-  }
-}
-
-const SingleTrack = ({ track, users, comments }) => {
+const CatalogueTrackDetailContent = ({ track, comments }) => {
   const router = useRouter()
-
   const [url, setUrl] = useState('')
-
-  // Get the session
-  const { data: session} = useSession()
+  const { data: session } = useSession()
+  const { addItem } = useCart()
 
   useEffect(() => {
     const fetchUrl = async () => {
@@ -96,10 +32,6 @@ const SingleTrack = ({ track, users, comments }) => {
     fetchUrl()
   }, [track.id])
 
-  // Instantiate useCart hook
-  const { addItem } = useCart()
-
-  // Add track to the cart
   const addToCart = () => {
     addItem({ ...track })
     alert('Track added to cart!')
@@ -109,20 +41,13 @@ const SingleTrack = ({ track, users, comments }) => {
     router.push('/catalogue')
   }
 
-  // Function to return the user name
-  const userTrackMatch = (userId, users) => {
-    const user = _.find(users, { id: userId })
-    return user ? user.name : 'Unknown'
-  }
-
   const metadata = [
     ['Key', track.key],
     ['Instrumentation', track.instrumentation],
-    ['Uploaded by', userTrackMatch(track.userId, users)],
+    ['Uploaded by', track.uploaderName],
     ['Uploaded', track.uploadedAt]
   ].filter(([, value]) => value)
 
-  // Render the JSX
   return (
     <main className='cmc-track-page'>
       <div className='container'>
@@ -147,7 +72,7 @@ const SingleTrack = ({ track, users, comments }) => {
             )}
             {!session && (
               <p>
-                Please <Link href='/login'>login</Link> to add this track to your cart.
+                Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
               </p>
             )}
           </aside>
@@ -201,7 +126,7 @@ const SingleTrack = ({ track, users, comments }) => {
                 <div className='cmc-track-comment' key={comment.id}>
                   <span>{key + 1}</span>
                   <p>{comment.content}</p>
-                  <small>by {userTrackMatch(comment.userId, users)}</small>
+                  <small>by {comment.userName}</small>
                 </div>
               ))}
               {comments.length === 0 && (
@@ -221,4 +146,4 @@ const SingleTrack = ({ track, users, comments }) => {
   )
 }
 
-export default SingleTrack
+export default CatalogueTrackDetailContent
