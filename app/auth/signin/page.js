@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth'
 import { getProviders } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import SignInPageContent from '../../../components/features/auth/SignInPageContent'
-import { authOptions } from '../../../pages/api/auth/[...nextauth]'
+import { authOptions } from '../../../lib/server/auth'
 
 const normaliseCallbackUrl = value => {
   if (!value || Array.isArray(value)) {

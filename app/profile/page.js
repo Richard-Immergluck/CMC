@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import ProfilePageContent from '../../components/features/profile/ProfilePageContent'
-import { authOptions } from '../../pages/api/auth/[...nextauth]'
+import { authOptions } from '../../lib/server/auth'
 import prisma from '../../lib/server/prisma'
 
 export const dynamic = 'force-dynamic'

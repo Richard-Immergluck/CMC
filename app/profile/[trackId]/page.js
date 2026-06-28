@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import ProfileTrackDetailContent from '../../../components/features/profile/ProfileTrackDetailContent'
 import { canAccessFullTrack, getCurrentUser } from '../../../lib/server/ownership'
 import prisma from '../../../lib/server/prisma'
-import { authOptions } from '../../../pages/api/auth/[...nextauth]'
+import { authOptions } from '../../../lib/server/auth'
 
 export const dynamic = 'force-dynamic'
 
