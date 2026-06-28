@@ -46,6 +46,13 @@ Every PR should move the app toward these principles:
 
 Use one sprint as roughly one focused development tranche, not necessarily a calendar fortnight. Each sprint should produce small PRs that can be reviewed, deployed to Preview, smoke-tested, and merged independently.
 
+Standing App Router checkpoint:
+
+- At the start of every new development tranche, make a conscious yes/no decision on whether the Next.js App Router migration epic should begin at that point.
+- Notify the project owner of the decision and the reason before proceeding with substantial implementation.
+- Default to "no" while active security, commerce, database, smoke-test, or product-surface work would be made riskier by a routing migration.
+- Switch to "yes" only when the current sprint benefits from route/layout restructuring, has enough Playwright coverage to protect behaviour, and can migrate one route family without weakening release confidence.
+
 Default PR gates:
 
 - Local checks pass.
@@ -389,4 +396,3 @@ CMC can reasonably be called enterprise-grade when:
 - Migrations and releases are repeatable and reversible.
 - Admin/support functions are role-restricted and audited.
 - Data export/deletion and incident response processes are documented.
-
