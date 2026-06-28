@@ -1,14 +1,19 @@
 import { encode } from 'next-auth/jwt'
 import {
-  createForbiddenError,
-  handleApiError,
-  requireMethod,
-  sendJson
-} from '../../../lib/server/api'
-import prisma from '../../../lib/server/prisma'
+  createForbiddenError
+} from '../../../../lib/server/api-core.mjs'
+import {
+  createMethodNotAllowedHandler,
+  handleRouteError,
+  jsonResponse,
+  parseRouteJson,
+  requireRouteMethod
+} from '../../../../lib/server/route-handlers'
+import prisma from '../../../../lib/server/prisma'
 
 const SESSION_MAX_AGE = 60 * 60
 const E2E_EMAIL_PATTERN = /^e2e-[a-z-]+@example\.com$/
+const methodNotAllowed = createMethodNotAllowedHandler(['POST'])
 
 const getLocalHostname = () => {
   try {
@@ -31,25 +36,23 @@ const getSessionCookieName = () => {
   return `${useSecureCookie ? '__Secure-' : ''}next-auth.session-token`
 }
 
-const setSessionCookie = (res, token) => {
+const createSessionCookie = token => {
   const cookieName = getSessionCookieName()
   const secure = cookieName.startsWith('__Secure-') ? '; Secure' : ''
 
-  res.setHeader(
-    'Set-Cookie',
-    `${cookieName}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`
-  )
+  return `${cookieName}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}${secure}`
 }
 
-export default async function handler(req, res) {
+export async function POST(request) {
   try {
-    requireMethod(req, res, ['POST'])
+    requireRouteMethod(request, ['POST'])
 
     if (!e2eSessionAuthEnabled()) {
       throw createForbiddenError('E2E session auth is not enabled')
     }
 
-    const email = typeof req.body?.email === 'string' ? req.body.email : ''
+    const body = await parseRouteJson(request)
+    const email = typeof body?.email === 'string' ? body.email : ''
 
     if (!E2E_EMAIL_PATTERN.test(email)) {
       throw createForbiddenError('Only seeded E2E users can request test sessions')
@@ -76,16 +79,27 @@ export default async function handler(req, res) {
       }
     })
 
-    setSessionCookie(res, token)
-
-    return sendJson(res, 200, {
-      user: {
-        email: user.email,
-        name: user.name,
-        role: user.role
+    return jsonResponse(
+      200,
+      {
+        user: {
+          email: user.email,
+          name: user.name,
+          role: user.role
+        }
+      },
+      {
+        'Set-Cookie': createSessionCookie(token)
       }
-    })
+    )
   } catch (error) {
-    return handleApiError(res, error, req)
+    return handleRouteError(error, request)
   }
+}
+
+export {
+  methodNotAllowed as DELETE,
+  methodNotAllowed as GET,
+  methodNotAllowed as PATCH,
+  methodNotAllowed as PUT
 }
