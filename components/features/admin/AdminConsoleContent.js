@@ -1,5 +1,6 @@
-import { getSession } from 'next-auth/react'
-import React, { useState } from 'react'
+'use client'
+
+import { useState } from 'react'
 import {
   Alert,
   Badge,
@@ -13,17 +14,6 @@ import {
   Table,
   Tabs
 } from 'react-bootstrap'
-import {
-  toAdminSummary,
-  toTrackReviewItem,
-  toUserAdminItem
-} from '../../lib/server/admin-core.mjs'
-import { getAdminOperationsData } from '../../lib/server/admin-operations'
-import {
-  canAccessAdminSurface,
-  canAccessSupportSurface
-} from '../../lib/server/permissions.mjs'
-import prisma from '../../lib/server/prisma'
 
 const fetchJson = async (url, options) => {
   const response = await fetch(url, options)
@@ -313,113 +303,7 @@ const TrackReviewRow = ({ track, onModerate }) => {
   )
 }
 
-export const getServerSideProps = async context => {
-  const session = await getSession({ req: context.req })
-
-  if (!session?.user?.email) {
-    return {
-      redirect: {
-        destination: '/auth/signin?callbackUrl=/admin',
-        permanent: false
-      }
-    }
-  }
-
-  const currentUser = await prisma.user.findUnique({
-    where: {
-      email: session.user.email
-    }
-  })
-
-  if (!canAccessSupportSurface(currentUser)) {
-    return {
-      props: {
-        currentUser: currentUser ? {
-          id: currentUser.id,
-          name: currentUser.name,
-          email: currentUser.email,
-          role: currentUser.role
-        } : null,
-        forbidden: true
-      }
-    }
-  }
-
-  const canManageUsers = canAccessAdminSurface(currentUser)
-  const [
-    userCount,
-    trackCount,
-    pendingTrackCount,
-    orderCount,
-    paymentEventCount,
-    auditEventCount
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.track.count(),
-    prisma.track.count({
-      where: {
-        moderationStatus: 'PENDING'
-      }
-    }),
-    prisma.order.count(),
-    prisma.paymentEvent.count(),
-    prisma.auditEvent.count()
-  ])
-  const tracks = await prisma.track.findMany({
-    where: {
-      moderationStatus: 'PENDING'
-    },
-    include: {
-      uploadedBy: true
-    },
-    orderBy: [
-      {
-        uploadedAt: 'asc'
-      }
-    ],
-    take: 100
-  })
-  const users = canManageUsers
-    ? await prisma.user.findMany({
-        orderBy: [
-          {
-            email: 'asc'
-          }
-        ],
-        take: 100
-      })
-    : []
-  const operations = await getAdminOperationsData()
-
-  return {
-    props: {
-      currentUser: {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role
-      },
-      canManageUsers,
-      forbidden: false,
-      initialSummary: toAdminSummary({
-        userCount,
-        trackCount,
-        pendingTrackCount,
-        orderCount,
-        paymentEventCount,
-        auditEventCount
-      }),
-      initialTracks: tracks.map(track => ({
-        ...toTrackReviewItem(track),
-        uploadedAt: track.uploadedAt.toISOString()
-      })),
-      initialUsers: users.map(toUserAdminItem),
-      initialOperations: JSON.parse(JSON.stringify(operations))
-    }
-  }
-}
-
-const AdminConsole = ({
+const AdminConsoleContent = ({
   currentUser,
   canManageUsers = false,
   forbidden = false,
@@ -595,4 +479,4 @@ const AdminConsole = ({
   )
 }
 
-export default AdminConsole
+export default AdminConsoleContent
