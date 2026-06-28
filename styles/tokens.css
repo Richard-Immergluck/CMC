@@ -10,6 +10,10 @@
   --cmc-color-accent: #37685b;
   --cmc-color-accent-strong: #214b41;
   --cmc-color-accent-contrast: #ffffff;
+  --cmc-color-accent-gold: #b5812d;
+  --cmc-color-accent-gold-soft: #f6ead4;
+  --cmc-color-accent-rose: #a45f5f;
+  --cmc-color-accent-rose-soft: #f4e3df;
   --cmc-color-success: #2f6b45;
   --cmc-color-warning: #8a6417;
   --cmc-color-danger: #9b2f2f;
@@ -35,7 +39,7 @@
   --cmc-shadow-sm: 0 1px 2px rgba(32, 36, 31, 0.08);
 
   --cmc-theme-page-background:
-    linear-gradient(180deg, rgba(247, 248, 245, 0.96), rgba(238, 241, 236, 0.78)),
+    linear-gradient(135deg, rgba(246, 234, 212, 0.62), rgba(244, 227, 223, 0.24) 35%, rgba(238, 241, 236, 0.86)),
     var(--cmc-color-background);
   --cmc-theme-heading: #121a24;
   --cmc-theme-table-header-background: #121a24;
@@ -63,6 +67,10 @@
   --cmc-color-accent: #8db8a8;
   --cmc-color-accent-strong: #b8d8ca;
   --cmc-color-accent-contrast: #0f1714;
+  --cmc-color-accent-gold: #d8b164;
+  --cmc-color-accent-gold-soft: #33281a;
+  --cmc-color-accent-rose: #d49a92;
+  --cmc-color-accent-rose-soft: #332321;
   --cmc-color-success: #8fcca4;
   --cmc-color-warning: #d7b66a;
   --cmc-color-danger: #df8a8a;
