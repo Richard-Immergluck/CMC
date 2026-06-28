@@ -93,6 +93,8 @@ test.describe('authenticated smoke', () => {
 
     await page.goto('/')
 
+    await expect(page).toHaveURL(/\/catalogue$/)
+    await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Upload' })).toHaveCount(0)
     await expect(page.getByRole('link', { name: 'Admin' })).toHaveCount(0)
 

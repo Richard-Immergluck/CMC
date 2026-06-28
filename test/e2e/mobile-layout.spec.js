@@ -57,6 +57,15 @@ test.describe('mobile layout smoke', () => {
     await expectNoDocumentHorizontalOverflow(page)
   })
 
+  test('public home page fits a mobile viewport', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByRole('heading', { name: 'Backing tracks should not gather dust.' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Browse catalogue' })).toBeVisible()
+    await expect(page.getByText(/Upload\. Discover\. Discuss\. Request\./i)).toBeVisible()
+    await expectNoDocumentHorizontalOverflow(page)
+  })
+
   test('approved uploader form fits a mobile viewport', async ({ page }) => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload')

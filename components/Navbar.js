@@ -17,7 +17,7 @@ function MainNavbar() {
     <>
       <Navbar className='shadow' bg='light' variant='light' expand='sm'>
         <Container>
-          <Navbar.Brand href='/'>C.M.B.C (working title)</Navbar.Brand>
+          <Navbar.Brand href={session ? '/catalogue' : '/'}>C.M.B.C (working title)</Navbar.Brand>
           <Navbar.Toggle aria-controls='navbarScroll' />
           <Navbar.Collapse id='navbarScroll'>
             <Nav
