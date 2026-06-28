@@ -1,10 +1,12 @@
 import {
-  createForbiddenError,
-  handleApiError,
-  requireCurrentUser,
-  requireMethod,
-  sendJson
-} from '../../../lib/server/api'
+  createMethodNotAllowedHandler,
+  handleRouteError,
+  jsonResponse,
+  parseRouteJson,
+  requireRouteMethod
+} from '../../../lib/server/route-handlers'
+import { createForbiddenError } from '../../../lib/server/api-core.mjs'
+import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
 import {
   ensureAllTracksFound,
   ensureNotAlreadyOwned,
@@ -16,28 +18,35 @@ import {
   validateInput
 } from '../../../lib/validation/api.mjs'
 
-// Update DB when tracks are bought
-export default async function handler(req, res) {
-  try {
-    requireMethod(req, res, ['GET', 'POST'])
-    const user = await requireCurrentUser(req, res)
+const methodNotAllowed = createMethodNotAllowedHandler(['GET', 'POST'])
 
-    // Check if user has already purchased the track
-    if (req.method === 'GET') {
-      // If user is logged in, get all tracks that have been purchased by the user
-      const userTracks = await prisma.trackOwner.findMany({
-        where: { userId: user.id }
-      })
-      return sendJson(res, 200, userTracks)
-    }
+export async function GET(request) {
+  try {
+    requireRouteMethod(request, ['GET', 'POST'])
+    const user = await requireRouteCurrentUser()
+    const userTracks = await prisma.trackOwner.findMany({
+      where: { userId: user.id }
+    })
+
+    return jsonResponse(200, userTracks)
+  } catch (error) {
+    return handleRouteError(error, request)
+  }
+}
+
+export async function POST(request) {
+  try {
+    requireRouteMethod(request, ['GET', 'POST'])
+    const user = await requireRouteCurrentUser()
 
     if (process.env.ALLOW_SIMULATED_PURCHASES !== 'true') {
       throw createForbiddenError('Direct purchase fulfilment is disabled. Use verified Stripe checkout.')
     }
 
+    const body = await parseRouteJson(request)
     const { tracks } = validateInput(
       simulatedCartBodySchema,
-      req.body,
+      body,
       'Invalid cart request'
     )
 
@@ -71,7 +80,7 @@ export default async function handler(req, res) {
 
     await prisma.$transaction(async tx => {
       for (const trackId of trackIds) {
-        await prisma.trackOwner.create({
+        await tx.trackOwner.create({
           data: {
             userId: user.id,
             trackId
@@ -80,8 +89,14 @@ export default async function handler(req, res) {
       }
     })
 
-    return sendJson(res, 200, tracks)
+    return jsonResponse(200, tracks)
   } catch (error) {
-    return handleApiError(res, error, req)
+    return handleRouteError(error, request)
   }
+}
+
+export {
+  methodNotAllowed as DELETE,
+  methodNotAllowed as PATCH,
+  methodNotAllowed as PUT
 }

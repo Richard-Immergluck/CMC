@@ -1,26 +1,37 @@
 import {
-  createNotFoundError,
-  handleApiError,
-  requireCurrentUser,
-  requireMethod,
-  sendJson
-} from '../../../../lib/server/api'
-import prisma from '../../../../lib/server/prisma'
-import { auditActions } from '../../../../lib/server/audit-core.mjs'
-import { recordAuditEvent } from '../../../../lib/server/audit'
-import { getDemoFixtureName, syntheticFixturesEnabled } from '../../../../lib/server/demo-fixtures'
-import { getOrCreateRequestId, logServerEvent } from '../../../../lib/server/logging'
-import { canAccessFullTrack } from '../../../../lib/server/ownership'
-import { canAccessSupportSurface } from '../../../../lib/server/permissions.mjs'
-import { getSignedTrackUrl } from '../../../../lib/server/s3'
-import { publicTrackWhere } from '../../../../lib/server/tracks-core.mjs'
-import { getApplicationBaseUrl } from '../../../../lib/server/url'
+  createMethodNotAllowedHandler,
+  getRouteRequestId,
+  handleRouteError,
+  jsonResponse,
+  requireRouteMethod
+} from '../../../../../lib/server/route-handlers'
+import { createNotFoundError } from '../../../../../lib/server/api-core.mjs'
+import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
+import prisma from '../../../../../lib/server/prisma'
+import { auditActions } from '../../../../../lib/server/audit-core.mjs'
+import { recordAuditEvent } from '../../../../../lib/server/audit'
+import {
+  getDemoFixtureName,
+  syntheticFixturesEnabled
+} from '../../../../../lib/server/demo-fixtures'
+import { logServerEvent } from '../../../../../lib/server/logging'
+import { canAccessFullTrack } from '../../../../../lib/server/ownership'
+import { canAccessSupportSurface } from '../../../../../lib/server/permissions.mjs'
+import { getSignedTrackUrl } from '../../../../../lib/server/s3'
+import { publicTrackWhere } from '../../../../../lib/server/tracks-core.mjs'
+import { getApplicationBaseUrl } from '../../../../../lib/server/url'
 import {
   signedTrackUrlQuerySchema,
   validateInput
-} from '../../../../lib/validation/api.mjs'
+} from '../../../../../lib/validation/api.mjs'
 
-const getSyntheticFixtureUrl = ({ req, track, mode }) => {
+const methodNotAllowed = createMethodNotAllowedHandler(['GET'])
+
+const toLegacyRequestHeaders = request => ({
+  headers: Object.fromEntries(request.headers.entries())
+})
+
+const getSyntheticFixtureUrl = ({ request, track, mode }) => {
   if (!syntheticFixturesEnabled()) {
     return null
   }
@@ -32,18 +43,31 @@ const getSyntheticFixtureUrl = ({ req, track, mode }) => {
   }
 
   const params = mode === 'download' ? '?download=1' : ''
-  return `${getApplicationBaseUrl(req)}/api/demo-fixtures/${fixtureName}${params}`
+  return `${getApplicationBaseUrl(toLegacyRequestHeaders(request))}/api/demo-fixtures/${fixtureName}${params}`
 }
 
-export default async function handler(req, res) {
-  const requestId = getOrCreateRequestId(req)
+const redirectOrJson = ({ redirect, url }) => {
+  if (redirect === '1') {
+    return Response.redirect(url, 302)
+  }
+
+  return jsonResponse(200, { url })
+}
+
+export async function GET(request, { params }) {
+  const requestId = getRouteRequestId(request)
 
   try {
-    requireMethod(req, res, ['GET'])
+    requireRouteMethod(request, ['GET'])
 
+    const routeParams = await params
+    const { searchParams } = new URL(request.url)
     const { trackId, mode, redirect } = validateInput(
       signedTrackUrlQuerySchema,
-      req.query,
+      {
+        ...routeParams,
+        ...Object.fromEntries(searchParams.entries())
+      },
       'Invalid signed URL request'
     )
 
@@ -59,12 +83,11 @@ export default async function handler(req, res) {
         throw createNotFoundError('Track not found')
       }
 
-      const syntheticFixtureUrl = getSyntheticFixtureUrl({ req, track, mode })
+      const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
       const url = syntheticFixtureUrl || getSignedTrackUrl({
         key: track.fileName,
         expires: 60
       })
-
       const sampleUrl = `${url}#t=${track.previewStart},${track.previewEnd}`
 
       logServerEvent({
@@ -79,18 +102,14 @@ export default async function handler(req, res) {
         }
       })
 
-      if (redirect === '1') {
-        return res.redirect(302, sampleUrl)
-      }
-
-      return sendJson(res, 200, { url: sampleUrl })
+      return redirectOrJson({ redirect, url: sampleUrl })
     }
 
-    const currentUser = await requireCurrentUser(req, res)
+    const currentUser = await requireRouteCurrentUser()
 
     if (mode === 'review') {
       if (!canAccessSupportSurface(currentUser)) {
-        return sendJson(res, 403, { message: 'Review access denied' })
+        return jsonResponse(403, { message: 'Review access denied' })
       }
 
       const track = await prisma.track.findUnique({
@@ -103,7 +122,7 @@ export default async function handler(req, res) {
         throw createNotFoundError('Track not found')
       }
 
-      const syntheticFixtureUrl = getSyntheticFixtureUrl({ req, track, mode })
+      const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
       const url = syntheticFixtureUrl || getSignedTrackUrl({
         key: track.fileName,
         expires: 300
@@ -132,11 +151,7 @@ export default async function handler(req, res) {
         }
       })
 
-      if (redirect === '1') {
-        return res.redirect(302, url)
-      }
-
-      return sendJson(res, 200, { url })
+      return redirectOrJson({ redirect, url })
     }
 
     const { allowed, track } = await canAccessFullTrack({
@@ -149,10 +164,10 @@ export default async function handler(req, res) {
     }
 
     if (!allowed) {
-      return sendJson(res, 403, { message: 'Track access denied' })
+      return jsonResponse(403, { message: 'Track access denied' })
     }
 
-    const syntheticFixtureUrl = getSyntheticFixtureUrl({ req, track, mode })
+    const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
     const url = syntheticFixtureUrl || getSignedTrackUrl({
       key: track.fileName,
       expires: mode === 'download' ? 900 : 300,
@@ -183,12 +198,15 @@ export default async function handler(req, res) {
       }
     })
 
-    if (redirect === '1') {
-      return res.redirect(302, url)
-    }
-
-    return sendJson(res, 200, { url })
+    return redirectOrJson({ redirect, url })
   } catch (error) {
-    return handleApiError(res, error, req)
+    return handleRouteError(error, request)
   }
+}
+
+export {
+  methodNotAllowed as DELETE,
+  methodNotAllowed as PATCH,
+  methodNotAllowed as POST,
+  methodNotAllowed as PUT
 }
