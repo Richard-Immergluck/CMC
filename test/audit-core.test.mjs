@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   auditActions,
   buildAuditEventData,
+  buildAuthSignInDeniedMetadata,
   buildCommentCreatedMetadata,
   buildRateLimitExceededMetadata,
   buildTrackAccessDeniedMetadata,
@@ -48,6 +49,22 @@ test('rate limit exceeded metadata records limit context without actor identifie
       resetAt: 12345,
       route: '/api/stripe/checkout_sessions',
       scope: 'checkout.session'
+    }
+  )
+})
+
+test('sign-in denied metadata records account posture without provider payloads', () => {
+  assert.deepEqual(
+    buildAuthSignInDeniedMetadata({
+      accountStatus: 'SUSPENDED',
+      provider: 'google',
+      reason: 'inactive_account',
+      accessToken: 'should-not-leak'
+    }),
+    {
+      accountStatus: 'SUSPENDED',
+      provider: 'google',
+      reason: 'inactive_account'
     }
   )
 })

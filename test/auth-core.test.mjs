@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  authDenialReasons,
   authErrors,
   canSignInWithAccountStatus,
   enrichTokenWithUserAccessData,
@@ -15,19 +16,25 @@ test('sign-in account status policy only allows active accounts', () => {
 })
 
 test('sign-in decision allows unknown and active users', () => {
-  assert.equal(getSignInDecision(null), true)
-  assert.equal(getSignInDecision({ accountStatus: 'ACTIVE' }), true)
+  assert.deepEqual(getSignInDecision(null), {
+    allowed: true
+  })
+  assert.deepEqual(getSignInDecision({ accountStatus: 'ACTIVE' }), {
+    allowed: true
+  })
 })
 
 test('sign-in decision redirects inactive users with a stable error code', () => {
-  assert.equal(
-    getSignInDecision({ accountStatus: 'SUSPENDED' }),
-    `/auth/signin?error=${authErrors.inactiveAccount}`
-  )
-  assert.equal(
-    getSignInDecision({ accountStatus: 'CLOSED' }),
-    `/auth/signin?error=${authErrors.inactiveAccount}`
-  )
+  for (const accountStatus of ['SUSPENDED', 'CLOSED']) {
+    assert.deepEqual(
+      getSignInDecision({ accountStatus }),
+      {
+        allowed: false,
+        reason: authDenialReasons.inactiveAccount,
+        redirect: `/auth/signin?error=${authErrors.inactiveAccount}`
+      }
+    )
+  }
 })
 
 test('token enrichment copies authorization fields from persisted users', () => {
