@@ -367,20 +367,46 @@ Acceptance:
 - Environment recreation path is documented.
 - Production changes have reviewable infrastructure history.
 
-## Recommended Immediate PR Queue
+## Current Post-Migration PR Queue
 
-Start here:
+App Router checkpoint for this queue: no new migration epic is needed. Route-family migration is complete enough that the next value is guardrail hardening, smoke coverage, observability, and operational confidence.
 
-1. `api-foundation-helpers`
-2. `validation-layer`
-3. `track-upload-services`
-4. `purchase-service-hardening`
-5. `webhook-resilience-tests`
-6. `rls-policy-design`
-7. `rls-and-grants-migration`
-8. `unit-test-runner`
+Sprint A - Observability baseline:
 
-This order reduces risk before broadening scope. It gets the app into a shape where security, RLS, and product refactors have something solid underneath them.
+1. `route-telemetry-foundation`
+   - Add reusable route lifecycle telemetry with request IDs, durations, start/completion/failure events, and unit coverage.
+   - Apply it first to upload signing and checkout session creation.
+2. `critical-route-telemetry`
+   - Extend the same pattern to Stripe webhook handling, checkout reconciliation, signed track URLs, track creation, comments, and admin mutations.
+
+Sprint B - Health and diagnostics:
+
+3. `health-endpoints`
+   - Add a shallow public health endpoint for uptime checks.
+   - Add a protected deep health endpoint for database, storage, Stripe configuration, and environment readiness.
+4. `diagnostic-runbook`
+   - Document how to use health checks and Vercel runtime logs during incidents and deployment verification.
+
+Sprint C - Abuse guardrails:
+
+5. `api-rate-guardrails`
+   - Add a conservative per-instance rate-limit helper for high-risk routes.
+   - Apply it to upload signing, checkout creation, comments, and signed URL issuance.
+   - Document the enterprise upgrade path to managed Redis or WAF-level throttling.
+
+Sprint D - Audit and support readiness:
+
+6. `audit-enrichment`
+   - Ensure upload, checkout, webhook, download, moderation, and support operations leave safe audit metadata.
+   - Keep secrets, provider payloads, and excessive personal data out of audit rows.
+
+Sprint E - Smoke and release automation:
+
+7. `scheduled-smoke`
+   - Add scheduled and manual GitHub Actions smoke checks against the stable dev alias.
+   - Keep OAuth-safe HITL links and smoke URLs documented in release gates.
+
+This order keeps visual/UI work deliberately out of scope until the core security and reliability guardrails are boringly solid.
 
 ## Definition Of Enterprise Grade For CMC
 

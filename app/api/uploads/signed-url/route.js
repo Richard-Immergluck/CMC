@@ -1,6 +1,5 @@
 import {
   createMethodNotAllowedHandler,
-  getRouteRequestId,
   handleRouteError,
   jsonResponse,
   parseRouteJson,
@@ -9,6 +8,7 @@ import {
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { getSignedTrackUploadUrl } from '../../../../lib/server/s3'
 import { logServerEvent } from '../../../../lib/server/logging'
+import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
 import { requireTrackUploadPermission } from '../../../../lib/server/permissions.mjs'
 import { createUploadObjectKey } from '../../../../lib/server/uploads.mjs'
 import {
@@ -19,7 +19,12 @@ import {
 const methodNotAllowed = createMethodNotAllowedHandler(['POST'])
 
 export async function POST(request) {
-  const requestId = getRouteRequestId(request)
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/uploads/signed-url',
+    event: 'upload.signed_url'
+  })
+  const { requestId } = telemetry
 
   try {
     requireRouteMethod(request, ['POST'])
@@ -52,11 +57,18 @@ export async function POST(request) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: user.id,
+      contentType
+    })
+
     return jsonResponse(200, {
       key,
       url
     })
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }
