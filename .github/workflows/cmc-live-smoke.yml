@@ -1,0 +1,30 @@
+name: CMC Live Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Base URL to smoke test
+        required: false
+        default: https://classical-music-catalogue-richardimmerglucks-projects.vercel.app
+  schedule:
+    - cron: '17 6 * * *'
+
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+
+    env:
+      SMOKE_BASE_URL: ${{ github.event.inputs.base_url || 'https://classical-music-catalogue-richardimmerglucks-projects.vercel.app' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run live smoke tests
+        run: node scripts/smoke-test.js

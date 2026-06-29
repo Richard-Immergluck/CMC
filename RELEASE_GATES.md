@@ -26,6 +26,7 @@ https://classical-music-catalogue.vercel.app/api/auth/callback/google
 SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.vercel.app yarn smoke
 ```
 
+- The `CMC Live Smoke` workflow passes against the stable Preview alias, either from its schedule or via `workflow_dispatch`.
 - Preview shallow health check returns `status: "ok"`:
 
 ```text
