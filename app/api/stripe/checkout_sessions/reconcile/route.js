@@ -1,6 +1,5 @@
 import {
   createMethodNotAllowedHandler,
-  getRouteRequestId,
   handleRouteError,
   jsonResponse,
   parseRouteJson,
@@ -9,6 +8,7 @@ import {
 import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import { reconcileCheckoutSession } from '../../../../../lib/server/purchases'
 import { logServerEvent } from '../../../../../lib/server/logging'
+import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import {
   reconcileCheckoutSessionBodySchema,
   validateInput
@@ -19,7 +19,12 @@ export const runtime = 'nodejs'
 const methodNotAllowed = createMethodNotAllowedHandler(['POST'])
 
 export async function POST(request) {
-  const requestId = getRouteRequestId(request)
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/stripe/checkout_sessions/reconcile',
+    event: 'checkout.reconcile'
+  })
+  const { requestId } = telemetry
 
   try {
     requireRouteMethod(request, ['POST'])
@@ -48,8 +53,17 @@ export async function POST(request) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: user.id,
+      stripeCheckoutSession: sessionId,
+      status: result.status,
+      orderId: result.orderId
+    })
+
     return jsonResponse(200, result)
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }

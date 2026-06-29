@@ -15,6 +15,7 @@ import { auditActions } from '../../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../../lib/server/audit'
 import { requireAdminPermission } from '../../../../../lib/server/permissions.mjs'
 import prisma from '../../../../../lib/server/prisma'
+import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import {
   adminUserUpdateBodySchema,
   validateInput
@@ -23,6 +24,12 @@ import {
 const methodNotAllowed = createMethodNotAllowedHandler(['PATCH'])
 
 export async function PATCH(request, { params }) {
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/admin/users/[userId]',
+    event: 'admin.user_update'
+  })
+
   try {
     requireRouteMethod(request, ['PATCH'])
 
@@ -76,10 +83,17 @@ export async function PATCH(request, { params }) {
       })
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      adminId: admin.id,
+      userId
+    })
+
     return jsonResponse(200, {
       user: toUserAdminItem(after)
     })
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }

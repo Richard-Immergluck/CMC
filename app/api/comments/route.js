@@ -5,6 +5,7 @@ import {
   requireRouteMethod
 } from '../../../lib/server/route-handlers'
 import prisma from '../../../lib/server/prisma'
+import { createRouteTelemetry } from '../../../lib/server/route-telemetry'
 import {
   commentQuerySchema,
   validateInput
@@ -13,6 +14,12 @@ import {
 const methodNotAllowed = createMethodNotAllowedHandler(['GET'])
 
 export async function GET(request) {
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/comments',
+    event: 'comments.list'
+  })
+
   try {
     requireRouteMethod(request, ['GET'])
 
@@ -29,8 +36,15 @@ export async function GET(request) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      trackId,
+      commentCount: comments.length
+    })
+
     return jsonResponse(200, comments)
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }
