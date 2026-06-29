@@ -17,6 +17,7 @@ import { auditActions } from '../../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../../lib/server/audit'
 import { requireSupportPermission } from '../../../../../lib/server/permissions.mjs'
 import prisma from '../../../../../lib/server/prisma'
+import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import {
   adminTrackModerationBodySchema,
   trackIdParamSchema,
@@ -41,6 +42,12 @@ const decisionData = {
 }
 
 export async function PATCH(request, { params }) {
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/admin/tracks/[trackId]',
+    event: 'admin.track_moderation'
+  })
+
   try {
     requireRouteMethod(request, ['PATCH'])
 
@@ -99,10 +106,18 @@ export async function PATCH(request, { params }) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: user.id,
+      trackId,
+      decision: input.decision
+    })
+
     return jsonResponse(200, {
       track: toTrackReviewItem(after)
     })
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }

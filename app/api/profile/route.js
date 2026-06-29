@@ -8,6 +8,7 @@ import {
 import { createForbiddenError } from '../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
 import prisma from '../../../lib/server/prisma'
+import { createRouteTelemetry } from '../../../lib/server/route-telemetry'
 import {
   profileCommentBodySchema,
   validateInput
@@ -16,6 +17,12 @@ import {
 const methodNotAllowed = createMethodNotAllowedHandler(['GET', 'POST'])
 
 export async function GET(request) {
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/profile',
+    event: 'profile.ownership'
+  })
+
   try {
     requireRouteMethod(request, ['GET', 'POST'])
     const user = await requireRouteCurrentUser()
@@ -23,13 +30,26 @@ export async function GET(request) {
       where: { userId: user.id }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: user.id,
+      trackCount: userTracks.length
+    })
+
     return jsonResponse(200, userTracks)
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }
 
 export async function POST(request) {
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/profile',
+    event: 'profile.comment'
+  })
+
   try {
     requireRouteMethod(request, ['GET', 'POST'])
     const user = await requireRouteCurrentUser()
@@ -69,8 +89,16 @@ export async function POST(request) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: user.id,
+      trackId,
+      commentId: newComment.id
+    })
+
     return jsonResponse(200, newComment)
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }

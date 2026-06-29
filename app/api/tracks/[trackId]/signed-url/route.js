@@ -1,6 +1,5 @@
 import {
   createMethodNotAllowedHandler,
-  getRouteRequestId,
   handleRouteError,
   jsonResponse,
   requireRouteMethod
@@ -17,6 +16,7 @@ import {
 import { logServerEvent } from '../../../../../lib/server/logging'
 import { canAccessFullTrack } from '../../../../../lib/server/ownership'
 import { canAccessSupportSurface } from '../../../../../lib/server/permissions.mjs'
+import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import { getSignedTrackUrl } from '../../../../../lib/server/s3'
 import { publicTrackWhere } from '../../../../../lib/server/tracks-core.mjs'
 import { getApplicationBaseUrl } from '../../../../../lib/server/url'
@@ -55,7 +55,12 @@ const redirectOrJson = ({ redirect, url }) => {
 }
 
 export async function GET(request, { params }) {
-  const requestId = getRouteRequestId(request)
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/tracks/[trackId]/signed-url',
+    event: 'track.signed_url'
+  })
+  const { requestId } = telemetry
 
   try {
     requireRouteMethod(request, ['GET'])
@@ -102,6 +107,14 @@ export async function GET(request, { params }) {
         }
       })
 
+      telemetry.complete({
+        statusCode: 200,
+        trackId: track.id,
+        mode,
+        redirect: redirect === '1',
+        syntheticFixture: Boolean(syntheticFixtureUrl)
+      })
+
       return redirectOrJson({ redirect, url: sampleUrl })
     }
 
@@ -109,6 +122,14 @@ export async function GET(request, { params }) {
 
     if (mode === 'review') {
       if (!canAccessSupportSurface(currentUser)) {
+        telemetry.complete({
+          statusCode: 403,
+          userId: currentUser.id,
+          trackId,
+          mode,
+          outcome: 'review_access_denied'
+        })
+
         return jsonResponse(403, { message: 'Review access denied' })
       }
 
@@ -151,6 +172,15 @@ export async function GET(request, { params }) {
         }
       })
 
+      telemetry.complete({
+        statusCode: 200,
+        userId: currentUser.id,
+        trackId: track.id,
+        mode,
+        redirect: redirect === '1',
+        syntheticFixture: Boolean(syntheticFixtureUrl)
+      })
+
       return redirectOrJson({ redirect, url })
     }
 
@@ -164,6 +194,14 @@ export async function GET(request, { params }) {
     }
 
     if (!allowed) {
+      telemetry.complete({
+        statusCode: 403,
+        userId: currentUser.id,
+        trackId,
+        mode,
+        outcome: 'track_access_denied'
+      })
+
       return jsonResponse(403, { message: 'Track access denied' })
     }
 
@@ -198,8 +236,18 @@ export async function GET(request, { params }) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: currentUser.id,
+      trackId: track.id,
+      mode,
+      redirect: redirect === '1',
+      syntheticFixture: Boolean(syntheticFixtureUrl)
+    })
+
     return redirectOrJson({ redirect, url })
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }
