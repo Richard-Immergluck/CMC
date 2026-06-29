@@ -23,11 +23,12 @@ This tracker records backend security and auditability work completed so far and
 - Added security observability triage, alert thresholds, and audit investigation runbook guidance.
 - Added bounded admin operations audit filters for support investigations.
 - Blocked and audited admin attempts to update their own access fields.
+- Added optional Upstash Redis shared rate limiting with local fallback and Vercel Firewall starter guidance.
 
 ## In Progress
 
-- Add durable/shared rate limiting for distributed production enforcement.
+- Design second-review approval workflow for cross-admin privilege escalation.
 
 ## Next Targets
 
-- Design second-review approval workflow for cross-admin privilege escalation.
+- Add alerting dashboards or log drains for security event thresholds.

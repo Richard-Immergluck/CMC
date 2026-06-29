@@ -51,7 +51,7 @@ export async function POST(request) {
     requireTrustedRouteOrigin(request)
 
     const user = await requireRouteCurrentUser()
-    enforceRouteRateLimit({
+    await enforceRouteRateLimit({
       request,
       scope: 'checkout.session',
       userId: user.id,

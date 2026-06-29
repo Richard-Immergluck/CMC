@@ -23,7 +23,7 @@ export async function GET(request) {
 
   try {
     requireRouteMethod(request, ['GET'])
-    enforceRouteRateLimit({
+    await enforceRouteRateLimit({
       request,
       scope: 'comments.list',
       limit: 180,

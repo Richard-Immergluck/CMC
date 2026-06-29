@@ -85,7 +85,7 @@ export async function GET(request, { params }) {
     )
 
     if (mode === 'sample') {
-      enforceRouteRateLimit({
+      await enforceRouteRateLimit({
         request,
         scope: 'track.signed_url.sample',
         limit: 180,
@@ -135,7 +135,7 @@ export async function GET(request, { params }) {
     }
 
     const currentUser = await requireRouteCurrentUser()
-    enforceRouteRateLimit({
+    await enforceRouteRateLimit({
       request,
       scope: `track.signed_url.${mode}`,
       userId: currentUser.id,
