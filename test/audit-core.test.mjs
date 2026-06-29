@@ -3,8 +3,10 @@ import test from 'node:test'
 import {
   auditActions,
   buildAuditEventData,
+  buildCommentCreatedMetadata,
   buildRateLimitExceededMetadata,
   buildTrackAccessDeniedMetadata,
+  buildTrackSubmittedMetadata,
   serializeAuditMetadata
 } from '../lib/server/audit-core.mjs'
 
@@ -45,6 +47,44 @@ test('rate limit exceeded metadata records limit context without actor identifie
       resetAt: 12345,
       route: '/api/stripe/checkout_sessions',
       scope: 'checkout.session'
+    }
+  )
+})
+
+test('track submitted metadata omits user-authored catalogue text', () => {
+  assert.deepEqual(
+    buildTrackSubmittedMetadata({
+      currency: 'gbp',
+      hasAdditionalInfo: 'Please review carefully',
+      pricePence: 299,
+      processingStatus: 'READY',
+      sourceContentType: 'audio/mpeg',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING'
+    }),
+    {
+      currency: 'gbp',
+      hasAdditionalInfo: true,
+      pricePence: 299,
+      processingStatus: 'READY',
+      sourceContentType: 'audio/mpeg',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING'
+    }
+  )
+})
+
+test('comment created metadata records context without comment body', () => {
+  assert.deepEqual(
+    buildCommentCreatedMetadata({
+      commentLength: 42,
+      route: '/api/profile',
+      trackId: 123
+    }),
+    {
+      commentLength: 42,
+      route: '/api/profile',
+      trackId: 123
     }
   )
 })
