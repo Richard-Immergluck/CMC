@@ -1,6 +1,5 @@
 import {
   createMethodNotAllowedHandler,
-  getRouteRequestId,
   handleRouteError,
   jsonResponse,
   parseRouteJson,
@@ -9,6 +8,7 @@ import {
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { createCheckoutSessionForTracks } from '../../../../lib/server/purchases'
 import { logServerEvent } from '../../../../lib/server/logging'
+import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
 import { getApplicationBaseUrl } from '../../../../lib/server/url'
 import {
   checkoutSessionBodySchema,
@@ -37,7 +37,12 @@ const getE2ECheckoutMode = request => {
 }
 
 export async function POST(request) {
-  const requestId = getRouteRequestId(request)
+  const telemetry = createRouteTelemetry({
+    request,
+    route: '/api/stripe/checkout_sessions',
+    event: 'checkout.session'
+  })
+  const { requestId } = telemetry
 
   try {
     requireRouteMethod(request, ['POST'])
@@ -68,8 +73,16 @@ export async function POST(request) {
       }
     })
 
+    telemetry.complete({
+      statusCode: 200,
+      userId: user.id,
+      trackCount: trackIds.length,
+      stripeCheckoutSession: checkoutSession.id
+    })
+
     return jsonResponse(200, { url: checkoutSession.url })
   } catch (error) {
+    telemetry.fail(error)
     return handleRouteError(error, request)
   }
 }
