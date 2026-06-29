@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  adminOperationsQuerySchema,
   adminUserUpdateBodySchema,
   adminTrackModerationBodySchema,
   checkoutSessionBodySchema,
@@ -198,6 +199,41 @@ test('admin track moderation body accepts supported decisions', () => {
 
   assert.throws(
     () => validateInput(adminTrackModerationBodySchema, { decision: 'publish' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin operations query accepts bounded audit filters', () => {
+  assert.deepEqual(
+    validateInput(adminOperationsQuerySchema, {
+      action: ' track_access.denied ',
+      actorId: 'user-1',
+      entityType: 'Track',
+      entityId: '42',
+      createdFrom: '2026-06-01T00:00:00.000Z',
+      createdTo: '2026-06-30T23:59:59.000Z',
+      limit: '50'
+    }),
+    {
+      action: 'track_access.denied',
+      actorId: 'user-1',
+      entityType: 'Track',
+      entityId: '42',
+      createdFrom: new Date('2026-06-01T00:00:00.000Z'),
+      createdTo: new Date('2026-06-30T23:59:59.000Z'),
+      limit: 50
+    }
+  )
+})
+
+test('admin operations query rejects unbounded or invalid filters', () => {
+  assert.throws(
+    () => validateInput(adminOperationsQuerySchema, { limit: '101' }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(adminOperationsQuerySchema, { createdFrom: 'not-a-date' }),
     error => error.statusCode === 400
   )
 })

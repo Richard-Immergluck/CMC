@@ -21,11 +21,12 @@ This tracker records backend security and auditability work completed so far and
 - Strengthened RLS/grant posture checks to cover unexpected public tables and public sequence grants.
 - Scoped new S3 upload object keys by authenticated user and centralized signed URL expiry policy.
 - Added security observability triage, alert thresholds, and audit investigation runbook guidance.
+- Added bounded admin operations audit filters for support investigations.
 
 ## In Progress
 
-- Review admin audit export/search requirements for enterprise support operations.
+- Add second-review guardrails for high-risk admin privilege changes.
 
 ## Next Targets
 
-- Add second-review guardrails for high-risk admin privilege changes.
+- Add durable/shared rate limiting for distributed production enforcement.

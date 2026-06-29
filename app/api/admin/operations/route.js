@@ -7,6 +7,10 @@ import {
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { getAdminOperationsData } from '../../../../lib/server/admin-operations'
 import { requireSupportPermission } from '../../../../lib/server/permissions.mjs'
+import {
+  adminOperationsQuerySchema,
+  validateInput
+} from '../../../../lib/validation/api.mjs'
 
 const methodNotAllowed = createMethodNotAllowedHandler(['GET'])
 
@@ -17,7 +21,14 @@ export async function GET(request) {
     const user = await requireRouteCurrentUser()
     requireSupportPermission(user)
 
-    return jsonResponse(200, await getAdminOperationsData())
+    const { searchParams } = new URL(request.url)
+    const audit = validateInput(
+      adminOperationsQuerySchema,
+      Object.fromEntries(searchParams.entries()),
+      'Invalid operations query'
+    )
+
+    return jsonResponse(200, await getAdminOperationsData({ audit }))
   } catch (error) {
     return handleRouteError(error, request)
   }

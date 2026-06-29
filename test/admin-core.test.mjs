@@ -4,6 +4,7 @@ import {
   buildTrackModerationChangeMetadata,
   buildUserAccessChangeMetadata,
   toAuditEventAdminItem,
+  toAuditEventQueryOptions,
   toAdminSummary,
   toOrderAdminItem,
   toPaymentEventAdminItem,
@@ -198,6 +199,53 @@ test('audit event admin items expose actor identity without metadata payloads', 
       }
     }
   )
+})
+
+test('audit event query options build bounded support filters', () => {
+  const createdFrom = new Date('2026-06-01T00:00:00.000Z')
+  const createdTo = new Date('2026-06-30T23:59:59.000Z')
+
+  assert.deepEqual(
+    toAuditEventQueryOptions({
+      action: 'track_access.denied',
+      actorId: 'user-1',
+      entityType: 'Track',
+      entityId: '42',
+      createdFrom,
+      createdTo,
+      limit: 250
+    }),
+    {
+      where: {
+        action: 'track_access.denied',
+        actorId: 'user-1',
+        entityType: 'Track',
+        entityId: '42',
+        createdAt: {
+          gte: createdFrom,
+          lte: createdTo
+        }
+      },
+      take: 100,
+      orderBy: [
+        {
+          createdAt: 'desc'
+        }
+      ]
+    }
+  )
+})
+
+test('audit event query options default to latest 25 rows', () => {
+  assert.deepEqual(toAuditEventQueryOptions(), {
+    where: {},
+    take: 25,
+    orderBy: [
+      {
+        createdAt: 'desc'
+      }
+    ]
+  })
 })
 
 test('user access change metadata captures before and after safe fields', () => {
