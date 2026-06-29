@@ -20,11 +20,12 @@ This tracker records backend security and auditability work completed so far and
 - Added audit events for inactive-account sign-in denials without storing provider payloads.
 - Strengthened RLS/grant posture checks to cover unexpected public tables and public sequence grants.
 - Scoped new S3 upload object keys by authenticated user and centralized signed URL expiry policy.
+- Added security observability triage, alert thresholds, and audit investigation runbook guidance.
 
 ## In Progress
 
-- Add observability runbooks for security-relevant events and alert-worthy patterns.
+- Review admin audit export/search requirements for enterprise support operations.
 
 ## Next Targets
 
-- Review admin audit export/search requirements for enterprise support operations.
+- Add second-review guardrails for high-risk admin privilege changes.

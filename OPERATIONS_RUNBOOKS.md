@@ -66,6 +66,45 @@ Triage:
 4. Do not raise limits to hide a broken client loop; fix the client or workflow first.
 5. For legitimate high-volume operational use, prefer a role-scoped or job-scoped endpoint with explicit quotas rather than disabling rate limits globally.
 
+## Security Observability
+
+Security-relevant telemetry is split between structured runtime logs and database audit events:
+
+- Runtime logs carry route telemetry events, request IDs, status codes, and safe operational metadata.
+- `AuditEvent` rows carry durable business/security events for admin, auth, checkout, ownership, rate-limit, track access, upload, and moderation workflows.
+- Signed URLs, provider tokens, webhook payloads, comments, free-text catalogue copy, and raw secrets must not be copied into tickets or incident notes.
+
+High-signal events:
+
+| Signal | Source | Severity | First response |
+| --- | --- | --- | --- |
+| Repeated `auth.sign_in_denied` for one account | `AuditEvent` | Medium | Confirm account status, check recent admin changes, and verify the user is not stuck in a stale-session loop. |
+| Burst of `rate_limit.exceeded` on checkout, upload signing, comments, or signed URL routes | `AuditEvent` and runtime logs | Medium/High | Identify actor/IP, check for UI retry loops, and consider temporary Vercel Firewall controls if abuse is external. |
+| `track_access.denied` followed by repeated signed URL attempts | `AuditEvent` | High | Verify ownership/admin role, inspect account status, and check for ID enumeration against track IDs. |
+| `track_access.signed_url_issued` spikes for one actor or track | `AuditEvent` and runtime logs | Medium | Confirm legitimate download/review activity and verify signed URL expiry policy has not changed. |
+| `user_access.updated` for admin/support/uploader privileges | `AuditEvent` | High | Verify the actor, intended ticket/change request, before/after role/status, and whether a second admin review is needed. |
+| `track_moderation.updated` approving/rejecting many tracks | `AuditEvent` | Medium | Confirm the moderation batch is expected and not an accidental bulk action. |
+| `stripe.webhook_signature_failed` | Runtime logs | High | Check webhook secret scoping and reject any fulfilment assumptions until Stripe delivery is verified. |
+| `stripe.webhook_processed` without matching ownership grant | Runtime logs, `PaymentEvent`, `AuditEvent` | High | Compare order, payment event, ownership, and audit rows before manual repair. |
+| Deep health `status: degraded` | `/api/admin/health` and runtime logs | Medium/High | Triage the named dependency before rotating secrets or changing schema. |
+
+Investigation checklist:
+
+1. Capture environment, deployment URL, route, `requestId`, actor email/id if known, timestamp, and user-facing symptom.
+2. Query runtime logs by `requestId`, route, and event name.
+3. In `/admin` operations or the database, inspect recent `AuditEvent` rows for the actor, entity, and action.
+4. Confirm whether the account is `ACTIVE`, whether role/uploader status changed recently, and whether the attempted action matches the role model.
+5. For payment incidents, reconcile `Order`, `OrderItem`, `PaymentEvent`, `TrackOwner`, and `AuditEvent` rows together.
+6. For storage incidents, verify S3 prefix, object existence, signed URL expiry, and whether the object belongs to the expected environment/user namespace.
+7. Preserve minimal evidence: request IDs, event names, timestamps, ids, and provider dashboard references. Do not paste secrets or signed URLs.
+8. Create a follow-up PR for any missing telemetry, alert threshold, or runbook gap found during the incident.
+
+Initial alert thresholds:
+
+- Page a human for any production `stripe.webhook_signature_failed` burst, checkout fulfilment failure, deep health degradation lasting more than 5 minutes, or unexpected admin privilege change.
+- Investigate within one business day for repeated access denials, repeated sign-in denials, or sustained rate-limit events for a single actor/IP.
+- Treat GitGuardian findings, provider key quarantine, and accidental secret disclosure as immediate incidents using the secret exposure runbook.
+
 ## Failed Checkout
 
 Symptoms:
