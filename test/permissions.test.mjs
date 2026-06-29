@@ -4,6 +4,8 @@ import {
   canAccessAdminSurface,
   canAccessSupportSurface,
   canUploadTracks,
+  requireAdminPermission,
+  requireSupportPermission,
   requireTrackUploadPermission
 } from '../lib/server/permissions.mjs'
 
@@ -18,6 +20,12 @@ const approvedUploader = {
   accountStatus: 'ACTIVE',
   uploaderStatus: 'APPROVED'
 }
+
+const user = ({ role, accountStatus = 'ACTIVE', uploaderStatus = 'NOT_REQUESTED' }) => ({
+  role,
+  accountStatus,
+  uploaderStatus
+})
 
 test('track uploads require an active approved uploader or admin', () => {
   assert.equal(canUploadTracks(activeCustomer), false)
@@ -37,6 +45,63 @@ test('track uploads require an active approved uploader or admin', () => {
     accountStatus: 'ACTIVE',
     uploaderStatus: 'PENDING'
   }), false)
+})
+
+test('role permissions preserve admin support and customer boundaries', () => {
+  const expectations = [
+    {
+      role: 'CUSTOMER',
+      admin: false,
+      support: false,
+      upload: false
+    },
+    {
+      role: 'UPLOADER',
+      admin: false,
+      support: false,
+      upload: true,
+      uploaderStatus: 'APPROVED'
+    },
+    {
+      role: 'SUPPORT',
+      admin: false,
+      support: true,
+      upload: false
+    },
+    {
+      role: 'ADMIN',
+      admin: true,
+      support: true,
+      upload: true
+    }
+  ]
+
+  for (const expectation of expectations) {
+    const currentUser = user({
+      role: expectation.role,
+      uploaderStatus: expectation.uploaderStatus
+    })
+
+    assert.equal(canAccessAdminSurface(currentUser), expectation.admin)
+    assert.equal(canAccessSupportSurface(currentUser), expectation.support)
+    assert.equal(canUploadTracks(currentUser), expectation.upload)
+  }
+})
+
+test('inactive accounts cannot use elevated role permissions', () => {
+  for (const accountStatus of ['SUSPENDED', 'CLOSED']) {
+    for (const role of ['CUSTOMER', 'UPLOADER', 'SUPPORT', 'ADMIN']) {
+      const currentUser = user({
+        role,
+        accountStatus,
+        uploaderStatus: 'APPROVED'
+      })
+
+      assert.equal(canAccessAdminSurface(currentUser), false)
+      assert.equal(canAccessSupportSurface(currentUser), false)
+      assert.equal(canUploadTracks(currentUser), false)
+    }
+  }
 })
 
 test('admin and support surfaces have separate permissions', () => {
@@ -60,9 +125,21 @@ test('admin and support surfaces have separate permissions', () => {
 
 test('permission requirements throw stable forbidden errors', () => {
   assert.equal(requireTrackUploadPermission(approvedUploader), approvedUploader)
+  assert.equal(requireAdminPermission(user({ role: 'ADMIN' })).role, 'ADMIN')
+  assert.equal(requireSupportPermission(user({ role: 'SUPPORT' })).role, 'SUPPORT')
 
   assert.throws(
     () => requireTrackUploadPermission(activeCustomer),
     error => error.statusCode === 403 && error.message === 'Approved uploader access required'
+  )
+
+  assert.throws(
+    () => requireAdminPermission(user({ role: 'SUPPORT' })),
+    error => error.statusCode === 403 && error.message === 'Admin access required'
+  )
+
+  assert.throws(
+    () => requireSupportPermission(activeCustomer),
+    error => error.statusCode === 403 && error.message === 'Support access required'
   )
 })
