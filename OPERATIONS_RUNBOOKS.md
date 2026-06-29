@@ -54,17 +54,35 @@ The app applies conservative in-memory, per-instance rate limits to high-risk AP
 Current enterprise upgrade path:
 
 1. Keep the application-level limiter as a final local guardrail.
-2. Add Vercel WAF/rate-limit rules for public abuse patterns at the edge.
-3. Add a managed shared counter such as Redis/Upstash for user/IP limits that must be consistent across instances and regions.
+2. Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` for Preview/Production so app route limits use a shared Redis-backed counter across serverless instances.
+3. Add Vercel WAF/rate-limit rules for public abuse patterns at the edge.
 4. Add dashboards/alerts for repeated `429` responses by route and actor.
+
+Recommended Vercel Firewall starter posture:
+
+- Log first, then enforce. Start with `log` actions for 24-48 hours before switching to `rate_limit`, `challenge`, or `deny`.
+- Apply edge rate limits to unauthenticated/public hot paths first: `/api/comments`, `/api/tracks/*/signed-url?mode=sample`, `/auth/signin`, and obvious scanner/probe paths.
+- Use `challenge` rather than `deny` for suspicious browser traffic where legitimate users may be caught.
+- Keep checkout, upload signing, and owned-track signed URL limits in the app as user-aware controls; edge rules do not know the authenticated user id.
+- Review Vercel Firewall events alongside `rate_limit.exceeded` audit events before changing thresholds.
+
+Suggested starter rules:
+
+| Rule | Match | Initial action | Enforcement action |
+| --- | --- | --- | --- |
+| Public API burst | `path` starts with `/api/comments` or `/api/tracks/` and method is `GET` | `log` | `rate_limit` by IP |
+| Auth page burst | `path` equals `/auth/signin` | `log` | `challenge` or `rate_limit` |
+| Scanner probes | `path` matches common CMS/admin probe patterns such as `^/wp-` | `deny` | `deny` |
+| Non-browser abusive clients | suspicious or empty `user_agent` on public API paths | `log` | `challenge` |
 
 Triage:
 
 1. If a user reports `429 Too many requests`, capture the route, `requestId`, account email, approximate timestamp, and action they were repeating.
 2. For authenticated routes, check `AuditEvent` rows with action `rate_limit.exceeded` for the user/track and route scope.
-3. Check whether the route is being called in a loop from the UI or test automation.
-4. Do not raise limits to hide a broken client loop; fix the client or workflow first.
-5. For legitimate high-volume operational use, prefer a role-scoped or job-scoped endpoint with explicit quotas rather than disabling rate limits globally.
+3. Search runtime logs for `rate_limit.shared_store_failed`. If present, verify Upstash health and environment variable scoping before changing app limits.
+4. Check whether the route is being called in a loop from the UI or test automation.
+5. Do not raise limits to hide a broken client loop; fix the client or workflow first.
+6. For legitimate high-volume operational use, prefer a role-scoped or job-scoped endpoint with explicit quotas rather than disabling rate limits globally.
 
 ## Security Observability
 

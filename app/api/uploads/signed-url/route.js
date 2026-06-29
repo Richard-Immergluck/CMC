@@ -36,7 +36,7 @@ export async function POST(request) {
     requireTrustedRouteOrigin(request)
     const user = await requireRouteCurrentUser()
     requireTrackUploadPermission(user)
-    enforceRouteRateLimit({
+    await enforceRouteRateLimit({
       request,
       scope: 'upload.signed_url',
       userId: user.id,

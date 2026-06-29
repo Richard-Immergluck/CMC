@@ -48,6 +48,15 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ALLOW_SIMULATED_PURCHASES=false
 ```
 
+Optional enterprise rate-limit store values:
+
+```text
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
+```
+
+When both Upstash values are present, high-risk API route limits use the shared Redis-backed counter. When either value is absent or the shared counter is temporarily unavailable, the app falls back to the local per-instance limiter and emits `rate_limit.shared_store_failed` warning logs.
+
 ## Vercel Project Settings
 
 The live Vercel project is `classical-music-catalogue`.

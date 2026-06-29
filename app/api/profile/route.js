@@ -61,7 +61,7 @@ export async function POST(request) {
     requireRouteMethod(request, ['GET', 'POST'])
     requireTrustedRouteOrigin(request)
     const user = await requireRouteCurrentUser()
-    enforceRouteRateLimit({
+    await enforceRouteRateLimit({
       request,
       scope: 'profile.comment',
       userId: user.id,
