@@ -7,6 +7,11 @@ import {
   requireTrustedRouteOrigin
 } from '../../../lib/server/route-handlers'
 import { createForbiddenError } from '../../../lib/server/api-core.mjs'
+import {
+  auditActions,
+  buildAuditEventData,
+  buildCommentCreatedMetadata
+} from '../../../lib/server/audit-core.mjs'
 import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
 import prisma from '../../../lib/server/prisma'
 import { enforceRouteRateLimit } from '../../../lib/server/rate-limit'
@@ -87,20 +92,38 @@ export async function POST(request) {
       throw createForbiddenError('Track ownership required to comment')
     }
 
-    const newComment = await prisma.comment.create({
-      data: {
-        content: comment,
-        postedBy: {
-          connect: {
-            id: user.id
-          }
-        },
-        track: {
-          connect: {
-            id: trackId
+    const newComment = await prisma.$transaction(async tx => {
+      const createdComment = await tx.comment.create({
+        data: {
+          content: comment,
+          postedBy: {
+            connect: {
+              id: user.id
+            }
+          },
+          track: {
+            connect: {
+              id: trackId
+            }
           }
         }
-      }
+      })
+
+      await tx.auditEvent.create({
+        data: buildAuditEventData({
+          action: auditActions.commentCreated,
+          actorId: user.id,
+          entityType: 'Comment',
+          entityId: createdComment.id,
+          metadata: buildCommentCreatedMetadata({
+            commentLength: comment.length,
+            route: '/api/profile',
+            trackId
+          })
+        })
+      })
+
+      return createdComment
     })
 
     telemetry.complete({
