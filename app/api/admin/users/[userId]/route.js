@@ -12,9 +12,15 @@ import {
 } from '../../../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import { buildUserAccessChangeMetadata, toUserAdminItem } from '../../../../../lib/server/admin-core.mjs'
-import { auditActions } from '../../../../../lib/server/audit-core.mjs'
+import {
+  auditActions,
+  buildUserAccessDeniedMetadata
+} from '../../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../../lib/server/audit'
-import { requireAdminPermission } from '../../../../../lib/server/permissions.mjs'
+import {
+  canUpdateUserAccess,
+  requireAdminPermission
+} from '../../../../../lib/server/permissions.mjs'
 import prisma from '../../../../../lib/server/prisma'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import {
@@ -47,14 +53,20 @@ export async function PATCH(request, { params }) {
       'Invalid admin user update request'
     )
 
-    const removesOwnAccess = admin.id === userId && (
-      input.role ||
-      input.accountStatus === 'SUSPENDED' ||
-      input.accountStatus === 'CLOSED'
-    )
+    if (!canUpdateUserAccess({ actorId: admin.id, targetUserId: userId })) {
+      await recordAuditEvent({
+        action: auditActions.userAccessSelfUpdateDenied,
+        actorId: admin.id,
+        entityType: 'User',
+        entityId: userId,
+        metadata: buildUserAccessDeniedMetadata({
+          attemptedFields: Object.keys(input),
+          reason: 'self_access_update',
+          route: '/api/admin/users/[userId]'
+        })
+      })
 
-    if (removesOwnAccess) {
-      throw createConflictError('Admins cannot remove their own access')
+      throw createConflictError('Admins cannot update their own access')
     }
 
     const before = await prisma.user.findUnique({

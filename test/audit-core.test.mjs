@@ -8,6 +8,7 @@ import {
   buildRateLimitExceededMetadata,
   buildTrackAccessDeniedMetadata,
   buildTrackSignedUrlIssuedMetadata,
+  buildUserAccessDeniedMetadata,
   buildTrackSubmittedMetadata,
   serializeAuditMetadata
 } from '../lib/server/audit-core.mjs'
@@ -65,6 +66,22 @@ test('sign-in denied metadata records account posture without provider payloads'
       accountStatus: 'SUSPENDED',
       provider: 'google',
       reason: 'inactive_account'
+    }
+  )
+})
+
+test('user access denied metadata records attempted fields without values', () => {
+  assert.deepEqual(
+    buildUserAccessDeniedMetadata({
+      attemptedFields: ['accountStatus', 'role'],
+      reason: 'self_access_update',
+      route: '/api/admin/users/[userId]',
+      role: 'ADMIN'
+    }),
+    {
+      attemptedFields: ['accountStatus', 'role'],
+      reason: 'self_access_update',
+      route: '/api/admin/users/[userId]'
     }
   )
 })

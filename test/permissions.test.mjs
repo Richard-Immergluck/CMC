@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  canUpdateUserAccess,
   canAccessAdminSurface,
   canAccessSupportSurface,
   canUploadTracks,
@@ -121,6 +122,21 @@ test('admin and support surfaces have separate permissions', () => {
     role: 'ADMIN',
     accountStatus: 'ACTIVE'
   }), true)
+})
+
+test('user access updates cannot target the acting admin', () => {
+  assert.equal(canUpdateUserAccess({
+    actorId: 'admin-1',
+    targetUserId: 'user-2'
+  }), true)
+  assert.equal(canUpdateUserAccess({
+    actorId: 'admin-1',
+    targetUserId: 'admin-1'
+  }), false)
+  assert.equal(canUpdateUserAccess({
+    actorId: '',
+    targetUserId: 'user-2'
+  }), false)
 })
 
 test('permission requirements throw stable forbidden errors', () => {
