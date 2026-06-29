@@ -4,6 +4,8 @@ This runbook captures the moving parts needed to operate the hardened CMC app.
 
 Incident-specific recovery steps are in `OPERATIONS_RUNBOOKS.md`.
 
+Security event triage, alert thresholds, and audit investigation steps are in the Security Observability section of `OPERATIONS_RUNBOOKS.md`.
+
 Release promotion gates are in `RELEASE_GATES.md`.
 
 Health diagnostics:
