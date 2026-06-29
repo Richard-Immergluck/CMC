@@ -59,7 +59,11 @@ export async function POST(request) {
       scope: 'profile.comment',
       userId: user.id,
       limit: 30,
-      windowMs: 5 * 60 * 1000
+      windowMs: 5 * 60 * 1000,
+      audit: {
+        actorId: user.id,
+        route: '/api/profile'
+      }
     })
     const body = await parseRouteJson(request)
     const { trackId, comment } = validateInput(

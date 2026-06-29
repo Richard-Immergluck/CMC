@@ -54,7 +54,11 @@ export async function POST(request) {
       scope: 'checkout.session',
       userId: user.id,
       limit: 12,
-      windowMs: 5 * 60 * 1000
+      windowMs: 5 * 60 * 1000,
+      audit: {
+        actorId: user.id,
+        route: '/api/stripe/checkout_sessions'
+      }
     })
     const body = await parseRouteJson(request)
     const { trackIds } = validateInput(

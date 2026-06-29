@@ -135,7 +135,13 @@ export async function GET(request, { params }) {
       scope: `track.signed_url.${mode}`,
       userId: currentUser.id,
       limit: 120,
-      windowMs: 5 * 60 * 1000
+      windowMs: 5 * 60 * 1000,
+      audit: {
+        actorId: currentUser.id,
+        entityType: 'Track',
+        entityId: trackId,
+        route: '/api/tracks/[trackId]/signed-url'
+      }
     })
 
     if (mode === 'review') {

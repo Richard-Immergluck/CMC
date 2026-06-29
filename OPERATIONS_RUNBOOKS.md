@@ -61,9 +61,10 @@ Current enterprise upgrade path:
 Triage:
 
 1. If a user reports `429 Too many requests`, capture the route, `requestId`, account email, approximate timestamp, and action they were repeating.
-2. Check whether the route is being called in a loop from the UI or test automation.
-3. Do not raise limits to hide a broken client loop; fix the client or workflow first.
-4. For legitimate high-volume operational use, prefer a role-scoped or job-scoped endpoint with explicit quotas rather than disabling rate limits globally.
+2. For authenticated routes, check `AuditEvent` rows with action `rate_limit.exceeded` for the user/track and route scope.
+3. Check whether the route is being called in a loop from the UI or test automation.
+4. Do not raise limits to hide a broken client loop; fix the client or workflow first.
+5. For legitimate high-volume operational use, prefer a role-scoped or job-scoped endpoint with explicit quotas rather than disabling rate limits globally.
 
 ## Failed Checkout
 

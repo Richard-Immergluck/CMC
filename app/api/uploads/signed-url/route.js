@@ -36,7 +36,11 @@ export async function POST(request) {
       scope: 'upload.signed_url',
       userId: user.id,
       limit: 20,
-      windowMs: 5 * 60 * 1000
+      windowMs: 5 * 60 * 1000,
+      audit: {
+        actorId: user.id,
+        route: '/api/uploads/signed-url'
+      }
     })
 
     const body = await parseRouteJson(request)
