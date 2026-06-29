@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     env:
       DATABASE_URL: postgresql://prisma:prisma@localhost:5432/prisma?schema=public
@@ -106,6 +107,7 @@ jobs:
         run: yarn seed:e2e
 
       - name: Browser smoke tests
+        timeout-minutes: 8
         run: yarn test:e2e
 
       - name: Upload Playwright diagnostics
