@@ -16,14 +16,14 @@ This tracker records backend security and auditability work completed so far and
 - Blocked suspended and closed existing accounts during sign-in.
 - Sanitized user-derived signed download filenames before S3 `Content-Disposition` generation.
 - Normalized signed URL audit metadata across review, full, and download modes without storing signed URLs.
+- Added explicit admin/support/customer authorization invariant tests.
 
 ## In Progress
 
-- Review admin/support/customer authorization invariants in tests.
+- Add audit events for sign-in denial and sensitive account lifecycle changes where useful without storing secrets or raw provider payloads.
 
 ## Next Targets
 
-- Add audit events for sign-in denial and sensitive account lifecycle changes where useful without storing secrets or raw provider payloads.
 - Review database RLS/schema posture for audit event immutability and public table exposure.
 - Review storage key scoping and signed URL expiry policy against product requirements.
 - Add observability runbooks for security-relevant events and alert-worthy patterns.
