@@ -26,5 +26,8 @@ jobs:
         with:
           node-version: 24
 
+      - name: Run health smoke tests
+        run: node scripts/health-smoke-test.js
+
       - name: Run live smoke tests
         run: node scripts/smoke-test.js
