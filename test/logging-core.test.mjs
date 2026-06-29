@@ -4,6 +4,7 @@ import {
   createLogEntry,
   createRequestId,
   getRequestId,
+  normalizeRequestId,
   redactLogMetadata
 } from '../lib/server/logging-core.mjs'
 
@@ -24,6 +25,27 @@ test('request ids prefer incoming correlation headers', () => {
       }
     }),
     'correlation-123'
+  )
+})
+
+test('request ids are normalized before being reflected', () => {
+  assert.equal(normalizeRequestId('req-123'), 'req-123')
+  assert.equal(normalizeRequestId(' req_123:abc.def '), 'req_123:abc.def')
+  assert.equal(normalizeRequestId(['correlation-123']), 'correlation-123')
+  assert.equal(normalizeRequestId('req with spaces'), undefined)
+  assert.equal(normalizeRequestId('req\nmalicious'), undefined)
+  assert.equal(normalizeRequestId('x'.repeat(129)), undefined)
+  assert.equal(normalizeRequestId(42), undefined)
+})
+
+test('invalid incoming request ids fall back to generated values', () => {
+  assert.notEqual(
+    getRequestId({
+      headers: {
+        'x-request-id': 'req\nmalicious'
+      }
+    }),
+    'req\nmalicious'
   )
 })
 
