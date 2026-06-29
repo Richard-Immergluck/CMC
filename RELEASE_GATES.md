@@ -31,6 +31,7 @@ SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.ver
 
 ```text
 curl -s https://classical-music-catalogue-richardimmerglucks-projects.vercel.app/api/health
+HEALTH_SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.vercel.app yarn smoke:health
 ```
 
 - Preview protected deep health has been checked from an authenticated support/admin session after infrastructure changes.

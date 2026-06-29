@@ -10,6 +10,7 @@ Health diagnostics:
 
 - Public uptime check: `GET /api/health`
 - Protected dependency check: `GET /api/admin/health`
+- Public health smoke command: `HEALTH_SMOKE_BASE_URL=https://<deployment-host> yarn smoke:health`
 
 Use the protected endpoint only from an authenticated `ADMIN` or `SUPPORT` account. It reports named dependency readiness without exposing secret values.
 
