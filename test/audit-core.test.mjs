@@ -6,6 +6,7 @@ import {
   buildCommentCreatedMetadata,
   buildRateLimitExceededMetadata,
   buildTrackAccessDeniedMetadata,
+  buildTrackSignedUrlIssuedMetadata,
   buildTrackSubmittedMetadata,
   serializeAuditMetadata
 } from '../lib/server/audit-core.mjs'
@@ -47,6 +48,27 @@ test('rate limit exceeded metadata records limit context without actor identifie
       resetAt: 12345,
       route: '/api/stripe/checkout_sessions',
       scope: 'checkout.session'
+    }
+  )
+})
+
+test('signed URL issued metadata records access context without signed URLs', () => {
+  assert.deepEqual(
+    buildTrackSignedUrlIssuedMetadata({
+      downloadName: 'Private Track.mp3',
+      expiresSeconds: 900,
+      mode: 'download',
+      redirect: true,
+      route: '/api/tracks/[trackId]/signed-url',
+      syntheticFixture: false
+    }),
+    {
+      mode: 'download',
+      redirect: true,
+      route: '/api/tracks/[trackId]/signed-url',
+      syntheticFixture: false,
+      expiresSeconds: 900,
+      hasDownloadName: true
     }
   )
 })
