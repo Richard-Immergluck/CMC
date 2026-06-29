@@ -3,7 +3,8 @@ import test from 'node:test'
 import {
   createUploadObjectKey,
   getExtension,
-  normalizeS3Prefix
+  normalizeS3Prefix,
+  normalizeUploadUserSegment
 } from '../lib/server/uploads.mjs'
 
 test('normalizeS3Prefix accepts empty and slash-padded prefixes', () => {
@@ -21,9 +22,28 @@ test('createUploadObjectKey uses prefix, supplied id, and original extension', (
     createUploadObjectKey({
       fileName: 'bach-study.mp3',
       keyPrefix: 'development/',
+      userId: 'user-123',
       id: 'fixed-id'
     }),
-    'development/fixed-id.mp3'
+    'development/uploads/user-123/fixed-id.mp3'
   )
 })
 
+test('createUploadObjectKey scopes unusual user ids to safe path segments', () => {
+  assert.equal(
+    createUploadObjectKey({
+      fileName: 'bach-study.MP3',
+      keyPrefix: '/development//',
+      userId: ' user/email@example.com ',
+      id: 'fixed-id'
+    }),
+    'development/uploads/user_email_example_com/fixed-id.mp3'
+  )
+})
+
+test('normalizeUploadUserSegment rejects missing users', () => {
+  assert.throws(
+    () => normalizeUploadUserSegment(''),
+    /user id is required/
+  )
+})
