@@ -3,7 +3,8 @@ import {
   handleRouteError,
   jsonResponse,
   parseRouteJson,
-  requireRouteMethod
+  requireRouteMethod,
+  requireTrustedRouteOrigin
 } from '../../../lib/server/route-handlers'
 import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
 import { requireTrackUploadPermission } from '../../../lib/server/permissions.mjs'
@@ -25,6 +26,7 @@ export async function POST(request) {
 
   try {
     requireRouteMethod(request, ['POST'])
+    requireTrustedRouteOrigin(request)
 
     const user = await requireRouteCurrentUser()
     requireTrackUploadPermission(user)

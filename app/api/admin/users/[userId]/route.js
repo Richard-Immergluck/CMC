@@ -3,7 +3,8 @@ import {
   handleRouteError,
   jsonResponse,
   parseRouteJson,
-  requireRouteMethod
+  requireRouteMethod,
+  requireTrustedRouteOrigin
 } from '../../../../../lib/server/route-handlers'
 import {
   createConflictError,
@@ -32,6 +33,7 @@ export async function PATCH(request, { params }) {
 
   try {
     requireRouteMethod(request, ['PATCH'])
+    requireTrustedRouteOrigin(request)
 
     const admin = await requireRouteCurrentUser()
     requireAdminPermission(admin)

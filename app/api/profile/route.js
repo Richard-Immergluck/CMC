@@ -3,7 +3,8 @@ import {
   handleRouteError,
   jsonResponse,
   parseRouteJson,
-  requireRouteMethod
+  requireRouteMethod,
+  requireTrustedRouteOrigin
 } from '../../../lib/server/route-handlers'
 import { createForbiddenError } from '../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
@@ -53,6 +54,7 @@ export async function POST(request) {
 
   try {
     requireRouteMethod(request, ['GET', 'POST'])
+    requireTrustedRouteOrigin(request)
     const user = await requireRouteCurrentUser()
     enforceRouteRateLimit({
       request,
