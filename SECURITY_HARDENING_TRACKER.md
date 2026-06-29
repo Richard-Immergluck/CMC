@@ -18,12 +18,12 @@ This tracker records backend security and auditability work completed so far and
 - Normalized signed URL audit metadata across review, full, and download modes without storing signed URLs.
 - Added explicit admin/support/customer authorization invariant tests.
 - Added audit events for inactive-account sign-in denials without storing provider payloads.
+- Strengthened RLS/grant posture checks to cover unexpected public tables and public sequence grants.
 
 ## In Progress
 
-- Review database RLS/schema posture for audit event immutability and public table exposure.
+- Review storage key scoping and signed URL expiry policy against product requirements.
 
 ## Next Targets
 
-- Review storage key scoping and signed URL expiry policy against product requirements.
 - Add observability runbooks for security-relevant events and alert-worthy patterns.
