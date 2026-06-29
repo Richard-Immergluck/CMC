@@ -9,7 +9,8 @@ import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import prisma from '../../../../../lib/server/prisma'
 import {
   auditActions,
-  buildTrackAccessDeniedMetadata
+  buildTrackAccessDeniedMetadata,
+  buildTrackSignedUrlIssuedMetadata
 } from '../../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../../lib/server/audit'
 import {
@@ -181,9 +182,10 @@ export async function GET(request, { params }) {
       }
 
       const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
+      const expiresSeconds = 300
       const url = syntheticFixtureUrl || getSignedTrackUrl({
         key: track.fileName,
-        expires: 300
+        expires: expiresSeconds
       })
 
       await recordAuditEvent({
@@ -191,9 +193,13 @@ export async function GET(request, { params }) {
         actorId: currentUser.id,
         entityType: 'Track',
         entityId: track.id,
-        metadata: {
-          mode
-        }
+        metadata: buildTrackSignedUrlIssuedMetadata({
+          mode,
+          redirect: redirect === '1',
+          route: '/api/tracks/[trackId]/signed-url',
+          syntheticFixture: Boolean(syntheticFixtureUrl),
+          expiresSeconds
+        })
       })
 
       logServerEvent({
@@ -256,9 +262,10 @@ export async function GET(request, { params }) {
     }
 
     const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
+    const expiresSeconds = mode === 'download' ? 900 : 300
     const url = syntheticFixtureUrl || getSignedTrackUrl({
       key: track.fileName,
-      expires: mode === 'download' ? 900 : 300,
+      expires: expiresSeconds,
       fileName: mode === 'download' ? track.downloadName : undefined
     })
 
@@ -267,10 +274,14 @@ export async function GET(request, { params }) {
       actorId: currentUser.id,
       entityType: 'Track',
       entityId: track.id,
-      metadata: {
+      metadata: buildTrackSignedUrlIssuedMetadata({
         mode,
+        redirect: redirect === '1',
+        route: '/api/tracks/[trackId]/signed-url',
+        syntheticFixture: Boolean(syntheticFixtureUrl),
+        expiresSeconds,
         downloadName: mode === 'download' ? track.downloadName : undefined
-      }
+      })
     })
 
     logServerEvent({
