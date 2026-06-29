@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createRouteTelemetryCore } from '../lib/server/route-telemetry-core.mjs'
+import {
+  createRouteTelemetryCore,
+  getRouteFailureLevel
+} from '../lib/server/route-telemetry-core.mjs'
 
 test('route telemetry emits start and completion events with duration', () => {
   const events = []
@@ -77,4 +80,40 @@ test('route telemetry emits failure events without negative durations', () => {
     errorName: 'TypeError',
     errorMessage: 'Stripe unavailable'
   })
+})
+
+test('route telemetry warns for expected client failures', () => {
+  const events = []
+  const telemetry = createRouteTelemetryCore({
+    requestId: 'req-auth',
+    method: 'POST',
+    route: '/api/tracks',
+    event: 'track.create',
+    logger: event => events.push(event),
+    now: () => 2000
+  })
+
+  telemetry.fail({
+    name: 'ApiError',
+    message: 'Authentication required',
+    statusCode: 401
+  })
+
+  assert.equal(events[1].level, 'warn')
+  assert.deepEqual(events[1].metadata, {
+    route: '/api/tracks',
+    method: 'POST',
+    statusCode: 401,
+    durationMs: 0,
+    errorName: 'ApiError',
+    errorMessage: 'Authentication required'
+  })
+})
+
+test('route telemetry keeps server and unknown failures at error level', () => {
+  assert.equal(getRouteFailureLevel(new Error('boom')), 'error')
+  assert.equal(getRouteFailureLevel({ statusCode: 500 }), 'error')
+  assert.equal(getRouteFailureLevel({ statusCode: 503 }), 'error')
+  assert.equal(getRouteFailureLevel({ statusCode: 400 }), 'warn')
+  assert.equal(getRouteFailureLevel({ statusCode: 403 }), 'warn')
 })
