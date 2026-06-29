@@ -6,6 +6,13 @@ Incident-specific recovery steps are in `OPERATIONS_RUNBOOKS.md`.
 
 Release promotion gates are in `RELEASE_GATES.md`.
 
+Health diagnostics:
+
+- Public uptime check: `GET /api/health`
+- Protected dependency check: `GET /api/admin/health`
+
+Use the protected endpoint only from an authenticated `ADMIN` or `SUPPORT` account. It reports named dependency readiness without exposing secret values.
+
 ## Project Locations
 
 - GitHub: `Richard-Immergluck/CMC`

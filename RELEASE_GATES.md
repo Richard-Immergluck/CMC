@@ -26,6 +26,13 @@ https://classical-music-catalogue.vercel.app/api/auth/callback/google
 SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-projects.vercel.app yarn smoke
 ```
 
+- Preview shallow health check returns `status: "ok"`:
+
+```text
+curl -s https://classical-music-catalogue-richardimmerglucks-projects.vercel.app/api/health
+```
+
+- Preview protected deep health has been checked from an authenticated support/admin session after infrastructure changes.
 - Production readiness passes with production-scoped platform values:
 
 ```text
@@ -48,6 +55,7 @@ VERCEL_ENV=production VERCEL_PROJECT_ROOT=. VERCEL_NODE_VERSION=24.x SUPABASE_PR
 SMOKE_BASE_URL=https://<production-host> yarn smoke
 ```
 
+- Production shallow health check returns `status: "ok"` at `https://<production-host>/api/health`.
 - Vercel runtime logs show no new checkout, webhook, upload, or signed URL error spike.
 - Stripe webhook deliveries for the production endpoint are succeeding.
 - Supabase project health is active.

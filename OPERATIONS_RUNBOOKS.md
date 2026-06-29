@@ -6,9 +6,46 @@ Use these runbooks for Preview and Production incidents. Prefer Preview rehearsa
 
 1. Identify the affected environment: local, Preview, Production, Supabase Development, or Supabase Production.
 2. Capture the failing request path, `requestId`, deployment URL, approximate timestamp, and user-facing symptom.
-3. Check GitHub Actions, Vercel deployment status, Vercel runtime logs, Supabase project health, Stripe dashboard events, and AWS S3 object access.
+3. Check GitHub Actions, Vercel deployment status, `/api/health`, Vercel runtime logs, Supabase project health, Stripe dashboard events, and AWS S3 object access.
 4. Avoid changing secrets, database schema, or IAM policy until the likely failure mode is known.
 5. Record the mitigation and follow-up PR in the release notes or incident notes.
+
+## Health Diagnostics
+
+Use health checks to separate app availability from dependency readiness.
+
+Public shallow check:
+
+```text
+curl -s https://<deployment-host>/api/health
+```
+
+Expected healthy response shape:
+
+```json
+{
+  "status": "ok",
+  "service": "cmc",
+  "environment": "preview",
+  "commit": "abc123",
+  "timestamp": "2026-06-29T08:00:00.000Z"
+}
+```
+
+Protected deep check:
+
+```text
+GET https://<deployment-host>/api/admin/health
+```
+
+This route requires an authenticated `ADMIN` or `SUPPORT` user. Use it after infrastructure, secret, database, storage, Stripe, or auth changes. A healthy deep response returns HTTP `200` with `status: "ok"`. A dependency/configuration problem returns HTTP `503` with `status: "degraded"` and named checks such as `database`, `storage`, `stripe`, `auth`, and `databaseConnection`.
+
+Triage:
+
+1. If `/api/health` fails, inspect Vercel deployment status and runtime logs first; the application may not be serving.
+2. If `/api/health` passes but `/api/admin/health` is degraded, inspect the failed named check before rotating credentials or changing schema.
+3. Match runtime log entries using `requestId` and route telemetry events such as `health.shallow.completed` or `health.deep.completed`.
+4. Treat missing environment names as configuration findings only; do not paste secret values into tickets, PRs, screenshots, or chat.
 
 ## Failed Checkout
 
