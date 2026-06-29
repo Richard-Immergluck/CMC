@@ -10,8 +10,12 @@ const importPattern =
 
 const ignoredBuiltins = new Set(['fs', 'path'])
 const intentionalRuntimeDependencies = new Set([
+  // Bootstrap's JS components expect Popper as a peer dependency at runtime.
+  '@popperjs/core',
   // NextAuth's email provider loads nodemailer as an optional package.
-  'nodemailer'
+  'nodemailer',
+  // Next.js requires react-dom at runtime even when app code does not import it directly.
+  'react-dom'
 ])
 
 const packageNameFor = specifier => {
