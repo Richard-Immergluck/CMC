@@ -8,6 +8,7 @@ import {
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { getSignedTrackUploadUrl } from '../../../../lib/server/s3'
 import { logServerEvent } from '../../../../lib/server/logging'
+import { enforceRouteRateLimit } from '../../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
 import { requireTrackUploadPermission } from '../../../../lib/server/permissions.mjs'
 import { createUploadObjectKey } from '../../../../lib/server/uploads.mjs'
@@ -30,6 +31,13 @@ export async function POST(request) {
     requireRouteMethod(request, ['POST'])
     const user = await requireRouteCurrentUser()
     requireTrackUploadPermission(user)
+    enforceRouteRateLimit({
+      request,
+      scope: 'upload.signed_url',
+      userId: user.id,
+      limit: 20,
+      windowMs: 5 * 60 * 1000
+    })
 
     const body = await parseRouteJson(request)
     const { fileName, contentType } = validateInput(

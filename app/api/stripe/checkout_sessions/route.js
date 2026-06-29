@@ -8,6 +8,7 @@ import {
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { createCheckoutSessionForTracks } from '../../../../lib/server/purchases'
 import { logServerEvent } from '../../../../lib/server/logging'
+import { enforceRouteRateLimit } from '../../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
 import { getApplicationBaseUrl } from '../../../../lib/server/url'
 import {
@@ -48,6 +49,13 @@ export async function POST(request) {
     requireRouteMethod(request, ['POST'])
 
     const user = await requireRouteCurrentUser()
+    enforceRouteRateLimit({
+      request,
+      scope: 'checkout.session',
+      userId: user.id,
+      limit: 12,
+      windowMs: 5 * 60 * 1000
+    })
     const body = await parseRouteJson(request)
     const { trackIds } = validateInput(
       checkoutSessionBodySchema,

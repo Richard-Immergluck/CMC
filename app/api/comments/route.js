@@ -5,6 +5,7 @@ import {
   requireRouteMethod
 } from '../../../lib/server/route-handlers'
 import prisma from '../../../lib/server/prisma'
+import { enforceRouteRateLimit } from '../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../lib/server/route-telemetry'
 import {
   commentQuerySchema,
@@ -22,6 +23,12 @@ export async function GET(request) {
 
   try {
     requireRouteMethod(request, ['GET'])
+    enforceRouteRateLimit({
+      request,
+      scope: 'comments.list',
+      limit: 180,
+      windowMs: 5 * 60 * 1000
+    })
 
     const { searchParams } = new URL(request.url)
     const { trackId } = validateInput(

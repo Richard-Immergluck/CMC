@@ -16,6 +16,7 @@ import {
 import { logServerEvent } from '../../../../../lib/server/logging'
 import { canAccessFullTrack } from '../../../../../lib/server/ownership'
 import { canAccessSupportSurface } from '../../../../../lib/server/permissions.mjs'
+import { enforceRouteRateLimit } from '../../../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import { getSignedTrackUrl } from '../../../../../lib/server/s3'
 import { publicTrackWhere } from '../../../../../lib/server/tracks-core.mjs'
@@ -77,6 +78,13 @@ export async function GET(request, { params }) {
     )
 
     if (mode === 'sample') {
+      enforceRouteRateLimit({
+        request,
+        scope: 'track.signed_url.sample',
+        limit: 180,
+        windowMs: 5 * 60 * 1000
+      })
+
       const track = await prisma.track.findFirst({
         where: {
           id: trackId,
@@ -119,6 +127,13 @@ export async function GET(request, { params }) {
     }
 
     const currentUser = await requireRouteCurrentUser()
+    enforceRouteRateLimit({
+      request,
+      scope: `track.signed_url.${mode}`,
+      userId: currentUser.id,
+      limit: 120,
+      windowMs: 5 * 60 * 1000
+    })
 
     if (mode === 'review') {
       if (!canAccessSupportSurface(currentUser)) {

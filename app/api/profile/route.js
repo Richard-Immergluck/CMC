@@ -8,6 +8,7 @@ import {
 import { createForbiddenError } from '../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
 import prisma from '../../../lib/server/prisma'
+import { enforceRouteRateLimit } from '../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../lib/server/route-telemetry'
 import {
   profileCommentBodySchema,
@@ -53,6 +54,13 @@ export async function POST(request) {
   try {
     requireRouteMethod(request, ['GET', 'POST'])
     const user = await requireRouteCurrentUser()
+    enforceRouteRateLimit({
+      request,
+      scope: 'profile.comment',
+      userId: user.id,
+      limit: 30,
+      windowMs: 5 * 60 * 1000
+    })
     const body = await parseRouteJson(request)
     const { trackId, comment } = validateInput(
       profileCommentBodySchema,

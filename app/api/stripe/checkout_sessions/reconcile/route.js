@@ -8,6 +8,7 @@ import {
 import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import { reconcileCheckoutSession } from '../../../../../lib/server/purchases'
 import { logServerEvent } from '../../../../../lib/server/logging'
+import { enforceRouteRateLimit } from '../../../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import {
   reconcileCheckoutSessionBodySchema,
@@ -30,6 +31,13 @@ export async function POST(request) {
     requireRouteMethod(request, ['POST'])
 
     const user = await requireRouteCurrentUser()
+    enforceRouteRateLimit({
+      request,
+      scope: 'checkout.reconcile',
+      userId: user.id,
+      limit: 30,
+      windowMs: 5 * 60 * 1000
+    })
     const body = await parseRouteJson(request)
     const { sessionId = null } = validateInput(
       reconcileCheckoutSessionBodySchema,

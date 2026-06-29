@@ -47,6 +47,24 @@ Triage:
 3. Match runtime log entries using `requestId` and route telemetry events such as `health.shallow.completed` or `health.deep.completed`.
 4. Treat missing environment names as configuration findings only; do not paste secret values into tickets, PRs, screenshots, or chat.
 
+## Rate Limit Guardrails
+
+The app applies conservative in-memory, per-instance rate limits to high-risk API routes such as upload signing, checkout creation/reconciliation, comments, and signed track URL issuance. These limits reduce accidental loops and low-effort abuse, but they are not a complete distributed throttling layer because serverless instances do not share memory.
+
+Current enterprise upgrade path:
+
+1. Keep the application-level limiter as a final local guardrail.
+2. Add Vercel WAF/rate-limit rules for public abuse patterns at the edge.
+3. Add a managed shared counter such as Redis/Upstash for user/IP limits that must be consistent across instances and regions.
+4. Add dashboards/alerts for repeated `429` responses by route and actor.
+
+Triage:
+
+1. If a user reports `429 Too many requests`, capture the route, `requestId`, account email, approximate timestamp, and action they were repeating.
+2. Check whether the route is being called in a loop from the UI or test automation.
+3. Do not raise limits to hide a broken client loop; fix the client or workflow first.
+4. For legitimate high-volume operational use, prefer a role-scoped or job-scoped endpoint with explicit quotas rather than disabling rate limits globally.
+
 ## Failed Checkout
 
 Symptoms:
