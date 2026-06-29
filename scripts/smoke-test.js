@@ -70,6 +70,13 @@ const checks = [
     includes: ['Track Listing']
   },
   {
+    name: 'public health endpoint',
+    path: '/api/health',
+    status: 200,
+    includes: ['"status":"ok"', '"service":"cmc"'],
+    headers: requestIdHeader
+  },
+  {
     name: 'public sign-in page',
     path: '/auth/signin?callbackUrl=/catalogue',
     status: 200,
@@ -172,6 +179,13 @@ const checks = [
   {
     name: 'admin operations requires authentication',
     path: '/api/admin/operations',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'admin health requires authentication',
+    path: '/api/admin/health',
     status: 401,
     includes: ['Authentication required'],
     headers: requestIdHeader
