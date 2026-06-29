@@ -6,9 +6,11 @@ import {
   createConflictError,
   createForbiddenError,
   createMethodNotAllowedError,
+  createTooManyRequestsError,
   createValidationError,
   formatAllowHeader,
   methodAllowed,
+  toErrorHeaders,
   toErrorResponse
 } from '../lib/server/api-core.mjs'
 
@@ -92,5 +94,25 @@ test('conflict errors serialize as stable 409 responses', () => {
     body: {
       message: 'Already owned'
     }
+  })
+})
+
+test('error headers preserve rate-limit details and request ids', () => {
+  const error = createTooManyRequestsError({
+    retryAfterSeconds: 30
+  })
+  error.headers = {
+    ...error.headers,
+    'X-RateLimit-Limit': '12',
+    'X-RateLimit-Remaining': '0',
+    'X-RateLimit-Reset': '123'
+  }
+
+  assert.deepEqual(toErrorHeaders(error, { requestId: 'req-123' }), {
+    'Retry-After': '30',
+    'X-RateLimit-Limit': '12',
+    'X-RateLimit-Remaining': '0',
+    'X-RateLimit-Reset': '123',
+    'X-Request-Id': 'req-123'
   })
 })
