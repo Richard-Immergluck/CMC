@@ -22,7 +22,10 @@ import { canAccessFullTrack } from '../../../../../lib/server/ownership'
 import { canAccessSupportSurface } from '../../../../../lib/server/permissions.mjs'
 import { enforceRouteRateLimit } from '../../../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
-import { getSignedTrackUrl } from '../../../../../lib/server/s3'
+import {
+  getSignedTrackUrl,
+  signedUrlExpirySeconds
+} from '../../../../../lib/server/s3'
 import { publicTrackWhere } from '../../../../../lib/server/tracks-core.mjs'
 import { getApplicationBaseUrl } from '../../../../../lib/server/url'
 import {
@@ -101,9 +104,10 @@ export async function GET(request, { params }) {
       }
 
       const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
+      const expiresSeconds = signedUrlExpirySeconds.sample
       const url = syntheticFixtureUrl || getSignedTrackUrl({
         key: track.fileName,
-        expires: 60
+        expires: expiresSeconds
       })
       const sampleUrl = `${url}#t=${track.previewStart},${track.previewEnd}`
 
@@ -182,7 +186,7 @@ export async function GET(request, { params }) {
       }
 
       const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
-      const expiresSeconds = 300
+      const expiresSeconds = signedUrlExpirySeconds.review
       const url = syntheticFixtureUrl || getSignedTrackUrl({
         key: track.fileName,
         expires: expiresSeconds
@@ -262,7 +266,9 @@ export async function GET(request, { params }) {
     }
 
     const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
-    const expiresSeconds = mode === 'download' ? 900 : 300
+    const expiresSeconds = mode === 'download'
+      ? signedUrlExpirySeconds.download
+      : signedUrlExpirySeconds.full
     const url = syntheticFixtureUrl || getSignedTrackUrl({
       key: track.fileName,
       expires: expiresSeconds,

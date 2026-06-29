@@ -7,7 +7,10 @@ import {
   requireTrustedRouteOrigin
 } from '../../../../lib/server/route-handlers'
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
-import { getSignedTrackUploadUrl } from '../../../../lib/server/s3'
+import {
+  getSignedTrackUploadUrl,
+  signedUrlExpirySeconds
+} from '../../../../lib/server/s3'
 import { logServerEvent } from '../../../../lib/server/logging'
 import { enforceRouteRateLimit } from '../../../../lib/server/rate-limit'
 import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
@@ -53,11 +56,13 @@ export async function POST(request) {
     )
     const key = createUploadObjectKey({
       fileName,
-      keyPrefix: process.env.S3_KEY_PREFIX
+      keyPrefix: process.env.S3_KEY_PREFIX,
+      userId: user.id
     })
     const url = await getSignedTrackUploadUrl({
       key,
-      contentType
+      contentType,
+      expires: signedUrlExpirySeconds.upload
     })
 
     logServerEvent({
@@ -67,7 +72,8 @@ export async function POST(request) {
       metadata: {
         userId: user.id,
         contentType,
-        key
+        keyScope: 'user_upload',
+        expiresSeconds: signedUrlExpirySeconds.upload
       }
     })
 
