@@ -7,7 +7,10 @@ import {
 import { createNotFoundError } from '../../../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import prisma from '../../../../../lib/server/prisma'
-import { auditActions } from '../../../../../lib/server/audit-core.mjs'
+import {
+  auditActions,
+  buildTrackAccessDeniedMetadata
+} from '../../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../../lib/server/audit'
 import {
   getDemoFixtureName,
@@ -137,6 +140,19 @@ export async function GET(request, { params }) {
 
     if (mode === 'review') {
       if (!canAccessSupportSurface(currentUser)) {
+        await recordAuditEvent({
+          action: auditActions.trackAccessDenied,
+          actorId: currentUser.id,
+          entityType: 'Track',
+          entityId: trackId,
+          metadata: buildTrackAccessDeniedMetadata({
+            mode,
+            reason: 'review_access_denied',
+            redirect: redirect === '1',
+            route: '/api/tracks/[trackId]/signed-url'
+          })
+        })
+
         telemetry.complete({
           statusCode: 403,
           userId: currentUser.id,
@@ -209,6 +225,19 @@ export async function GET(request, { params }) {
     }
 
     if (!allowed) {
+      await recordAuditEvent({
+        action: auditActions.trackAccessDenied,
+        actorId: currentUser.id,
+        entityType: 'Track',
+        entityId: trackId,
+        metadata: buildTrackAccessDeniedMetadata({
+          mode,
+          reason: 'track_access_denied',
+          redirect: redirect === '1',
+          route: '/api/tracks/[trackId]/signed-url'
+        })
+      })
+
       telemetry.complete({
         statusCode: 403,
         userId: currentUser.id,
