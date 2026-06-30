@@ -49,13 +49,16 @@ This tracker records backend security and auditability work completed so far and
 - Added explicit audit events when inactive accounts are rejected by authenticated API guards.
 - Added inactive-account API rejections to the Security dashboard and account-lifecycle report totals.
 - Added e2e coverage for support users querying account-lifecycle audit filters.
+- Added operational guidance for immediate access revocation after account suspension or closure.
+- Added account lifecycle summaries for suspended/closed account activity and rejection telemetry.
+- Added account lifecycle summaries to the Security dashboard and exported security reports.
 
 ## In Progress
 
-- Strengthen session revocation posture and admin visibility.
+- Review stricter session age and revocation controls for sensitive mutations.
 
 ## Next Targets
 
-- Add operational guidance for immediate access revocation after account suspension or closure.
-- Add admin-facing account lifecycle summaries for suspended and closed account activity.
-- Review whether sensitive mutation routes need stricter session age limits beyond NextAuth expiry.
+- Classify sensitive mutation routes by risk and current session requirements.
+- Decide whether to add a server-side session denylist/revocation table for forced logout semantics.
+- Add configurable max-session-age checks for the highest-risk mutation routes if product friction is acceptable.
