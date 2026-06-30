@@ -29,6 +29,13 @@ test('security report rows flatten dashboard data for export', () => {
         averageReviewMinutes: 90,
         maxReviewMinutes: 120
       },
+      auditRetentionStatus: {
+        status: 'review',
+        retentionDays: 365,
+        cleanupCandidateCount: 4,
+        oldestAuditEventCreatedAt: '2025-01-01T00:00:00.000Z',
+        oldestAuditEventAgeDays: 545
+      },
       recentAuditEvents: [
         {
           action: 'track_access.denied',
@@ -71,6 +78,8 @@ test('security report rows flatten dashboard data for export', () => {
     }
   ])
   assert.ok(rows.some(row => row.category === 'auditSignal' && row.name === 'track_access.denied'))
+  assert.ok(rows.some(row => row.category === 'auditRetention' && row.name === 'status' && row.value === 'review'))
+  assert.ok(rows.some(row => row.category === 'auditRetention' && row.name === 'cleanupCandidateCount' && row.value === 4))
   assert.ok(rows.some(row => row.category === 'recentSecurityEvent' && row.value.includes('admin@example.com')))
 })
 
