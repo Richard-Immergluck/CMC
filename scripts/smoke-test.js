@@ -184,6 +184,20 @@ const checks = [
     headers: requestIdHeader
   },
   {
+    name: 'admin account lifecycle audit filter requires authentication',
+    path: '/api/admin/operations?auditCategory=accountLifecycle',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
+    name: 'admin security report requires authentication',
+    path: '/api/admin/security-report?format=csv',
+    status: 401,
+    includes: ['Authentication required'],
+    headers: requestIdHeader
+  },
+  {
     name: 'admin health requires authentication',
     path: '/api/admin/health',
     status: 401,
