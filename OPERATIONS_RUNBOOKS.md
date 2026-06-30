@@ -123,6 +123,14 @@ Initial alert thresholds:
 - Investigate within one business day for repeated access denials, repeated sign-in denials, or sustained rate-limit events for a single actor/IP.
 - Treat GitGuardian findings, provider key quarantine, and accidental secret disclosure as immediate incidents using the secret exposure runbook.
 
+Automated audit threshold check:
+
+```text
+SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts
+```
+
+The command reads recent `AuditEvent` rows, prints a JSON report of counts and findings, and exits non-zero for high-severity findings. It is intended for a scheduled monitor, Vercel Cron, external uptime/ops tooling, or manual incident triage. Start with the default 15 minute window, then tune thresholds after observing normal Preview and Production traffic.
+
 ## Failed Checkout
 
 Symptoms:
