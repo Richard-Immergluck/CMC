@@ -131,6 +131,29 @@ SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts
 
 The command reads recent `AuditEvent` rows, prints a JSON report of counts and findings, and exits non-zero for high-severity findings. It is intended for a scheduled monitor, Vercel Cron, external uptime/ops tooling, or manual incident triage. Start with the default 15 minute window, then tune thresholds after observing normal Preview and Production traffic.
 
+### Production Security Dashboard
+
+Configure a Vercel Log Drain for Production runtime logs before relying on manual log searches. The first dashboard should be intentionally small and operational:
+
+| Panel | Source | Query/Event | Initial threshold |
+| --- | --- | --- | --- |
+| Shared limiter fallback | Vercel runtime logs | `rate_limit.shared_store_failed` | Any event in 15 minutes |
+| Rate-limit bursts | `AuditEvent` / `security:alerts` | `rate_limit.exceeded` | 5 events in 15 minutes |
+| Track access denial bursts | `AuditEvent` / `security:alerts` | `track_access.denied` | 10 events in 15 minutes |
+| Inactive sign-in loops | `AuditEvent` / `security:alerts` | `auth.sign_in_denied` | 10 events in 15 minutes |
+| Admin self-update attempts | `AuditEvent` / `security:alerts` | `user_access.self_update_denied` | Any event |
+| Privileged access approved | `AuditEvent` / `security:alerts` | `user_access_change.approved` | Any event |
+| Stripe webhook signature failure | Vercel runtime logs | `stripe.webhook_signature_failed` | Any production burst |
+
+Operational setup:
+
+1. Create a Vercel Log Drain for the Production project and send runtime logs to the chosen provider.
+2. Confirm structured JSON fields are parsed for `level`, `event`, `message`, `requestId`, and `metadata`.
+3. Create dashboard panels for the events above with environment/deployment filters.
+4. Run `SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts` against Production on a schedule or from the monitoring provider.
+5. Route high-severity findings to the same human escalation path as payment and credential incidents.
+6. Review alert noise after one week of normal traffic and adjust thresholds in `lib/server/security-alerts-core.mjs` through a PR.
+
 ## Failed Checkout
 
 Symptoms:
