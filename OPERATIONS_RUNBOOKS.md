@@ -195,6 +195,22 @@ Manual cleanup guardrails:
 - Record the exact SQL, row count, timestamp, operator, and reason in release notes or incident notes.
 - After cleanup, run `/api/admin/health`, open the `/admin` Security tab, and run `yarn security:alerts` against the target environment.
 
+Development rehearsal:
+
+```text
+AUDIT_CLEANUP_RETENTION_DAYS=365 yarn security:audit-cleanup:rehearse
+```
+
+The rehearsal script is dry-run by default. It blocks production-like environments, including `VERCEL_ENV=production`, `NODE_ENV=production`, and the documented production Supabase project ref. It reports candidate `AuditEvent` rows older than the retention window grouped by action.
+
+To execute against a development database only:
+
+```text
+AUDIT_CLEANUP_RETENTION_DAYS=365 AUDIT_CLEANUP_EXECUTE=true AUDIT_CLEANUP_CONFIRM=delete-dev-audit-events yarn security:audit-cleanup:rehearse
+```
+
+Do not run the execute mode against Production. Production cleanup should remain a manual, reviewed operation until the product has a compliance-backed retention policy and a tested backup/restore process.
+
 ## Failed Checkout
 
 Symptoms:
