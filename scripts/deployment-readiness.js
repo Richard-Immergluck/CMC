@@ -29,7 +29,10 @@ const optionalEnvVars = [
   'DEMO_SEED_USER_NAME',
   'SECURITY_ALERT_WINDOW_MINUTES',
   'ADMIN_ACCESS_REVIEW_METRICS_WINDOW_DAYS',
-  'ADMIN_ACCESS_REVIEW_OVERDUE_HOURS'
+  'ADMIN_ACCESS_REVIEW_OVERDUE_HOURS',
+  'AUDIT_CLEANUP_RETENTION_DAYS',
+  'AUDIT_CLEANUP_EXECUTE',
+  'AUDIT_CLEANUP_CONFIRM'
 ]
 
 const fail = message => {
@@ -67,7 +70,15 @@ if (packageJson.engines?.node !== '24.x') {
   fail('package.json must pin engines.node to "24.x" for the current LTS runtime')
 }
 
-for (const scriptName of ['sanity', 'deps:audit', 'deploy:check', 'routes:check', 'smoke', 'smoke:health']) {
+for (const scriptName of [
+  'sanity',
+  'deps:audit',
+  'deploy:check',
+  'routes:check',
+  'security:audit-cleanup:rehearse',
+  'smoke',
+  'smoke:health'
+]) {
   if (!packageJson.scripts?.[scriptName]) {
     fail(`package.json is missing the "${scriptName}" script`)
   }
