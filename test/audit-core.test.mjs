@@ -4,6 +4,7 @@ import {
   auditActions,
   buildAuditEventData,
   buildAuthSignInDeniedMetadata,
+  buildAuthSignOutMetadata,
   buildCommentCreatedMetadata,
   buildRateLimitExceededMetadata,
   buildStripeWebhookSignatureFailedMetadata,
@@ -70,6 +71,22 @@ test('sign-in denied metadata records account posture without provider payloads'
       reason: 'inactive_account'
     }
   )
+})
+
+test('sign-out metadata records provider context only', () => {
+  assert.equal(auditActions.authSignOut, 'auth.sign_out')
+  assert.deepEqual(
+    buildAuthSignOutMetadata({
+      provider: 'google',
+      accessToken: 'should-not-leak'
+    }),
+    {
+      provider: 'google'
+    }
+  )
+  assert.deepEqual(buildAuthSignOutMetadata(), {
+    provider: 'unknown'
+  })
 })
 
 test('stripe webhook signature metadata records safe failure context', () => {
