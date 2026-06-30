@@ -82,7 +82,8 @@ const optionalDocumentedEnvVars = [
   'EMAIL_FROM',
   'CMC_ENABLE_SYNTHETIC_FIXTURES',
   'DEMO_SEED_USER_EMAIL',
-  'DEMO_SEED_USER_NAME'
+  'DEMO_SEED_USER_NAME',
+  'SECURITY_ALERT_WINDOW_MINUTES'
 ]
 
 const fail = message => {

@@ -25,11 +25,14 @@ This tracker records backend security and auditability work completed so far and
 - Blocked and audited admin attempts to update their own access fields.
 - Added optional Upstash Redis shared rate limiting with local fallback and Vercel Firewall starter guidance.
 - Added durable second-review workflow for high-risk admin/support access changes.
+- Added security alert threshold script and runbook guidance for recent audit events.
+- Added admin console controls for reviewing pending access-change requests.
+- Added production security dashboard and Vercel Log Drain setup guidance.
 
 ## In Progress
 
-- Add alerting dashboards or log drains for security event thresholds.
+- Harden review workflows with notification/email hooks for pending admin approvals.
 
 ## Next Targets
 
-- Add admin UI controls for reviewing pending access-change requests.
+- Add provider-backed production log drain configuration once the destination is selected.
