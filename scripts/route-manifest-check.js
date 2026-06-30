@@ -20,6 +20,7 @@ const requiredRoutes = [
   '/api/admin/summary',
   '/api/admin/tracks',
   '/api/admin/tracks/[trackId]',
+  '/api/admin/user-access-requests/[requestId]',
   '/api/admin/users',
   '/api/admin/users/[userId]',
   '/api/auth/[...nextauth]',
