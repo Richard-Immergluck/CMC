@@ -23,6 +23,7 @@ const requiredProductionEnvVars = [
 const optionalEnvVars = [
   'EMAIL_SERVER',
   'EMAIL_FROM',
+  'ADMIN_ACCESS_REVIEW_EMAIL_RECIPIENTS',
   'CMC_ENABLE_SYNTHETIC_FIXTURES',
   'DEMO_SEED_USER_EMAIL',
   'DEMO_SEED_USER_NAME',
