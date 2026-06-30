@@ -21,6 +21,7 @@ test('security report rows flatten dashboard data for export', () => {
       windowDays: 30,
       overdueHours: 24,
       auditActionCounts: {
+        'auth.inactive_api_rejected': 4,
         'auth.sign_in_denied': 2,
         'auth.sign_out': 3,
         'track_access.denied': 10,
@@ -81,7 +82,7 @@ test('security report rows flatten dashboard data for export', () => {
     }
   ])
   assert.ok(rows.some(row => row.category === 'auditSignal' && row.name === 'track_access.denied'))
-  assert.ok(rows.some(row => row.category === 'accountLifecycle' && row.name === 'totalEvents' && row.value === 6))
+  assert.ok(rows.some(row => row.category === 'accountLifecycle' && row.name === 'totalEvents' && row.value === 10))
   assert.ok(rows.some(row => row.category === 'auditRetention' && row.name === 'status' && row.value === 'review'))
   assert.ok(rows.some(row => row.category === 'auditRetention' && row.name === 'cleanupCandidateCount' && row.value === 4))
   assert.ok(rows.some(row => row.category === 'recentSecurityEvent' && row.value.includes('admin@example.com')))

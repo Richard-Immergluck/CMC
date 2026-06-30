@@ -27,10 +27,12 @@ test('audit action counts include known security actions with zero defaults', ()
 
   assert.equal(counts['track_access.denied'], 7)
   assert.equal(counts['rate_limit.exceeded'], 0)
+  assert.equal(counts['auth.inactive_api_rejected'], 0)
   assert.equal(counts['auth.sign_out'], 0)
   assert.equal(counts['unrelated.event'], undefined)
   assert.ok(securityDashboardAuditActions.includes('user_access_change.requested'))
   assert.ok(securityDashboardAuditActions.includes('stripe.webhook_signature_failed'))
+  assert.ok(securityDashboardAuditActions.includes('auth.inactive_api_rejected'))
   assert.ok(securityDashboardAuditActions.includes('auth.sign_out'))
 })
 
@@ -75,6 +77,18 @@ test('security dashboard severity escalates for high risk signals', () => {
     getSecurityDashboardSeverity({
       auditActionCounts: {
         'user_access.self_update_denied': 1
+      },
+      accessReviewMetrics: {
+        overduePending: 0,
+        pending: 0
+      }
+    }),
+    'high'
+  )
+  assert.equal(
+    getSecurityDashboardSeverity({
+      auditActionCounts: {
+        'auth.inactive_api_rejected': 1
       },
       accessReviewMetrics: {
         overduePending: 0,
