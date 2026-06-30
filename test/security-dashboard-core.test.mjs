@@ -28,6 +28,7 @@ test('audit action counts include known security actions with zero defaults', ()
   assert.equal(counts['rate_limit.exceeded'], 0)
   assert.equal(counts['unrelated.event'], undefined)
   assert.ok(securityDashboardAuditActions.includes('user_access_change.requested'))
+  assert.ok(securityDashboardAuditActions.includes('stripe.webhook_signature_failed'))
 })
 
 test('access review badges prioritize overdue reviews', () => {
@@ -71,6 +72,18 @@ test('security dashboard severity escalates for high risk signals', () => {
     getSecurityDashboardSeverity({
       auditActionCounts: {
         'user_access.self_update_denied': 1
+      },
+      accessReviewMetrics: {
+        overduePending: 0,
+        pending: 0
+      }
+    }),
+    'high'
+  )
+  assert.equal(
+    getSecurityDashboardSeverity({
+      auditActionCounts: {
+        'stripe.webhook_signature_failed': 1
       },
       accessReviewMetrics: {
         overduePending: 0,

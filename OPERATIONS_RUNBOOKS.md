@@ -155,6 +155,7 @@ Use the in-app `/admin` Security tab as the first production security dashboard.
 | Inactive sign-in loops | `AuditEvent` / `security:alerts` | `auth.sign_in_denied` | 10 events in 15 minutes |
 | Admin self-update attempts | `AuditEvent` / `security:alerts` | `user_access.self_update_denied` | Any event |
 | Privileged access approved | `AuditEvent` / `security:alerts` | `user_access_change.approved` | Any event |
+| Stripe webhook signature failure | `AuditEvent` / Security tab | `stripe.webhook_signature_failed` | Any event |
 
 Operational setup:
 
