@@ -51,11 +51,14 @@ const formatMoney = ({ amountTotal, currency }) => {
   }).format((amountTotal || 0) / 100)
 }
 
+const pastTenseDecision = decision => decision === 'approve' ? 'approved' : 'rejected'
+
 const UserAccessRow = ({ user, onSaved }) => {
   const [form, setForm] = useState({
     role: user.role,
     accountStatus: user.accountStatus,
-    uploaderStatus: user.uploaderStatus
+    uploaderStatus: user.uploaderStatus,
+    reason: ''
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -79,7 +82,13 @@ const UserAccessRow = ({ user, onSaved }) => {
         },
         body: JSON.stringify(form)
       })
-      onSaved(data.user)
+      onSaved(data)
+      setForm({
+        role: data.user.role,
+        accountStatus: data.user.accountStatus,
+        uploaderStatus: data.user.uploaderStatus,
+        reason: ''
+      })
     } catch (saveError) {
       setError(saveError.message)
     } finally {
@@ -93,6 +102,16 @@ const UserAccessRow = ({ user, onSaved }) => {
         <strong>{user.name || 'Unnamed user'}</strong>
         <div className='text-muted small'>{user.email}</div>
         {error && <Alert className='mt-2 mb-0 py-1' variant='danger'>{error}</Alert>}
+        <Form.Control
+          as='textarea'
+          className='mt-2'
+          name='reason'
+          onChange={updateField}
+          placeholder='Reason for privileged access changes'
+          rows={2}
+          size='sm'
+          value={form.reason}
+        />
       </td>
       <td>
         <Form.Select size='sm' name='role' value={form.role} onChange={updateField}>
@@ -126,13 +145,88 @@ const UserAccessRow = ({ user, onSaved }) => {
   )
 }
 
-const OperationsTables = ({ operations }) => {
+const OperationsTables = ({ operations, onReviewAccessRequest, reviewingAccessRequestId }) => {
   const orders = operations?.orders || []
   const paymentEvents = operations?.paymentEvents || []
   const auditEvents = operations?.auditEvents || []
+  const accessChangeRequests = operations?.accessChangeRequests || []
 
   return (
     <>
+      <h2 className='h5 mt-2'>Access Change Reviews</h2>
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Request</th>
+            <th>Target User</th>
+            <th>Requested By</th>
+            <th>Requested Access</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th className='text-end'>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {accessChangeRequests.map(request => (
+            <tr key={request.id}>
+              <td>#{request.id}</td>
+              <td>
+                {request.targetUser?.name || 'Unknown'}
+                <div className='text-muted small'>{request.targetUser?.email}</div>
+              </td>
+              <td>
+                {request.requestedBy?.name || 'Unknown'}
+                <div className='text-muted small'>{request.requestedBy?.email}</div>
+              </td>
+              <td>
+                {request.requestedRole && <div>Role: {request.requestedRole}</div>}
+                {request.requestedAccountStatus && <div>Account: {request.requestedAccountStatus}</div>}
+                {request.requestedUploaderStatus && <div>Uploader: {request.requestedUploaderStatus}</div>}
+                {request.reasonProvided && <div className='text-muted small'>Reason provided</div>}
+              </td>
+              <td><StatusBadge value={request.status} /></td>
+              <td>{formatDate(request.createdAt)}</td>
+              <td className='text-end'>
+                {request.status === 'PENDING' ? (
+                  <>
+                    <Button
+                      className='me-2'
+                      disabled={reviewingAccessRequestId === request.id}
+                      onClick={() => onReviewAccessRequest({
+                        requestId: request.id,
+                        decision: 'approve'
+                      })}
+                      size='sm'
+                      variant='success'
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      disabled={reviewingAccessRequestId === request.id}
+                      onClick={() => onReviewAccessRequest({
+                        requestId: request.id,
+                        decision: 'reject'
+                      })}
+                      size='sm'
+                      variant='outline-danger'
+                    >
+                      Reject
+                    </Button>
+                  </>
+                ) : (
+                  <span className='text-muted small'>Reviewed</span>
+                )}
+              </td>
+            </tr>
+          ))}
+          {accessChangeRequests.length === 0 && (
+            <tr>
+              <td colSpan='7' className='text-center text-muted'>No access change requests found.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+
       <h2 className='h5 mt-2'>Recent Orders</h2>
       <Table bordered hover responsive size='sm'>
         <thead>
@@ -317,6 +411,7 @@ const AdminConsoleContent = ({
   const [users, setUsers] = useState(initialUsers)
   const [operations, setOperations] = useState(initialOperations)
   const [loading, setLoading] = useState(false)
+  const [reviewingAccessRequestId, setReviewingAccessRequestId] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -367,10 +462,34 @@ const AdminConsoleContent = ({
     }
   }
 
-  const updateUser = updatedUser => {
-    setUsers(users.map(user => user.id === updatedUser.id ? updatedUser : user))
-    setNotice('User access updated.')
+  const updateUser = data => {
+    setUsers(users.map(user => user.id === data.user.id ? data.user : user))
+    setNotice(data.requiresReview
+      ? `Access change request #${data.accessChangeRequest.id} created for second review.`
+      : 'User access updated.')
     loadAdminData()
+  }
+
+  const reviewAccessRequest = async ({ requestId, decision }) => {
+    setNotice('')
+    setError('')
+    setReviewingAccessRequestId(requestId)
+
+    try {
+      await fetchJson(`/api/admin/user-access-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ decision })
+      })
+      setNotice(`Access change request ${pastTenseDecision(decision)}.`)
+      loadAdminData()
+    } catch (reviewError) {
+      setError(reviewError.message)
+    } finally {
+      setReviewingAccessRequestId(null)
+    }
   }
 
   if (forbidden) {
@@ -450,7 +569,11 @@ const AdminConsoleContent = ({
           </Tab>
 
           <Tab eventKey='operations' title='Operations'>
-            <OperationsTables operations={operations} />
+            <OperationsTables
+              operations={operations}
+              onReviewAccessRequest={reviewAccessRequest}
+              reviewingAccessRequestId={reviewingAccessRequestId}
+            />
           </Tab>
 
           {canManageUsers && (
