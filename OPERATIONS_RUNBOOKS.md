@@ -132,6 +132,14 @@ SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts
 
 The command reads recent `AuditEvent` rows, prints a JSON report of counts and findings, and exits non-zero for high-severity findings. It is intended for a scheduled monitor, Vercel Cron, external uptime/ops tooling, or manual incident triage. Start with the default 15 minute window, then tune thresholds after observing normal Preview and Production traffic.
 
+Access review metrics:
+
+```text
+ADMIN_ACCESS_REVIEW_METRICS_WINDOW_DAYS=30 ADMIN_ACCESS_REVIEW_OVERDUE_HOURS=24 yarn security:access-reviews
+```
+
+The command reads recent `UserAccessChangeRequest` rows and prints review backlog, overdue pending requests, average and maximum review latency, and recurring target users. Use it during admin access reviews, incident follow-up, and release readiness checks to confirm privileged-access approvals are not accumulating without second review.
+
 ### Production Security Dashboard
 
 Configure a Vercel Log Drain for Production runtime logs before relying on manual log searches. The first dashboard should be intentionally small and operational:
