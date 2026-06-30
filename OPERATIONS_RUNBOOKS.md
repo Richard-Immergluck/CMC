@@ -140,6 +140,27 @@ ADMIN_ACCESS_REVIEW_METRICS_WINDOW_DAYS=30 ADMIN_ACCESS_REVIEW_OVERDUE_HOURS=24 
 
 The command reads recent `UserAccessChangeRequest` rows and prints review backlog, overdue pending requests, average and maximum review latency, and recurring target users. Use it during admin access reviews, incident follow-up, and release readiness checks to confirm privileged-access approvals are not accumulating without second review.
 
+### Immediate Access Revocation
+
+Use this process when an account must lose access quickly because of suspected compromise, policy breach, disputed activity, or employment/role change. The application reloads the user from Postgres on authenticated API requests, so changing `accountStatus` to `SUSPENDED` or `CLOSED` is the primary revocation control.
+
+Revocation steps:
+
+1. In `/admin`, change the user `accountStatus` to `SUSPENDED` for temporary containment or `CLOSED` for permanent removal.
+2. Provide a concise reason so the `user_access.updated` or access-review audit trail explains the action.
+3. Ask the user to sign out if communication is appropriate, but do not rely on voluntary sign-out as the control.
+4. Verify that authenticated API calls now fail with `Active account required`.
+5. Review `/admin` Operations with the Account lifecycle filter and the Security tab for `auth.inactive_api_rejected`, `auth.sign_in_denied`, and recent `user_access.*` events.
+6. If API rejection events continue after suspension, treat it as a stale session or automated client loop and investigate the actor, route, and timestamp.
+7. Export `GET /api/admin/security-report?format=json` or `csv` as revocation evidence for incident notes.
+
+Current limitations and compensating controls:
+
+- NextAuth JWT sessions are stateless; existing browser cookies are not individually revoked server-side.
+- Authenticated API routes still reload the database user and block inactive accounts, so suspended/closed users cannot continue protected API actions even if their cookie has not expired.
+- If immediate browser logout is required across devices, shorten session expiry or add a server-side session denylist/revocation table in a follow-up PR.
+- Do not delete the user record during an incident; keep audit, order, ownership, and access-review evidence intact.
+
 ### Production Security Dashboard
 
 Use the in-app `/admin` Security tab as the first production security dashboard. It reads durable `AuditEvent` and `UserAccessChangeRequest` rows from Supabase/Postgres and does not require a paid external log or observability provider.
