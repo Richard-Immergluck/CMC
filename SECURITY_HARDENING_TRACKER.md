@@ -27,14 +27,15 @@ This tracker records backend security and auditability work completed so far and
 - Added durable second-review workflow for high-risk admin/support access changes.
 - Added security alert threshold script and runbook guidance for recent audit events.
 - Added admin console controls for reviewing pending access-change requests.
-- Added production security dashboard and Vercel Log Drain setup guidance.
+- Added production security dashboard guidance for durable in-app audit data.
 - Added optional email notifications for pending privileged access-change reviews.
 - Added access-review metrics for pending, overdue, latency, and recurring target analysis.
 
 ## In Progress
 
-- Add provider-backed production log drain configuration once the destination is selected.
+- Build free in-app security observability from Supabase/Postgres audit data.
 
 ## Next Targets
 
-- Add production dashboard panels for access-review latency, overdue pending reviews, and recurring target users.
+- Add admin notification badges for pending/overdue privileged access reviews.
+- Add exportable audit/security reports for periodic review without paid log tooling.

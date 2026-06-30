@@ -5,6 +5,7 @@ import {
   Alert,
   Badge,
   Button,
+  Card,
   Col,
   Container,
   Form,
@@ -52,6 +53,127 @@ const formatMoney = ({ amountTotal, currency }) => {
 }
 
 const pastTenseDecision = decision => decision === 'approve' ? 'approved' : 'rejected'
+
+const formatMinutes = value => {
+  if (value === null || value === undefined) {
+    return 'n/a'
+  }
+
+  if (value < 60) {
+    return `${value}m`
+  }
+
+  const hours = Math.floor(value / 60)
+  const minutes = value % 60
+
+  return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+}
+
+const SecurityDashboard = ({ dashboard }) => {
+  if (!dashboard) {
+    return <Alert variant='secondary'>Security dashboard data is not available.</Alert>
+  }
+
+  const auditCounts = dashboard.auditActionCounts || {}
+  const reviewMetrics = dashboard.accessReviewMetrics || {}
+  const recentAuditEvents = dashboard.recentAuditEvents || []
+  const severityVariant = dashboard.severity === 'high'
+    ? 'danger'
+    : dashboard.severity === 'medium'
+      ? 'warning'
+      : 'success'
+
+  return (
+    <>
+      <Row className='g-3 mb-3'>
+        <Col md={3}>
+          <Card className='h-100'>
+            <Card.Body>
+              <div className='text-muted small'>Security posture</div>
+              <div className='h4 mb-0'><Badge bg={severityVariant}>{dashboard.severity}</Badge></div>
+              <div className='text-muted small mt-2'>{dashboard.windowDays} day window</div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className='h-100'>
+            <Card.Body>
+              <div className='text-muted small'>Pending reviews</div>
+              <div className='h4 mb-0'>{reviewMetrics.pending || 0}</div>
+              <div className='text-muted small mt-2'>{reviewMetrics.overduePending || 0} overdue after {dashboard.overdueHours}h</div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className='h-100'>
+            <Card.Body>
+              <div className='text-muted small'>Average review</div>
+              <div className='h4 mb-0'>{formatMinutes(reviewMetrics.averageReviewMinutes)}</div>
+              <div className='text-muted small mt-2'>Max {formatMinutes(reviewMetrics.maxReviewMinutes)}</div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className='h-100'>
+            <Card.Body>
+              <div className='text-muted small'>Recurring targets</div>
+              <div className='h4 mb-0'>{reviewMetrics.recurringTargetUserIds?.length || 0}</div>
+              <div className='text-muted small mt-2'>Repeated privileged access changes</div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <h2 className='h5 mt-2'>Security Signals</h2>
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Signal</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(auditCounts).map(([action, count]) => (
+            <tr key={action}>
+              <td>{action}</td>
+              <td>{count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <h2 className='h5 mt-4'>Recent Security Events</h2>
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Actor</th>
+            <th>Entity</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recentAuditEvents.map(auditEvent => (
+            <tr key={auditEvent.id}>
+              <td>{auditEvent.action}</td>
+              <td>
+                {auditEvent.actor?.name || 'System'}
+                <div className='text-muted small'>{auditEvent.actor?.email}</div>
+              </td>
+              <td>{auditEvent.entityType} #{auditEvent.entityId}</td>
+              <td>{formatDate(auditEvent.createdAt)}</td>
+            </tr>
+          ))}
+          {recentAuditEvents.length === 0 && (
+            <tr>
+              <td colSpan='4' className='text-center text-muted'>No recent security events found.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+    </>
+  )
+}
 
 const UserAccessRow = ({ user, onSaved }) => {
   const [form, setForm] = useState({
@@ -574,6 +696,10 @@ const AdminConsoleContent = ({
               onReviewAccessRequest={reviewAccessRequest}
               reviewingAccessRequestId={reviewingAccessRequestId}
             />
+          </Tab>
+
+          <Tab eventKey='security' title='Security'>
+            <SecurityDashboard dashboard={operations?.securityDashboard} />
           </Tab>
 
           {canManageUsers && (

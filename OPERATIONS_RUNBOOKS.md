@@ -142,24 +142,26 @@ The command reads recent `UserAccessChangeRequest` rows and prints review backlo
 
 ### Production Security Dashboard
 
-Configure a Vercel Log Drain for Production runtime logs before relying on manual log searches. The first dashboard should be intentionally small and operational:
+Use the in-app `/admin` Security tab as the first production security dashboard. It reads durable `AuditEvent` and `UserAccessChangeRequest` rows from Supabase/Postgres and does not require a paid external log or observability provider.
 
 | Panel | Source | Query/Event | Initial threshold |
 | --- | --- | --- | --- |
-| Shared limiter fallback | Vercel runtime logs | `rate_limit.shared_store_failed` | Any event in 15 minutes |
+| Security posture | `/admin` Security tab | Combined dashboard severity | High severity requires same-day review |
+| Pending privileged reviews | `UserAccessChangeRequest` | `status=PENDING` | Any overdue request after 24 hours |
+| Access-review latency | `UserAccessChangeRequest` | average/max review minutes | Investigate sustained increases |
+| Recurring target users | `UserAccessChangeRequest` | repeated target user ids | Investigate repeated privileged changes |
 | Rate-limit bursts | `AuditEvent` / `security:alerts` | `rate_limit.exceeded` | 5 events in 15 minutes |
 | Track access denial bursts | `AuditEvent` / `security:alerts` | `track_access.denied` | 10 events in 15 minutes |
 | Inactive sign-in loops | `AuditEvent` / `security:alerts` | `auth.sign_in_denied` | 10 events in 15 minutes |
 | Admin self-update attempts | `AuditEvent` / `security:alerts` | `user_access.self_update_denied` | Any event |
 | Privileged access approved | `AuditEvent` / `security:alerts` | `user_access_change.approved` | Any event |
-| Stripe webhook signature failure | Vercel runtime logs | `stripe.webhook_signature_failed` | Any production burst |
 
 Operational setup:
 
-1. Create a Vercel Log Drain for the Production project and send runtime logs to the chosen provider.
-2. Confirm structured JSON fields are parsed for `level`, `event`, `message`, `requestId`, and `metadata`.
-3. Create dashboard panels for the events above with environment/deployment filters.
-4. Run `SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts` against Production on a schedule or from the monitoring provider.
+1. Open `/admin` and review the Security tab after production releases, auth changes, payment changes, and privileged-access changes.
+2. Run `SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts` manually during incident triage or scheduled free CI checks.
+3. Run `ADMIN_ACCESS_REVIEW_METRICS_WINDOW_DAYS=30 ADMIN_ACCESS_REVIEW_OVERDUE_HOURS=24 yarn security:access-reviews` before release promotion and during admin access reviews.
+4. Use Vercel runtime logs manually for request-level diagnostics when an in-app event references a `requestId`; do not require Vercel Log Drains or paid log sinks.
 5. Route high-severity findings to the same human escalation path as payment and credential incidents.
 6. Review alert noise after one week of normal traffic and adjust thresholds in `lib/server/security-alerts-core.mjs` through a PR.
 
