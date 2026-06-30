@@ -11,6 +11,7 @@
     "deps:audit": "node scripts/dependency-audit.js",
     "deploy:check": "node scripts/deployment-readiness.js",
     "seed:demo": "node scripts/seed-demo-data.mjs",
+    "security:audit-cleanup:rehearse": "node scripts/audit-cleanup-rehearsal.mjs",
     "security:access-reviews": "node scripts/admin-access-review-metrics.mjs",
     "security:alerts": "node scripts/security-alert-check.mjs",
     "security:rls": "node scripts/rls-grant-check.mjs",
