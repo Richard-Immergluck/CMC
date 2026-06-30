@@ -167,6 +167,34 @@ Operational setup:
 6. Route high-severity findings to the same human escalation path as payment and credential incidents.
 7. Review alert noise after one week of normal traffic and adjust thresholds in `lib/server/security-alerts-core.mjs` through a PR.
 
+### Audit Retention And Archival
+
+Keep audit data durable enough for support, payment reconciliation, and security review without allowing the free database to grow silently forever.
+
+Default retention posture:
+
+- Keep at least 12 months of `AuditEvent` rows online in Supabase/Postgres while the service is pre-enterprise and low volume.
+- Keep payment-adjacent records (`Order`, `OrderItem`, `PaymentEvent`, `TrackOwner`) indefinitely unless a separate finance/legal process explicitly approves archival. These rows are not disposable logs.
+- Keep `UserAccessChangeRequest` rows indefinitely while the admin role model is still changing; they are privileged-access evidence, not routine telemetry.
+- Export a JSON and CSV security report from `/admin` before any manual audit cleanup.
+- Do not delete audit rows that are linked to an open incident, unresolved payment issue, disputed account action, or active access review.
+
+Monthly free-only review:
+
+1. In Supabase, check database size and row counts for `AuditEvent`, `PaymentEvent`, and `UserAccessChangeRequest`.
+2. In `/admin`, export `GET /api/admin/security-report?format=json` and `GET /api/admin/security-report?format=csv`.
+3. Save the exported files with the release or operational review notes.
+4. Review high-signal actions before any cleanup: `stripe.webhook_signature_failed`, `user_access.self_update_denied`, `user_access_change.approved`, `track_access.denied`, `auth.sign_in_denied`, and `rate_limit.exceeded`.
+5. If audit volume is still small, take no deletion action. Prefer keeping data online while free capacity is comfortable.
+
+Manual cleanup guardrails:
+
+- Only prune `AuditEvent` rows older than the agreed retention window, and only after exporting review evidence.
+- Prune by date range, never by action alone; action-only deletion can hide abuse patterns.
+- Run cleanup against the development database first when possible.
+- Record the exact SQL, row count, timestamp, operator, and reason in release notes or incident notes.
+- After cleanup, run `/api/admin/health`, open the `/admin` Security tab, and run `yarn security:alerts` against the target environment.
+
 ## Failed Checkout
 
 Symptoms:

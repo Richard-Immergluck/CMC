@@ -34,6 +34,7 @@ This tracker records backend security and auditability work completed so far and
 - Added exportable JSON/CSV security reports for periodic review without paid log tooling.
 - Added durable audit events for Stripe webhook signature failures so they appear in the in-app security dashboard.
 - Added admin Security tab controls for exporting JSON/CSV security reports.
+- Added audit retention and archival policy guidance for free in-app observability.
 
 ## In Progress
 
@@ -41,4 +42,4 @@ This tracker records backend security and auditability work completed so far and
 
 ## Next Targets
 
-- Add retention/archival policy guidance for audit events as data grows.
+- Add a bounded audit cleanup rehearsal script for development environments only.
