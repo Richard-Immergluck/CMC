@@ -17,6 +17,7 @@ const requiredRoutes = [
   '/api',
   '/api/admin/health',
   '/api/admin/operations',
+  '/api/admin/security-report',
   '/api/admin/summary',
   '/api/admin/tracks',
   '/api/admin/tracks/[trackId]',
