@@ -2,6 +2,7 @@ import React from 'react'
 import { signOut, useSession } from 'next-auth/react'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
+import { BrandMark } from './brand'
 import { canAccessSupportSurface, canUploadTracks } from '../lib/access-control.mjs'
 
 function MainNavbar() {
@@ -18,7 +19,9 @@ function MainNavbar() {
     <>
       <Navbar className='shadow' bg='light' variant='light' expand='sm'>
         <Container>
-          <Navbar.Brand href={isAuthenticated ? '/catalogue' : '/'}>C.M.B.C (working title)</Navbar.Brand>
+          <Navbar.Brand className='cmc-navbar-brand' href={isAuthenticated ? '/catalogue' : '/'}>
+            <BrandMark compact />
+          </Navbar.Brand>
           <Navbar.Toggle aria-controls='navbarScroll' />
           <Navbar.Collapse id='navbarScroll'>
             <Nav

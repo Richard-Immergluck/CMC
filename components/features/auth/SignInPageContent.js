@@ -41,13 +41,14 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
             <h1>Sign in to your catalogue workspace.</h1>
             <p className='cmc-auth-copy'>
               Continue to purchased tracks, comments, uploads, requests, and the
-              marketplace catalogue with the same calm working surface as the rest of CMBC.
+              marketplace catalogue with the same calm working surface as the rest of
+              Classical Music Catalogue.
             </p>
           </Col>
           <Col lg={5}>
             <section className='cmc-auth-panel' aria-label='Sign in options'>
               <div>
-                <span>CMBC account</span>
+                <span>Classical Music Catalogue account</span>
                 <h2>Sign in or register</h2>
                 <p>New users can create an account using an available sign-in method.</p>
               </div>
