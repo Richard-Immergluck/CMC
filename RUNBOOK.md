@@ -6,7 +6,7 @@ Incident-specific recovery steps are in `OPERATIONS_RUNBOOKS.md`.
 
 Security event triage, alert thresholds, and audit investigation steps are in the Security Observability section of `OPERATIONS_RUNBOOKS.md`.
 
-Production security dashboard and Vercel Log Drain setup guidance is in the Production Security Dashboard section of `OPERATIONS_RUNBOOKS.md`.
+Production security dashboard guidance for free in-app audit reporting is in the Production Security Dashboard section of `OPERATIONS_RUNBOOKS.md`.
 
 Release promotion gates are in `RELEASE_GATES.md`.
 
