@@ -81,6 +81,14 @@ const formatMinutes = value => {
   return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
 }
 
+const auditRetentionLabel = retentionStatus => {
+  if (!retentionStatus) {
+    return 'unknown'
+  }
+
+  return retentionStatus.status === 'review' ? 'review' : 'clear'
+}
+
 const SecurityDashboard = ({ dashboard }) => {
   if (!dashboard) {
     return <Alert variant='secondary'>Security dashboard data is not available.</Alert>
@@ -88,6 +96,7 @@ const SecurityDashboard = ({ dashboard }) => {
 
   const auditCounts = dashboard.auditActionCounts || {}
   const reviewMetrics = dashboard.accessReviewMetrics || {}
+  const auditRetentionStatus = dashboard.auditRetentionStatus
   const accessReviewBadge = dashboard.accessReviewBadge || clearAccessReviewBadge
   const recentAuditEvents = dashboard.recentAuditEvents || []
   const severityVariant = dashboard.severity === 'high'
@@ -123,7 +132,7 @@ const SecurityDashboard = ({ dashboard }) => {
       </Row>
 
       <Row className='g-3 mb-3'>
-        <Col md={3}>
+        <Col md={6} xl>
           <Card className='h-100'>
             <Card.Body>
               <div className='text-muted small'>Security posture</div>
@@ -132,7 +141,7 @@ const SecurityDashboard = ({ dashboard }) => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={6} xl>
           <Card className='h-100'>
             <Card.Body>
               <div className='text-muted small'>Pending reviews</div>
@@ -141,7 +150,7 @@ const SecurityDashboard = ({ dashboard }) => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={6} xl>
           <Card className='h-100'>
             <Card.Body>
               <div className='text-muted small'>Average review</div>
@@ -150,12 +159,31 @@ const SecurityDashboard = ({ dashboard }) => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={6} xl>
           <Card className='h-100'>
             <Card.Body>
               <div className='text-muted small'>Recurring targets</div>
               <div className='h4 mb-0'>{reviewMetrics.recurringTargetUserIds?.length || 0}</div>
               <div className='text-muted small mt-2'>Repeated privileged access changes</div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={6} xl>
+          <Card className='h-100'>
+            <Card.Body>
+              <div className='text-muted small'>Audit retention</div>
+              <div className='h4 mb-0'>
+                <Badge bg={auditRetentionStatus?.status === 'review' ? 'warning' : 'success'}>
+                  {auditRetentionLabel(auditRetentionStatus)}
+                </Badge>
+              </div>
+              <div className='text-muted small mt-2'>
+                {auditRetentionStatus?.cleanupCandidateCount || 0} cleanup candidates
+              </div>
+              <div className='text-muted small'>
+                Oldest {auditRetentionStatus?.oldestAuditEventAgeDays ?? 'n/a'} days,
+                window {auditRetentionStatus?.retentionDays || 'n/a'} days
+              </div>
             </Card.Body>
           </Card>
         </Col>
