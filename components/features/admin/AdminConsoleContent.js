@@ -54,6 +54,18 @@ const formatMoney = ({ amountTotal, currency }) => {
 
 const pastTenseDecision = decision => decision === 'approve' ? 'approved' : 'rejected'
 
+const clearAccessReviewBadge = {
+  label: 'clear',
+  variant: 'success'
+}
+
+const TabTitleWithBadge = ({ label, badge }) => (
+  <span>
+    {label}{' '}
+    <Badge bg={badge.variant}>{badge.label}</Badge>
+  </span>
+)
+
 const formatMinutes = value => {
   if (value === null || value === undefined) {
     return 'n/a'
@@ -76,6 +88,7 @@ const SecurityDashboard = ({ dashboard }) => {
 
   const auditCounts = dashboard.auditActionCounts || {}
   const reviewMetrics = dashboard.accessReviewMetrics || {}
+  const accessReviewBadge = dashboard.accessReviewBadge || clearAccessReviewBadge
   const recentAuditEvents = dashboard.recentAuditEvents || []
   const severityVariant = dashboard.severity === 'high'
     ? 'danger'
@@ -99,7 +112,7 @@ const SecurityDashboard = ({ dashboard }) => {
           <Card className='h-100'>
             <Card.Body>
               <div className='text-muted small'>Pending reviews</div>
-              <div className='h4 mb-0'>{reviewMetrics.pending || 0}</div>
+              <div className='h4 mb-0'><Badge bg={accessReviewBadge.variant}>{accessReviewBadge.label}</Badge></div>
               <div className='text-muted small mt-2'>{reviewMetrics.overduePending || 0} overdue after {dashboard.overdueHours}h</div>
             </Card.Body>
           </Card>
@@ -272,10 +285,13 @@ const OperationsTables = ({ operations, onReviewAccessRequest, reviewingAccessRe
   const paymentEvents = operations?.paymentEvents || []
   const auditEvents = operations?.auditEvents || []
   const accessChangeRequests = operations?.accessChangeRequests || []
+  const accessReviewBadge = operations?.securityDashboard?.accessReviewBadge || clearAccessReviewBadge
 
   return (
     <>
-      <h2 className='h5 mt-2'>Access Change Reviews</h2>
+      <h2 className='h5 mt-2'>
+        Access Change Reviews <Badge bg={accessReviewBadge.variant}>{accessReviewBadge.label}</Badge>
+      </h2>
       <Table bordered hover responsive size='sm'>
         <thead>
           <tr>
@@ -536,6 +552,8 @@ const AdminConsoleContent = ({
   const [reviewingAccessRequestId, setReviewingAccessRequestId] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const accessReviewBadge = operations?.securityDashboard?.accessReviewBadge || clearAccessReviewBadge
+  const overdueReviews = operations?.securityDashboard?.accessReviewMetrics?.overduePending || 0
 
   const loadAdminData = async () => {
     if (forbidden) {
@@ -642,6 +660,11 @@ const AdminConsoleContent = ({
 
       {error && <Alert variant='danger'>{error}</Alert>}
       {notice && <Alert variant='success'>{notice}</Alert>}
+      {overdueReviews > 0 && (
+        <Alert variant='danger'>
+          {overdueReviews} privileged access review{overdueReviews === 1 ? ' is' : 's are'} overdue.
+        </Alert>
+      )}
 
       {loading ? (
         <div className='py-5 text-center'>
@@ -690,7 +713,10 @@ const AdminConsoleContent = ({
             </Table>
           </Tab>
 
-          <Tab eventKey='operations' title='Operations'>
+          <Tab
+            eventKey='operations'
+            title={<TabTitleWithBadge label='Operations' badge={accessReviewBadge} />}
+          >
             <OperationsTables
               operations={operations}
               onReviewAccessRequest={reviewAccessRequest}
@@ -698,7 +724,10 @@ const AdminConsoleContent = ({
             />
           </Tab>
 
-          <Tab eventKey='security' title='Security'>
+          <Tab
+            eventKey='security'
+            title={<TabTitleWithBadge label='Security' badge={accessReviewBadge} />}
+          >
             <SecurityDashboard dashboard={operations?.securityDashboard} />
           </Tab>
 
