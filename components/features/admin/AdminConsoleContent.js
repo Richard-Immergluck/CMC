@@ -98,6 +98,30 @@ const SecurityDashboard = ({ dashboard }) => {
 
   return (
     <>
+      <Row className='align-items-center mb-3'>
+        <Col>
+          <h2 className='h5 mb-0'>Security Dashboard</h2>
+        </Col>
+        <Col className='text-end'>
+          <Button
+            className='me-2'
+            href='/api/admin/security-report?format=json'
+            size='sm'
+            target='_blank'
+            variant='outline-info'
+          >
+            Export JSON
+          </Button>
+          <Button
+            href='/api/admin/security-report?format=csv'
+            size='sm'
+            variant='outline-info'
+          >
+            Export CSV
+          </Button>
+        </Col>
+      </Row>
+
       <Row className='g-3 mb-3'>
         <Col md={3}>
           <Card className='h-100'>
