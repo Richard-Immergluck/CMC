@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   adminOperationsQuerySchema,
+  adminSecurityReportQuerySchema,
   adminUserAccessReviewBodySchema,
   adminUserUpdateBodySchema,
   adminTrackModerationBodySchema,
@@ -267,6 +268,19 @@ test('admin operations query rejects unbounded or invalid filters', () => {
 
   assert.throws(
     () => validateInput(adminOperationsQuerySchema, { createdFrom: 'not-a-date' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin security report query accepts json and csv formats only', () => {
+  assert.deepEqual(validateInput(adminSecurityReportQuerySchema, {}), {
+    format: 'json'
+  })
+  assert.deepEqual(validateInput(adminSecurityReportQuerySchema, { format: 'csv' }), {
+    format: 'csv'
+  })
+  assert.throws(
+    () => validateInput(adminSecurityReportQuerySchema, { format: 'xml' }),
     error => error.statusCode === 400
   )
 })

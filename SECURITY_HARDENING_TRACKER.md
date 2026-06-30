@@ -31,6 +31,7 @@ This tracker records backend security and auditability work completed so far and
 - Added optional email notifications for pending privileged access-change reviews.
 - Added access-review metrics for pending, overdue, latency, and recurring target analysis.
 - Added admin notification badges for pending/overdue privileged access reviews.
+- Added exportable JSON/CSV security reports for periodic review without paid log tooling.
 
 ## In Progress
 
@@ -38,4 +39,4 @@ This tracker records backend security and auditability work completed so far and
 
 ## Next Targets
 
-- Add exportable audit/security reports for periodic review without paid log tooling.
+- Add durable audit events for Stripe webhook signature failures so they appear in the in-app security dashboard.

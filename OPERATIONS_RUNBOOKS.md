@@ -161,9 +161,10 @@ Operational setup:
 1. Open `/admin` and review the Security tab after production releases, auth changes, payment changes, and privileged-access changes.
 2. Run `SECURITY_ALERT_WINDOW_MINUTES=15 yarn security:alerts` manually during incident triage or scheduled free CI checks.
 3. Run `ADMIN_ACCESS_REVIEW_METRICS_WINDOW_DAYS=30 ADMIN_ACCESS_REVIEW_OVERDUE_HOURS=24 yarn security:access-reviews` before release promotion and during admin access reviews.
-4. Use Vercel runtime logs manually for request-level diagnostics when an in-app event references a `requestId`; do not require Vercel Log Drains or paid log sinks.
-5. Route high-severity findings to the same human escalation path as payment and credential incidents.
-6. Review alert noise after one week of normal traffic and adjust thresholds in `lib/server/security-alerts-core.mjs` through a PR.
+4. Export periodic review evidence with `GET /api/admin/security-report?format=json` or `GET /api/admin/security-report?format=csv`; the route requires `ADMIN` or `SUPPORT`.
+5. Use Vercel runtime logs manually for request-level diagnostics when an in-app event references a `requestId`; do not require Vercel Log Drains or paid log sinks.
+6. Route high-severity findings to the same human escalation path as payment and credential incidents.
+7. Review alert noise after one week of normal traffic and adjust thresholds in `lib/server/security-alerts-core.mjs` through a PR.
 
 ## Failed Checkout
 
