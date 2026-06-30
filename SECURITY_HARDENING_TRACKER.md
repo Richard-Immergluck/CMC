@@ -45,13 +45,17 @@ This tracker records backend security and auditability work completed so far and
 - Added an admin account-lifecycle audit filter for support investigations.
 - Added account-lifecycle totals to exported security reports.
 - Added smoke coverage for authenticated admin lifecycle audit/report surfaces.
+- Added server-side session identity freshness checks for authenticated API routes.
+- Added explicit audit events when inactive accounts are rejected by authenticated API guards.
+- Added inactive-account API rejections to the Security dashboard and account-lifecycle report totals.
+- Added e2e coverage for support users querying account-lifecycle audit filters.
 
 ## In Progress
 
-- Harden session freshness and inactive-account transition handling across authenticated routes.
+- Strengthen session revocation posture and admin visibility.
 
 ## Next Targets
 
-- Add server-side session freshness checks for sensitive authenticated operations.
-- Add explicit audit events when inactive accounts are rejected by authenticated APIs.
-- Add e2e coverage for admin account lifecycle audit filtering with seeded support credentials.
+- Add operational guidance for immediate access revocation after account suspension or closure.
+- Add admin-facing account lifecycle summaries for suspended and closed account activity.
+- Review whether sensitive mutation routes need stricter session age limits beyond NextAuth expiry.
