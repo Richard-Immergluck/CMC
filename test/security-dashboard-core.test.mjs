@@ -27,9 +27,11 @@ test('audit action counts include known security actions with zero defaults', ()
 
   assert.equal(counts['track_access.denied'], 7)
   assert.equal(counts['rate_limit.exceeded'], 0)
+  assert.equal(counts['auth.sign_out'], 0)
   assert.equal(counts['unrelated.event'], undefined)
   assert.ok(securityDashboardAuditActions.includes('user_access_change.requested'))
   assert.ok(securityDashboardAuditActions.includes('stripe.webhook_signature_failed'))
+  assert.ok(securityDashboardAuditActions.includes('auth.sign_out'))
 })
 
 test('access review badges prioritize overdue reviews', () => {
