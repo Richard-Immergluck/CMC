@@ -36,11 +36,17 @@ This tracker records backend security and auditability work completed so far and
 - Added admin Security tab controls for exporting JSON/CSV security reports.
 - Added audit retention and archival policy guidance for free in-app observability.
 - Added a bounded development-only audit cleanup rehearsal script.
+- Added admin-facing audit retention status to the in-app Security dashboard.
+- Added audit retention status to exported JSON/CSV security reports.
+- Added deployment readiness guardrails for audit retention envs and cleanup rehearsal coverage.
+- Completed the free in-app security observability loop from Supabase/Postgres audit data.
 
 ## In Progress
 
-- Build free in-app security observability from Supabase/Postgres audit data.
+- Extend backend security auditability for account/session lifecycle events.
 
 ## Next Targets
 
-- Add admin-facing audit retention status to the in-app Security dashboard.
+- Audit and harden sign-out, session revocation, and inactive-account transition flows.
+- Add admin-facing account lifecycle audit filters for support investigations.
+- Add smoke coverage for privileged admin security dashboard access and report export.
