@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  buildAuditRetentionStatus,
   buildSecurityDashboardSummary,
   getAccessReviewBadge,
   getSecurityDashboardSeverity,
@@ -116,7 +117,52 @@ test('security dashboard severity escalates for high risk signals', () => {
   )
 })
 
+test('audit retention status reports old events that need review', () => {
+  assert.deepEqual(
+    buildAuditRetentionStatus({
+      cleanupCandidateCount: 12,
+      oldestAuditEvent: {
+        createdAt: new Date('2025-01-01T00:00:00.000Z')
+      },
+      retentionDays: 365,
+      now: new Date('2026-01-10T00:00:00.000Z')
+    }),
+    {
+      status: 'review',
+      retentionDays: 365,
+      cleanupCandidateCount: 12,
+      oldestAuditEventCreatedAt: '2025-01-01T00:00:00.000Z',
+      oldestAuditEventAgeDays: 374
+    }
+  )
+})
+
+test('audit retention status is clear when no events exceed retention', () => {
+  assert.deepEqual(
+    buildAuditRetentionStatus({
+      cleanupCandidateCount: 0,
+      oldestAuditEvent: null,
+      retentionDays: 365,
+      now: new Date('2026-01-10T00:00:00.000Z')
+    }),
+    {
+      status: 'clear',
+      retentionDays: 365,
+      cleanupCandidateCount: 0,
+      oldestAuditEventCreatedAt: null,
+      oldestAuditEventAgeDays: null
+    }
+  )
+})
+
 test('security dashboard summary keeps window and event context', () => {
+  const auditRetentionStatus = {
+    status: 'clear',
+    retentionDays: 365,
+    cleanupCandidateCount: 0,
+    oldestAuditEventCreatedAt: null,
+    oldestAuditEventAgeDays: null
+  }
   const summary = buildSecurityDashboardSummary({
     auditActionCounts: {
       'track_access.denied': 10
@@ -125,6 +171,7 @@ test('security dashboard summary keeps window and event context', () => {
       overduePending: 0,
       pending: 0
     },
+    auditRetentionStatus,
     windowDays: 30,
     overdueHours: 24,
     recentAuditEvents: [
@@ -144,6 +191,7 @@ test('security dashboard summary keeps window and event context', () => {
       label: 'clear',
       variant: 'success'
     },
+    auditRetentionStatus,
     auditActionCounts: {
       'track_access.denied': 10
     },
