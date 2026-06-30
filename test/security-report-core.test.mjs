@@ -33,6 +33,22 @@ test('security report rows flatten dashboard data for export', () => {
         averageReviewMinutes: 90,
         maxReviewMinutes: 120
       },
+      accountLifecycleSummary: {
+        status: 'review',
+        accounts: {
+          active: 12,
+          suspended: 2,
+          closed: 1
+        },
+        lifecycleEvents: {
+          inactiveApiRejected: 4,
+          signInDenied: 2,
+          signOut: 3,
+          accessUpdated: 1
+        },
+        inactiveAccounts: 3,
+        rejectionEvents: 6
+      },
       auditRetentionStatus: {
         status: 'review',
         retentionDays: 365,
@@ -83,6 +99,8 @@ test('security report rows flatten dashboard data for export', () => {
   ])
   assert.ok(rows.some(row => row.category === 'auditSignal' && row.name === 'track_access.denied'))
   assert.ok(rows.some(row => row.category === 'accountLifecycle' && row.name === 'totalEvents' && row.value === 10))
+  assert.ok(rows.some(row => row.category === 'accountLifecycle' && row.name === 'inactiveAccounts' && row.value === 3))
+  assert.ok(rows.some(row => row.category === 'accountLifecycle' && row.name === 'rejectionEvents' && row.value === 6))
   assert.ok(rows.some(row => row.category === 'auditRetention' && row.name === 'status' && row.value === 'review'))
   assert.ok(rows.some(row => row.category === 'auditRetention' && row.name === 'cleanupCandidateCount' && row.value === 4))
   assert.ok(rows.some(row => row.category === 'recentSecurityEvent' && row.value.includes('admin@example.com')))
