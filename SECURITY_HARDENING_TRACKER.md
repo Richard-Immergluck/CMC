@@ -29,6 +29,7 @@ This tracker records backend security and auditability work completed so far and
 - Added admin console controls for reviewing pending access-change requests.
 - Added production security dashboard and Vercel Log Drain setup guidance.
 - Added optional email notifications for pending privileged access-change reviews.
+- Added access-review metrics for pending, overdue, latency, and recurring target analysis.
 
 ## In Progress
 
@@ -36,4 +37,4 @@ This tracker records backend security and auditability work completed so far and
 
 ## Next Targets
 
-- Expand audit analytics for admin review latency and recurring high-risk access changes.
+- Add production dashboard panels for access-review latency, overdue pending reviews, and recurring target users.
