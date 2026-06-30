@@ -298,6 +298,7 @@ test('audit event query options support account lifecycle category filters', () 
     }
   })
   assert.ok(options.where.action.in.includes('auth.sign_in_denied'))
+  assert.ok(options.where.action.in.includes('auth.inactive_api_rejected'))
   assert.ok(options.where.action.in.includes('auth.sign_out'))
   assert.ok(options.where.action.in.includes('user_access.updated'))
 })
