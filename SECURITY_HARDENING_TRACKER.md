@@ -40,13 +40,18 @@ This tracker records backend security and auditability work completed so far and
 - Added audit retention status to exported JSON/CSV security reports.
 - Added deployment readiness guardrails for audit retention envs and cleanup rehearsal coverage.
 - Completed the free in-app security observability loop from Supabase/Postgres audit data.
+- Added durable sign-out audit events without storing session tokens or provider payloads.
+- Added sign-out lifecycle events to the in-app Security dashboard signal set.
+- Added an admin account-lifecycle audit filter for support investigations.
+- Added account-lifecycle totals to exported security reports.
+- Added smoke coverage for authenticated admin lifecycle audit/report surfaces.
 
 ## In Progress
 
-- Extend backend security auditability for account/session lifecycle events.
+- Harden session freshness and inactive-account transition handling across authenticated routes.
 
 ## Next Targets
 
-- Audit and harden sign-out, session revocation, and inactive-account transition flows.
-- Add admin-facing account lifecycle audit filters for support investigations.
-- Add smoke coverage for privileged admin security dashboard access and report export.
+- Add server-side session freshness checks for sensitive authenticated operations.
+- Add explicit audit events when inactive accounts are rejected by authenticated APIs.
+- Add e2e coverage for admin account lifecycle audit filtering with seeded support credentials.
