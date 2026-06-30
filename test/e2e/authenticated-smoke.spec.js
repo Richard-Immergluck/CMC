@@ -170,6 +170,38 @@ test.describe('authenticated smoke', () => {
     )
   })
 
+  test('seeded support users can filter account lifecycle audit operations', async ({ page }) => {
+    await signInPageAs(page, 'e2e-support@example.com')
+
+    const operationsResponse = await page.request.get('/api/admin/operations?auditCategory=accountLifecycle')
+    const operations = await operationsResponse.json()
+    const lifecycleActions = new Set([
+      'auth.inactive_api_rejected',
+      'auth.sign_in_denied',
+      'auth.sign_out',
+      'user_access.self_update_denied',
+      'user_access.updated',
+      'user_access_change.requested',
+      'user_access_change.approved',
+      'user_access_change.rejected'
+    ])
+
+    expect(operationsResponse.status()).toBe(200)
+    expect(operations.auditEvents.length).toBeGreaterThan(0)
+    expect(operations.auditEvents.every(event => lifecycleActions.has(event.action))).toBe(true)
+    expect(operations.auditEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'auth.sign_in_denied',
+          entityType: 'User',
+          actor: expect.objectContaining({
+            email: 'e2e-support@example.com'
+          })
+        })
+      ])
+    )
+  })
+
   test('seeded customers can comment on purchased tracks', async ({ request }) => {
     await signInAs(request, 'e2e-customer@example.com')
 

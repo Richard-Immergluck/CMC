@@ -182,7 +182,7 @@ const seed = async () => {
     }
   })
 
-  await prisma.user.upsert({
+  const support = await prisma.user.upsert({
     where: {
       email: 'e2e-support@example.com'
     },
@@ -198,6 +198,28 @@ const seed = async () => {
       role: 'SUPPORT',
       uploaderStatus: 'NOT_REQUESTED',
       accountStatus: 'ACTIVE'
+    }
+  })
+
+  await prisma.auditEvent.deleteMany({
+    where: {
+      action: 'auth.sign_in_denied',
+      entityType: 'User',
+      entityId: support.id
+    }
+  })
+  await prisma.auditEvent.create({
+    data: {
+      action: 'auth.sign_in_denied',
+      actorId: support.id,
+      entityType: 'User',
+      entityId: support.id,
+      metadata: JSON.stringify({
+        accountStatus: 'SUSPENDED',
+        provider: 'e2e',
+        reason: 'inactive_account'
+      }),
+      createdAt: new Date('2026-06-25T12:05:00.000Z')
     }
   })
 
