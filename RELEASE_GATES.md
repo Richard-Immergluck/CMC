@@ -35,6 +35,7 @@ HEALTH_SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-proje
 ```
 
 - Preview protected deep health has been checked from an authenticated support/admin session after infrastructure changes.
+- Admin Security tab has been reviewed and a JSON or CSV security report has been exported for releases that touch auth, payments, admin access, audit events, or security dashboards.
 - Production readiness passes with production-scoped platform values:
 
 ```text
@@ -61,6 +62,7 @@ SMOKE_BASE_URL=https://<production-host> yarn smoke
 - Vercel runtime logs show no new checkout, webhook, upload, or signed URL error spike.
 - Stripe webhook deliveries for the production endpoint are succeeding.
 - Supabase project health is active.
+- If audit cleanup occurred, the exported security report, SQL/date range, row count, operator, and reason are recorded in release notes or incident notes.
 - Any operational deviation is recorded in `OPERATIONS_RUNBOOKS.md` or release notes.
 
 ## Hard Stop Conditions
@@ -74,3 +76,4 @@ Do not promote if any of these are true:
 - Smoke tests fail on security headers, auth gates, method contracts, or request-id headers.
 - RLS/grant posture checks fail.
 - Webhook signature verification is untested for the production endpoint.
+- Audit cleanup is requested without a prior export and written retention rationale.
