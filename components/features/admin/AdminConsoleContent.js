@@ -96,6 +96,7 @@ const SecurityDashboard = ({ dashboard }) => {
 
   const auditCounts = dashboard.auditActionCounts || {}
   const reviewMetrics = dashboard.accessReviewMetrics || {}
+  const accountLifecycleSummary = dashboard.accountLifecycleSummary
   const auditRetentionStatus = dashboard.auditRetentionStatus
   const accessReviewBadge = dashboard.accessReviewBadge || clearAccessReviewBadge
   const recentAuditEvents = dashboard.recentAuditEvents || []
@@ -188,6 +189,46 @@ const SecurityDashboard = ({ dashboard }) => {
           </Card>
         </Col>
       </Row>
+
+      <Card className='mb-3'>
+        <Card.Body>
+          <Row className='align-items-center g-3'>
+            <Col md={3}>
+              <div className='text-muted small'>Account lifecycle</div>
+              <div className='h4 mb-0'>
+                <Badge bg={accountLifecycleSummary?.status === 'review' ? 'warning' : 'success'}>
+                  {accountLifecycleSummary?.status || 'unknown'}
+                </Badge>
+              </div>
+            </Col>
+            <Col md={3}>
+              <div className='text-muted small'>Inactive accounts</div>
+              <div className='h4 mb-0'>{accountLifecycleSummary?.inactiveAccounts || 0}</div>
+              <div className='text-muted small'>
+                {accountLifecycleSummary?.accounts?.suspended || 0} suspended,
+                {' '}
+                {accountLifecycleSummary?.accounts?.closed || 0} closed
+              </div>
+            </Col>
+            <Col md={3}>
+              <div className='text-muted small'>Rejected activity</div>
+              <div className='h4 mb-0'>{accountLifecycleSummary?.rejectionEvents || 0}</div>
+              <div className='text-muted small'>
+                {accountLifecycleSummary?.lifecycleEvents?.inactiveApiRejected || 0} API,
+                {' '}
+                {accountLifecycleSummary?.lifecycleEvents?.signInDenied || 0} sign-in
+              </div>
+            </Col>
+            <Col md={3}>
+              <div className='text-muted small'>Session exits</div>
+              <div className='h4 mb-0'>{accountLifecycleSummary?.lifecycleEvents?.signOut || 0}</div>
+              <div className='text-muted small'>
+                {accountLifecycleSummary?.lifecycleEvents?.accessUpdated || 0} access updates
+              </div>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
       <h2 className='h5 mt-2'>Security Signals</h2>
       <Table bordered hover responsive size='sm'>
