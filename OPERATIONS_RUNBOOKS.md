@@ -100,7 +100,8 @@ High-signal events:
 | Burst of `rate_limit.exceeded` on checkout, upload signing, comments, or signed URL routes | `AuditEvent` and runtime logs | Medium/High | Identify actor/IP, check for UI retry loops, and consider temporary Vercel Firewall controls if abuse is external. |
 | `track_access.denied` followed by repeated signed URL attempts | `AuditEvent` | High | Verify ownership/admin role, inspect account status, and check for ID enumeration against track IDs. |
 | `track_access.signed_url_issued` spikes for one actor or track | `AuditEvent` and runtime logs | Medium | Confirm legitimate download/review activity and verify signed URL expiry policy has not changed. |
-| `user_access.updated` for admin/support/uploader privileges | `AuditEvent` | High | Verify the actor, intended ticket/change request, before/after role/status, and whether a second admin review is needed. |
+| `user_access_change.requested` for admin/support privileges | `AuditEvent`, email notification when configured | High | Verify the requester, target user, changed fields, and the matching ticket/change request before approval. |
+| `user_access.updated` for admin/support/uploader privileges | `AuditEvent` | High | Verify the actor, intended ticket/change request, before/after role/status, and whether a second admin review was required. |
 | `track_moderation.updated` approving/rejecting many tracks | `AuditEvent` | Medium | Confirm the moderation batch is expected and not an accidental bulk action. |
 | `stripe.webhook_signature_failed` | Runtime logs | High | Check webhook secret scoping and reject any fulfilment assumptions until Stripe delivery is verified. |
 | `stripe.webhook_processed` without matching ownership grant | Runtime logs, `PaymentEvent`, `AuditEvent` | High | Compare order, payment event, ownership, and audit rows before manual repair. |

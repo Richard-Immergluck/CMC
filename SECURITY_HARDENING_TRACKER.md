@@ -28,11 +28,12 @@ This tracker records backend security and auditability work completed so far and
 - Added security alert threshold script and runbook guidance for recent audit events.
 - Added admin console controls for reviewing pending access-change requests.
 - Added production security dashboard and Vercel Log Drain setup guidance.
+- Added optional email notifications for pending privileged access-change reviews.
 
 ## In Progress
 
-- Harden review workflows with notification/email hooks for pending admin approvals.
+- Add provider-backed production log drain configuration once the destination is selected.
 
 ## Next Targets
 
-- Add provider-backed production log drain configuration once the destination is selected.
+- Expand audit analytics for admin review latency and recurring high-risk access changes.
