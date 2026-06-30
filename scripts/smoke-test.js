@@ -39,7 +39,7 @@ const checks = [
     name: 'home page',
     path: '/',
     status: 200,
-    includes: ['C.M.B.C', 'Backing tracks should not gather dust.', 'Sign in or register'],
+    includes: ['Classical Music Catalogue', 'Backing tracks should not gather dust.', 'Sign in or register'],
     headers: [
       {
         name: 'content-security-policy',

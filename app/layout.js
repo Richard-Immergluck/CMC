@@ -3,7 +3,7 @@ import '../styles/globals.css'
 import AppProviders from '../components/providers/AppProviders'
 
 export const metadata = {
-  title: 'CMBC',
+  title: 'Classical Music Catalogue',
   description: 'Classical Music Backing-Track Catalogue',
   other: {
     'Classical Music Backing-Track Catalogue': 'Classical Music Backing-Track Catalogue'

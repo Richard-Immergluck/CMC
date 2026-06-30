@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button, Col, Container, Row } from 'react-bootstrap'
+import { BrandMark } from '../../brand'
 
 const communityPillars = [
   {
@@ -31,13 +32,14 @@ const HomePageContent = () => (
       <Container fluid='xl'>
         <Row className='align-items-end g-5'>
           <Col lg={8}>
+            <BrandMark className='cmc-home-brand-lockup' />
             <p className='cmc-kicker'>Classical music marketplace</p>
             <h1>Backing tracks should not gather dust.</h1>
             <p className='cmc-home-copy'>
-              CMBC is being built as a specialist marketplace for classical musicians:
-              a place to publish useful home-made backing tracks, buy practice-ready
-              recordings, request missing repertoire, and build reputation around the
-              music people actually use.
+              Classical Music Catalogue is being built as a specialist marketplace for
+              classical musicians: a place to publish useful home-made backing tracks,
+              buy practice-ready recordings, request missing repertoire, and build
+              reputation around the music people actually use.
             </p>
             <div className='cmc-home-actions'>
               <Link href='/catalogue' className='cmc-button cmc-button--secondary'>
