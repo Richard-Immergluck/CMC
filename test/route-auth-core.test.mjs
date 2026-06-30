@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  getActiveApiUserPosture,
   getRouteSessionIdentityPosture,
   requireActiveApiUser,
   requireFreshRouteSessionUser
@@ -13,6 +14,10 @@ const activeUser = {
 
 test('active API user guard returns active users', () => {
   assert.equal(requireActiveApiUser(activeUser), activeUser)
+  assert.deepEqual(getActiveApiUserPosture(activeUser), {
+    valid: true,
+    reason: 'active'
+  })
 })
 
 test('route session identity posture requires matching session and user identity', () => {
@@ -90,6 +95,16 @@ test('route session identity posture rejects stale or malformed sessions', () =>
 
 test('active API user guard rejects suspended and closed accounts', () => {
   for (const accountStatus of ['SUSPENDED', 'CLOSED']) {
+    assert.deepEqual(
+      getActiveApiUserPosture({
+        id: 'user-1',
+        accountStatus
+      }),
+      {
+        valid: false,
+        reason: 'inactive_account'
+      }
+    )
     assert.throws(
       () => requireActiveApiUser({
         id: 'user-1',
@@ -101,6 +116,10 @@ test('active API user guard rejects suspended and closed accounts', () => {
 })
 
 test('active API user guard rejects missing users defensively', () => {
+  assert.deepEqual(getActiveApiUserPosture(null), {
+    valid: false,
+    reason: 'missing_user'
+  })
   assert.throws(
     () => requireActiveApiUser(null),
     error => error.statusCode === 403 && error.message === 'Active account required'

@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   auditActions,
   buildAuditEventData,
+  buildAuthInactiveApiRejectedMetadata,
   buildAuthSignInDeniedMetadata,
   buildAuthSignOutMetadata,
   buildCommentCreatedMetadata,
@@ -87,6 +88,34 @@ test('sign-out metadata records provider context only', () => {
   assert.deepEqual(buildAuthSignOutMetadata(), {
     provider: 'unknown'
   })
+})
+
+test('inactive API rejection metadata records account posture only', () => {
+  assert.equal(auditActions.authInactiveApiRejected, 'auth.inactive_api_rejected')
+  assert.deepEqual(
+    buildAuthInactiveApiRejectedMetadata({
+      accountStatus: 'SUSPENDED',
+      reason: 'inactive_account',
+      route: '/api/tracks',
+      cookie: 'should-not-leak'
+    }),
+    {
+      accountStatus: 'SUSPENDED',
+      reason: 'inactive_account',
+      route: '/api/tracks'
+    }
+  )
+  assert.deepEqual(
+    buildAuthInactiveApiRejectedMetadata({
+      accountStatus: 'CLOSED',
+      reason: 'inactive_account'
+    }),
+    {
+      accountStatus: 'CLOSED',
+      reason: 'inactive_account',
+      route: 'unknown'
+    }
+  )
 })
 
 test('stripe webhook signature metadata records safe failure context', () => {
