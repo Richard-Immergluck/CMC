@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  buildAccountLifecycleSummary,
   buildAuditRetentionStatus,
   buildSecurityDashboardSummary,
   getAccessReviewBadge,
@@ -34,6 +35,55 @@ test('audit action counts include known security actions with zero defaults', ()
   assert.ok(securityDashboardAuditActions.includes('stripe.webhook_signature_failed'))
   assert.ok(securityDashboardAuditActions.includes('auth.inactive_api_rejected'))
   assert.ok(securityDashboardAuditActions.includes('auth.sign_out'))
+})
+
+test('account lifecycle summary combines account posture and lifecycle signals', () => {
+  assert.deepEqual(
+    buildAccountLifecycleSummary({
+      accountStatusCounts: [
+        {
+          accountStatus: 'ACTIVE',
+          _count: {
+            _all: 10
+          }
+        },
+        {
+          accountStatus: 'SUSPENDED',
+          _count: {
+            _all: 2
+          }
+        },
+        {
+          accountStatus: 'CLOSED',
+          _count: {
+            _all: 1
+          }
+        }
+      ],
+      auditActionCounts: {
+        'auth.inactive_api_rejected': 3,
+        'auth.sign_in_denied': 4,
+        'auth.sign_out': 5,
+        'user_access.updated': 6
+      }
+    }),
+    {
+      status: 'review',
+      accounts: {
+        active: 10,
+        suspended: 2,
+        closed: 1
+      },
+      lifecycleEvents: {
+        inactiveApiRejected: 3,
+        signInDenied: 4,
+        signOut: 5,
+        accessUpdated: 6
+      },
+      inactiveAccounts: 3,
+      rejectionEvents: 7
+    }
+  )
 })
 
 test('access review badges prioritize overdue reviews', () => {
@@ -172,6 +222,22 @@ test('audit retention status is clear when no events exceed retention', () => {
 })
 
 test('security dashboard summary keeps window and event context', () => {
+  const accountLifecycleSummary = {
+    status: 'clear',
+    accounts: {
+      active: 5,
+      suspended: 0,
+      closed: 0
+    },
+    lifecycleEvents: {
+      inactiveApiRejected: 0,
+      signInDenied: 0,
+      signOut: 0,
+      accessUpdated: 0
+    },
+    inactiveAccounts: 0,
+    rejectionEvents: 0
+  }
   const auditRetentionStatus = {
     status: 'clear',
     retentionDays: 365,
@@ -187,6 +253,7 @@ test('security dashboard summary keeps window and event context', () => {
       overduePending: 0,
       pending: 0
     },
+    accountLifecycleSummary,
     auditRetentionStatus,
     windowDays: 30,
     overdueHours: 24,
@@ -207,6 +274,7 @@ test('security dashboard summary keeps window and event context', () => {
       label: 'clear',
       variant: 'success'
     },
+    accountLifecycleSummary,
     auditRetentionStatus,
     auditActionCounts: {
       'track_access.denied': 10
