@@ -6,6 +6,7 @@ import {
   buildAuthSignInDeniedMetadata,
   buildCommentCreatedMetadata,
   buildRateLimitExceededMetadata,
+  buildStripeWebhookSignatureFailedMetadata,
   buildTrackAccessDeniedMetadata,
   buildTrackSignedUrlIssuedMetadata,
   buildUserAccessChangeRequestMetadata,
@@ -67,6 +68,25 @@ test('sign-in denied metadata records account posture without provider payloads'
       accountStatus: 'SUSPENDED',
       provider: 'google',
       reason: 'inactive_account'
+    }
+  )
+})
+
+test('stripe webhook signature metadata records safe failure context', () => {
+  assert.equal(auditActions.stripeWebhookSignatureFailed, 'stripe.webhook_signature_failed')
+  assert.deepEqual(
+    buildStripeWebhookSignatureFailedMetadata({
+      error: 'No signatures found matching the expected signature for payload',
+      hasSignatureHeader: 't=123,v1=abc',
+      requestId: 'req_123',
+      route: '/api/stripe/webhook',
+      rawBody: 'should-not-leak'
+    }),
+    {
+      error: 'No signatures found matching the expected signature for payload',
+      hasSignatureHeader: true,
+      requestId: 'req_123',
+      route: '/api/stripe/webhook'
     }
   )
 })

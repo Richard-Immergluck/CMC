@@ -4,6 +4,7 @@ import {
 } from '../../../../lib/server/route-handlers'
 import { logServerEvent } from '../../../../lib/server/logging'
 import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
+import { recordStripeWebhookSignatureFailure } from '../../../../lib/server/stripe-webhook-audit'
 import { getStripe } from '../../../../lib/server/stripe'
 import { processStripeWebhookEvent } from '../../../../lib/server/webhooks'
 
@@ -51,6 +52,11 @@ export async function POST(request) {
       metadata: {
         error: error.message
       }
+    })
+    await recordStripeWebhookSignatureFailure({
+      error: error.message,
+      hasSignatureHeader: Boolean(signature),
+      requestId
     })
 
     telemetry.complete({

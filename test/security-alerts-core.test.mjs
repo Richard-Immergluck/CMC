@@ -45,3 +45,24 @@ test('security alert findings identify high severity results', () => {
     }
   ]), true)
 })
+
+test('stripe webhook signature failures are high severity findings', () => {
+  assert.deepEqual(
+    evaluateSecurityAlertCounts({
+      counts: {
+        'stripe.webhook_signature_failed': 1
+      }
+    }).map(finding => ({
+      action: finding.action,
+      count: finding.count,
+      severity: finding.severity
+    })),
+    [
+      {
+        action: 'stripe.webhook_signature_failed',
+        count: 1,
+        severity: 'high'
+      }
+    ]
+  )
+})
