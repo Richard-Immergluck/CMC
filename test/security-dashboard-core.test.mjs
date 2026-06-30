@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   buildSecurityDashboardSummary,
+  getAccessReviewBadge,
   getSecurityDashboardSeverity,
   securityDashboardAuditActions,
   toAuditActionCounts
@@ -27,6 +28,42 @@ test('audit action counts include known security actions with zero defaults', ()
   assert.equal(counts['rate_limit.exceeded'], 0)
   assert.equal(counts['unrelated.event'], undefined)
   assert.ok(securityDashboardAuditActions.includes('user_access_change.requested'))
+})
+
+test('access review badges prioritize overdue reviews', () => {
+  assert.deepEqual(
+    getAccessReviewBadge({
+      pending: 4,
+      overduePending: 2
+    }),
+    {
+      count: 2,
+      label: '2 overdue',
+      variant: 'danger'
+    }
+  )
+  assert.deepEqual(
+    getAccessReviewBadge({
+      pending: 3,
+      overduePending: 0
+    }),
+    {
+      count: 3,
+      label: '3 pending',
+      variant: 'warning'
+    }
+  )
+  assert.deepEqual(
+    getAccessReviewBadge({
+      pending: 0,
+      overduePending: 0
+    }),
+    {
+      count: 0,
+      label: 'clear',
+      variant: 'success'
+    }
+  )
 })
 
 test('security dashboard severity escalates for high risk signals', () => {
@@ -89,6 +126,11 @@ test('security dashboard summary keeps window and event context', () => {
     windowDays: 30,
     overdueHours: 24,
     severity: 'high',
+    accessReviewBadge: {
+      count: 0,
+      label: 'clear',
+      variant: 'success'
+    },
     auditActionCounts: {
       'track_access.denied': 10
     },
