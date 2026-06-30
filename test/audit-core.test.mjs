@@ -8,6 +8,7 @@ import {
   buildRateLimitExceededMetadata,
   buildTrackAccessDeniedMetadata,
   buildTrackSignedUrlIssuedMetadata,
+  buildUserAccessChangeRequestMetadata,
   buildUserAccessDeniedMetadata,
   buildTrackSubmittedMetadata,
   serializeAuditMetadata
@@ -82,6 +83,24 @@ test('user access denied metadata records attempted fields without values', () =
       attemptedFields: ['accountStatus', 'role'],
       reason: 'self_access_update',
       route: '/api/admin/users/[userId]'
+    }
+  )
+})
+
+test('user access change request metadata records fields and request status only', () => {
+  assert.deepEqual(
+    buildUserAccessChangeRequestMetadata({
+      attemptedFields: ['role', 'accountStatus'],
+      requestId: 42,
+      route: '/api/admin/users/[userId]',
+      status: 'PENDING',
+      requestedRole: 'ADMIN'
+    }),
+    {
+      attemptedFields: ['accountStatus', 'role'],
+      requestId: 42,
+      route: '/api/admin/users/[userId]',
+      status: 'PENDING'
     }
   )
 })

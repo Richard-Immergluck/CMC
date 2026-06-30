@@ -14,6 +14,7 @@ const requiredTables = [
   'OrderItem',
   'PaymentEvent',
   'AuditEvent',
+  'UserAccessChangeRequest',
   '_prisma_migrations'
 ]
 

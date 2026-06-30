@@ -47,6 +47,7 @@ const requiredFiles = [
   'lib/validation/api.mjs',
   'app/api/demo-fixtures/[fixtureName]/route.js',
   'app/api/admin/operations/route.js',
+  'app/api/admin/user-access-requests/[requestId]/route.js',
   'app/api/tracks/[trackId]/signed-url/route.js',
   'app/api/uploads/signed-url/route.js',
   'app/api/stripe/checkout_sessions/route.js',

@@ -148,7 +148,8 @@ Privileged backend foundations:
 - `GET /api/admin/summary` requires `ADMIN` or `SUPPORT`.
 - `GET /api/admin/tracks` requires `ADMIN` or `SUPPORT` and returns pending moderation items.
 - `GET /api/admin/users` requires `ADMIN`.
-- `PATCH /api/admin/users/:userId` requires `ADMIN`, updates only role/account/uploader status fields, and records `user_access.updated` audit events.
+- `PATCH /api/admin/users/:userId` requires `ADMIN`, updates only role/account/uploader status fields, and records `user_access.updated` audit events for low-risk changes.
+- Changes that grant `ADMIN`/`SUPPORT` or modify an existing `ADMIN`/`SUPPORT` user create a `UserAccessChangeRequest` and return `202`; a different admin must approve or reject it through `PATCH /api/admin/user-access-requests/:requestId`.
 
 The admin console is available at `/admin`. For the first HITL test account, bootstrap one trusted user directly in the intended Supabase environment:
 

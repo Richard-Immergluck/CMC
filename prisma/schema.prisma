@@ -59,6 +59,9 @@ model User {
   Comment        Comment[]
   orders         Order[]
   auditEvents    AuditEvent[]
+  accessChangeRequestsRequested UserAccessChangeRequest[] @relation("UserAccessChangeRequestedBy")
+  accessChangeRequestsReviewed  UserAccessChangeRequest[] @relation("UserAccessChangeReviewedBy")
+  accessChangeRequestsTargeted  UserAccessChangeRequest[] @relation("UserAccessChangeTarget")
 
   @@index([role])
   @@index([accountStatus])
@@ -201,6 +204,30 @@ model AuditEvent {
   @@index([createdAt])
 }
 
+model UserAccessChangeRequest {
+  id                      Int                            @id @default(autoincrement())
+  targetUser              User                           @relation("UserAccessChangeTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetUserId            String
+  requestedBy             User                           @relation("UserAccessChangeRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  requestedById           String
+  reviewedBy              User?                          @relation("UserAccessChangeReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedById            String?
+  status                  UserAccessChangeRequestStatus  @default(PENDING)
+  requestedRole           UserRole?
+  requestedAccountStatus  UserAccountStatus?
+  requestedUploaderStatus UploaderStatus?
+  reason                  String?                        @db.Text
+  reviewNote              String?                        @db.Text
+  createdAt               DateTime                       @default(now())
+  reviewedAt              DateTime?
+  appliedAt               DateTime?
+
+  @@index([status, createdAt])
+  @@index([targetUserId])
+  @@index([requestedById])
+  @@index([reviewedById])
+}
+
 enum OrderStatus {
   PENDING
   PAID
@@ -247,4 +274,10 @@ enum TrackProcessingStatus {
   PROCESSING
   READY
   FAILED
+}
+
+enum UserAccessChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

@@ -2,11 +2,13 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   adminOperationsQuerySchema,
+  adminUserAccessReviewBodySchema,
   adminUserUpdateBodySchema,
   adminTrackModerationBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
   profileCommentBodySchema,
+  positiveIntegerParamSchema,
   reconcileCheckoutSessionBodySchema,
   simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
@@ -29,6 +31,17 @@ test('track id params reject non-integer and array input', () => {
 
   assert.throws(
     () => validateInput(trackIdParamSchema, { trackId: ['1', '2'] }),
+    error => error.statusCode === 400
+  )
+})
+
+test('positive integer params parse generic ids', () => {
+  assert.deepEqual(validateInput(positiveIntegerParamSchema, { id: '12' }), {
+    id: 12
+  })
+
+  assert.throws(
+    () => validateInput(positiveIntegerParamSchema, { id: '0' }),
     error => error.statusCode === 400
   )
 })
@@ -165,12 +178,14 @@ test('admin user update body accepts only role and status fields', () => {
       role: 'UPLOADER',
       accountStatus: 'ACTIVE',
       uploaderStatus: 'APPROVED',
+      reason: ' Operational cover ',
       ignored: 'removed'
     }),
     {
       role: 'UPLOADER',
       accountStatus: 'ACTIVE',
-      uploaderStatus: 'APPROVED'
+      uploaderStatus: 'APPROVED',
+      reason: 'Operational cover'
     }
   )
 
@@ -181,6 +196,24 @@ test('admin user update body accepts only role and status fields', () => {
 
   assert.throws(
     () => validateInput(adminUserUpdateBodySchema, { role: 'OWNER' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin user access review body accepts approve or reject decisions', () => {
+  assert.deepEqual(
+    validateInput(adminUserAccessReviewBodySchema, {
+      decision: 'approve',
+      reviewNote: ' Approved after ticket review '
+    }),
+    {
+      decision: 'approve',
+      reviewNote: 'Approved after ticket review'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(adminUserAccessReviewBodySchema, { decision: 'defer' }),
     error => error.statusCode === 400
   )
 })

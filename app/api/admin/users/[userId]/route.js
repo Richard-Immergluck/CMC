@@ -8,10 +8,10 @@ import {
 } from '../../../../../lib/server/route-handlers'
 import {
   createConflictError,
-  createNotFoundError
 } from '../../../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
-import { buildUserAccessChangeMetadata, toUserAdminItem } from '../../../../../lib/server/admin-core.mjs'
+import { toUserAdminItem } from '../../../../../lib/server/admin-core.mjs'
+import { applyDirectUserAccessUpdate } from '../../../../../lib/server/admin-access-requests'
 import {
   auditActions,
   buildUserAccessDeniedMetadata
@@ -21,7 +21,6 @@ import {
   canUpdateUserAccess,
   requireAdminPermission
 } from '../../../../../lib/server/permissions.mjs'
-import prisma from '../../../../../lib/server/prisma'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import {
   adminUserUpdateBodySchema,
@@ -69,42 +68,27 @@ export async function PATCH(request, { params }) {
       throw createConflictError('Admins cannot update their own access')
     }
 
-    const before = await prisma.user.findUnique({
-      where: {
-        id: userId
-      }
-    })
-
-    if (!before) {
-      throw createNotFoundError('User not found')
-    }
-
-    const after = await prisma.user.update({
-      where: {
-        id: userId
-      },
-      data: input
-    })
-
-    await recordAuditEvent({
-      action: auditActions.userAccessUpdated,
+    const result = await applyDirectUserAccessUpdate({
       actorId: admin.id,
-      entityType: 'User',
-      entityId: userId,
-      metadata: buildUserAccessChangeMetadata({
-        before,
-        after
-      })
+      targetUserId: userId,
+      input
     })
 
     telemetry.complete({
-      statusCode: 200,
+      statusCode: result.requiresReview ? 202 : 200,
       adminId: admin.id,
-      userId
+      userId,
+      requiresReview: result.requiresReview
     })
 
-    return jsonResponse(200, {
-      user: toUserAdminItem(after)
+    return jsonResponse(result.requiresReview ? 202 : 200, {
+      user: toUserAdminItem(result.user),
+      ...(result.requiresReview
+        ? {
+            requiresReview: true,
+            accessChangeRequest: result.accessChangeRequest
+          }
+        : {})
     })
   } catch (error) {
     telemetry.fail(error)

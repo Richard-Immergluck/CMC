@@ -3,12 +3,15 @@ import test from 'node:test'
 import {
   buildTrackModerationChangeMetadata,
   buildUserAccessChangeMetadata,
+  getUserAccessChangeFields,
+  requiresSecondReviewForUserAccessChange,
   toAuditEventAdminItem,
   toAuditEventQueryOptions,
   toAdminSummary,
   toOrderAdminItem,
   toPaymentEventAdminItem,
   toTrackReviewItem,
+  toUserAccessChangeRequestAdminItem,
   toUserAdminItem
 } from '../lib/server/admin-core.mjs'
 
@@ -90,6 +93,53 @@ test('user admin items expose role and status without provider account data', ()
       accountStatus: 'ACTIVE',
       uploaderStatus: 'NOT_REQUESTED'
     }
+  )
+})
+
+test('user access change fields ignore omitted values', () => {
+  assert.deepEqual(
+    getUserAccessChangeFields({
+      role: 'ADMIN',
+      accountStatus: null,
+      reason: 'Needs support access'
+    }),
+    ['role']
+  )
+})
+
+test('user access changes require second review for privileged roles', () => {
+  assert.equal(
+    requiresSecondReviewForUserAccessChange({
+      before: {
+        role: 'CUSTOMER'
+      },
+      input: {
+        role: 'ADMIN'
+      }
+    }),
+    true
+  )
+  assert.equal(
+    requiresSecondReviewForUserAccessChange({
+      before: {
+        role: 'SUPPORT'
+      },
+      input: {
+        accountStatus: 'SUSPENDED'
+      }
+    }),
+    true
+  )
+  assert.equal(
+    requiresSecondReviewForUserAccessChange({
+      before: {
+        role: 'CUSTOMER'
+      },
+      input: {
+        uploaderStatus: 'APPROVED'
+      }
+    }),
+    false
   )
 })
 
@@ -246,6 +296,64 @@ test('audit event query options default to latest 25 rows', () => {
       }
     ]
   })
+})
+
+test('user access change request admin items expose review context without reasons', () => {
+  assert.deepEqual(
+    toUserAccessChangeRequestAdminItem({
+      id: 7,
+      status: 'PENDING',
+      requestedRole: 'ADMIN',
+      requestedAccountStatus: null,
+      requestedUploaderStatus: null,
+      reason: 'Sensitive reason',
+      reviewNote: 'Sensitive note',
+      createdAt: new Date('2026-06-30T09:00:00.000Z'),
+      reviewedAt: null,
+      appliedAt: null,
+      targetUser: {
+        id: 'user-1',
+        name: 'Target',
+        email: 'target@example.com',
+        role: 'CUSTOMER',
+        accountStatus: 'ACTIVE',
+        uploaderStatus: 'NOT_REQUESTED'
+      },
+      requestedBy: {
+        id: 'admin-1',
+        name: 'Admin',
+        email: 'admin@example.com',
+        access_token: 'should-not-leak'
+      },
+      reviewedBy: null
+    }),
+    {
+      id: 7,
+      status: 'PENDING',
+      requestedRole: 'ADMIN',
+      requestedAccountStatus: null,
+      requestedUploaderStatus: null,
+      reasonProvided: true,
+      reviewNoteProvided: true,
+      createdAt: new Date('2026-06-30T09:00:00.000Z'),
+      reviewedAt: null,
+      appliedAt: null,
+      targetUser: {
+        id: 'user-1',
+        name: 'Target',
+        email: 'target@example.com',
+        role: 'CUSTOMER',
+        accountStatus: 'ACTIVE',
+        uploaderStatus: 'NOT_REQUESTED'
+      },
+      requestedBy: {
+        id: 'admin-1',
+        name: 'Admin',
+        email: 'admin@example.com'
+      },
+      reviewedBy: null
+    }
+  )
 })
 
 test('user access change metadata captures before and after safe fields', () => {
