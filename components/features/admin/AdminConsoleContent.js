@@ -332,7 +332,13 @@ const UserAccessRow = ({ user, onSaved }) => {
   )
 }
 
-const OperationsTables = ({ operations, onReviewAccessRequest, reviewingAccessRequestId }) => {
+const OperationsTables = ({
+  activeAuditCategory,
+  onLoadAuditCategory,
+  operations,
+  onReviewAccessRequest,
+  reviewingAccessRequestId
+}) => {
   const orders = operations?.orders || []
   const paymentEvents = operations?.paymentEvents || []
   const auditEvents = operations?.auditEvents || []
@@ -481,7 +487,28 @@ const OperationsTables = ({ operations, onReviewAccessRequest, reviewingAccessRe
         </tbody>
       </Table>
 
-      <h2 className='h5 mt-4'>Recent Audit Events</h2>
+      <Row className='align-items-center mt-4 mb-2'>
+        <Col>
+          <h2 className='h5 mb-0'>Recent Audit Events</h2>
+        </Col>
+        <Col className='text-end'>
+          <Button
+            className='me-2'
+            onClick={() => onLoadAuditCategory('')}
+            size='sm'
+            variant={activeAuditCategory ? 'outline-secondary' : 'secondary'}
+          >
+            All audit
+          </Button>
+          <Button
+            onClick={() => onLoadAuditCategory('accountLifecycle')}
+            size='sm'
+            variant={activeAuditCategory === 'accountLifecycle' ? 'info' : 'outline-info'}
+          >
+            Account lifecycle
+          </Button>
+        </Col>
+      </Row>
       <Table bordered hover responsive size='sm'>
         <thead>
           <tr>
@@ -600,6 +627,7 @@ const AdminConsoleContent = ({
   const [tracks, setTracks] = useState(initialTracks)
   const [users, setUsers] = useState(initialUsers)
   const [operations, setOperations] = useState(initialOperations)
+  const [operationsAuditCategory, setOperationsAuditCategory] = useState('')
   const [loading, setLoading] = useState(false)
   const [reviewingAccessRequestId, setReviewingAccessRequestId] = useState(null)
   const [error, setError] = useState('')
@@ -607,7 +635,7 @@ const AdminConsoleContent = ({
   const accessReviewBadge = operations?.securityDashboard?.accessReviewBadge || clearAccessReviewBadge
   const overdueReviews = operations?.securityDashboard?.accessReviewMetrics?.overduePending || 0
 
-  const loadAdminData = async () => {
+  const loadAdminData = async ({ auditCategory = operationsAuditCategory } = {}) => {
     if (forbidden) {
       return
     }
@@ -616,11 +644,14 @@ const AdminConsoleContent = ({
     setError('')
 
     try {
+      const operationsQuery = auditCategory
+        ? `?${new URLSearchParams({ auditCategory }).toString()}`
+        : ''
       const [summaryData, trackData, userData, operationsData] = await Promise.all([
         fetchJson('/api/admin/summary'),
         fetchJson('/api/admin/tracks'),
         canManageUsers ? fetchJson('/api/admin/users') : Promise.resolve({ users: [] }),
-        fetchJson('/api/admin/operations')
+        fetchJson(`/api/admin/operations${operationsQuery}`)
       ])
 
       setSummary(summaryData)
@@ -632,6 +663,11 @@ const AdminConsoleContent = ({
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadAuditCategory = auditCategory => {
+    setOperationsAuditCategory(auditCategory)
+    loadAdminData({ auditCategory })
   }
 
   const moderateTrack = async ({ trackId, decision }) => {
@@ -770,6 +806,8 @@ const AdminConsoleContent = ({
             title={<TabTitleWithBadge label='Operations' badge={accessReviewBadge} />}
           >
             <OperationsTables
+              activeAuditCategory={operationsAuditCategory}
+              onLoadAuditCategory={loadAuditCategory}
               operations={operations}
               onReviewAccessRequest={reviewAccessRequest}
               reviewingAccessRequestId={reviewingAccessRequestId}

@@ -241,6 +241,7 @@ test('admin operations query accepts bounded audit filters', () => {
   assert.deepEqual(
     validateInput(adminOperationsQuerySchema, {
       action: ' track_access.denied ',
+      auditCategory: 'accountLifecycle',
       actorId: 'user-1',
       entityType: 'Track',
       entityId: '42',
@@ -250,6 +251,7 @@ test('admin operations query accepts bounded audit filters', () => {
     }),
     {
       action: 'track_access.denied',
+      auditCategory: 'accountLifecycle',
       actorId: 'user-1',
       entityType: 'Track',
       entityId: '42',
@@ -268,6 +270,11 @@ test('admin operations query rejects unbounded or invalid filters', () => {
 
   assert.throws(
     () => validateInput(adminOperationsQuerySchema, { createdFrom: 'not-a-date' }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(adminOperationsQuerySchema, { auditCategory: 'payments' }),
     error => error.statusCode === 400
   )
 })

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  auditEventCategories,
   buildTrackModerationChangeMetadata,
   buildUserAccessChangeMetadata,
   getUserAccessChangeFields,
@@ -284,6 +285,21 @@ test('audit event query options build bounded support filters', () => {
       ]
     }
   )
+})
+
+test('audit event query options support account lifecycle category filters', () => {
+  const options = toAuditEventQueryOptions({
+    auditCategory: 'accountLifecycle'
+  })
+
+  assert.deepEqual(options.where, {
+    action: {
+      in: auditEventCategories.accountLifecycle
+    }
+  })
+  assert.ok(options.where.action.in.includes('auth.sign_in_denied'))
+  assert.ok(options.where.action.in.includes('auth.sign_out'))
+  assert.ok(options.where.action.in.includes('user_access.updated'))
 })
 
 test('audit event query options default to latest 25 rows', () => {
