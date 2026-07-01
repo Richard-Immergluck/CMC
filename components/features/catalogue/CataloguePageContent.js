@@ -2,8 +2,9 @@
 
 import { memo, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Button, Col, Container, Form, Row } from 'react-bootstrap'
+import { Col, Container, Form, Row } from 'react-bootstrap'
 import PlaySample from '../../PlaySample'
+import { Button, Panel } from '../../ui/primitives'
 
 const normalise = value => `${value || ''}`.toLowerCase()
 
@@ -66,7 +67,7 @@ const CataloguePageContent = ({ tracks }) => {
 
         <Row className='g-4 align-items-start'>
           <Col lg={4} xl={3}>
-            <aside className='cmc-catalogue-panel'>
+            <Panel as='aside' className='cmc-catalogue-panel' tone='accent'>
               <Form.Group controlId='catalogue-search'>
                 <Form.Label>Search catalogue</Form.Label>
                 <Form.Control
@@ -78,15 +79,15 @@ const CataloguePageContent = ({ tracks }) => {
               </Form.Group>
               <div className='cmc-catalogue-actions'>
                 <Button
-                  variant='secondary'
                   size='sm'
+                  variant='secondary'
                   onClick={() => setSearchParam(searchParam.trim())}
                 >
                   Search
                 </Button>
                 <Button
-                  variant='outline-secondary'
                   size='sm'
+                  variant='subtle'
                   disabled={!searchParam}
                   onClick={() => {
                     setSearchParam('')
@@ -103,7 +104,7 @@ const CataloguePageContent = ({ tracks }) => {
                   <small>{featuredTrack.composer}</small>
                 </div>
               )}
-            </aside>
+            </Panel>
           </Col>
 
           <Col lg={8} xl={9}>
@@ -155,12 +156,12 @@ const CataloguePageContent = ({ tracks }) => {
 
                     <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
                       <strong>{track.formattedPrice || 'TBC'}</strong>
-                      <Link href={`/catalogue/${track.id}`} className='cmc-button cmc-button--secondary'>
+                      <Button as={Link} href={`/catalogue/${track.id}`} variant='secondary'>
                         Details
-                      </Link>
+                      </Button>
                       <Button
-                        variant={previewTrackId === track.id ? 'secondary' : 'outline-secondary'}
                         size='sm'
+                        variant={previewTrackId === track.id ? 'secondary' : 'subtle'}
                         onClick={() => setPreviewTrackId(previewTrackId === track.id ? null : track.id)}
                       >
                         {previewTrackId === track.id ? 'Hide Preview' : 'Preview'}

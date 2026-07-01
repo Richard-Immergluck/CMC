@@ -33,7 +33,7 @@ Goals:
 
 - [x] Add semantic component tokens for controls, buttons, panels, and catalogue rows.
 - [x] Mirror component tokens through `lib/design/tokens.js` for testable JavaScript access.
-- [ ] Apply shared primitives to the catalogue filtering and result surfaces.
+- [x] Apply shared primitives to the catalogue filtering and result surfaces.
 - [ ] Apply shared primitives to auth, upload, profile, ownership, and admin surfaces.
 - [ ] Add visual QA snapshots for public, catalogue, auth, and mobile breakpoints.
 
