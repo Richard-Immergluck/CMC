@@ -4,7 +4,7 @@
 
 Status: Active
 
-Focus: establish the Classical Music Catalogue brand foundation, reusable design primitives, and a coherent visual direction before broader page redesigns.
+Focus: prepare a coherent dev-deployment design review before deeper page redesigns.
 
 ## Backend Polish Handoff
 
@@ -27,7 +27,7 @@ Goals:
 
 ## UI Sprint 2: Component System
 
-Status: In progress
+Status: Complete
 
 Goals:
 
@@ -39,9 +39,21 @@ Goals:
 - [x] Apply shared primitives to auth and upload surfaces.
 - [x] Add visual QA snapshots for public, catalogue, auth, and mobile breakpoints.
 
+## UI Sprint 3: Dev Design Review
+
+Status: Ready for HITL preparation
+
+Goals:
+
+- [ ] Confirm the latest `master` deployment is available on Vercel Dev or Preview.
+- [ ] Run visual QA screenshots against the same build that will be reviewed.
+- [ ] Ask for manual review of the public homepage, catalogue, auth, upload guard, profile, and admin surfaces.
+- [ ] Capture design feedback as grouped follow-up PRs rather than piecemeal CSS changes.
+- [ ] Decide whether to begin deeper catalogue page redesign or theme/dark-mode work first.
+
 ## Next UI Targets
 
-- Formalise component-level tokens for buttons, panels, forms, tables, filters, audio controls, and navigation.
-- Run a catalogue page design pass against the brand foundation, including mobile behaviour and longer seeded track lists.
-- Audit auth, upload, profile, ownership, and admin surfaces for consistent layout and interaction patterns.
-- Create visual QA snapshots for core breakpoints before larger aesthetic changes.
+- Confirm the current dev deployment and perform a physical design review.
+- Run a catalogue page design pass against review feedback, including mobile behaviour and longer seeded track lists.
+- Add theme controls only after the first reviewed light theme is coherent.
+- Refine admin/profile density after the catalogue and public experience are directionally settled.
