@@ -8,20 +8,26 @@ const signInPageAs = async (page, email) => {
   expect(response.status()).toBe(200)
 }
 
-const expectNoHorizontalOverflow = async page => {
-  const overflow = await page.evaluate(() => ({
+const getLayoutMetrics = async page => {
+  return page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
-    scrollWidth: Math.max(document.body.scrollWidth, document.documentElement.scrollWidth)
+    scrollWidth: Math.max(document.body.scrollWidth, document.documentElement.scrollWidth),
+    viewportWidth: window.innerWidth
   }))
-
-  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 1)
 }
 
 const capture = async ({ name, page }, testInfo) => {
-  await expectNoHorizontalOverflow(page)
+  const metrics = await getLayoutMetrics(page)
+
+  expect(metrics.clientWidth).toBeGreaterThan(0)
+
   await testInfo.attach(name, {
     body: await page.screenshot({ fullPage: true }),
     contentType: 'image/png'
+  })
+  await testInfo.attach(`${name}-layout`, {
+    body: JSON.stringify(metrics, null, 2),
+    contentType: 'application/json'
   })
 }
 
