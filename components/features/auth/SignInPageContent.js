@@ -3,7 +3,8 @@
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap'
+import { Alert, Col, Container, Form, Row } from 'react-bootstrap'
+import { Button, Panel } from '../../ui/primitives'
 
 const errorMessages = {
   OAuthSignin: 'The sign-in provider could not be reached. Please try again.',
@@ -46,7 +47,7 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
             </p>
           </Col>
           <Col lg={5}>
-            <section className='cmc-auth-panel' aria-label='Sign in options'>
+            <Panel as='section' className='cmc-auth-panel' tone='accent' aria-label='Sign in options'>
               <div>
                 <span>Classical Music Catalogue account</span>
                 <h2>Sign in or register</h2>
@@ -65,6 +66,7 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
                     className='cmc-auth-provider-button'
                     key={provider.id}
                     type='button'
+                    variant='secondary'
                     onClick={() => signIn(provider.id, { callbackUrl })}
                   >
                     Continue with {provider.name}
@@ -90,6 +92,7 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
                     className='cmc-auth-provider-button'
                     disabled={emailSubmitting}
                     type='submit'
+                    variant='secondary'
                   >
                     {emailSubmitting ? 'Sending link...' : 'Send magic link'}
                   </Button>
@@ -105,7 +108,7 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
               <Link href='/' className='cmc-auth-home-link'>
                 Return to homepage
               </Link>
-            </section>
+            </Panel>
           </Col>
         </Row>
       </Container>

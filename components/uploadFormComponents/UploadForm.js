@@ -7,7 +7,6 @@ import Link from 'next/link'
 // React Bootstrap imports
 import {
   Alert,
-  Button,
   Form,
   InputGroup,
   Popover,
@@ -18,6 +17,7 @@ import {
 import { Formik } from 'formik'
 import * as yup from 'yup'
 import { canUploadTracks } from '../../lib/access-control.mjs'
+import { Button, Panel } from '../ui/primitives'
 
 // Function to convert the time input into seconds
 const secondMaker = timeSplit => {
@@ -267,15 +267,15 @@ function UploadForm() {
                         Submit an MP3 backing track for review. Approved tracks are published to the catalogue after moderation.
                       </p>
                     </div>
-                    <aside className='cmc-upload-status-panel' aria-label='Upload review process'>
+                    <Panel as='aside' className='cmc-upload-status-panel' aria-label='Upload review process'>
                       <span>Review process</span>
                       <strong>Draft to approval</strong>
                       <p>Uploads are stored privately and checked by an admin before buyers can see them.</p>
-                    </aside>
+                    </Panel>
                   </section>
 
                   <section className='cmc-upload-layout'>
-                    <aside className='cmc-upload-guidance'>
+                    <Panel as='aside' className='cmc-upload-guidance'>
                       <h2>Before You Submit</h2>
                       <ul>
                         <li>Use MP3 audio only.</li>
@@ -283,9 +283,9 @@ function UploadForm() {
                         <li>Add performance notes that help musicians assess the track.</li>
                         <li>Only upload material you own or are allowed to distribute.</li>
                       </ul>
-                    </aside>
+                    </Panel>
 
-                    <div className='cmc-upload-panel'>
+                    <Panel className='cmc-upload-panel'>
                       {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
 
                       <div className='cmc-upload-fields'>
@@ -450,11 +450,11 @@ function UploadForm() {
                       </div>
 
                       <div className='cmc-upload-submit'>
-                        <Button size='lg' variant='info' type='submit' disabled={isSubmitting}>
+                        <Button size='lg' type='submit' disabled={isSubmitting}>
                           {isSubmitting ? 'Uploading...' : 'Submit'}
                         </Button>
                       </div>
-                    </div>
+                    </Panel>
                   </section>
                 </div>
               </main>
@@ -494,15 +494,15 @@ function UploadForm() {
                   </p>
                 </div>
                 <div className='modal-footer'>
-                  <Button variant='outline-secondary' onClick={uploadAnotherTrack}>
+                  <Button variant='subtle' onClick={uploadAnotherTrack}>
                     Upload Another
                   </Button>
-                  <Link href='/catalogue' passHref legacyBehavior>
-                    <a className='btn btn-outline-info'>Catalogue</a>
-                  </Link>
-                  <Link href='/admin' passHref legacyBehavior>
-                    <a className='btn btn-info'>Review Submissions</a>
-                  </Link>
+                  <Button as={Link} href='/catalogue' variant='secondary'>
+                    Catalogue
+                  </Button>
+                  <Button as={Link} href='/admin'>
+                    Review Submissions
+                  </Button>
                 </div>
               </div>
             </div>
@@ -514,14 +514,14 @@ function UploadForm() {
     return (
       <main className='cmc-upload-page'>
         <div className='container'>
-          <section className='cmc-upload-auth-panel'>
+          <Panel as='section' className='cmc-upload-auth-panel'>
             <p className='cmc-kicker'>Uploader workspace</p>
             <h1>Upload Form</h1>
             <p>Approved uploader access is required before you can submit tracks.</p>
-            <Link href='/profile' className='cmc-button cmc-button--secondary'>
+            <Button as={Link} href='/profile' variant='secondary'>
               Go to Profile
-            </Link>
-          </section>
+            </Button>
+          </Panel>
         </div>
       </main>
     )
@@ -529,14 +529,14 @@ function UploadForm() {
     return (
       <main className='cmc-upload-page'>
         <div className='container'>
-          <section className='cmc-upload-auth-panel'>
+          <Panel as='section' className='cmc-upload-auth-panel'>
             <p className='cmc-kicker'>Uploader workspace</p>
             <h1>Upload Form</h1>
             <p>You must be logged in to upload a track.</p>
-            <Link href='/login' className='cmc-button cmc-button--primary'>
+            <Button as={Link} href='/login'>
               Sign In
-            </Link>
-          </section>
+            </Button>
+          </Panel>
         </div>
       </main>
     )
