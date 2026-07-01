@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">CMC logo option 05</title>
+  <desc id="desc">A minimal catalogue grid with CMC rhythm marks.</desc>
+  <rect width="160" height="160" rx="26" fill="#101820"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="38" y="38" width="84" height="84" rx="14" stroke="#F6F0E3" stroke-width="8"/>
+    <path d="M58 62h44M58 80h44M58 98h44" stroke="#E7C96F" stroke-width="7"/>
+    <path d="M47 62c-10 0-17 7-17 18s7 18 17 18" stroke="#5FC8B4" stroke-width="8"/>
+    <path d="M113 62c10 0 17 7 17 18s-7 18-17 18" stroke="#E85D4F" stroke-width="8"/>
+  </g>
+</svg>
