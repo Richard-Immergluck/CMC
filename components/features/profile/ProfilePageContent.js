@@ -7,7 +7,6 @@ import Link from 'next/link'
 import {
   Alert,
   Badge,
-  Button,
   Card,
   Col,
   Container,
@@ -18,6 +17,7 @@ import {
   Tabs
 } from 'react-bootstrap'
 import PlayTrack from '../../PlayTrack'
+import { Button } from '../../ui/primitives'
 
 const ProfilePageContent = ({
   checkout,
@@ -100,15 +100,18 @@ const ProfilePageContent = ({
         <PlayTrack track={track} />
       </td>
       <td>
-        <a
-          className='btn btn-info btn-sm active'
+        <Button
+          as='a'
+          className='cmc-profile-download-button'
+          size='sm'
+          variant='secondary'
           rel='noreferrer'
           target='_blank'
           download={track.downloadName}
           href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
         >
           Download
-        </a>
+        </Button>
       </td>
     </tr>
   ))
@@ -148,13 +151,23 @@ const ProfilePageContent = ({
               </Card.Text>
               <ListGroup variant='flush'>
                 <ListGroup.Item>
-                  <Button variant='info' onClick={() => setKey('purchased')}>
+                  <Button
+                    className='cmc-profile-tab-button'
+                    size='sm'
+                    variant='secondary'
+                    onClick={() => setKey('purchased')}
+                  >
                     Purchased Tracks:{' '}
                     <Badge bg='secondary'>{userPurchasedTracks.length}</Badge>
                   </Button>
                 </ListGroup.Item>
                 <ListGroup.Item>
-                  <Button variant='info' onClick={() => setKey('uploaded')}>
+                  <Button
+                    className='cmc-profile-tab-button'
+                    size='sm'
+                    variant='secondary'
+                    onClick={() => setKey('uploaded')}
+                  >
                     Uploaded Tracks:{' '}
                     <Badge bg='secondary'>{userUploadedTracks.length}</Badge>
                   </Button>
