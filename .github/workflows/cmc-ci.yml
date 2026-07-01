@@ -59,7 +59,13 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Install Playwright browser
-        run: yarn test:e2e:install
+        timeout-minutes: 5
+        run: |
+          yarn test:e2e:install || (
+            echo "Playwright install failed; retrying once after a short delay"
+            sleep 20
+            yarn test:e2e:install
+          )
 
       - name: Generate Prisma client
         run: yarn prisma generate
