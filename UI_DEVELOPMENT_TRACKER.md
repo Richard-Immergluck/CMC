@@ -20,10 +20,22 @@ Open backend polish to return to:
 
 Goals:
 
-- Replace the old CMBC working-title presentation with Classical Music Catalogue.
-- Add a reusable brand mark and wordmark component.
-- Document the design direction before component and page-level redesigns begin.
-- Keep palette decisions token-led so dark and alternate light schemes remain possible later.
+- [x] Replace the old CMBC working-title presentation with Classical Music Catalogue.
+- [x] Add a reusable brand mark and wordmark component.
+- [x] Document the design direction before component and page-level redesigns begin.
+- [x] Keep palette decisions token-led so dark and alternate light schemes remain possible later.
+
+## UI Sprint 2: Component System
+
+Status: In progress
+
+Goals:
+
+- [x] Add semantic component tokens for controls, buttons, panels, and catalogue rows.
+- [x] Mirror component tokens through `lib/design/tokens.js` for testable JavaScript access.
+- [ ] Apply shared primitives to the catalogue filtering and result surfaces.
+- [ ] Apply shared primitives to auth, upload, profile, ownership, and admin surfaces.
+- [ ] Add visual QA snapshots for public, catalogue, auth, and mobile breakpoints.
 
 ## Next UI Targets
 
