@@ -38,6 +38,36 @@
   --cmc-radius-md: 8px;
   --cmc-focus-ring: 0 0 0 3px rgba(55, 104, 91, 0.28);
   --cmc-shadow-sm: 0 1px 2px rgba(32, 36, 31, 0.08);
+  --cmc-shadow-md: 0 18px 34px rgba(23, 63, 56, 0.16);
+
+  --cmc-component-control-height-sm: 2.25rem;
+  --cmc-component-control-height-md: 2.75rem;
+  --cmc-component-control-height-lg: 3.25rem;
+  --cmc-component-control-radius: var(--cmc-radius-sm);
+  --cmc-component-control-border: var(--cmc-color-border);
+  --cmc-component-control-background: var(--cmc-color-surface);
+  --cmc-component-control-text: var(--cmc-color-text);
+  --cmc-component-control-placeholder: var(--cmc-color-text-muted);
+
+  --cmc-component-button-primary-background: var(--cmc-color-accent);
+  --cmc-component-button-primary-border: var(--cmc-color-accent);
+  --cmc-component-button-primary-text: var(--cmc-color-accent-contrast);
+  --cmc-component-button-primary-hover-background: var(--cmc-color-accent-strong);
+  --cmc-component-button-secondary-background: var(--cmc-color-surface);
+  --cmc-component-button-secondary-border: var(--cmc-color-border);
+  --cmc-component-button-secondary-text: var(--cmc-color-accent-strong);
+  --cmc-component-button-danger-background: var(--cmc-color-danger);
+  --cmc-component-button-danger-border: var(--cmc-color-danger);
+  --cmc-component-button-danger-text: var(--cmc-color-accent-contrast);
+
+  --cmc-component-panel-background: var(--cmc-color-surface);
+  --cmc-component-panel-border: var(--cmc-color-border);
+  --cmc-component-panel-shadow: var(--cmc-shadow-sm);
+  --cmc-component-panel-accent-border: var(--cmc-color-accent-gold);
+
+  --cmc-component-table-row-background: transparent;
+  --cmc-component-table-row-hover-background: rgba(168, 115, 34, 0.1);
+  --cmc-component-table-row-border: var(--cmc-color-border);
 
   --cmc-theme-page-background:
     linear-gradient(180deg, #f8f4ea 0%, #f2ebdf 42%, #e9efe8 100%),
@@ -78,6 +108,32 @@
 
   --cmc-focus-ring: 0 0 0 3px rgba(141, 184, 168, 0.34);
   --cmc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --cmc-shadow-md: 0 18px 34px rgba(0, 0, 0, 0.32);
+
+  --cmc-component-control-border: var(--cmc-color-border);
+  --cmc-component-control-background: var(--cmc-color-surface);
+  --cmc-component-control-text: var(--cmc-color-text);
+  --cmc-component-control-placeholder: var(--cmc-color-text-muted);
+
+  --cmc-component-button-primary-background: var(--cmc-color-accent);
+  --cmc-component-button-primary-border: var(--cmc-color-accent);
+  --cmc-component-button-primary-text: var(--cmc-color-accent-contrast);
+  --cmc-component-button-primary-hover-background: var(--cmc-color-accent-strong);
+  --cmc-component-button-secondary-background: var(--cmc-color-surface-muted);
+  --cmc-component-button-secondary-border: var(--cmc-color-border);
+  --cmc-component-button-secondary-text: var(--cmc-color-text);
+  --cmc-component-button-danger-background: var(--cmc-color-danger);
+  --cmc-component-button-danger-border: var(--cmc-color-danger);
+  --cmc-component-button-danger-text: var(--cmc-color-accent-contrast);
+
+  --cmc-component-panel-background: var(--cmc-color-surface);
+  --cmc-component-panel-border: var(--cmc-color-border);
+  --cmc-component-panel-shadow: var(--cmc-shadow-sm);
+  --cmc-component-panel-accent-border: var(--cmc-color-accent-gold);
+
+  --cmc-component-table-row-background: transparent;
+  --cmc-component-table-row-hover-background: rgba(216, 177, 100, 0.12);
+  --cmc-component-table-row-border: var(--cmc-color-border);
 
   --cmc-theme-page-background:
     linear-gradient(180deg, rgba(17, 24, 21, 0.98), rgba(24, 34, 30, 0.9)),

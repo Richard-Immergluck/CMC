@@ -1,22 +1,32 @@
 const variantClassNames = {
   primary: 'cmc-button cmc-button--primary',
   secondary: 'cmc-button cmc-button--secondary',
-  subtle: 'cmc-button cmc-button--subtle'
+  subtle: 'cmc-button cmc-button--subtle',
+  danger: 'cmc-button cmc-button--danger'
+}
+
+const sizeClassNames = {
+  sm: 'cmc-button--sm',
+  md: '',
+  lg: 'cmc-button--lg'
 }
 
 export default function Button({
   as: Component = 'button',
   children,
   className = '',
+  size = 'md',
   variant = 'primary',
   type,
   ...props
 }) {
   const variantClassName = variantClassNames[variant] || variantClassNames.primary
+  const sizeClassName = sizeClassNames[size] || sizeClassNames.md
   const componentProps = Component === 'button' ? { type: type || 'button', ...props } : props
+  const classes = [variantClassName, sizeClassName, className].filter(Boolean).join(' ')
 
   return (
-    <Component className={`${variantClassName}${className ? ` ${className}` : ''}`} {...componentProps}>
+    <Component className={classes} {...componentProps}>
       {children}
     </Component>
   )

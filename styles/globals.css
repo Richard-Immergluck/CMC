@@ -20,10 +20,10 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
+  min-height: var(--cmc-component-control-height-md);
   padding: var(--cmc-space-2) var(--cmc-space-4);
   border: 1px solid transparent;
-  border-radius: var(--cmc-radius-sm);
+  border-radius: var(--cmc-component-control-radius);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
@@ -37,21 +37,21 @@ a {
 }
 
 .cmc-button--primary {
-  color: var(--cmc-color-accent-contrast);
-  background: var(--cmc-color-accent);
-  border-color: var(--cmc-color-accent);
+  color: var(--cmc-component-button-primary-text);
+  background: var(--cmc-component-button-primary-background);
+  border-color: var(--cmc-component-button-primary-border);
 }
 
 .cmc-button--primary:hover {
-  color: var(--cmc-color-accent-contrast);
-  background: var(--cmc-color-accent-strong);
-  border-color: var(--cmc-color-accent-strong);
+  color: var(--cmc-component-button-primary-text);
+  background: var(--cmc-component-button-primary-hover-background);
+  border-color: var(--cmc-component-button-primary-hover-background);
 }
 
 .cmc-button--secondary {
-  color: var(--cmc-color-accent-strong);
-  background: var(--cmc-color-surface);
-  border-color: var(--cmc-color-border);
+  color: var(--cmc-component-button-secondary-text);
+  background: var(--cmc-component-button-secondary-background);
+  border-color: var(--cmc-component-button-secondary-border);
 }
 
 .cmc-button--subtle {
@@ -60,12 +60,33 @@ a {
   border-color: transparent;
 }
 
+.cmc-button--danger {
+  color: var(--cmc-component-button-danger-text);
+  background: var(--cmc-component-button-danger-background);
+  border-color: var(--cmc-component-button-danger-border);
+}
+
+.cmc-button--sm {
+  min-height: var(--cmc-component-control-height-sm);
+  padding: var(--cmc-space-1) var(--cmc-space-3);
+  font-size: var(--cmc-font-size-small);
+}
+
+.cmc-button--lg {
+  min-height: var(--cmc-component-control-height-lg);
+  padding: var(--cmc-space-3) var(--cmc-space-5);
+}
+
 .cmc-panel {
   padding: var(--cmc-space-4);
-  background: var(--cmc-color-surface);
-  border: 1px solid var(--cmc-color-border);
+  background: var(--cmc-component-panel-background);
+  border: 1px solid var(--cmc-component-panel-border);
   border-radius: var(--cmc-radius-md);
-  box-shadow: var(--cmc-shadow-sm);
+  box-shadow: var(--cmc-component-panel-shadow);
+}
+
+.cmc-panel--accent {
+  border-top: 4px solid var(--cmc-component-panel-accent-border);
 }
 
 .cmc-brand {
