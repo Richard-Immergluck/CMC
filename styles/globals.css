@@ -1194,6 +1194,15 @@ a {
   color: var(--cmc-color-text-muted);
 }
 
+.cmc-profile-tab-button,
+.cmc-profile-download-button {
+  width: 100%;
+}
+
+.cmc-profile-tab-button {
+  justify-content: space-between;
+}
+
 @media (max-width: 991px) {
   .cmc-home-pathway-grid {
     grid-template-columns: 1fr;
