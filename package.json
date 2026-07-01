@@ -22,6 +22,7 @@
     "smoke": "node scripts/smoke-test.js",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
+    "test:e2e:visual": "playwright test test/e2e/visual-qa.spec.js",
     "test:integration": "node --test test/integration/**/*.test.mjs",
     "test:unit": "node --test test/*.test.mjs",
     "lint": "eslint ."

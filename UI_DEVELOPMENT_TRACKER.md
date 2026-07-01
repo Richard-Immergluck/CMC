@@ -37,7 +37,7 @@ Goals:
 - [x] Apply shared primitives to ownership and admin surfaces.
 - [x] Apply shared primitives to profile surfaces.
 - [x] Apply shared primitives to auth and upload surfaces.
-- [ ] Add visual QA snapshots for public, catalogue, auth, and mobile breakpoints.
+- [x] Add visual QA snapshots for public, catalogue, auth, and mobile breakpoints.
 
 ## Next UI Targets
 
