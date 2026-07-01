@@ -428,8 +428,8 @@ a {
   background:
     linear-gradient(180deg, rgba(143, 61, 61, 0.16), transparent 46%),
     var(--cmc-color-accent-strong);
-  border-top: 5px solid var(--cmc-color-accent-gold);
-  box-shadow: 0 18px 34px rgba(23, 63, 56, 0.16);
+  border-top: 5px solid var(--cmc-component-panel-accent-border);
+  box-shadow: var(--cmc-shadow-md);
 }
 
 .cmc-auth-panel span {
@@ -470,10 +470,11 @@ a {
 }
 
 .cmc-auth-email-form .form-control {
-  color: var(--cmc-color-text);
-  background: var(--cmc-color-surface);
-  border-color: rgba(255, 253, 248, 0.34);
-  border-radius: 0;
+  min-height: var(--cmc-component-control-height-md);
+  color: var(--cmc-component-control-text);
+  background: var(--cmc-component-control-background);
+  border-color: var(--cmc-component-control-border);
+  border-radius: var(--cmc-component-control-radius);
 }
 
 .cmc-auth-email-form .form-control:focus {
@@ -486,7 +487,6 @@ a {
   color: var(--cmc-color-accent-strong);
   background: var(--cmc-color-accent-gold-soft);
   border-color: var(--cmc-color-accent-gold-soft);
-  border-radius: 0;
   font-weight: 700;
 }
 
@@ -1067,10 +1067,9 @@ a {
 .cmc-upload-guidance,
 .cmc-upload-panel,
 .cmc-upload-auth-panel {
-  background: var(--cmc-color-surface);
-  border: 1px solid var(--cmc-color-border);
-  border-radius: var(--cmc-radius-md);
-  box-shadow: var(--cmc-shadow-sm);
+  background: var(--cmc-component-panel-background);
+  border-color: var(--cmc-component-panel-border);
+  box-shadow: var(--cmc-component-panel-shadow);
 }
 
 .cmc-upload-status-panel {
@@ -1145,6 +1144,15 @@ a {
   font-weight: 700;
 }
 
+.cmc-upload-field .form-control,
+.cmc-upload-field .input-group-text {
+  min-height: var(--cmc-component-control-height-md);
+  color: var(--cmc-component-control-text);
+  background: var(--cmc-component-control-background);
+  border-color: var(--cmc-component-control-border);
+  border-radius: var(--cmc-component-control-radius);
+}
+
 .cmc-upload-field .form-control:focus {
   border-color: var(--cmc-color-accent);
   box-shadow: var(--cmc-focus-ring);
@@ -1156,8 +1164,8 @@ a {
 
 .cmc-upload-terms {
   padding: var(--cmc-space-4);
-  border: 1px solid var(--cmc-color-border);
-  border-radius: var(--cmc-radius-sm);
+  border: 1px solid var(--cmc-component-control-border);
+  border-radius: var(--cmc-component-control-radius);
   background: var(--cmc-theme-section-background);
 }
 
@@ -1265,7 +1273,7 @@ a {
     justify-content: stretch;
   }
 
-  .cmc-upload-submit .btn {
+  .cmc-upload-submit .cmc-button {
     width: 100%;
   }
 
