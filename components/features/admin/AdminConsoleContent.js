@@ -4,7 +4,6 @@ import { useState } from 'react'
 import {
   Alert,
   Badge,
-  Button,
   Card,
   Col,
   Container,
@@ -15,6 +14,7 @@ import {
   Table,
   Tabs
 } from 'react-bootstrap'
+import { Button } from '../../ui/primitives'
 
 const fetchJson = async (url, options) => {
   const response = await fetch(url, options)
@@ -114,18 +114,20 @@ const SecurityDashboard = ({ dashboard }) => {
         </Col>
         <Col className='text-end'>
           <Button
+            as='a'
             className='me-2'
             href='/api/admin/security-report?format=json'
             size='sm'
             target='_blank'
-            variant='outline-info'
+            variant='secondary'
           >
             Export JSON
           </Button>
           <Button
+            as='a'
             href='/api/admin/security-report?format=csv'
             size='sm'
-            variant='outline-info'
+            variant='secondary'
           >
             Export CSV
           </Button>
@@ -365,7 +367,7 @@ const UserAccessRow = ({ user, onSaved }) => {
         </Form.Select>
       </td>
       <td className='text-end'>
-        <Button size='sm' variant='info' disabled={saving} onClick={save}>
+        <Button size='sm' disabled={saving} onClick={save}>
           {saving ? 'Saving...' : 'Save'}
         </Button>
       </td>
@@ -434,7 +436,6 @@ const OperationsTables = ({
                         decision: 'approve'
                       })}
                       size='sm'
-                      variant='success'
                     >
                       Approve
                     </Button>
@@ -445,7 +446,7 @@ const OperationsTables = ({
                         decision: 'reject'
                       })}
                       size='sm'
-                      variant='outline-danger'
+                      variant='danger'
                     >
                       Reject
                     </Button>
@@ -537,14 +538,14 @@ const OperationsTables = ({
             className='me-2'
             onClick={() => onLoadAuditCategory('')}
             size='sm'
-            variant={activeAuditCategory ? 'outline-secondary' : 'secondary'}
+            variant={activeAuditCategory ? 'subtle' : 'secondary'}
           >
             All audit
           </Button>
           <Button
             onClick={() => onLoadAuditCategory('accountLifecycle')}
             size='sm'
-            variant={activeAuditCategory === 'accountLifecycle' ? 'info' : 'outline-info'}
+            variant={activeAuditCategory === 'accountLifecycle' ? 'secondary' : 'subtle'}
           >
             Account lifecycle
           </Button>
@@ -614,7 +615,7 @@ const TrackReviewRow = ({ track, onModerate }) => {
           ) : (
             <Button
               size='sm'
-              variant='outline-info'
+              variant='secondary'
               disabled={loadingPreview}
               onClick={loadReviewAudio}
             >
@@ -638,14 +639,13 @@ const TrackReviewRow = ({ track, onModerate }) => {
         <Button
           className='me-2'
           size='sm'
-          variant='success'
           onClick={() => onModerate({ trackId: track.id, decision: 'approve' })}
         >
           Approve
         </Button>
         <Button
           size='sm'
-          variant='outline-danger'
+          variant='danger'
           onClick={() => onModerate({ trackId: track.id, decision: 'reject' })}
         >
           Reject
@@ -781,7 +781,7 @@ const AdminConsoleContent = ({
           </div>
         </Col>
         <Col className='text-end'>
-          <Button variant='outline-info' onClick={loadAdminData}>
+          <Button variant='secondary' onClick={loadAdminData}>
             Refresh
           </Button>
         </Col>
