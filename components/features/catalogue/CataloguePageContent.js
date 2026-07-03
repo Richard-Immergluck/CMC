@@ -49,10 +49,35 @@ const createPageHref = ({ page, query }) => {
   return queryString ? `/catalogue?${queryString}` : '/catalogue'
 }
 
+const createClearSearchHref = query => {
+  const params = new URLSearchParams()
+
+  Object.entries({
+    composer: query.composer,
+    key: query.key,
+    instrumentation: query.instrumentation,
+    uploader: query.uploader,
+    sort: query.sort,
+    pageSize: query.pageSize
+  }).forEach(([key, value]) => {
+    if (value) {
+      params.set(key, value)
+    }
+  })
+
+  const queryString = params.toString()
+
+  return queryString ? `/catalogue?${queryString}` : '/catalogue'
+}
+
 const FilterSelect = ({ label, name, options, value }) => (
   <Form.Group className='cmc-catalogue-filter-control' controlId={`catalogue-${name}`}>
     <Form.Label>{label}</Form.Label>
-    <Form.Select defaultValue={value} name={name}>
+    <Form.Select
+      defaultValue={value}
+      name={name}
+      onChange={event => event.currentTarget.form?.requestSubmit()}
+    >
       <option value=''>All</option>
       {options.map(option => (
         <option key={option} value={option}>
@@ -67,7 +92,6 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
   const { data: session } = useSession()
   const [previewTrackId, setPreviewTrackId] = useState(null)
   const isAuthenticated = Boolean(session)
-  const hasActiveQuery = Boolean(query.q || query.composer || query.key || query.instrumentation || query.uploader || query.sort !== 'composer' || query.pageSize !== 25)
   const previousPage = Math.max(1, pagination.page - 1)
   const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
 
@@ -87,12 +111,23 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
             <Form action='/catalogue' className='cmc-catalogue-query-form' method='get' role='search'>
               <Form.Group controlId='catalogue-search' className='cmc-catalogue-search'>
                 <Form.Label className='visually-hidden'>Search catalogue</Form.Label>
-                <Form.Control
-                  defaultValue={query.q}
-                  name='q'
-                  placeholder='Search'
-                  type='search'
-                />
+                <div className='cmc-catalogue-search-field'>
+                  <Form.Control
+                    defaultValue={query.q}
+                    name='q'
+                    placeholder='Search'
+                    type='search'
+                  />
+                  {query.q && (
+                    <Link
+                      aria-label='Clear search'
+                      className='cmc-catalogue-search-clear'
+                      href={createClearSearchHref(query)}
+                    >
+                      x
+                    </Link>
+                  )}
+                </div>
               </Form.Group>
 
               <div className='cmc-catalogue-filter-grid'>
@@ -122,7 +157,11 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                 />
                 <Form.Group className='cmc-catalogue-filter-control' controlId='catalogue-sort'>
                   <Form.Label>Sort</Form.Label>
-                  <Form.Select defaultValue={query.sort} name='sort'>
+                  <Form.Select
+                    defaultValue={query.sort}
+                    name='sort'
+                    onChange={event => event.currentTarget.form?.requestSubmit()}
+                  >
                     {Object.entries(sortLabels).map(([value, label]) => (
                       <option key={value} value={value}>
                         {label}
@@ -132,7 +171,11 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                 </Form.Group>
                 <Form.Group className='cmc-catalogue-filter-control' controlId='catalogue-page-size'>
                   <Form.Label>Page size</Form.Label>
-                  <Form.Select defaultValue={query.pageSize} name='pageSize'>
+                  <Form.Select
+                    defaultValue={query.pageSize}
+                    name='pageSize'
+                    onChange={event => event.currentTarget.form?.requestSubmit()}
+                  >
                     {[10, 25, 50].map(size => (
                       <option key={size} value={size}>
                         {size}
@@ -141,17 +184,7 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                   </Form.Select>
                 </Form.Group>
               </div>
-
-              <div className='cmc-catalogue-query-actions'>
-                <Button size='sm' type='submit' variant='secondary'>
-                  Apply
-                </Button>
-                {hasActiveQuery && (
-                  <Button as={Link} href='/catalogue' size='sm' variant='subtle'>
-                    Clear
-                  </Button>
-                )}
-              </div>
+              <button className='visually-hidden' type='submit'>Search catalogue</button>
             </Form>
           </div>
 

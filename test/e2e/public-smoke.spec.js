@@ -70,11 +70,23 @@ test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   const search = page.getByLabel('Search catalogue')
   await search.click()
   await search.pressSequentially('Mendelssohn')
-  await page.getByRole('button', { name: 'Apply' }).click()
+  await search.press('Enter')
 
   await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
   await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(5)
   await expect(page.locator('.cmc-catalogue-track-card').filter({ hasText: /Bach/i })).toHaveCount(0)
+
+  await page.getByRole('link', { name: 'Clear search' }).click()
+  await expect(page).toHaveURL(/\/catalogue/)
+  await expect(page.getByLabel('Search catalogue')).toHaveValue('')
+})
+
+test('anonymous catalogue filters apply when changed', async ({ page }) => {
+  await page.goto('/catalogue')
+  await page.getByLabel('Page size').selectOption('10')
+
+  await expect(page).toHaveURL(/pageSize=10/)
+  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(10)
 })
 
 test('invalid catalogue track routes render a not found page', async ({ page }) => {
