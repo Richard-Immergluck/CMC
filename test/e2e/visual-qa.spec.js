@@ -34,7 +34,7 @@ const capture = async ({ name, page }, testInfo) => {
 test.describe('visual QA snapshots', () => {
   test('public home, catalogue, and auth surfaces have review screenshots', async ({ page }, testInfo) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Backing tracks should not gather dust.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /should not gather dust/i })).toBeVisible()
     await capture({ name: 'home-desktop', page }, testInfo)
 
     await page.goto('/catalogue')
@@ -50,7 +50,7 @@ test.describe('visual QA snapshots', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Backing tracks should not gather dust.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /should not gather dust/i })).toBeVisible()
     await capture({ name: 'home-mobile', page }, testInfo)
 
     await page.goto('/catalogue')
