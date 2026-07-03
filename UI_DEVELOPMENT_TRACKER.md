@@ -48,12 +48,14 @@ Goals:
 - [ ] Confirm the latest `master` deployment is available on Vercel Dev or Preview.
 - [ ] Run visual QA screenshots against the same build that will be reviewed.
 - [ ] Ask for manual review of the public homepage, catalogue, auth, upload guard, profile, and admin surfaces.
+- [ ] Review local untracked design exploration files and decide which PNG/PDF/script assets should be kept, archived, ignored, or deleted.
 - [ ] Capture design feedback as grouped follow-up PRs rather than piecemeal CSS changes.
 - [ ] Decide whether to begin deeper catalogue page redesign or theme/dark-mode work first.
 
 ## Next UI Targets
 
 - Confirm the current dev deployment and perform a physical design review.
+- Clean up local untracked design exploration files after deciding which source/export assets are useful.
 - Run a catalogue page design pass against review feedback, including mobile behaviour and longer seeded track lists.
 - Add theme controls only after the first reviewed light theme is coherent.
 - Refine admin/profile density after the catalogue and public experience are directionally settled.
