@@ -8,6 +8,7 @@ Use this checklist before promoting a Preview deployment to Production. Keep evi
 - GitHub CI is green on the exact commit being promoted.
 - `yarn sanity`, `yarn deps:audit`, `yarn deploy:check`, `yarn routes:check`, `yarn test:unit`, `yarn test:integration`, and `yarn test:e2e` have passed in CI.
 - Push CI is green on `dev` before using it as the Preview integration branch.
+- `yarn deploy:aliases` confirms the documented Preview and Production aliases, OAuth callback URLs, and database mapping have not drifted.
 - Vercel Preview is deployed from `dev` and points at the development database, not Production.
 - If HITL login testing is required, the Preview deployment is assigned to the stable OAuth-safe alias:
 
