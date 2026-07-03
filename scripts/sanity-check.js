@@ -55,6 +55,7 @@ const requiredFiles = [
   'app/api/stripe/webhook/route.js',
   'prisma/schema.prisma',
   'scripts/deployment-readiness.js',
+  'scripts/environment-matrix-check.js',
   'scripts/health-smoke-test.js',
   'scripts/route-manifest-check.js',
   'scripts/smoke-test.js',
