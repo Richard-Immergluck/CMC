@@ -90,6 +90,24 @@ test('deployment readiness blocks preview storage prefixes that point at product
   assert.match(result.stderr, /production prefix in Preview/)
 })
 
+test('deployment readiness validates sensitive session max age when configured', () => {
+  const invalid = runReadiness({
+    CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES: '1.5'
+  })
+  const tooLarge = runReadiness({
+    CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES: String(24 * 60 + 1)
+  })
+  const valid = runReadiness({
+    CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES: '30'
+  })
+
+  assert.notEqual(invalid.status, 0)
+  assert.match(invalid.stderr, /CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES must be a positive integer/)
+  assert.notEqual(tooLarge.status, 0)
+  assert.match(tooLarge.stderr, /CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES must be a positive integer/)
+  assert.equal(valid.status, 0, valid.stderr)
+})
+
 test('deployment readiness accepts the documented dev and production branch split', () => {
   const preview = runReadiness({
     VERCEL_ENV: 'preview',

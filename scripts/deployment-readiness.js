@@ -74,6 +74,22 @@ const isProductionHost = hostname => hostname === 'classical-music-catalogue.ver
 
 const normalizePrefix = value => String(value || '').trim().replace(/^\/+|\/+$/g, '').toLowerCase()
 
+const maxSensitiveSessionAgeMinutes = 24 * 60
+
+const parseSensitiveSessionMaxAgeMinutes = value => {
+  if (!value) {
+    return null
+  }
+
+  const parsed = Number(value)
+
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > maxSensitiveSessionAgeMinutes) {
+    return null
+  }
+
+  return parsed
+}
+
 const isDevelopmentStoragePrefix = value => {
   const prefix = normalizePrefix(value)
 
@@ -188,6 +204,13 @@ for (const { name, expected, description } of optionalPlatformChecks) {
   if (actual !== expected) {
     fail(`${name} is "${actual}", expected "${expected}" (${description})`)
   }
+}
+
+if (
+  process.env.CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES &&
+  !parseSensitiveSessionMaxAgeMinutes(process.env.CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES)
+) {
+  fail(`CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES must be a positive integer no greater than ${maxSensitiveSessionAgeMinutes}`)
 }
 
 const vercelEnv = process.env.VERCEL_ENV
