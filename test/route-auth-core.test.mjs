@@ -4,6 +4,7 @@ import {
   getActiveApiUserPosture,
   getRouteSessionAgePosture,
   getRouteSessionIdentityPosture,
+  getRouteSessionRevocationPosture,
   parseSensitiveSessionMaxAgeMinutes,
   requireActiveApiUser,
   requireFreshRouteSessionUser
@@ -151,6 +152,62 @@ test('fresh route session guard can require a recent session for sensitive route
       maxSessionAgeMinutes: 15
     }),
     error => error.statusCode === 403 && error.message === 'Recent authenticated session required'
+  )
+})
+
+test('route session revocation posture rejects sessions issued before the user watermark', () => {
+  const user = {
+    id: 'user-1',
+    email: 'person@example.com',
+    sessionRevokedBefore: '2026-07-03T10:00:00.000Z'
+  }
+  const revokedSession = {
+    user: {
+      id: 'user-1',
+      email: 'person@example.com',
+      sessionIssuedAt: '2026-07-03T09:59:59.000Z'
+    }
+  }
+  const freshSession = {
+    user: {
+      id: 'user-1',
+      email: 'person@example.com',
+      sessionIssuedAt: '2026-07-03T10:00:01.000Z'
+    }
+  }
+
+  assert.deepEqual(
+    getRouteSessionRevocationPosture({
+      session: {
+        user: {
+          id: 'user-1',
+          email: 'person@example.com'
+        }
+      },
+      user: {
+        ...user,
+        sessionRevokedBefore: null
+      }
+    }),
+    {
+      valid: true,
+      reason: 'not_revoked'
+    }
+  )
+  assert.deepEqual(getRouteSessionRevocationPosture({ session: revokedSession, user }), {
+    valid: false,
+    reason: 'session_revoked'
+  })
+  assert.deepEqual(getRouteSessionRevocationPosture({ session: freshSession, user }), {
+    valid: true,
+    reason: 'not_revoked'
+  })
+  assert.throws(
+    () => requireFreshRouteSessionUser({
+      session: revokedSession,
+      user
+    }),
+    error => error.statusCode === 403 && error.message === 'Fresh authenticated session required'
   )
 })
 
