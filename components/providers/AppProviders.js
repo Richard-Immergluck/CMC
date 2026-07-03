@@ -4,6 +4,7 @@ import { SessionProvider } from 'next-auth/react'
 import { useEffect } from 'react'
 import { SSRProvider } from 'react-bootstrap'
 import { CartProvider } from 'react-use-cart'
+import Footer from '../Footer'
 import Navbar from '../Navbar'
 
 const AppProviders = ({ children, session }) => {
@@ -17,6 +18,7 @@ const AppProviders = ({ children, session }) => {
         <CartProvider>
           <Navbar />
           {children}
+          <Footer />
         </CartProvider>
       </SessionProvider>
     </SSRProvider>

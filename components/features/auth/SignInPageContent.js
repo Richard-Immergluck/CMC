@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Alert, Col, Container, Form, Row } from 'react-bootstrap'
+import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button, Panel } from '../../ui/primitives'
 
 const errorMessages = {
@@ -38,13 +39,20 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
       <Container fluid='xl'>
         <Row className='align-items-center g-5'>
           <Col lg={7}>
-            <p className='cmc-kicker'>Member access</p>
-            <h1>Sign in to your catalogue workspace.</h1>
-            <p className='cmc-auth-copy'>
-              Continue to purchased tracks, comments, uploads, requests, and the
-              marketplace catalogue with the same calm working surface as the rest of
-              Classical Music Catalogue.
-            </p>
+            <div className='cmc-home-section-heading cmc-auth-heading'>
+              <div className='cmc-home-paper-indent' aria-hidden='true' />
+              <div>
+                <p className='cmc-kicker'>Member access</p>
+                <h1>
+                  <BrandDisplayText text='Sign in to your catalogue workspace.' />
+                </h1>
+                <p className='cmc-auth-copy'>
+                  Continue to purchased tracks, comments, uploads, requests, and the
+                  marketplace catalogue with the same calm working surface as the rest of
+                  Classical Music Catalogue.
+                </p>
+              </div>
+            </div>
           </Col>
           <Col lg={5}>
             <Panel as='section' className='cmc-auth-panel' tone='accent' aria-label='Sign in options'>
