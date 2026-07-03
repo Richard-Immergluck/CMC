@@ -1423,7 +1423,7 @@ a {
 
 .cmc-catalogue-table-header {
   display: grid;
-  grid-template-columns: 2.4rem minmax(15rem, 1.45fr) minmax(8rem, 0.8fr) minmax(5rem, 0.55fr) minmax(9rem, 0.9fr) minmax(7rem, 0.7fr) minmax(5.5rem, 0.5fr) minmax(6rem, 0.55fr) minmax(9rem, 0.75fr);
+  grid-template-columns: 2.4rem minmax(15rem, 1.55fr) minmax(8rem, 0.8fr) minmax(5rem, 0.55fr) minmax(9rem, 0.9fr) minmax(7rem, 0.7fr) minmax(5.5rem, 0.5fr) minmax(9rem, 0.75fr);
   gap: var(--cmc-space-3);
   align-items: end;
   padding: var(--cmc-space-3) 0;
@@ -1453,7 +1453,7 @@ a {
 
 .cmc-catalogue-track-row {
   display: grid;
-  grid-template-columns: 2.4rem minmax(15rem, 1.45fr) minmax(8rem, 0.8fr) minmax(5rem, 0.55fr) minmax(9rem, 0.9fr) minmax(7rem, 0.7fr) minmax(5.5rem, 0.5fr) minmax(6rem, 0.55fr) minmax(9rem, 0.75fr);
+  grid-template-columns: 2.4rem minmax(15rem, 1.55fr) minmax(8rem, 0.8fr) minmax(5rem, 0.55fr) minmax(9rem, 0.9fr) minmax(7rem, 0.7fr) minmax(5.5rem, 0.5fr) minmax(9rem, 0.75fr);
   gap: var(--cmc-space-3);
   align-items: start;
   min-width: 74rem;
@@ -1494,8 +1494,7 @@ a {
 }
 
 .cmc-catalogue-track-field,
-.cmc-catalogue-track-price,
-.cmc-catalogue-track-status {
+.cmc-catalogue-track-price {
   min-width: 0;
   color: var(--cmc-color-text);
   font-size: 0.82rem;
@@ -1506,28 +1505,6 @@ a {
 .cmc-catalogue-track-price {
   color: var(--cmc-color-accent-strong);
   font-weight: 700;
-}
-
-.cmc-catalogue-track-status {
-  display: grid;
-  gap: var(--cmc-space-1);
-  color: var(--cmc-color-text-muted);
-}
-
-.cmc-catalogue-track-status span:first-child {
-  display: inline-flex;
-  gap: var(--cmc-space-2);
-  align-items: center;
-  color: var(--cmc-color-accent-strong);
-  font-weight: 700;
-}
-
-.cmc-catalogue-track-status span:first-child::before {
-  content: '';
-  width: 0.45rem;
-  height: 0.45rem;
-  background: var(--cmc-color-accent-gold);
-  border-radius: 999px;
 }
 
 .cmc-catalogue-track-actions {
@@ -2314,7 +2291,6 @@ a {
   .cmc-catalogue-track-heading a,
   .cmc-catalogue-track-field,
   .cmc-catalogue-track-price,
-  .cmc-catalogue-track-status,
   .cmc-catalogue-track-actions {
     min-width: 0;
   }
@@ -2329,14 +2305,12 @@ a {
 
   .cmc-catalogue-track-field,
   .cmc-catalogue-track-price,
-  .cmc-catalogue-track-status,
   .cmc-catalogue-track-actions {
     grid-column: 2;
   }
 
   .cmc-catalogue-track-field::before,
-  .cmc-catalogue-track-price::before,
-  .cmc-catalogue-track-status::before {
+  .cmc-catalogue-track-price::before {
     content: attr(data-label);
     display: block;
     margin-bottom: 0.15rem;

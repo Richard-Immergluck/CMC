@@ -171,6 +171,24 @@ const serializeTrack = track => ({
   uploadedBy: null
 })
 
+const trackListSelect = {
+  additionalInfo: true,
+  composer: true,
+  formattedPrice: true,
+  id: true,
+  instrumentation: true,
+  key: true,
+  previewEnd: true,
+  previewStart: true,
+  title: true,
+  uploadedAt: true,
+  uploadedBy: {
+    select: {
+      name: true
+    }
+  }
+}
+
 const toOptionList = values => [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b))
 
 const getCatalogueFilterOptions = async () => {
@@ -213,14 +231,7 @@ const getCatalogueTracks = async query => {
 
   const tracks = await prisma.track.findMany({
     where,
-    include: {
-      uploadedBy: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    },
+    select: trackListSelect,
     orderBy: sortOptions[query.sort],
     skip,
     take: query.pageSize

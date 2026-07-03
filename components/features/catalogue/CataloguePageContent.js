@@ -7,19 +7,6 @@ import { Container, Form } from 'react-bootstrap'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 
-const formatDuration = seconds => {
-  if (!seconds) {
-    return 'Duration TBC'
-  }
-
-  const minutes = Math.floor(seconds / 60)
-  const remainder = seconds % 60
-
-  return `${minutes}:${String(remainder).padStart(2, '0')}`
-}
-
-const hasPreview = track => track.previewStart !== null && track.previewEnd !== null
-
 const getTrackDescription = track => {
   const detail = track.additionalInfo || track.instrumentation || track.key
 
@@ -193,7 +180,6 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
               <span>Instrumentation</span>
               <span>Uploader</span>
               <span>Price</span>
-              <span>Status</span>
               <span>Actions</span>
             </div>
 
@@ -229,11 +215,6 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                     <div className='cmc-catalogue-track-price' data-label='Price'>
                       {track.formattedPrice || 'TBC'}
                     </div>
-                    <div className='cmc-catalogue-track-status' data-label='Status'>
-                      <span>{hasPreview(track) ? 'Preview' : 'Details'}</span>
-                      <span>{formatDuration(track.durationSeconds)}</span>
-                    </div>
-
                     <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
                       <Button as={Link} href={`/catalogue/${track.id}`} variant='secondary'>
                         Details
