@@ -6,7 +6,7 @@ import {
   requireRouteMethod,
   requireTrustedRouteOrigin
 } from '../../../../../lib/server/route-handlers'
-import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
+import { requireSensitiveRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import { reviewUserAccessChangeRequest } from '../../../../../lib/server/admin-access-requests'
 import { requireAdminPermission } from '../../../../../lib/server/permissions.mjs'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
@@ -30,7 +30,9 @@ export async function PATCH(request, { params }) {
     requireRouteMethod(request, ['PATCH'])
     requireTrustedRouteOrigin(request)
 
-    const admin = await requireRouteCurrentUser()
+    const admin = await requireSensitiveRouteCurrentUser({
+      route: '/api/admin/user-access-requests/[requestId]'
+    })
     requireAdminPermission(admin)
 
     const routeParams = await params

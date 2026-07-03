@@ -31,6 +31,7 @@ This matrix records where each runtime variable belongs and whether values must 
 | `SECURITY_ALERT_WINDOW_MINUTES` | Optional | Optional | Optional | Tune after observing real traffic. |
 | `ADMIN_ACCESS_REVIEW_METRICS_WINDOW_DAYS` | Optional | Optional | Optional | Reporting-only. |
 | `ADMIN_ACCESS_REVIEW_OVERDUE_HOURS` | Optional | Optional | Optional | Reporting-only. |
+| `CMC_SENSITIVE_SESSION_MAX_AGE_MINUTES` | Optional; unset disables max-age enforcement | Optional staged value after HITL testing | Optional operational value after HITL testing | Applies only to sensitive mutation routes; use a bounded positive integer in minutes. |
 | `AUDIT_CLEANUP_RETENTION_DAYS` | Optional rehearsal | Development rehearsal only | Operational value only with written approval | Cleanup must not run without export/rationale. |
 | `AUDIT_CLEANUP_EXECUTE` | `false` by default | `false` by default | `false` unless explicitly authorised | Production cleanup requires release/incident notes. |
 | `AUDIT_CLEANUP_CONFIRM` | Empty by default | Confirmation token for dev rehearsal | Confirmation token only with approval | Must not be casually set in Production. |

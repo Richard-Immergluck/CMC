@@ -9,7 +9,7 @@ import {
 import {
   createNotFoundError
 } from '../../../../../lib/server/api-core.mjs'
-import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
+import { requireSensitiveRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import {
   buildTrackModerationChangeMetadata,
   toTrackReviewItem
@@ -53,7 +53,9 @@ export async function PATCH(request, { params }) {
     requireRouteMethod(request, ['PATCH'])
     requireTrustedRouteOrigin(request)
 
-    const user = await requireRouteCurrentUser()
+    const user = await requireSensitiveRouteCurrentUser({
+      route: '/api/admin/tracks/[trackId]'
+    })
     requireSupportPermission(user)
 
     const routeParams = await params
