@@ -29,6 +29,7 @@ function MainNavbar() {
           <Navbar.Toggle aria-controls='navbarScroll' />
           <Navbar.Collapse id='navbarScroll'>
             <Nav
+              aria-label='Primary navigation'
               className='cmc-navbar-nav ms-auto my-2 my-lg-0'
               navbarScroll
             >

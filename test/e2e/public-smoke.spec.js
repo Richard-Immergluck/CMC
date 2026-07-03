@@ -17,12 +17,14 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /should not gather dust/i })).toBeVisible()
   await expect(page.getByText(/Discover, buy, request and discuss/i)).toBeVisible()
-  await expect(page.getByText(/Find the track, use it in practice/i)).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Catalogue', exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Login \/ Sign up/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Find rehearsal material' })).toBeVisible()
+
+  const primaryNav = page.getByRole('navigation', { name: 'Primary navigation' })
+  await expect(primaryNav.getByRole('link', { name: 'Catalogue', exact: true })).toBeVisible()
+  await expect(primaryNav.getByRole('link', { name: /Login \/ Sign up/i })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Browse catalogue' })).toBeVisible()
 
-  await page.getByRole('link', { name: 'Catalogue', exact: true }).click()
+  await primaryNav.getByRole('link', { name: 'Catalogue', exact: true }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
   await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
