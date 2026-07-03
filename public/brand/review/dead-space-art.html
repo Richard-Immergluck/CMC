@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CMC Dead Space Art Studies</title>
+    <style>
+      :root {
+        color: #151918;
+        background: #f8f4ea;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(90deg, rgba(23, 63, 56, 0.12), transparent 42%),
+          #f8f4ea;
+      }
+
+      main {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 44px 28px 64px;
+      }
+
+      h1 {
+        margin: 0 0 26px;
+        font-size: 13px;
+        letter-spacing: .24em;
+        text-transform: uppercase;
+      }
+
+      .sheet {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .study {
+        min-height: 360px;
+        border: 1px solid rgba(185, 133, 34, .18);
+        background: rgba(255, 253, 248, .36);
+        padding: 24px;
+      }
+
+      .label {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+        color: #075f69;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+      }
+
+      img {
+        width: 100%;
+        height: 270px;
+        object-fit: contain;
+        display: block;
+      }
+
+      .hero-context {
+        display: grid;
+        grid-template-columns: minmax(0, .95fr) minmax(360px, .7fr);
+        align-items: center;
+        min-height: 460px;
+        margin-top: 32px;
+        border-top: 1px solid rgba(88, 100, 98, .22);
+        padding-top: 36px;
+      }
+
+      .hero-copy {
+        max-width: 660px;
+      }
+
+      .hero-copy h2 {
+        margin: 0;
+        font-family: Georgia, serif;
+        font-size: clamp(54px, 7vw, 84px);
+        font-weight: 500;
+        line-height: .94;
+      }
+
+      .hero-copy h2 span {
+        color: #075f69;
+      }
+
+      .hero-copy p {
+        max-width: 480px;
+        margin-top: 22px;
+        color: #4d473d;
+        font-size: 18px;
+        line-height: 1.45;
+      }
+
+      .hero-art {
+        width: 54%;
+        margin-left: auto;
+        opacity: .52;
+      }
+
+      .hero-scale-row {
+        margin-top: 34px;
+        padding-top: 30px;
+        border-top: 1px solid rgba(88, 100, 98, .22);
+      }
+
+      .hero-scale-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .hero-scale-card {
+        min-height: 260px;
+        border: 1px solid rgba(185, 133, 34, .14);
+        background:
+          linear-gradient(90deg, transparent, rgba(23, 63, 56, .055)),
+          rgba(255, 253, 248, .24);
+        padding: 16px;
+      }
+
+      .hero-scale-art {
+        width: 42%;
+        height: 190px;
+        margin: 16px 0 0 auto;
+        object-fit: contain;
+        opacity: .44;
+      }
+
+      .hero-scale-art--sm {
+        width: 34%;
+        opacity: .46;
+      }
+
+      @media (max-width: 900px) {
+        .sheet,
+        .hero-context,
+        .hero-scale-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>CMC / Catalogue Grid Dead Space Art Studies</h1>
+      <section class="sheet" aria-label="Art studies">
+        <article class="study">
+          <div class="label"><span>DS01</span><span>Catalogue Grid Field</span></div>
+          <img src="/brand/motifs/dead-space/catalogue-grid-field.svg" alt="">
+        </article>
+        <article class="study">
+          <div class="label"><span>DS02</span><span>Archive Register</span></div>
+          <img src="/brand/motifs/dead-space/archive-register.svg" alt="">
+        </article>
+        <article class="study">
+          <div class="label"><span>DS03</span><span>Catalogue Ledger Block</span></div>
+          <img src="/brand/motifs/dead-space/catalogue-ledger-block.svg" alt="">
+        </article>
+        <article class="study">
+          <div class="label"><span>DS04</span><span>Index Card Fragment</span></div>
+          <img src="/brand/motifs/dead-space/index-card-fragment.svg" alt="">
+        </article>
+      </section>
+      <section class="hero-context" aria-label="Hero context preview">
+        <div class="hero-copy">
+          <h2><span>B</span>acking tracks<br>should not gather dust.</h2>
+          <p>Right-hand artwork should read as archival structure, not illustration.</p>
+        </div>
+        <img class="hero-art" src="/brand/motifs/dead-space/catalogue-grid-field.svg" alt="">
+      </section>
+      <section class="hero-scale-row" aria-label="Hero-scale candidates">
+        <h1>Hero margin scale tests</h1>
+        <div class="hero-scale-grid">
+          <article class="hero-scale-card">
+            <div class="label"><span>DS01</span><span>42%</span></div>
+            <img class="hero-scale-art" src="/brand/motifs/dead-space/catalogue-grid-field.svg" alt="">
+          </article>
+          <article class="hero-scale-card">
+            <div class="label"><span>DS02</span><span>34%</span></div>
+            <img class="hero-scale-art hero-scale-art--sm" src="/brand/motifs/dead-space/archive-register.svg" alt="">
+          </article>
+          <article class="hero-scale-card">
+            <div class="label"><span>DS03</span><span>42%</span></div>
+            <img class="hero-scale-art" src="/brand/motifs/dead-space/catalogue-ledger-block.svg" alt="">
+          </article>
+          <article class="hero-scale-card">
+            <div class="label"><span>DS04</span><span>34%</span></div>
+            <img class="hero-scale-art hero-scale-art--sm" src="/brand/motifs/dead-space/index-card-fragment.svg" alt="">
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

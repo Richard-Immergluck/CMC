@@ -2,6 +2,8 @@ const variantClassNames = {
   primary: 'cmc-button cmc-button--primary',
   secondary: 'cmc-button cmc-button--secondary',
   subtle: 'cmc-button cmc-button--subtle',
+  paper: 'cmc-button cmc-button--paper',
+  ink: 'cmc-button cmc-button--ink',
   danger: 'cmc-button cmc-button--danger'
 }
 

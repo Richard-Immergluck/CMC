@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
-  <title id="title">CMC logo option 01</title>
-  <desc id="desc">A circular monogram formed from three concert-arch strokes.</desc>
-  <rect width="160" height="160" rx="32" fill="#101820"/>
-  <circle cx="80" cy="80" r="50" fill="none" stroke="#E7C96F" stroke-width="10"/>
-  <path d="M94 49c-26 0-43 13-43 31s17 31 43 31" fill="none" stroke="#F6F0E3" stroke-width="11" stroke-linecap="round"/>
-  <path d="M98 63c-15 0-25 7-25 17s10 17 25 17" fill="none" stroke="#5FC8B4" stroke-width="9" stroke-linecap="round"/>
-  <path d="M105 76c-7 0-12 2-12 4s5 4 12 4" fill="none" stroke="#E85D4F" stroke-width="7" stroke-linecap="round"/>
-</svg>

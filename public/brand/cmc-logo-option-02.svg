@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
-  <title id="title">CMC logo option 02</title>
-  <desc id="desc">A stylised open score and catalogue tab with a musical pulse.</desc>
-  <rect width="160" height="160" rx="24" fill="#F8F3E8"/>
-  <path d="M39 43h51c17 0 31 14 31 31v43H70c-17 0-31-14-31-31V43Z" fill="#101820"/>
-  <path d="M55 61h50M55 77h50M55 93h50" stroke="#F6F0E3" stroke-width="6" stroke-linecap="round"/>
-  <path d="M74 77c6-12 15-12 21 0s15 12 21 0" fill="none" stroke="#E7C96F" stroke-width="7" stroke-linecap="round"/>
-  <path d="M121 56h13v47h-13z" fill="#5FC8B4"/>
-</svg>
