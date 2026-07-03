@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches:
+      - dev
       - master
 
 jobs:
@@ -90,6 +91,30 @@ jobs:
       - name: Deployment readiness
         run: yarn deploy:check
         env:
+          VERCEL_PROJECT_ROOT: .
+          VERCEL_NODE_VERSION: 24.x
+          SUPABASE_PROJECT_STATUS: ACTIVE
+
+      - name: Preview deployment guardrails
+        if: github.event_name == 'push' && github.ref_name == 'dev'
+        run: yarn deploy:check
+        env:
+          VERCEL_ENV: preview
+          VERCEL_GIT_COMMIT_REF: dev
+          CMC_EXPECTED_PREVIEW_BRANCH: dev
+          NEXTAUTH_URL: https://classical-music-catalogue-richardimmerglucks-projects.vercel.app
+          VERCEL_PROJECT_ROOT: .
+          VERCEL_NODE_VERSION: 24.x
+          SUPABASE_PROJECT_STATUS: ACTIVE
+
+      - name: Production deployment guardrails
+        if: github.event_name == 'push' && github.ref_name == 'master'
+        run: yarn deploy:check
+        env:
+          VERCEL_ENV: production
+          VERCEL_GIT_COMMIT_REF: master
+          CMC_EXPECTED_PRODUCTION_BRANCH: master
+          NEXTAUTH_URL: https://classical-music-catalogue.vercel.app
           VERCEL_PROJECT_ROOT: .
           VERCEL_NODE_VERSION: 24.x
           SUPABASE_PROJECT_STATUS: ACTIVE
