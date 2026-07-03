@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { spawnSync } = require('child_process')
 
 const root = path.resolve(__dirname, '..')
 
@@ -54,6 +55,7 @@ const requiredFiles = [
   'app/api/stripe/checkout_sessions/route.js',
   'app/api/stripe/webhook/route.js',
   'prisma/schema.prisma',
+  'scripts/deployment-alias-policy-check.js',
   'scripts/deployment-readiness.js',
   'scripts/environment-matrix-check.js',
   'scripts/health-smoke-test.js',
@@ -175,6 +177,17 @@ const nextConfig = fs.readFileSync(path.join(root, 'next.config.js'), 'utf8')
 for (const pattern of forbiddenConfigPatterns) {
   if (nextConfig.includes(pattern)) {
     fail(`Forbidden config pattern "${pattern}" found in next.config.js`)
+  }
+}
+
+for (const script of ['environment-matrix-check.js', 'deployment-alias-policy-check.js']) {
+  const result = spawnSync(process.execPath, [path.join(root, 'scripts', script)], {
+    cwd: root,
+    stdio: 'inherit'
+  })
+
+  if (result.status !== 0) {
+    fail(`${script} failed`)
   }
 }
 

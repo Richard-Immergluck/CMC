@@ -55,6 +55,7 @@ This tracker records backend security and auditability work completed so far and
 - Added deployment readiness guardrails for `dev`/`master` branch separation and Preview/Production auth URL mix-ups.
 - Added CI push coverage for `dev` and explicit deployment-readiness guardrail checks for `dev` Preview and `master` Production pushes.
 - Added a source-controlled environment matrix and drift check for Local, Preview/Dev, and Production runtime variables.
+- Added a deployment alias policy check for Preview/Production hosts, OAuth callbacks, and documented database mapping.
 
 ## In Progress
 

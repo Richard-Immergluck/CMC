@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { builtinModules } = require('module')
 
 const root = path.resolve(__dirname, '..')
 const packageJson = require(path.join(root, 'package.json'))
@@ -8,7 +9,10 @@ const sourceDirs = ['app', 'components', 'lib', 'pages', 'scripts']
 const importPattern =
   /(?:import\s+(?:[^'"]+\s+from\s+)?['"]([^'".][^'"]*)['"]|require\(\s*['"]([^'".][^'"]*)['"]\s*\))/g
 
-const ignoredBuiltins = new Set(['fs', 'path'])
+const ignoredBuiltins = new Set([
+  ...builtinModules,
+  ...builtinModules.map(moduleName => `node:${moduleName}`)
+])
 const intentionalRuntimeDependencies = new Set([
   // Bootstrap's JS components expect Popper as a peer dependency at runtime.
   '@popperjs/core',

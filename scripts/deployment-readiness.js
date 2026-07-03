@@ -87,6 +87,7 @@ if (packageJson.engines?.node !== '24.x') {
 for (const scriptName of [
   'sanity',
   'deps:audit',
+  'deploy:aliases',
   'deploy:check',
   'routes:check',
   'security:audit-cleanup:rehearse',
