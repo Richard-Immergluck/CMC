@@ -59,7 +59,7 @@ const HomePageContent = ({ heroStats = fallbackHeroStats }) => (
           <div className='cmc-home-hero-dead-space cmc-home-hero-dead-space--ds01' aria-hidden='true' />
           <div className='cmc-home-hero-content'>
             <h1>
-              <span className='cmc-home-hero-initial'>B</span>ack<span className='cmc-home-hero-dotted-i'>ı<span aria-hidden='true' /></span>ng tracks
+              <span className='cmc-home-hero-initial'>B</span>ack<span className='cmc-home-hero-dotted-i'>i<span aria-hidden='true' /></span>ng tracks
               <br />
               should not gather dust
               <span className='cmc-home-hero-dot' aria-hidden='true'>.</span>

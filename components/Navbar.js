@@ -1,20 +1,29 @@
 import React from 'react'
+import { signOut, useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { Nav, Navbar, Container } from 'react-bootstrap'
+import { useCart } from 'react-use-cart'
 import { BrandMark } from './brand'
+import { canAccessSupportSurface, canUploadTracks } from '../lib/access-control.mjs'
 
 function MainNavbar() {
   const pathname = usePathname()
+  const { emptyCart, items } = useCart()
+  const { data: session, status } = useSession()
+  const user = session?.user
+  const cartItems = items.length
+  const isAuthenticated = status === 'authenticated'
 
-  const navLinkClass = href => (
-    pathname === href || pathname?.startsWith(`${href}/`) ? 'cmc-navbar-link--active' : ''
-  )
+  const navLinkClass = (href, className = '') => [
+    pathname === href || pathname?.startsWith(`${href}/`) ? 'cmc-navbar-link--active' : '',
+    className
+  ].filter(Boolean).join(' ')
 
   return (
     <>
       <Navbar className='cmc-navbar' expand='sm'>
         <Container>
-          <Navbar.Brand className='cmc-navbar-brand' href='/catalogue'>
+          <Navbar.Brand className='cmc-navbar-brand' href={isAuthenticated ? '/catalogue' : '/'}>
             <BrandMark compact wordmark='navFull' />
           </Navbar.Brand>
           <Navbar.Toggle aria-controls='navbarScroll' />
@@ -24,12 +33,32 @@ function MainNavbar() {
               navbarScroll
             >
               <Nav.Link className={navLinkClass('/catalogue')} href='/catalogue'>Catalogue</Nav.Link>
-              <Nav.Link
-                className={navLinkClass('/auth/signin')}
-                href='/auth/signin?callbackUrl=/catalogue'
-              >
-                Login / Sign up
-              </Nav.Link>
+              {isAuthenticated && <Nav.Link className={navLinkClass('/profile')} href='/profile'>Profile</Nav.Link>}
+              {canUploadTracks(user) && <Nav.Link className={navLinkClass('/upload')} href='/upload'>Upload</Nav.Link>}
+              {canAccessSupportSurface(user) && <Nav.Link className={navLinkClass('/admin')} href='/admin'>Admin</Nav.Link>}
+              {status === 'unauthenticated' && (
+                <Nav.Link
+                  className={navLinkClass('/auth/signin')}
+                  href='/auth/signin?callbackUrl=/catalogue'
+                >
+                  Login / Sign up
+                </Nav.Link>
+              )}
+              {isAuthenticated && <Nav.Link className={navLinkClass('/cart')} href='/cart'>Cart ({cartItems})</Nav.Link>}
+              {isAuthenticated && (
+                <Nav.Link
+                  href='/api/auth/signout'
+                  onClick={e => {
+                    e.preventDefault()
+                    signOut({
+                      callbackUrl: '/'
+                    })
+                    emptyCart()
+                  }}
+                >
+                  Sign Out
+                </Nav.Link>
+              )}
             </Nav>
           </Navbar.Collapse>
         </Container>

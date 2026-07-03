@@ -1,8 +1,8 @@
 # PR 202: Paper Bar Homepage Hero
 
-Pull request: https://github.com/Richard-Immergluck/CMC/pull/202  
-Branch: `codex/cmc-logo-svg-options`  
-Primary commit: `c333af7`  
+Pull request: https://github.com/Richard-Immergluck/CMC/pull/202
+Branch: `codex/cmc-logo-svg-options`
+Primary commit: `c333af7`
 Status: Draft PR
 
 ## Purpose
