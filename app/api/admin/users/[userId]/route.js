@@ -9,7 +9,7 @@ import {
 import {
   createConflictError,
 } from '../../../../../lib/server/api-core.mjs'
-import { requireRouteCurrentUser } from '../../../../../lib/server/route-auth'
+import { requireSensitiveRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import { toUserAdminItem } from '../../../../../lib/server/admin-core.mjs'
 import { applyDirectUserAccessUpdate } from '../../../../../lib/server/admin-access-requests'
 import {
@@ -40,7 +40,9 @@ export async function PATCH(request, { params }) {
     requireRouteMethod(request, ['PATCH'])
     requireTrustedRouteOrigin(request)
 
-    const admin = await requireRouteCurrentUser()
+    const admin = await requireSensitiveRouteCurrentUser({
+      route: '/api/admin/users/[userId]'
+    })
     requireAdminPermission(admin)
 
     const routeParams = await params

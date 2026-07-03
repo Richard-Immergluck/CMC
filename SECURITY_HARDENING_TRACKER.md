@@ -57,14 +57,13 @@ This tracker records backend security and auditability work completed so far and
 - Added a source-controlled environment matrix and drift check for Local, Preview/Dev, and Production runtime variables.
 - Added a deployment alias policy check for Preview/Production hosts, OAuth callbacks, and documented database mapping.
 - Added deployment readiness checks that block missing, development-scoped Production S3 prefixes and production-scoped Preview S3 prefixes.
+- Added configurable max-session-age enforcement for sensitive admin mutation routes.
 
 ## In Progress
 
-- Review stricter session age and revocation controls for sensitive mutations.
+- Review server-side session denylist/revocation table options for forced logout semantics.
 - Review Vercel Git integration and aliases so `dev` consistently deploys to Preview and `master` remains the only Production promotion branch.
 
 ## Next Targets
 
-- Classify sensitive mutation routes by risk and current session requirements.
 - Decide whether to add a server-side session denylist/revocation table for forced logout semantics.
-- Add configurable max-session-age checks for the highest-risk mutation routes if product friction is acceptable.
