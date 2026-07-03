@@ -51,13 +51,10 @@ const BrandDisplayText = ({ text }) => {
   const tokens = text.match(/(\n|\s+|[^\s]+)/g) ?? []
   const firstDisplayCharacterIndex = getFirstDisplayCharacterIndex(text)
   const finalDisplayCharacterIndex = getFinalDisplayCharacterIndex(text)
-  let characterIndex = 0
 
-  return tokens.map((token, tokenIndex) => {
+  const visualText = tokens.map((token, tokenIndex) => {
     const tokenCharacters = [...token]
-    const tokenStartIndex = characterIndex
-
-    characterIndex += tokenCharacters.length
+    const tokenStartIndex = tokens.slice(0, tokenIndex).join('').length
 
     if (token === '\n') {
       return <br key={`line-break-${tokenIndex}`} />
@@ -78,6 +75,15 @@ const BrandDisplayText = ({ text }) => {
       </span>
     )
   })
+
+  return (
+    <>
+      <span className='cmc-sr-only'>{text.replace(/\s+/g, ' ')}</span>
+      <span aria-hidden='true' className='cmc-brand-display-visual'>
+        {visualText}
+      </span>
+    </>
+  )
 }
 
 export default BrandDisplayText
