@@ -37,9 +37,9 @@ const renderCharacter = ({ character, firstDisplayCharacterIndex, finalDisplayCh
 
   if (character === 'i') {
     return (
-      <span className='cmc-home-hero-dotted-i' key={key}>
-        {character}
-        <span aria-hidden='true' />
+      <span aria-label='i' className='cmc-home-hero-dotted-i' key={key} role='img'>
+        <span className='cmc-home-hero-dotted-i__stem' aria-hidden='true'>ı</span>
+        <span className='cmc-home-hero-dotted-i__dot' aria-hidden='true' />
       </span>
     )
   }
