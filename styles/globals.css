@@ -1347,9 +1347,14 @@ a {
   gap: var(--cmc-space-3);
 }
 
+.cmc-catalogue-search {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .cmc-catalogue-search-field {
   position: relative;
-  width: min(100%, 42rem);
+  width: min(100%, 28rem);
 }
 
 .cmc-catalogue-search .form-control,
