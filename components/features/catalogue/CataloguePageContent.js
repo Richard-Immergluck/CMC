@@ -124,7 +124,7 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                       className='cmc-catalogue-search-clear'
                       href={createClearSearchHref(query)}
                     >
-                      x
+                      X
                     </Link>
                   )}
                 </div>

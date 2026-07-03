@@ -1349,6 +1349,7 @@ a {
 
 .cmc-catalogue-search-field {
   position: relative;
+  width: min(100%, 42rem);
 }
 
 .cmc-catalogue-search .form-control,
@@ -1361,7 +1362,7 @@ a {
 }
 
 .cmc-catalogue-search .form-control {
-  padding-right: 2.75rem;
+  padding-right: 3.7rem;
 }
 
 .cmc-catalogue-search .form-control:focus,
@@ -1372,22 +1373,23 @@ a {
 
 .cmc-catalogue-search-clear {
   position: absolute;
-  top: 50%;
-  right: 0.85rem;
+  top: 0;
+  right: 0;
   display: grid;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 3rem;
+  height: 100%;
   place-items: center;
+  border-left: 1px solid rgba(23, 63, 56, 0.22);
   color: var(--cmc-color-text-muted);
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
-  transform: translateY(-50%);
 }
 
 .cmc-catalogue-search-clear:hover,
 .cmc-catalogue-search-clear:focus-visible {
+  background-color: rgba(196, 139, 27, 0.1);
   color: var(--cmc-color-accent-rose);
 }
 
