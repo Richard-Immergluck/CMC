@@ -70,6 +70,7 @@ test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   const search = page.getByLabel('Search catalogue')
   await search.click()
   await search.pressSequentially('Mendelssohn')
+  await page.getByRole('button', { name: 'Apply' }).click()
 
   await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
   await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(5)

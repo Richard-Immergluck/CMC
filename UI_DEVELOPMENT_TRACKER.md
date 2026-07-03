@@ -84,6 +84,7 @@ Current checkpoint:
 - Anonymous functional Playwright coverage passes for public catalogue reachability, bespoke sign-in entry, opening a listed track, returning to the list, and searching visible catalogue results when run against the responding `localhost` dev host.
 - Local Playwright runs against `127.0.0.1` can fail to hydrate the catalogue under the already-running Next dev server because the dev HMR websocket rejects that host. Use the same host shown by the dev server for local HITL checks.
 - The catalogue layout has been simplified into a functional archive board: compact heading, search field, result count, table-like desktop rows, and stacked mobile rows. The removed hero stats, first-result block, and public-preview note were judged clutter for the browsing task.
+- The catalogue now uses URL-backed server-side search, filters, sorting, page size, and pagination so the UI can scale beyond small prototype datasets without rendering the entire archive at once.
 
 Deferred follow-up:
 

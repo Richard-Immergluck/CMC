@@ -1,13 +1,11 @@
 'use client'
 
-import { memo, useMemo, useState } from 'react'
+import { memo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Container, Form } from 'react-bootstrap'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
-
-const normalise = value => `${value || ''}`.toLowerCase()
 
 const formatDuration = seconds => {
   if (!seconds) {
@@ -32,29 +30,58 @@ const getTrackDescription = track => {
   return detail.length > 150 ? `${detail.slice(0, 147)}...` : detail
 }
 
-const CataloguePageContent = ({ tracks }) => {
+const sortLabels = {
+  composer: 'Composer',
+  newest: 'Newest',
+  price_asc: 'Price low-high',
+  price_desc: 'Price high-low',
+  title: 'Title'
+}
+
+const createPageHref = ({ page, query }) => {
+  const params = new URLSearchParams()
+
+  Object.entries({
+    q: query.q,
+    composer: query.composer,
+    key: query.key,
+    instrumentation: query.instrumentation,
+    uploader: query.uploader,
+    sort: query.sort,
+    pageSize: query.pageSize,
+    page
+  }).forEach(([key, value]) => {
+    if (value) {
+      params.set(key, value)
+    }
+  })
+
+  const queryString = params.toString()
+
+  return queryString ? `/catalogue?${queryString}` : '/catalogue'
+}
+
+const FilterSelect = ({ label, name, options, value }) => (
+  <Form.Group className='cmc-catalogue-filter-control' controlId={`catalogue-${name}`}>
+    <Form.Label>{label}</Form.Label>
+    <Form.Select defaultValue={value} name={name}>
+      <option value=''>All</option>
+      {options.map(option => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </Form.Select>
+  </Form.Group>
+)
+
+const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
   const { data: session } = useSession()
-  const [searchParam, setSearchParam] = useState('')
   const [previewTrackId, setPreviewTrackId] = useState(null)
   const isAuthenticated = Boolean(session)
-
-  const filteredTracks = useMemo(() => {
-    const query = normalise(searchParam).trim()
-
-    if (!query) {
-      return tracks
-    }
-
-    return tracks.filter(track => [
-      track.title,
-      track.composer,
-      track.uploaderName,
-      track.key,
-      track.instrumentation,
-      track.formattedPrice,
-      track.additionalInfo
-    ].some(value => normalise(value).includes(query)))
-  }, [searchParam, tracks])
+  const hasActiveQuery = Boolean(query.q || query.composer || query.key || query.instrumentation || query.uploader || query.sort !== 'composer' || query.pageSize !== 25)
+  const previousPage = Math.max(1, pagination.page - 1)
+  const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
 
   return (
     <main className='cmc-catalogue-page'>
@@ -67,33 +94,94 @@ const CataloguePageContent = ({ tracks }) => {
               <h1 id='catalogue-heading'>Browse Archive</h1>
             </div>
 
-            <Form.Group controlId='catalogue-search' className='cmc-catalogue-search'>
-              <Form.Label className='visually-hidden'>Search catalogue</Form.Label>
-              <Form.Control
-                type='search'
-                value={searchParam}
-                placeholder='Search'
-                onChange={event => setSearchParam(event.target.value)}
-              />
-            </Form.Group>
+            <Form action='/catalogue' className='cmc-catalogue-query-form' method='get' role='search'>
+              <Form.Group controlId='catalogue-search' className='cmc-catalogue-search'>
+                <Form.Label className='visually-hidden'>Search catalogue</Form.Label>
+                <Form.Control
+                  defaultValue={query.q}
+                  name='q'
+                  placeholder='Search'
+                  type='search'
+                />
+              </Form.Group>
+
+              <div className='cmc-catalogue-filter-grid'>
+                <FilterSelect
+                  label='Composer'
+                  name='composer'
+                  options={filterOptions.composers}
+                  value={query.composer}
+                />
+                <FilterSelect
+                  label='Instrument'
+                  name='instrumentation'
+                  options={filterOptions.instrumentations}
+                  value={query.instrumentation}
+                />
+                <FilterSelect
+                  label='Key'
+                  name='key'
+                  options={filterOptions.keys}
+                  value={query.key}
+                />
+                <FilterSelect
+                  label='Uploader'
+                  name='uploader'
+                  options={filterOptions.uploaders}
+                  value={query.uploader}
+                />
+                <Form.Group className='cmc-catalogue-filter-control' controlId='catalogue-sort'>
+                  <Form.Label>Sort</Form.Label>
+                  <Form.Select defaultValue={query.sort} name='sort'>
+                    {Object.entries(sortLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className='cmc-catalogue-filter-control' controlId='catalogue-page-size'>
+                  <Form.Label>Page size</Form.Label>
+                  <Form.Select defaultValue={query.pageSize} name='pageSize'>
+                    {[10, 25, 50].map(size => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </div>
+
+              <div className='cmc-catalogue-query-actions'>
+                <Button size='sm' type='submit' variant='secondary'>
+                  Apply
+                </Button>
+                {hasActiveQuery && (
+                  <Button as={Link} href='/catalogue' size='sm' variant='subtle'>
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </Form>
           </div>
 
           <div className='cmc-catalogue-toolbar'>
             <span>
-              Showing {filteredTracks.length} of {tracks.length} tracks
+              Showing {pagination.showingFrom}-{pagination.showingTo} of {pagination.total} tracks
             </span>
-            {searchParam && (
-              <Button
-                size='sm'
-                variant='subtle'
-                onClick={() => {
-                  setSearchParam('')
-                  setPreviewTrackId(null)
-                }}
-              >
-                Clear Search
-              </Button>
-            )}
+            <div className='cmc-catalogue-pagination' aria-label='Catalogue pagination'>
+              {pagination.page > 1 ? (
+                <Link href={createPageHref({ page: previousPage, query })}>Previous</Link>
+              ) : (
+                <span aria-disabled='true'>Previous</span>
+              )}
+              <strong>Page {pagination.page} of {pagination.pageCount}</strong>
+              {pagination.page < pagination.pageCount ? (
+                <Link href={createPageHref({ page: nextPage, query })}>Next</Link>
+              ) : (
+                <span aria-disabled='true'>Next</span>
+              )}
+            </div>
           </div>
 
           <section className='cmc-catalogue-results-shell' aria-label='Catalogue results'>
@@ -110,10 +198,10 @@ const CataloguePageContent = ({ tracks }) => {
             </div>
 
             <div className='cmc-catalogue-result-list'>
-              {filteredTracks.map((track, index) => (
+              {tracks.map((track, index) => (
                 <article className='cmc-catalogue-track-card' key={track.id}>
                   <div className='cmc-catalogue-track-row'>
-                    <div className='cmc-catalogue-track-index'>{String(index + 1).padStart(2, '0')}</div>
+                    <div className='cmc-catalogue-track-index'>{String(pagination.showingFrom + index).padStart(2, '0')}</div>
 
                     <div className='cmc-catalogue-track-title-cell'>
                       <div className='cmc-catalogue-track-heading'>
@@ -176,7 +264,7 @@ const CataloguePageContent = ({ tracks }) => {
                 </article>
               ))}
 
-              {filteredTracks.length === 0 && (
+              {tracks.length === 0 && (
                 <div className='cmc-empty-results'>
                   No tracks matched that search.
                 </div>
