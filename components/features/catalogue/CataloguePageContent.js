@@ -2,6 +2,7 @@
 
 import { memo, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { Col, Container, Form, Row } from 'react-bootstrap'
 import PlaySample from '../../PlaySample'
 import { Button, Panel } from '../../ui/primitives'
@@ -19,9 +20,29 @@ const formatDuration = seconds => {
   return `${minutes}:${String(remainder).padStart(2, '0')}`
 }
 
+const countUnique = (tracks, field) => new Set(
+  tracks
+    .map(track => track[field])
+    .filter(Boolean)
+).size
+
+const hasPreview = track => track.previewStart !== null && track.previewEnd !== null
+
+const getTrackDescription = track => {
+  const detail = track.additionalInfo || track.instrumentation || track.key
+
+  if (!detail) {
+    return 'Preview the sample, inspect the arrangement details, and sign in when you are ready to buy.'
+  }
+
+  return detail.length > 150 ? `${detail.slice(0, 147)}...` : detail
+}
+
 const CataloguePageContent = ({ tracks }) => {
+  const { data: session } = useSession()
   const [searchParam, setSearchParam] = useState('')
   const [previewTrackId, setPreviewTrackId] = useState(null)
+  const isAuthenticated = Boolean(session)
 
   const filteredTracks = useMemo(() => {
     const query = normalise(searchParam).trim()
@@ -36,11 +57,15 @@ const CataloguePageContent = ({ tracks }) => {
       track.uploaderName,
       track.key,
       track.instrumentation,
-      track.formattedPrice
+      track.formattedPrice,
+      track.additionalInfo
     ].some(value => normalise(value).includes(query)))
   }, [searchParam, tracks])
 
   const featuredTrack = filteredTracks[0] || tracks[0]
+  const composerCount = useMemo(() => countUnique(tracks, 'composer'), [tracks])
+  const uploaderCount = useMemo(() => countUnique(tracks, 'uploaderName'), [tracks])
+  const previewableCount = useMemo(() => tracks.filter(hasPreview).length, [tracks])
 
   return (
     <main className='cmc-catalogue-page'>
@@ -50,7 +75,7 @@ const CataloguePageContent = ({ tracks }) => {
             <p className='cmc-kicker'>Classical Music Catalogue</p>
             <h1>Track Listing</h1>
             <p className='cmc-catalogue-copy'>
-              Search backing-track studies by title, composer, key, instrumentation, uploader, or price.
+              Search a growing archive of backing tracks, reductions, studies, and rehearsal recordings shared by classical musicians.
             </p>
           </div>
           <div className='cmc-catalogue-stats' aria-label='Catalogue summary'>
@@ -59,8 +84,16 @@ const CataloguePageContent = ({ tracks }) => {
               <small>Total tracks</small>
             </div>
             <div>
-              <span>{filteredTracks.length}</span>
-              <small>Visible now</small>
+              <span>{composerCount}</span>
+              <small>Composers</small>
+            </div>
+            <div>
+              <span>{uploaderCount}</span>
+              <small>Uploaders</small>
+            </div>
+            <div>
+              <span>{previewableCount}</span>
+              <small>Previews</small>
             </div>
           </div>
         </section>
@@ -68,6 +101,10 @@ const CataloguePageContent = ({ tracks }) => {
         <Row className='g-4 align-items-start'>
           <Col lg={4} xl={3}>
             <Panel as='aside' className='cmc-catalogue-panel' tone='accent'>
+              <div className='cmc-catalogue-panel-heading'>
+                <span>Browse archive</span>
+                <strong>{filteredTracks.length} result{filteredTracks.length === 1 ? '' : 's'}</strong>
+              </div>
               <Form.Group controlId='catalogue-search'>
                 <Form.Label>Search catalogue</Form.Label>
                 <Form.Control
@@ -104,6 +141,10 @@ const CataloguePageContent = ({ tracks }) => {
                   <small>{featuredTrack.composer}</small>
                 </div>
               )}
+              <div className='cmc-catalogue-public-note'>
+                <strong>Public preview</strong>
+                <p>Samples and track details are open to browse. Purchases, downloads, and comments start after sign-in.</p>
+              </div>
             </Panel>
           </Col>
 
@@ -125,11 +166,15 @@ const CataloguePageContent = ({ tracks }) => {
                     <div className='cmc-catalogue-track-index'>{index + 1}</div>
 
                     <div className='cmc-catalogue-track-main'>
+                      <div className='cmc-catalogue-track-eyebrow'>
+                        <span>{track.composer || 'Unknown composer'}</span>
+                        <span>{track.formattedPrice || 'TBC'}</span>
+                      </div>
                       <div className='cmc-catalogue-track-heading'>
                         <Link href={`/catalogue/${track.id}`}>
                           {track.title}
                         </Link>
-                        <p>{track.composer}</p>
+                        <p>{getTrackDescription(track)}</p>
                       </div>
 
                       <dl className='cmc-catalogue-track-meta'>
@@ -151,7 +196,10 @@ const CataloguePageContent = ({ tracks }) => {
                         </div>
                       </dl>
 
-                      <div className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</div>
+                      <div className='cmc-catalogue-row-meta'>
+                        <span>Published {track.uploadedAt}</span>
+                        <span>{hasPreview(track) ? 'Sample available' : 'Details only'}</span>
+                      </div>
                       <div className='cmc-catalogue-track-signal' aria-label='Catalogue metadata markers'>
                         <span />
                         <span />
@@ -170,6 +218,14 @@ const CataloguePageContent = ({ tracks }) => {
                         onClick={() => setPreviewTrackId(previewTrackId === track.id ? null : track.id)}
                       >
                         {previewTrackId === track.id ? 'Hide Preview' : 'Preview'}
+                      </Button>
+                      <Button
+                        as={Link}
+                        href={isAuthenticated ? `/catalogue/${track.id}` : `/auth/signin?callbackUrl=/catalogue/${track.id}`}
+                        size='sm'
+                        variant='paper'
+                      >
+                        {isAuthenticated ? 'Open Track' : 'Sign In to Buy'}
                       </Button>
                     </aside>
 

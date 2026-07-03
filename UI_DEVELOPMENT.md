@@ -96,6 +96,46 @@ Each PR should include:
 - screenshot review for touched pages
 - confirmation that no security/smoke guardrail was weakened
 
+## Catalogue State Model
+
+The catalogue should remain one route (`/catalogue`) with permission-aware actions rather than separate anonymous, customer, uploader, and admin pages. This keeps browsing, sharing, search, and test coverage simple while allowing the page to become more useful after authentication.
+
+Current baseline:
+
+- The catalogue list is public and mostly session-agnostic.
+- Search covers title, composer, uploader, key, instrumentation, and price.
+- Track rows expose details, metadata, price, inline preview, and detail links.
+- Track detail is lightly session-aware: anonymous users see a login prompt, while signed-in users can add a track to cart.
+- The catalogue does not yet render ownership, purchased/download, saved, cart, uploader, or admin states on the list page.
+
+Anonymous catalogue intent:
+
+- Treat the catalogue as a public marketplace and archive window.
+- Prioritize search, scanning, preview, price, uploader identity, and details.
+- Make purchase, comment, save, and download actions clear but gated behind sign-in.
+- Avoid profile, ownership, or cart assumptions.
+
+Logged-in customer intent:
+
+- Keep the same browsing surface.
+- Add purchased/owned badges, download/open actions, cart state, and comment affordances where server data confirms ownership.
+- Add useful personal filters later, such as purchased, not purchased, and recently viewed.
+
+Uploader and admin intent:
+
+- Keep contributor/support context subtle in the catalogue.
+- Mark tracks uploaded by the current user where useful.
+- Surface support/admin links only when they help review or diagnose a track.
+- Avoid cluttering normal browsing with operational controls.
+
+Build order:
+
+1. Redesign the anonymous catalogue list first.
+2. Add a local/dev preview helper for seeded customer, uploader, and admin states.
+3. Add customer-aware owned/cart/download actions.
+4. Add uploader/admin contextual markers.
+5. Polish mobile and add Playwright coverage for all catalogue states.
+
 ## Accessibility And Enterprise Criteria
 
 - All controls have accessible names.

@@ -29,10 +29,8 @@ function MainNavbar() {
           <Navbar.Toggle aria-controls='navbarScroll' />
           <Navbar.Collapse id='navbarScroll'>
             <Nav
-              aria-label='Primary navigation'
               className='cmc-navbar-nav ms-auto my-2 my-lg-0'
               navbarScroll
-              role='navigation'
             >
               <Nav.Link className={navLinkClass('/catalogue')} href='/catalogue'>Catalogue</Nav.Link>
               {isAuthenticated && <Nav.Link className={navLinkClass('/profile')} href='/profile'>Profile</Nav.Link>}

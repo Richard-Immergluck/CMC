@@ -59,3 +59,32 @@ Goals:
 - Run a catalogue page design pass against review feedback, including mobile behaviour and longer seeded track lists.
 - Add theme controls only after the first reviewed light theme is coherent.
 - Refine admin/profile density after the catalogue and public experience are directionally settled.
+
+## Catalogue UI Sprint
+
+Status: In progress
+
+State model:
+
+- Anonymous visitors use `/catalogue` as a public marketplace/archive view with search, preview, price, uploader identity, and sign-in prompts for gated actions.
+- Logged-in customers use the same route with owned/download, cart, comment, and personal-state affordances added after the anonymous pass.
+- Uploaders and admins use the same route with subtle contextual markers added after customer states are stable.
+
+Initial PR focus:
+
+- [x] Redesign the anonymous catalogue list page.
+- [x] Preserve existing public search, preview, detail navigation, and smoke-test coverage.
+- [ ] Keep signed-in catalogue behaviour unchanged unless needed to avoid regressions.
+- [ ] Verify desktop and mobile catalogue layouts before review.
+
+Current checkpoint:
+
+- The anonymous catalogue now presents archive stats, public-preview guidance, richer track summaries, composer/price markers, and explicit sign-in purchase prompts.
+- Route-level verification confirms `/catalogue` returns 200 and renders the expected anonymous catalogue content on the local dev server.
+- Playwright/Chrome screenshot verification is currently blocked by the local browser setup; retry after installing Playwright browsers or fixing local Chrome launch permissions.
+
+Deferred follow-up:
+
+- [ ] Add local/dev preview controls or instructions for seeded customer, uploader, and admin catalogue states.
+- [ ] Add ownership-aware catalogue row actions.
+- [ ] Add uploader/admin contextual markers.
