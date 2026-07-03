@@ -103,6 +103,7 @@ jobs:
           VERCEL_GIT_COMMIT_REF: dev
           CMC_EXPECTED_PREVIEW_BRANCH: dev
           NEXTAUTH_URL: https://classical-music-catalogue-richardimmerglucks-projects.vercel.app
+          S3_KEY_PREFIX: development/
           VERCEL_PROJECT_ROOT: .
           VERCEL_NODE_VERSION: 24.x
           SUPABASE_PROJECT_STATUS: ACTIVE
@@ -115,6 +116,7 @@ jobs:
           VERCEL_GIT_COMMIT_REF: master
           CMC_EXPECTED_PRODUCTION_BRANCH: master
           NEXTAUTH_URL: https://classical-music-catalogue.vercel.app
+          S3_KEY_PREFIX: production/
           VERCEL_PROJECT_ROOT: .
           VERCEL_NODE_VERSION: 24.x
           SUPABASE_PROJECT_STATUS: ACTIVE
