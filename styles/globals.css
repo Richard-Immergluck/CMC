@@ -615,7 +615,7 @@ a {
   left: 0;
   width: clamp(1.35rem, 2vw, 1.85rem);
   height: min(21.25rem, 64%);
-  background: url('/brand/motifs/paper-bar-logo-column.png') center top / 100% 100% no-repeat;
+  background: url('/brand/motifs/paper-bar-hero-parchment.png') center top / 100% 100% no-repeat;
   opacity: 0.9;
 }
 
