@@ -24,6 +24,8 @@ const optionalEnvVars = [
   'EMAIL_SERVER',
   'EMAIL_FROM',
   'ADMIN_ACCESS_REVIEW_EMAIL_RECIPIENTS',
+  'CMC_EXPECTED_PRODUCTION_BRANCH',
+  'CMC_EXPECTED_PREVIEW_BRANCH',
   'CMC_ENABLE_SYNTHETIC_FIXTURES',
   'DEMO_SEED_USER_EMAIL',
   'DEMO_SEED_USER_NAME',
@@ -56,6 +58,18 @@ const isLocalhostUrl = value => {
     return false
   }
 }
+
+const getHostname = value => {
+  try {
+    return new URL(value).hostname
+  } catch {
+    return ''
+  }
+}
+
+const isStablePreviewHost = hostname => hostname.endsWith('-richardimmerglucks-projects.vercel.app')
+
+const isProductionHost = hostname => hostname === 'classical-music-catalogue.vercel.app'
 
 const packageJson = readJson(path.join(root, 'package.json'))
 const requiredFiles = ['prisma.config.ts', 'prisma/schema.prisma']
@@ -160,7 +174,17 @@ for (const { name, expected, description } of optionalPlatformChecks) {
   }
 }
 
+const vercelEnv = process.env.VERCEL_ENV
+const vercelGitRef = process.env.VERCEL_GIT_COMMIT_REF
+const expectedProductionBranch = process.env.CMC_EXPECTED_PRODUCTION_BRANCH || 'master'
+const expectedPreviewBranch = process.env.CMC_EXPECTED_PREVIEW_BRANCH
+const nextAuthHost = getHostname(process.env.NEXTAUTH_URL)
+
 if (process.env.VERCEL_ENV === 'production') {
+  if (vercelGitRef && vercelGitRef !== expectedProductionBranch) {
+    fail(`Production deployments must come from ${expectedProductionBranch}; got ${vercelGitRef}`)
+  }
+
   if (isTruthyString(process.env.ALLOW_SIMULATED_PURCHASES)) {
     fail('ALLOW_SIMULATED_PURCHASES must be false or unset in Production')
   }
@@ -175,6 +199,18 @@ if (process.env.VERCEL_ENV === 'production') {
     fail('NEXTAUTH_URL must use https:// in Production')
   } else if (isLocalhostUrl(process.env.NEXTAUTH_URL)) {
     fail('NEXTAUTH_URL must not point at localhost in Production')
+  } else if (isStablePreviewHost(nextAuthHost)) {
+    fail('NEXTAUTH_URL must not point at the stable Preview alias in Production')
+  }
+}
+
+if (vercelEnv === 'preview') {
+  if (expectedPreviewBranch && vercelGitRef && vercelGitRef !== expectedPreviewBranch) {
+    fail(`Preview deployments must come from ${expectedPreviewBranch}; got ${vercelGitRef}`)
+  }
+
+  if (process.env.NEXTAUTH_URL && isProductionHost(nextAuthHost)) {
+    fail('NEXTAUTH_URL must not point at the Production host in Preview')
   }
 }
 

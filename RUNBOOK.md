@@ -219,6 +219,24 @@ Production traffic runs from Vercel production deployments and the `CMBC Product
 - A separate Supabase development project if branch cost or lifecycle is undesirable.
 - Local Docker PostgreSQL for fast application checks.
 
+The intended Git-to-environment flow is:
+
+```text
+feature branch -> PR -> dev -> Vercel Preview -> CMBC Development
+dev -> release PR -> master -> Vercel Production -> CMBC Production
+```
+
+Use `dev` as the integration branch for work that should be visible on the development deployment. Promote to `master` only after Preview smoke tests, health checks, and release gates pass.
+
+The deployment readiness script supports branch/environment guardrails:
+
+```text
+VERCEL_ENV=preview VERCEL_GIT_COMMIT_REF=dev CMC_EXPECTED_PREVIEW_BRANCH=dev yarn deploy:check
+VERCEL_ENV=production VERCEL_GIT_COMMIT_REF=master CMC_EXPECTED_PRODUCTION_BRANCH=master yarn deploy:check
+```
+
+In Production, `NEXTAUTH_URL` must point at the production host and must not point at the stable Preview alias. In Preview, `NEXTAUTH_URL` must not point at the production host.
+
 Supabase quoted development branch cost on 2026-06-12: `0.01344` hourly. Create branches deliberately and delete them when they are no longer needed.
 
 Current development Supabase details:

@@ -4,9 +4,10 @@ Use this checklist before promoting a Preview deployment to Production. Keep evi
 
 ## Required Gates
 
+- Development work has landed on `dev` first. Production promotion happens only through a reviewed release PR from `dev` to `master`.
 - GitHub CI is green on the exact commit being promoted.
 - `yarn sanity`, `yarn deps:audit`, `yarn deploy:check`, `yarn routes:check`, `yarn test:unit`, `yarn test:integration`, and `yarn test:e2e` have passed in CI.
-- Vercel Preview is deployed from the intended branch and points at the development database, not Production.
+- Vercel Preview is deployed from `dev` and points at the development database, not Production.
 - If HITL login testing is required, the Preview deployment is assigned to the stable OAuth-safe alias:
 
 ```text
@@ -39,7 +40,7 @@ HEALTH_SMOKE_BASE_URL=https://classical-music-catalogue-richardimmerglucks-proje
 - Production readiness passes with production-scoped platform values:
 
 ```text
-VERCEL_ENV=production VERCEL_PROJECT_ROOT=. VERCEL_NODE_VERSION=24.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
+VERCEL_ENV=production VERCEL_GIT_COMMIT_REF=master CMC_EXPECTED_PRODUCTION_BRANCH=master VERCEL_PROJECT_ROOT=. VERCEL_NODE_VERSION=24.x SUPABASE_PROJECT_STATUS=ACTIVE yarn deploy:check
 ```
 
 - Production `NEXTAUTH_URL` is the final HTTPS production URL.
@@ -70,6 +71,8 @@ SMOKE_BASE_URL=https://<production-host> yarn smoke
 Do not promote if any of these are true:
 
 - Preview is connected to the production database.
+- Production is deployed from any branch other than `master`.
+- Preview/dev is deployed from an unexpected branch when `CMC_EXPECTED_PREVIEW_BRANCH=dev` is configured.
 - A random Vercel Preview deployment URL is shared for OAuth HITL testing instead of the stable preview alias.
 - Production uses plain HTTP, localhost, or a Preview host for `NEXTAUTH_URL`.
 - Simulated purchases or synthetic fixtures are enabled in Production.
