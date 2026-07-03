@@ -52,13 +52,16 @@ This tracker records backend security and auditability work completed so far and
 - Added operational guidance for immediate access revocation after account suspension or closure.
 - Added account lifecycle summaries for suspended/closed account activity and rejection telemetry.
 - Added account lifecycle summaries to the Security dashboard and exported security reports.
+- Added deployment readiness guardrails for `dev`/`master` branch separation and Preview/Production auth URL mix-ups.
 
 ## In Progress
 
 - Review stricter session age and revocation controls for sensitive mutations.
+- Review Vercel Git integration and aliases so `dev` consistently deploys to Preview and `master` remains the only Production promotion branch.
 
 ## Next Targets
 
 - Classify sensitive mutation routes by risk and current session requirements.
 - Decide whether to add a server-side session denylist/revocation table for forced logout semantics.
 - Add configurable max-session-age checks for the highest-risk mutation routes if product friction is acceptable.
+- Add CI or release workflow wiring that runs `yarn deploy:check` with explicit `CMC_EXPECTED_PREVIEW_BRANCH=dev` and `CMC_EXPECTED_PRODUCTION_BRANCH=master` values.
