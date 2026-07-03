@@ -59,12 +59,12 @@ This tracker records backend security and auditability work completed so far and
 - Added deployment readiness checks that block missing, development-scoped Production S3 prefixes and production-scoped Preview S3 prefixes.
 - Added configurable max-session-age enforcement for sensitive admin mutation routes.
 - Added deployment readiness validation for configured sensitive-session max-age values.
+- Added a persisted user session revocation watermark so access changes force old JWT sessions through sign-in again.
 
 ## In Progress
 
-- Review server-side session denylist/revocation table options for forced logout semantics.
 - Review Vercel Git integration and aliases so `dev` consistently deploys to Preview and `master` remains the only Production promotion branch.
 
 ## Next Targets
 
-- Decide whether to add a server-side session denylist/revocation table for forced logout semantics.
+- Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.

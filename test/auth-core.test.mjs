@@ -47,7 +47,8 @@ test('token enrichment copies authorization fields from persisted users', () => 
         id: 'user-1',
         role: 'UPLOADER',
         accountStatus: 'ACTIVE',
-        uploaderStatus: 'APPROVED'
+        uploaderStatus: 'APPROVED',
+        sessionRevokedBefore: new Date('2026-07-03T10:00:00.000Z')
       }
     }),
     {
@@ -55,7 +56,8 @@ test('token enrichment copies authorization fields from persisted users', () => 
       sub: 'user-1',
       role: 'UPLOADER',
       accountStatus: 'ACTIVE',
-      uploaderStatus: 'APPROVED'
+      uploaderStatus: 'APPROVED',
+      sessionRevokedBefore: '2026-07-03T10:00:00.000Z'
     }
   )
 })

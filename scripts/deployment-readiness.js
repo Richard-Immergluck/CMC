@@ -148,7 +148,8 @@ for (const envVar of optionalEnvVars) {
 const requiredMigrationDirs = [
   '20260603234500_track_owner_unique_constraint',
   '20260604002000_add_orders_and_payment_events',
-  '20260604004000_harden_track_money_and_status'
+  '20260604004000_harden_track_money_and_status',
+  '20260703110500_add_user_session_revocation_watermark'
 ]
 
 for (const migrationDir of requiredMigrationDirs) {

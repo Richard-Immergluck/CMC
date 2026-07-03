@@ -52,6 +52,7 @@ model User {
   role           UserRole          @default(CUSTOMER)
   accountStatus  UserAccountStatus @default(ACTIVE)
   uploaderStatus UploaderStatus    @default(NOT_REQUESTED)
+  sessionRevokedBefore DateTime?
   accounts       Account[]
   sessions       Session[]
   Track          Track[]
@@ -66,6 +67,7 @@ model User {
   @@index([role])
   @@index([accountStatus])
   @@index([uploaderStatus])
+  @@index([sessionRevokedBefore])
 }
 
 model VerificationToken {
