@@ -1338,6 +1338,10 @@ a {
   line-height: 1;
 }
 
+.cmc-catalogue-board-header .cmc-brand-display-visual {
+  display: block;
+}
+
 .cmc-catalogue-query-form {
   display: grid;
   gap: var(--cmc-space-3);

@@ -4,6 +4,7 @@ import { memo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Container, Form } from 'react-bootstrap'
+import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 
@@ -78,7 +79,9 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
 
           <div className='cmc-catalogue-board-header'>
             <div>
-              <h1 id='catalogue-heading'>Browse Archive</h1>
+              <h1 id='catalogue-heading'>
+                <BrandDisplayText text='Browse Archive' />
+              </h1>
             </div>
 
             <Form action='/catalogue' className='cmc-catalogue-query-form' method='get' role='search'>
