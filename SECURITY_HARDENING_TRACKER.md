@@ -53,6 +53,7 @@ This tracker records backend security and auditability work completed so far and
 - Added account lifecycle summaries for suspended/closed account activity and rejection telemetry.
 - Added account lifecycle summaries to the Security dashboard and exported security reports.
 - Added deployment readiness guardrails for `dev`/`master` branch separation and Preview/Production auth URL mix-ups.
+- Added CI push coverage for `dev` and explicit deployment-readiness guardrail checks for `dev` Preview and `master` Production pushes.
 
 ## In Progress
 
@@ -64,4 +65,3 @@ This tracker records backend security and auditability work completed so far and
 - Classify sensitive mutation routes by risk and current session requirements.
 - Decide whether to add a server-side session denylist/revocation table for forced logout semantics.
 - Add configurable max-session-age checks for the highest-risk mutation routes if product friction is acceptable.
-- Add CI or release workflow wiring that runs `yarn deploy:check` with explicit `CMC_EXPECTED_PREVIEW_BRANCH=dev` and `CMC_EXPECTED_PRODUCTION_BRANCH=master` values.
