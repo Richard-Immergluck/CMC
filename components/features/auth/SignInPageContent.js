@@ -40,9 +40,7 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
         <Row className='align-items-center g-5'>
           <Col lg={7}>
             <div className='cmc-auth-intro-mark' aria-hidden='true'>
-              <span className='cmc-auth-intro-mark__bar cmc-auth-intro-mark__bar--archive' />
-              <span className='cmc-auth-intro-mark__bar cmc-auth-intro-mark__bar--catalogue' />
-              <span className='cmc-auth-intro-mark__bar cmc-auth-intro-mark__bar--community' />
+              <span />
             </div>
             <p className='cmc-kicker'>Member access</p>
             <h1>
