@@ -64,7 +64,6 @@ const CataloguePageContent = ({ tracks }) => {
 
           <div className='cmc-catalogue-board-header'>
             <div>
-              <p className='cmc-kicker'>Classical Music Catalogue</p>
               <h1 id='catalogue-heading'>Browse Archive</h1>
             </div>
 
