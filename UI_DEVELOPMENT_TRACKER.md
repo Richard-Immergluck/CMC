@@ -81,7 +81,8 @@ Current checkpoint:
 
 - The anonymous catalogue now presents archive stats, public-preview guidance, richer track summaries, composer/price markers, and explicit sign-in purchase prompts.
 - Route-level verification confirms `/catalogue` returns 200 and renders the expected anonymous catalogue content on the local dev server.
-- Playwright/Chrome screenshot verification is currently blocked by the local browser setup; retry after installing Playwright browsers or fixing local Chrome launch permissions.
+- Anonymous functional Playwright coverage passes for public catalogue reachability, bespoke sign-in entry, opening a listed track, returning to the list, and searching visible catalogue results when run against the responding `localhost` dev host.
+- Local Playwright runs against `127.0.0.1` can fail to hydrate the catalogue under the already-running Next dev server because the dev HMR websocket rejects that host. Use the same host shown by the dev server for local HITL checks.
 
 Deferred follow-up:
 

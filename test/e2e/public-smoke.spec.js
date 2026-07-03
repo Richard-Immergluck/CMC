@@ -51,10 +51,13 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await page.goto('/catalogue')
   await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
 
-  await page.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).first().click()
+  const firstTrackLink = page.locator('.cmc-catalogue-track-heading a').first()
+  const firstTrackTitle = await firstTrackLink.innerText()
+
+  await firstTrackLink.click()
   await expect(page).toHaveURL(/\/catalogue\/\d+$/)
-  await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
-  await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
+  await expect(page.getByRole('heading', { name: firstTrackTitle })).toBeVisible()
+  await expect(page.getByText(/Please .*login.* to add this track to your cart\./)).toBeVisible()
 
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
@@ -63,11 +66,15 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
 
 test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   await page.goto('/catalogue')
-  await page.getByLabel('Search catalogue').fill('Mendelssohn')
+  await expect(page.getByRole('link', { name: /Login \/ Sign up/i })).toBeVisible()
+  const search = page.getByLabel('Search catalogue')
+  await search.click()
+  await search.pressSequentially('Mendelssohn')
   await page.getByRole('button', { name: 'Search' }).click()
 
   await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
-  await expect(page.getByRole('link', { name: /Bach/i })).toHaveCount(0)
+  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(5)
+  await expect(page.locator('.cmc-catalogue-track-card').filter({ hasText: /Bach/i })).toHaveCount(0)
 })
 
 test('invalid catalogue track routes render a not found page', async ({ page }) => {

@@ -21,7 +21,7 @@ function MainNavbar() {
 
   return (
     <>
-      <Navbar className='cmc-navbar' expand='sm'>
+      <Navbar aria-label='Primary navigation' className='cmc-navbar' expand='sm'>
         <Container>
           <Navbar.Brand className='cmc-navbar-brand' href={isAuthenticated ? '/catalogue' : '/'}>
             <BrandMark compact wordmark='navFull' />

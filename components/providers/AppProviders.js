@@ -7,7 +7,7 @@ import { CartProvider } from 'react-use-cart'
 import Footer from '../Footer'
 import Navbar from '../Navbar'
 
-const AppProviders = ({ children, session }) => {
+const AppProviders = ({ children, session = null }) => {
   useEffect(() => {
     import('bootstrap/dist/js/bootstrap')
   }, [])
