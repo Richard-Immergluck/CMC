@@ -1146,7 +1146,9 @@ a {
 
 .cmc-auth-heading .cmc-home-paper-indent {
   min-height: clamp(11rem, 18vw, 17rem);
-  background-image: url('/brand/type/paper-bar-display/paper-bar-texture-warm-parchment-auth.png');
+  background-image: url('/brand/motifs/paper-bar-hero-parchment.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
   opacity: 0.9;
 }
 
