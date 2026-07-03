@@ -1356,13 +1356,17 @@ a {
 .cmc-catalogue-filter-control .form-select {
   min-height: var(--cmc-component-control-height-md);
   color: var(--cmc-component-control-text);
-  background-color: rgba(255, 253, 248, 0.88);
   border-color: rgba(23, 63, 56, 0.34);
   border-radius: 0;
 }
 
 .cmc-catalogue-search .form-control {
   padding-right: 3.7rem;
+  background-color: var(--cmc-color-surface);
+}
+
+.cmc-catalogue-filter-control .form-select {
+  background-color: rgba(255, 253, 248, 0.88);
 }
 
 .cmc-catalogue-search .form-control:focus,

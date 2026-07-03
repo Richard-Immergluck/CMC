@@ -114,9 +114,10 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                 <div className='cmc-catalogue-search-field'>
                   <Form.Control
                     defaultValue={query.q}
+                    inputMode='search'
                     name='q'
                     placeholder='Search'
-                    type='search'
+                    type='text'
                   />
                   {query.q && (
                     <Link
