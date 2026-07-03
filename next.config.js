@@ -1,3 +1,11 @@
+const isProduction = process.env.NODE_ENV === 'production'
+
+const scriptSrc = [
+  "script-src 'self' 'unsafe-inline'",
+  !isProduction ? "'unsafe-eval'" : '',
+  'https://js.stripe.com'
+].filter(Boolean).join(' ')
+
 const securityHeaders = [
   {
     key: 'Content-Security-Policy',
@@ -7,7 +15,7 @@ const securityHeaders = [
       "frame-ancestors 'none'",
       "object-src 'none'",
       "form-action 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <filter id="charcoal" x="-5%" y="-18%" width="110%" height="136%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9 .21" numOctaves="3" seed="61" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale=".75" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="paper" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency=".08 .12" numOctaves="4" seed="20" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="
+        .35 0 0 0 .57
+        0 .28 0 0 .50
+        0 0 .19 0 .36
+        0 0 0 .20 0"/>
+    </filter>
+  </defs>
+  <path d="M122 42 L564 42 C560 94 568 143 563 194 C558 255 566 306 562 374 L123 374 C128 316 119 263 124 205 C129 148 119 96 122 42 Z" fill="#e4d0a6" opacity=".42" filter="url(#paper)"/>
+  <g fill="none" stroke="#151918" stroke-opacity=".36" stroke-width="1.15" filter="url(#charcoal)">
+    <path d="M78 114 C228 113 351 115 486 114 C590 113 650 114 684 113"/>
+    <path d="M78 184 C218 183 346 185 480 184 C586 183 640 184 686 183"/>
+    <path d="M78 254 C222 253 350 255 486 254 C590 253 650 254 684 253"/>
+    <path d="M208 78 C207 142 209 234 208 318"/>
+    <path d="M402 60 C403 133 401 224 402 342"/>
+    <path d="M602 72 C601 140 603 238 602 330"/>
+  </g>
+  <rect x="250" y="194" width="180" height="16" fill="#b98522" opacity=".74"/>
+  <rect x="480" y="82" width="84" height="120" fill="#075f69" opacity=".7"/>
+  <g fill="#151918" opacity=".66">
+    <circle cx="154" cy="282" r="2.1"/>
+    <circle cx="181" cy="282" r="2.1"/>
+    <circle cx="154" cy="309" r="2.1"/>
+    <circle cx="181" cy="309" r="2.1"/>
+    <circle cx="154" cy="336" r="2.1"/>
+    <circle cx="181" cy="336" r="2.1"/>
+    <circle cx="518" cy="246" r="2.1"/>
+    <circle cx="546" cy="246" r="2.1"/>
+    <circle cx="574" cy="246" r="2.1"/>
+  </g>
+</svg>

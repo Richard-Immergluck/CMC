@@ -152,6 +152,11 @@ const CataloguePageContent = ({ tracks }) => {
                       </dl>
 
                       <div className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</div>
+                      <div className='cmc-catalogue-track-signal' aria-label='Catalogue metadata markers'>
+                        <span />
+                        <span />
+                        <span />
+                      </div>
                     </div>
 
                     <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>

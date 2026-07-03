@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 96" preserveAspectRatio="none">
+  <defs>
+    <filter id="charcoalRough" x="-2%" y="-38%" width="104%" height="176%">
+      <feTurbulence type="fractalNoise" baseFrequency=".82 .24" numOctaves="4" seed="33" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.05" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <linearGradient id="fadeLong" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#101514" stop-opacity=".88"/>
+      <stop offset=".56" stop-color="#101514" stop-opacity=".72"/>
+      <stop offset=".78" stop-color="#101514" stop-opacity=".36"/>
+      <stop offset="1" stop-color="#101514" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeShort" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#101514" stop-opacity=".82"/>
+      <stop offset=".46" stop-color="#101514" stop-opacity=".66"/>
+      <stop offset=".72" stop-color="#101514" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#101514" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeMid" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#101514" stop-opacity=".86"/>
+      <stop offset=".62" stop-color="#101514" stop-opacity=".64"/>
+      <stop offset=".86" stop-color="#101514" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#101514" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-linecap="round" filter="url(#charcoalRough)">
+    <g stroke-width="2.05">
+      <path d="M0 25.8 C151 25.1 264 26.7 406 25.9 C521 25.2 636 25.6 760 26.4 C860 27.1 948 25.2 1049 25.7 C1128 26.1 1200 25.8 1282 25.6" stroke="url(#fadeLong)"/>
+      <path d="M0 36.7 C141 37.2 279 35.7 433 36.4 C542 36.9 646 37.5 746 36.2 C823 35.2 903 37 1006 36.1 C1080 35.5 1138 35.8 1196 36.2" stroke="url(#fadeShort)"/>
+      <path d="M0 48.1 C185 47.2 326 48.9 511 47.7 C624 46.9 704 47.1 807 48.5 C906 49.6 996 47.3 1091 47.9 C1195 48.6 1278 47.5 1364 47.7" stroke="url(#fadeMid)"/>
+      <path d="M0 58.2 C129 57.6 268 59.4 424 58.3 C542 57.5 631 58.9 722 58.1 C800 57.4 874 59.1 974 58.4 C1062 57.7 1150 58.4 1230 58.8" stroke="url(#fadeShort)"/>
+      <path d="M0 69.9 C173 69.3 302 70.8 484 69.5 C588 68.8 684 68.7 780 70.2 C875 71.7 960 69.2 1056 70 C1158 70.7 1246 69.7 1328 69.5" stroke="url(#fadeLong)"/>
+    </g>
+    <g stroke="#0f1413" stroke-opacity=".34" stroke-width=".72">
+      <path d="M2 25.2 C170 26.1 319 25.4 481 25.8 C625 26.2 767 25.5 910 26.2 C1031 26.8 1136 26.1 1258 25.7" stroke="url(#fadeLong)"/>
+      <path d="M0 36.1 C184 36.5 322 36 497 36.7 C652 37.2 779 35.8 929 36.5 C1038 36.9 1115 36.5 1174 36.4" stroke="url(#fadeShort)"/>
+      <path d="M3 47.5 C192 48.2 363 47.4 522 47.9 C683 48.4 842 47.5 1009 48 C1131 48.4 1240 47.8 1338 47.8" stroke="url(#fadeMid)"/>
+      <path d="M0 57.8 C164 58.4 305 57.9 467 58.6 C622 59.1 772 57.8 925 58.7 C1045 59.2 1130 58.7 1206 58.7" stroke="url(#fadeShort)"/>
+      <path d="M2 69.4 C180 70 345 69.1 506 69.8 C647 70.4 805 69.4 964 70.1 C1097 70.8 1222 69.8 1304 69.7" stroke="url(#fadeLong)"/>
+    </g>
+  </g>
+</svg>

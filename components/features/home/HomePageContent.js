@@ -1,122 +1,101 @@
 'use client'
 
 import Link from 'next/link'
-import { Button, Col, Container, Row } from 'react-bootstrap'
-import { BrandMark } from '../../brand'
+import { Col, Container, Row } from 'react-bootstrap'
 
-const communityPillars = [
+const catalogueRows = [
   {
-    title: 'Recover hidden work',
-    body: 'Home-made accompaniments, cue tracks, studies, reductions, and practice recordings can move from forgotten folders into a searchable catalogue.'
+    number: '01',
+    title: 'Piano Concerto No. 21',
+    composer: 'W. A. Mozart',
+    status: ['published', 'draft', 'requested']
   },
   {
-    title: 'Reward useful tracks',
-    body: 'Uploaders can earn from music that solves real practice problems, while popular and reliable tracks can be surfaced more prominently over time.'
+    number: '02',
+    title: 'Cello Sonata No. 1',
+    composer: 'J. Brahms',
+    status: ['published', 'requested']
   },
   {
-    title: 'Shape the next upload',
-    body: 'Comments, requests, and profile activity are intended to help musicians ask for missing repertoire and improve what already exists.'
+    number: '03',
+    title: 'Violin Concerto in G',
+    composer: 'M. Bruch',
+    status: ['draft', 'requested']
   }
 ]
 
-const profileFeatures = [
-  'Purchased and downloaded music in one place',
-  'Track comments and community requests tied to a real profile',
-  'Uploader pages that show catalogue, style, status, and contribution history',
-  'Signals for frequently purchased, trusted, and actively discussed tracks'
+const systemFlows = [
+  {
+    state: 'published',
+    title: 'Publish useful recordings',
+    body: 'Upload reductions, accompaniments, cue tracks, and studies that other players can discover and use.'
+  },
+  {
+    state: 'draft',
+    title: 'Keep work in progress close',
+    body: 'Shape metadata, pricing, previews, and catalogue placement before a track goes live.'
+  },
+  {
+    state: 'requested',
+    title: 'Let demand guide the archive',
+    body: 'Requests and discussion help reveal missing repertoire and the practice material musicians need next.'
+  }
 ]
 
-const HomePageContent = () => (
+const fallbackHeroStats = [
+  { value: '0', label: 'Tracks', tone: 'gold' },
+  { value: '0', label: 'Uploaders', tone: 'teal' },
+  { value: '0', label: 'Requests', tone: 'gold' },
+  { value: '0', label: 'Comments', tone: 'red' }
+]
+
+const HomePageContent = ({ heroStats = fallbackHeroStats }) => (
   <main className='cmc-home-page'>
     <section className='cmc-home-hero'>
       <Container fluid='xl'>
-        <Row className='align-items-end g-5'>
-          <Col lg={8}>
-            <BrandMark className='cmc-home-brand-lockup' />
-            <p className='cmc-kicker'>Classical music marketplace</p>
-            <h1>Backing tracks should not gather dust.</h1>
+        <div className='cmc-home-hero-board'>
+          <div className='cmc-home-hero-staff' aria-hidden='true' />
+          <div className='cmc-home-hero-paper' aria-hidden='true' />
+          <div className='cmc-home-hero-dead-space cmc-home-hero-dead-space--ds01' aria-hidden='true' />
+          <div className='cmc-home-hero-content'>
+            <h1>
+              <span className='cmc-home-hero-initial'>B</span>ack<span className='cmc-home-hero-dotted-i'>i<span aria-hidden='true' /></span>ng tracks
+              <br />
+              should not gather dust
+              <span className='cmc-home-hero-dot'>.</span>
+            </h1>
             <p className='cmc-home-copy'>
-              Classical Music Catalogue is being built as a specialist marketplace for
-              classical musicians: a place to publish useful home-made backing tracks,
-              buy practice-ready recordings, request missing repertoire, and build
-              reputation around the music people actually use.
+              Discover, buy, request and discuss the practice tracks that help music come to life.
             </p>
             <div className='cmc-home-actions'>
-              <Link href='/catalogue' className='cmc-button cmc-button--secondary'>
+              <Link href='/catalogue' className='cmc-button cmc-button--paper'>
                 Browse catalogue
               </Link>
-              <Button
-                variant='outline-secondary'
+              <Link
                 href='/auth/signin?callbackUrl=/catalogue'
-                className='cmc-home-auth-button'
+                className='cmc-button cmc-button--ink'
               >
-                Sign in or register
-              </Button>
+                Join the community
+              </Link>
             </div>
-          </Col>
-          <Col lg={4}>
-            <aside className='cmc-home-market-note' aria-label='Marketplace summary'>
-              <span>Marketplace loop</span>
-              <strong>Upload. Discover. Discuss. Request.</strong>
-              <p>
-                The product is more than a file shop: every track can become part of a
-                living practice network for players, teachers, accompanists, and arrangers.
-              </p>
-            </aside>
-          </Col>
-        </Row>
+          </div>
+          <dl className='cmc-home-hero-stats' aria-label='Classical Music Catalogue activity'>
+            {heroStats.map(stat => (
+              <div className={`cmc-home-hero-stat cmc-home-hero-stat--${stat.tone}`} key={stat.label}>
+                <dt>{stat.label}</dt>
+                <dd>{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </Container>
     </section>
 
-    <section className='cmc-home-section cmc-home-section--split'>
-      <Container fluid='xl'>
-        <Row className='g-5 align-items-start'>
-          <Col lg={5}>
-            <p className='cmc-kicker'>Why it exists</p>
-            <h2>Useful accompaniments are already being made. The platform gives them somewhere to live.</h2>
-          </Col>
-          <Col lg={7}>
-            <div className='cmc-home-pillar-grid'>
-              {communityPillars.map(pillar => (
-                <article className='cmc-home-pillar' key={pillar.title}>
-                  <h3>{pillar.title}</h3>
-                  <p>{pillar.body}</p>
-                </article>
-              ))}
-            </div>
-          </Col>
-        </Row>
-      </Container>
-    </section>
-
-    <section className='cmc-home-section cmc-home-section--dark'>
-      <Container fluid='xl'>
-        <Row className='g-5 align-items-center'>
-          <Col lg={6}>
-            <p className='cmc-kicker'>For musicians</p>
-            <h2>Profiles should make ownership, contribution, and conversation visible.</h2>
-            <p>
-              Buyers need fast access to purchased tracks and downloads. Uploaders need a
-              place to show what they have contributed. The community needs a way to
-              comment on tracks and request the repertoire that is missing.
-            </p>
-          </Col>
-          <Col lg={6}>
-            <ul className='cmc-home-feature-list'>
-              {profileFeatures.map(feature => (
-                <li key={feature}>{feature}</li>
-              ))}
-            </ul>
-          </Col>
-        </Row>
-      </Container>
-    </section>
-
-    <section className='cmc-home-section'>
+    <section className='cmc-home-section cmc-home-section--pathway'>
       <Container fluid='xl'>
         <div className='cmc-home-pathway'>
-          <p className='cmc-kicker'>The intended product shape</p>
-          <h2>Catalogue first, community next, reputation over time.</h2>
+          <p className='cmc-kicker'>How it works</p>
+          <h2>Find the track, use it in practice, improve what comes next.</h2>
           <div className='cmc-home-pathway-grid'>
             <article>
               <span>01</span>
@@ -135,6 +114,68 @@ const HomePageContent = () => (
             </article>
           </div>
         </div>
+      </Container>
+    </section>
+
+    <section className='cmc-home-section'>
+      <Container fluid='xl'>
+        <Row className='g-5 align-items-start'>
+          <Col lg={5}>
+            <div className='cmc-home-section-heading'>
+              <div className='cmc-home-paper-indent' aria-hidden='true' />
+              <div>
+                <p className='cmc-kicker'>Digital music archive</p>
+                <h2>Catalogue first. Community around every track.</h2>
+              </div>
+            </div>
+          </Col>
+          <Col lg={7}>
+            <div className='cmc-home-catalogue-preview' aria-label='Catalogue preview'>
+              {catalogueRows.map(row => (
+                <article className='cmc-home-catalogue-row' key={row.number}>
+                  <span className='cmc-home-row-index'>{row.number}</span>
+                  <div>
+                    <h3>{row.title}</h3>
+                    <p>{row.composer}</p>
+                  </div>
+                  <i className='cmc-home-row-status' aria-hidden='true'>
+                    {row.status.map(state => (
+                      <span className={`cmc-home-row-status__mark cmc-home-row-status__mark--${state}`} key={state} />
+                    ))}
+                  </i>
+                </article>
+              ))}
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    </section>
+
+    <section className='cmc-home-section cmc-home-section--system'>
+      <Container fluid='xl'>
+        <Row className='g-5 align-items-start'>
+          <Col lg={6}>
+            <p className='cmc-kicker'>Marketplace grammar</p>
+            <h2>Every state has a visible place in the archive.</h2>
+            <p>
+              The Paper Bar system gives the product a quiet institutional rhythm:
+              textured vertical bars for meaning, staff-line rules for separation, and
+              dark readable typography for the work itself.
+            </p>
+          </Col>
+          <Col lg={6}>
+            <div className='cmc-home-meaning-list'>
+              {systemFlows.map(flow => (
+                <article className={`cmc-home-meaning-row cmc-home-meaning-row--${flow.state}`} key={flow.state}>
+                  <div>
+                    <strong>{flow.title}</strong>
+                    <span>{flow.body}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </Col>
+        </Row>
       </Container>
     </section>
   </main>

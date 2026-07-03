@@ -15,11 +15,11 @@ test('public routes include baseline security headers', async ({ request }) => {
 
 test('anonymous visitor can reach the public catalogue and auth gate', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Backing tracks should not gather dust.' })).toBeVisible()
-  await expect(page.getByText(/publish useful home-made backing tracks/i)).toBeVisible()
-  await expect(page.getByText(/Upload\. Discover\. Discuss\. Request\./i)).toBeVisible()
+  await expect(page.getByRole('heading', { name: /should not gather dust/i })).toBeVisible()
+  await expect(page.getByText(/Discover, buy, request and discuss/i)).toBeVisible()
+  await expect(page.getByText(/Find the track, use it in practice/i)).toBeVisible()
   await expect(page.getByRole('link', { name: 'Catalogue', exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Sign In \/ Register/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Login \/ Sign up/i })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Browse catalogue' })).toBeVisible()
 
   await page.getByRole('link', { name: 'Catalogue', exact: true }).click()
@@ -37,7 +37,7 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
 test('anonymous visitor can use the bespoke sign-in entry point', async ({ page }) => {
   await page.goto('/')
 
-  await page.getByRole('link', { name: /Sign In \/ Register/i }).click()
+  await page.getByRole('link', { name: /Login \/ Sign up/i }).click()
 
   await expect(page).toHaveURL(/\/auth\/signin/)
   await expect(page.getByRole('heading', { name: 'Sign in to your catalogue workspace.' })).toBeVisible()

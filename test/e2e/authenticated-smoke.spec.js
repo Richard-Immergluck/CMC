@@ -95,6 +95,10 @@ test.describe('authenticated smoke', () => {
 
     await expect(page).toHaveURL(/\/catalogue$/)
     await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Profile' })).toBeVisible()
+    await expect(page.getByRole('link', { name: /^Cart \(\d+\)$/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Sign Out' })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Login \/ Sign up/i })).toHaveCount(0)
     await expect(page.getByRole('link', { name: 'Upload' })).toHaveCount(0)
     await expect(page.getByRole('link', { name: 'Admin' })).toHaveCount(0)
 

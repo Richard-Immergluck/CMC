@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Paper Bar Display Type Exploration</title>
+    <style>
+      :root {
+        --paper: #f7f1e6;
+        --paper-2: #fffdf8;
+        --ink: #172b35;
+        --soft-ink: #586462;
+        --line: #d6cab7;
+        --teal: #075f69;
+        --red: #963b35;
+        --gold: #bb8724;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 48px));
+        margin: 0 auto;
+        padding: 42px 0 64px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 28px;
+        align-items: end;
+        padding-bottom: 26px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(34px, 5vw, 76px);
+        font-weight: 500;
+        letter-spacing: 0;
+        line-height: 0.94;
+      }
+
+      header p {
+        max-width: 580px;
+        margin-top: 16px;
+        color: #5d5750;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .mark {
+        display: block;
+        width: 190px;
+        height: auto;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+        margin-top: 28px;
+      }
+
+      .card {
+        min-height: 320px;
+        padding: 26px;
+        background: var(--paper-2);
+        border: 1px solid var(--line);
+      }
+
+      .label {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 28px;
+        color: #5d5750;
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .sample {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(52px, 8vw, 104px);
+        font-weight: 500;
+        letter-spacing: 0;
+        line-height: 0.94;
+      }
+
+      .sample--paper-fill {
+        color: transparent;
+        background-image: url("./paper-bar-texture-tan.png");
+        background-size: 260px 260px;
+        background-clip: text;
+        -webkit-background-clip: text;
+        filter: contrast(1.05);
+      }
+
+      .sample--ink-paper {
+        color: var(--ink);
+        text-shadow: 0 1px 0 rgba(255, 253, 248, 0.65);
+      }
+
+      .sample--ink-paper em {
+        font-style: normal;
+        color: transparent;
+        background-image: url("./paper-bar-texture-tan.png");
+        background-size: 220px 220px;
+        background-clip: text;
+        -webkit-background-clip: text;
+      }
+
+      .sample--bar-cut {
+        position: relative;
+        color: var(--ink);
+        display: inline-block;
+      }
+
+      .sample--bar-cut::after {
+        content: "";
+        position: absolute;
+        top: -0.08em;
+        bottom: -0.08em;
+        left: 49%;
+        width: 0.18em;
+        background-image: url("./paper-bar-texture-tan.png");
+        background-size: 180px 180px;
+        opacity: 0.78;
+        mix-blend-mode: multiply;
+      }
+
+      .sample--staff-serif {
+        position: relative;
+        display: inline-block;
+        color: var(--ink);
+      }
+
+      .sample--staff-serif::before {
+        content: "";
+        position: absolute;
+        right: 0.05em;
+        bottom: 0.05em;
+        left: 0.05em;
+        height: 0.55em;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            transparent 0 0.12em,
+            rgba(88, 100, 98, 0.28) 0.12em 0.135em,
+            transparent 0.135em 0.21em
+          );
+        z-index: 0;
+      }
+
+      .sample--staff-serif span {
+        position: relative;
+        z-index: 1;
+      }
+
+      .sample--warm-small {
+        color: #2b3436;
+        font-size: clamp(42px, 6vw, 76px);
+        line-height: 1;
+      }
+
+      .sample--warm-small strong {
+        color: transparent;
+        background-image: url("./paper-bar-texture-tan.png");
+        background-size: 180px 180px;
+        background-clip: text;
+        -webkit-background-clip: text;
+        font-weight: inherit;
+      }
+
+      .meta {
+        margin-top: 28px;
+        color: #5d5750;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .texture-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 28px;
+      }
+
+      .swatch {
+        min-height: 132px;
+        border: 1px solid var(--line);
+        background: var(--paper-2);
+      }
+
+      .swatch--tan {
+        background-image: url("./paper-bar-texture-tan.png");
+        background-size: 180px 180px;
+      }
+
+      .swatch--ink {
+        background-image: url("./paper-bar-texture-ink.png");
+        background-size: cover;
+      }
+
+      .swatch--staff {
+        background:
+          linear-gradient(90deg, transparent 0 46%, rgba(187, 135, 36, 0.28) 46% 53%, transparent 53%),
+          repeating-linear-gradient(180deg, transparent 0 22px, rgba(88, 100, 98, 0.45) 22px 24px, transparent 24px 34px),
+          var(--paper-2);
+      }
+
+      @media (max-width: 780px) {
+        header,
+        .grid,
+        .texture-row {
+          grid-template-columns: 1fr;
+        }
+
+        .mark {
+          width: 150px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Paper Bar Display</h1>
+          <p>A first exploration of display typography for CMC, using the Paper Bar logo texture as a source. These are type treatments rather than a production font file.</p>
+        </div>
+        <img class="mark" src="../../logo/paper-bar-large.png" alt="">
+      </header>
+
+      <section class="grid" aria-label="Display type explorations">
+        <article class="card">
+          <div class="label"><span>A01</span><span>paper-filled serif</span></div>
+          <div class="sample sample--paper-fill">Catalogue</div>
+          <p class="meta">Most literal paper-texture direction. Useful for sparse brand moments, probably too decorative for frequent headings.</p>
+        </article>
+
+        <article class="card">
+          <div class="label"><span>A02</span><span>ink with paper initial</span></div>
+          <div class="sample sample--ink-paper"><em>C</em>atalogue</div>
+          <p class="meta">Keeps readability high while letting the tan paper treatment appear as a controlled accent.</p>
+        </article>
+
+        <article class="card">
+          <div class="label"><span>B01</span><span>vertical bar cut</span></div>
+          <div class="sample sample--bar-cut">CMC</div>
+          <p class="meta">Directly borrows the logo's vertical paper bar. Promising for short lockups and section labels.</p>
+        </article>
+
+        <article class="card">
+          <div class="label"><span>B02</span><span>staff-line field</span></div>
+          <div class="sample sample--staff-serif"><span>Scores</span></div>
+          <p class="meta">Musical without becoming iconographic. Could work as a hero-only treatment behind large type.</p>
+        </article>
+
+        <article class="card">
+          <div class="label"><span>C01</span><span>restrained brand accent</span></div>
+          <div class="sample sample--warm-small">Classical <strong>Music</strong></div>
+          <p class="meta">Closest to a practical site system: normal readable serif plus one textured word or glyph.</p>
+        </article>
+
+        <article class="card">
+          <div class="label"><span>Source</span><span>texture palette</span></div>
+          <div class="texture-row">
+            <div class="swatch swatch--tan"></div>
+            <div class="swatch swatch--ink"></div>
+            <div class="swatch swatch--staff"></div>
+          </div>
+          <p class="meta">Tan paper, staff ink texture, and a code-native staff field for future typographic rules.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <filter id="charcoal" x="-5%" y="-18%" width="110%" height="136%">
+      <feTurbulence type="fractalNoise" baseFrequency=".82 .22" numOctaves="3" seed="48" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale=".6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="tealTexture" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency=".7 .64" numOctaves="5" seed="12" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="
+        .18 0 0 0 .02
+        0 .26 0 0 .16
+        0 0 .23 0 .18
+        0 0 0 .24 0"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke="#151918" stroke-opacity=".36" stroke-width="1.15" filter="url(#charcoal)">
+    <path d="M80 82 C210 81 314 83 444 82 C538 81 602 82 660 81"/>
+    <path d="M80 150 C202 149 316 151 436 150 C542 149 626 150 672 149"/>
+    <path d="M80 218 C204 217 316 219 444 218 C530 217 610 218 668 217"/>
+    <path d="M80 286 C208 285 320 287 438 286 C548 285 630 286 680 285"/>
+    <path d="M175 52 C176 132 174 216 175 330"/>
+    <path d="M352 48 C351 124 353 214 352 350"/>
+    <path d="M555 64 C555 140 554 232 556 336"/>
+  </g>
+  <rect x="204" y="112" width="174" height="106" fill="#075f69" opacity=".83" filter="url(#tealTexture)"/>
+  <rect x="446" y="246" width="126" height="18" fill="#b98522" opacity=".72"/>
+  <g fill="#151918" opacity=".74">
+    <circle cx="112" cy="250" r="2"/>
+    <circle cx="138" cy="250" r="2"/>
+    <circle cx="112" cy="276" r="2"/>
+    <circle cx="138" cy="276" r="2"/>
+    <circle cx="112" cy="302" r="2"/>
+    <circle cx="138" cy="302" r="2"/>
+    <circle cx="620" cy="112" r="2"/>
+    <circle cx="644" cy="112" r="2"/>
+    <circle cx="620" cy="138" r="2"/>
+    <circle cx="644" cy="138" r="2"/>
+  </g>
+  <path d="M612 308 C632 307 648 308 666 307" stroke="#963b35" stroke-width="2" opacity=".72"/>
+</svg>

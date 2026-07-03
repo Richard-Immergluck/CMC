@@ -60,9 +60,9 @@ test.describe('mobile layout smoke', () => {
   test('public home page fits a mobile viewport', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByRole('heading', { name: 'Backing tracks should not gather dust.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /should not gather dust/i })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Browse catalogue' })).toBeVisible()
-    await expect(page.getByText(/Upload\. Discover\. Discuss\. Request\./i)).toBeVisible()
+    await expect(page.getByText(/Discover, buy, request and discuss/i)).toBeVisible()
     await expectNoDocumentHorizontalOverflow(page)
   })
 
