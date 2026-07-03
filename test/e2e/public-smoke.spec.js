@@ -26,8 +26,8 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
 
   await primaryNav.getByRole('link', { name: 'Catalogue', exact: true }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
-  await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+  await expect(page.getByLabel('Search catalogue')).toBeVisible()
 
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/auth\/signin\?callbackUrl=(%2F|\/)profile/)
@@ -49,7 +49,7 @@ test('anonymous visitor can use the bespoke sign-in entry point', async ({ page 
 
 test('anonymous visitor can open a catalogue track and return to the listing', async ({ page }) => {
   await page.goto('/catalogue')
-  await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
 
   const firstTrackLink = page.locator('.cmc-catalogue-track-heading a').first()
   const firstTrackTitle = await firstTrackLink.innerText()
@@ -61,7 +61,7 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
 
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
-  await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
 })
 
 test('anonymous visitor can search catalogue tracks', async ({ page }) => {
@@ -70,7 +70,6 @@ test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   const search = page.getByLabel('Search catalogue')
   await search.click()
   await search.pressSequentially('Mendelssohn')
-  await page.getByRole('button', { name: 'Search' }).click()
 
   await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
   await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(5)

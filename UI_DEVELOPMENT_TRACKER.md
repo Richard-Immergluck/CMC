@@ -83,6 +83,7 @@ Current checkpoint:
 - Route-level verification confirms `/catalogue` returns 200 and renders the expected anonymous catalogue content on the local dev server.
 - Anonymous functional Playwright coverage passes for public catalogue reachability, bespoke sign-in entry, opening a listed track, returning to the list, and searching visible catalogue results when run against the responding `localhost` dev host.
 - Local Playwright runs against `127.0.0.1` can fail to hydrate the catalogue under the already-running Next dev server because the dev HMR websocket rejects that host. Use the same host shown by the dev server for local HITL checks.
+- The catalogue layout has been simplified into a functional archive board: compact heading, search field, result count, table-like desktop rows, and stacked mobile rows. The removed hero stats, first-result block, and public-preview note were judged clutter for the browsing task.
 
 Deferred follow-up:
 
