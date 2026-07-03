@@ -716,8 +716,8 @@ a {
   z-index: 1;
   left: 50%;
   top: 0.1em;
-  width: 0.19em;
-  height: 0.19em;
+  width: 0.175em;
+  height: 0.175em;
   background: #b98522;
   border-radius: 50%;
   transform: translateX(-50%);
