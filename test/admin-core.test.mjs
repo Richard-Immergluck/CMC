@@ -392,6 +392,7 @@ test('user access change metadata captures before and after safe fields', () => 
         role: 'UPLOADER',
         accountStatus: 'ACTIVE',
         uploaderStatus: 'APPROVED',
+        sessionRevokedBefore: new Date('2026-07-03T10:00:00.000Z'),
         access_token: 'should-not-leak'
       }
     }),
@@ -411,7 +412,9 @@ test('user access change metadata captures before and after safe fields', () => 
         role: 'UPLOADER',
         accountStatus: 'ACTIVE',
         uploaderStatus: 'APPROVED'
-      }
+      },
+      sessionsRevoked: true,
+      sessionRevokedBefore: new Date('2026-07-03T10:00:00.000Z')
     }
   )
 })

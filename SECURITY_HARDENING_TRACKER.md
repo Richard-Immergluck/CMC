@@ -60,6 +60,7 @@ This tracker records backend security and auditability work completed so far and
 - Added configurable max-session-age enforcement for sensitive admin mutation routes.
 - Added deployment readiness validation for configured sensitive-session max-age values.
 - Added a persisted user session revocation watermark so access changes force old JWT sessions through sign-in again.
+- Added explicit session revocation context to user access-change audit metadata without exposing session tokens.
 
 ## In Progress
 
