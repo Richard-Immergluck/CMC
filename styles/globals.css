@@ -862,6 +862,10 @@ a {
   line-height: 1.6;
 }
 
+.cmc-home-purpose-kicker {
+  color: var(--cmc-color-accent-rose);
+}
+
 .cmc-home-catalogue-preview {
   display: grid;
   gap: 0;
@@ -1137,6 +1141,38 @@ a {
   font-size: clamp(3rem, 7vw, 6rem);
   font-weight: 500;
   line-height: 0.98;
+}
+
+.cmc-auth-intro-mark {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 0.82rem);
+  gap: 0.46rem;
+  align-items: end;
+  min-height: 3.1rem;
+  margin-bottom: var(--cmc-space-4);
+  padding-bottom: var(--cmc-space-2);
+  border-bottom: 2px solid var(--cmc-color-accent-gold);
+}
+
+.cmc-auth-intro-mark__bar {
+  display: block;
+  width: 0.82rem;
+  background-image: url('/brand/type/paper-bar-display/paper-bar-texture-gold-clean.png');
+  background-size: 80px 80px;
+}
+
+.cmc-auth-intro-mark__bar--archive {
+  height: 2.45rem;
+}
+
+.cmc-auth-intro-mark__bar--catalogue {
+  height: 3.1rem;
+  background-image: url('/brand/type/paper-bar-display/paper-bar-texture-teal-clean.png');
+}
+
+.cmc-auth-intro-mark__bar--community {
+  height: 2rem;
+  background-image: url('/brand/type/paper-bar-display/paper-bar-texture-red-clean.png');
 }
 
 .cmc-auth-copy {

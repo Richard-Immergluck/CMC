@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Alert, Col, Container, Form, Row } from 'react-bootstrap'
+import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button, Panel } from '../../ui/primitives'
 
 const errorMessages = {
@@ -38,8 +39,15 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
       <Container fluid='xl'>
         <Row className='align-items-center g-5'>
           <Col lg={7}>
+            <div className='cmc-auth-intro-mark' aria-hidden='true'>
+              <span className='cmc-auth-intro-mark__bar cmc-auth-intro-mark__bar--archive' />
+              <span className='cmc-auth-intro-mark__bar cmc-auth-intro-mark__bar--catalogue' />
+              <span className='cmc-auth-intro-mark__bar cmc-auth-intro-mark__bar--community' />
+            </div>
             <p className='cmc-kicker'>Member access</p>
-            <h1>Sign in to your catalogue workspace.</h1>
+            <h1>
+              <BrandDisplayText text='Sign in to your catalogue workspace.' />
+            </h1>
             <p className='cmc-auth-copy'>
               Continue to purchased tracks, comments, uploads, requests, and the
               marketplace catalogue with the same calm working surface as the rest of

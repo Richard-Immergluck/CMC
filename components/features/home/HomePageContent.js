@@ -110,7 +110,7 @@ const HomePageContent = ({ heroStats = fallbackHeroStats }) => (
             <div className='cmc-home-section-heading'>
               <div className='cmc-home-paper-indent' aria-hidden='true' />
               <div>
-                <p className='cmc-kicker'>Digital music archive</p>
+                <p className='cmc-kicker cmc-home-purpose-kicker'>Digital music archive</p>
                 <h2>
                   <BrandDisplayText text='Useful recordings deserve somewhere to live.' />
                 </h2>
