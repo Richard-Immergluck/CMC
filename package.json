@@ -15,6 +15,7 @@
     "security:audit-cleanup:rehearse": "node scripts/audit-cleanup-rehearsal.mjs",
     "security:access-reviews": "node scripts/admin-access-review-metrics.mjs",
     "security:alerts": "node scripts/security-alert-check.mjs",
+    "security:sensitive-routes": "node scripts/sensitive-route-policy-check.js",
     "env:matrix": "node scripts/environment-matrix-check.js",
     "security:rls": "node scripts/rls-grant-check.mjs",
     "seed:e2e": "node scripts/seed-e2e-data.mjs",

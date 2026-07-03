@@ -60,6 +60,7 @@ const requiredFiles = [
   'scripts/environment-matrix-check.js',
   'scripts/health-smoke-test.js',
   'scripts/route-manifest-check.js',
+  'scripts/sensitive-route-policy-check.js',
   'scripts/smoke-test.js',
   'styles/tokens.css'
 ]
@@ -181,7 +182,11 @@ for (const pattern of forbiddenConfigPatterns) {
   }
 }
 
-for (const script of ['environment-matrix-check.js', 'deployment-alias-policy-check.js']) {
+for (const script of [
+  'environment-matrix-check.js',
+  'deployment-alias-policy-check.js',
+  'sensitive-route-policy-check.js'
+]) {
   const result = spawnSync(process.execPath, [path.join(root, 'scripts', script)], {
     cwd: root,
     stdio: 'inherit'

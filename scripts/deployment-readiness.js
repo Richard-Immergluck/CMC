@@ -122,6 +122,7 @@ for (const scriptName of [
   'deploy:check',
   'routes:check',
   'security:audit-cleanup:rehearse',
+  'security:sensitive-routes',
   'smoke',
   'smoke:health'
 ]) {
