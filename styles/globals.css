@@ -613,13 +613,10 @@ a {
   z-index: 1;
   top: 0;
   left: 0;
-  width: 1.15rem;
+  width: clamp(1.35rem, 2vw, 1.85rem);
   height: min(21.25rem, 64%);
-  background-image: url('/brand/type/paper-bar-display/paper-bar-texture-parchment-clean.png');
-  background-position: center top;
-  background-repeat: repeat-y;
-  background-size: 120px 120px;
-  opacity: 0.78;
+  background: url('/brand/motifs/paper-bar-logo-column.png') center top / 100% 100% no-repeat;
+  opacity: 0.9;
 }
 
 .cmc-home-hero-dead-space {
@@ -2192,7 +2189,7 @@ a {
 
   .cmc-home-hero-paper {
     left: 0;
-    width: 0.75rem;
+    width: 1rem;
     height: 15.6rem;
   }
 
