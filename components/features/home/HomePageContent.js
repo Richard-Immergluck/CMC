@@ -62,7 +62,7 @@ const HomePageContent = ({ heroStats = fallbackHeroStats }) => (
               <span className='cmc-home-hero-initial'>B</span>ack<span className='cmc-home-hero-dotted-i'>i<span aria-hidden='true' /></span>ng tracks
               <br />
               should not gather dust
-              <span className='cmc-home-hero-dot' aria-hidden='true'>.</span>
+              <span className='cmc-home-hero-dot'>.</span>
             </h1>
             <p className='cmc-home-copy'>
               Discover, buy, request and discuss the practice tracks that help music come to life.
