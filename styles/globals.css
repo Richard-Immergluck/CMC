@@ -671,6 +671,8 @@ a {
   width: 100%;
   min-height: clamp(7rem, 12vw, 12rem);
   background-image: url('/brand/type/paper-bar-display/paper-bar-texture-parchment-clean.png');
+  background-position: center top;
+  background-repeat: repeat-y;
   background-size: 120px 120px;
   opacity: 0.78;
 }
