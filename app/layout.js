@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/globals.css'
+import CookieConsentBanner from '../components/CookieConsentBanner'
 import AppProviders from '../components/providers/AppProviders'
 
 export const metadata = {
@@ -14,6 +15,7 @@ const RootLayout = ({ children }) => (
   <html lang='en'>
     <body>
       <AppProviders>{children}</AppProviders>
+      <CookieConsentBanner />
     </body>
   </html>
 )
