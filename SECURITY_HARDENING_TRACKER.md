@@ -58,6 +58,7 @@ This tracker records backend security and auditability work completed so far and
 - Added a deployment alias policy check for Preview/Production hosts, OAuth callbacks, and documented database mapping.
 - Added deployment readiness checks that block missing, development-scoped Production S3 prefixes and production-scoped Preview S3 prefixes.
 - Added configurable max-session-age enforcement for sensitive admin mutation routes.
+- Added deployment readiness validation for configured sensitive-session max-age values.
 
 ## In Progress
 
