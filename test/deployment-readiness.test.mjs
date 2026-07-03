@@ -32,11 +32,24 @@ test('deployment readiness blocks production auth URLs that point at preview ali
   const result = runReadiness({
     VERCEL_ENV: 'production',
     VERCEL_GIT_COMMIT_REF: 'master',
-    NEXTAUTH_URL: 'https://classical-music-catalogue-richardimmerglucks-projects.vercel.app'
+    NEXTAUTH_URL: 'https://classical-music-catalogue-richardimmerglucks-projects.vercel.app',
+    S3_KEY_PREFIX: 'production/'
   })
 
   assert.notEqual(result.status, 0)
   assert.match(result.stderr, /stable Preview alias/)
+})
+
+test('deployment readiness blocks production storage prefixes that point at development', () => {
+  const result = runReadiness({
+    VERCEL_ENV: 'production',
+    VERCEL_GIT_COMMIT_REF: 'master',
+    NEXTAUTH_URL: 'https://classical-music-catalogue.vercel.app',
+    S3_KEY_PREFIX: 'development/'
+  })
+
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /development prefix in Production/)
 })
 
 test('deployment readiness blocks preview deploys from unexpected branches when configured', () => {
@@ -56,11 +69,25 @@ test('deployment readiness blocks preview auth URLs that point at production', (
     VERCEL_ENV: 'preview',
     VERCEL_GIT_COMMIT_REF: 'dev',
     CMC_EXPECTED_PREVIEW_BRANCH: 'dev',
-    NEXTAUTH_URL: 'https://classical-music-catalogue.vercel.app'
+    NEXTAUTH_URL: 'https://classical-music-catalogue.vercel.app',
+    S3_KEY_PREFIX: 'development/'
   })
 
   assert.notEqual(result.status, 0)
   assert.match(result.stderr, /Production host in Preview/)
+})
+
+test('deployment readiness blocks preview storage prefixes that point at production', () => {
+  const result = runReadiness({
+    VERCEL_ENV: 'preview',
+    VERCEL_GIT_COMMIT_REF: 'dev',
+    CMC_EXPECTED_PREVIEW_BRANCH: 'dev',
+    NEXTAUTH_URL: 'https://classical-music-catalogue-richardimmerglucks-projects.vercel.app',
+    S3_KEY_PREFIX: 'production/'
+  })
+
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /production prefix in Preview/)
 })
 
 test('deployment readiness accepts the documented dev and production branch split', () => {
@@ -68,14 +95,16 @@ test('deployment readiness accepts the documented dev and production branch spli
     VERCEL_ENV: 'preview',
     VERCEL_GIT_COMMIT_REF: 'dev',
     CMC_EXPECTED_PREVIEW_BRANCH: 'dev',
-    NEXTAUTH_URL: 'https://classical-music-catalogue-richardimmerglucks-projects.vercel.app'
+    NEXTAUTH_URL: 'https://classical-music-catalogue-richardimmerglucks-projects.vercel.app',
+    S3_KEY_PREFIX: 'development/'
   })
 
   const production = runReadiness({
     VERCEL_ENV: 'production',
     VERCEL_GIT_COMMIT_REF: 'master',
     CMC_EXPECTED_PRODUCTION_BRANCH: 'master',
-    NEXTAUTH_URL: 'https://classical-music-catalogue.vercel.app'
+    NEXTAUTH_URL: 'https://classical-music-catalogue.vercel.app',
+    S3_KEY_PREFIX: 'production/'
   })
 
   assert.equal(preview.status, 0, preview.stderr)

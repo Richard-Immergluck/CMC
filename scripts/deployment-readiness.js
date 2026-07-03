@@ -71,6 +71,20 @@ const isStablePreviewHost = hostname => hostname.endsWith('-richardimmerglucks-p
 
 const isProductionHost = hostname => hostname === 'classical-music-catalogue.vercel.app'
 
+const normalizePrefix = value => String(value || '').trim().replace(/^\/+|\/+$/g, '').toLowerCase()
+
+const isDevelopmentStoragePrefix = value => {
+  const prefix = normalizePrefix(value)
+
+  return prefix === 'development' || prefix === 'dev' || prefix.startsWith('development/') || prefix.startsWith('dev/')
+}
+
+const isProductionStoragePrefix = value => {
+  const prefix = normalizePrefix(value)
+
+  return prefix === 'production' || prefix === 'prod' || prefix.startsWith('production/') || prefix.startsWith('prod/')
+}
+
 const packageJson = readJson(path.join(root, 'package.json'))
 const requiredFiles = ['prisma.config.ts', 'prisma/schema.prisma']
 
@@ -194,6 +208,12 @@ if (process.env.VERCEL_ENV === 'production') {
     fail('CMC_ENABLE_SYNTHETIC_FIXTURES must be false or unset in Production')
   }
 
+  if (!process.env.S3_KEY_PREFIX) {
+    fail('S3_KEY_PREFIX must be set in Production')
+  } else if (isDevelopmentStoragePrefix(process.env.S3_KEY_PREFIX)) {
+    fail('S3_KEY_PREFIX must not use a development prefix in Production')
+  }
+
   if (!process.env.NEXTAUTH_URL) {
     fail('NEXTAUTH_URL must be set in Production')
   } else if (!process.env.NEXTAUTH_URL.startsWith('https://')) {
@@ -212,6 +232,12 @@ if (vercelEnv === 'preview') {
 
   if (process.env.NEXTAUTH_URL && isProductionHost(nextAuthHost)) {
     fail('NEXTAUTH_URL must not point at the Production host in Preview')
+  }
+
+  if (!process.env.S3_KEY_PREFIX) {
+    fail('S3_KEY_PREFIX must be set in Preview')
+  } else if (isProductionStoragePrefix(process.env.S3_KEY_PREFIX)) {
+    fail('S3_KEY_PREFIX must not use a production prefix in Preview')
   }
 }
 

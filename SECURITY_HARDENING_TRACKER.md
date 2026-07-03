@@ -56,6 +56,7 @@ This tracker records backend security and auditability work completed so far and
 - Added CI push coverage for `dev` and explicit deployment-readiness guardrail checks for `dev` Preview and `master` Production pushes.
 - Added a source-controlled environment matrix and drift check for Local, Preview/Dev, and Production runtime variables.
 - Added a deployment alias policy check for Preview/Production hosts, OAuth callbacks, and documented database mapping.
+- Added deployment readiness checks that block missing, development-scoped Production S3 prefixes and production-scoped Preview S3 prefixes.
 
 ## In Progress
 
