@@ -39,18 +39,20 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
       <Container fluid='xl'>
         <Row className='align-items-center g-5'>
           <Col lg={7}>
-            <div className='cmc-auth-intro-mark' aria-hidden='true'>
-              <span />
+            <div className='cmc-home-section-heading cmc-auth-heading'>
+              <div className='cmc-home-paper-indent' aria-hidden='true' />
+              <div>
+                <p className='cmc-kicker'>Member access</p>
+                <h1>
+                  <BrandDisplayText text='Sign in to your catalogue workspace.' />
+                </h1>
+                <p className='cmc-auth-copy'>
+                  Continue to purchased tracks, comments, uploads, requests, and the
+                  marketplace catalogue with the same calm working surface as the rest of
+                  Classical Music Catalogue.
+                </p>
+              </div>
             </div>
-            <p className='cmc-kicker'>Member access</p>
-            <h1>
-              <BrandDisplayText text='Sign in to your catalogue workspace.' />
-            </h1>
-            <p className='cmc-auth-copy'>
-              Continue to purchased tracks, comments, uploads, requests, and the
-              marketplace catalogue with the same calm working surface as the rest of
-              Classical Music Catalogue.
-            </p>
           </Col>
           <Col lg={5}>
             <Panel as='section' className='cmc-auth-panel' tone='accent' aria-label='Sign in options'>

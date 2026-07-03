@@ -1144,29 +1144,8 @@ a {
   line-height: 0.98;
 }
 
-.cmc-auth-intro-mark {
-  position: relative;
-  width: min(14rem, 72vw);
-  height: 2.35rem;
-  margin-bottom: var(--cmc-space-4);
-  background:
-    repeating-linear-gradient(
-      180deg,
-      transparent 0 0.42rem,
-      rgba(88, 100, 98, 0.44) 0.42rem calc(0.42rem + 1px),
-      transparent calc(0.42rem + 1px) 0.72rem
-    );
-}
-
-.cmc-auth-intro-mark span {
-  position: absolute;
-  top: -0.1rem;
-  left: 46%;
-  width: 0.78rem;
-  height: 2.65rem;
-  background-image: url('/brand/type/paper-bar-display/paper-bar-texture-parchment-clean.png');
-  background-size: 90px 90px;
-  opacity: 0.82;
+.cmc-auth-heading .cmc-home-paper-indent {
+  min-height: clamp(11rem, 18vw, 17rem);
 }
 
 .cmc-auth-copy {
