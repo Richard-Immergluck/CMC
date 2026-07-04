@@ -1803,7 +1803,7 @@ a {
   align-items: start;
   min-height: clamp(13rem, 23vw, 18rem);
   margin-bottom: var(--cmc-space-2);
-  padding: clamp(4.5rem, 5.7vw, 5.65rem) 0 clamp(0.5rem, 1.2vw, 1rem);
+  padding: clamp(7.75rem, 8.8vw, 8.75rem) 0 clamp(0.5rem, 1.2vw, 1rem);
 }
 
 .cmc-track-hero-staff {
@@ -1833,7 +1833,6 @@ a {
   z-index: 3;
   min-width: 0;
   margin-left: var(--cmc-track-hero-indent);
-  transform: translateY(20px);
 }
 
 .cmc-track-title-block h1 {
@@ -1883,7 +1882,6 @@ a {
   text-align: left;
   background: rgba(255, 253, 248, 0.72);
   border: 1px solid rgba(23, 63, 56, 0.16);
-  transform: translateY(40px);
 }
 
 .cmc-track-purchase-panel strong {
