@@ -1617,6 +1617,8 @@ a {
 }
 
 .cmc-catalogue-track-actions {
+  --cmc-catalogue-action-button-width: 8.75rem;
+
   display: grid;
   gap: var(--cmc-space-2);
   justify-items: start;
@@ -1624,8 +1626,9 @@ a {
 }
 
 .cmc-catalogue-track-actions .cmc-button {
-  width: auto;
+  width: min(100%, var(--cmc-catalogue-action-button-width));
   max-width: 100%;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -2450,6 +2453,8 @@ a {
   }
 
   .cmc-catalogue-track-actions {
+    --cmc-catalogue-action-button-width: 100%;
+
     grid-template-columns: 1fr;
   }
 
