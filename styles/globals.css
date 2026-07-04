@@ -2105,19 +2105,21 @@ a {
 }
 
 .cmc-track-waveform-strip--loading > span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
-  animation: cmc-waveform-loading-fade 0.3s ease-in-out infinite;
+  animation: cmc-waveform-loading-pulse 0.3s ease-in-out infinite;
   background: rgba(23, 63, 56, 0.48);
-  will-change: opacity;
+  will-change: height, opacity;
 }
 
-@keyframes cmc-waveform-loading-fade {
+@keyframes cmc-waveform-loading-pulse {
   0%,
   100% {
+    height: calc(var(--cmc-wave-bar) * 0.62);
     opacity: 0.24;
   }
 
   50% {
-    opacity: 0.88;
+    height: calc(var(--cmc-wave-bar) * 1.08);
+    opacity: 0.9;
   }
 }
 
