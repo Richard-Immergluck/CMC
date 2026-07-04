@@ -132,6 +132,94 @@ a {
   padding: var(--cmc-space-3) var(--cmc-space-5);
 }
 
+.cmc-modal-shell {
+  position: fixed;
+  z-index: 1050;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--cmc-space-4);
+}
+
+.cmc-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  background: rgba(23, 32, 31, 0.48);
+  border: 0;
+  backdrop-filter: blur(2px);
+  cursor: default;
+}
+
+.cmc-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 34rem);
+  padding: var(--cmc-space-5);
+  color: var(--cmc-color-text);
+  background: var(--cmc-component-panel-background);
+  border: 1px solid var(--cmc-component-panel-border);
+  border-top: 0.34rem solid var(--cmc-color-accent-gold);
+  box-shadow: 0 26px 60px rgba(23, 32, 31, 0.22);
+}
+
+.cmc-modal-header {
+  display: flex;
+  gap: var(--cmc-space-3);
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: var(--cmc-space-3);
+  border-bottom: 1px solid var(--cmc-color-border);
+}
+
+.cmc-modal-header .cmc-kicker {
+  margin: 0;
+}
+
+.cmc-modal-close {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--cmc-color-accent-strong);
+  background: rgba(255, 253, 248, 0.78);
+  border: 1px solid rgba(23, 63, 56, 0.26);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cmc-modal-close:hover {
+  color: #fffdf8;
+  background: #173f38;
+  border-color: #173f38;
+}
+
+.cmc-modal-body {
+  padding: var(--cmc-space-4) 0;
+}
+
+.cmc-modal-body h2 {
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-size: 1.65rem;
+  line-height: 1.15;
+}
+
+.cmc-modal-body p {
+  margin: var(--cmc-space-3) 0 0;
+  color: var(--cmc-color-text-muted);
+  line-height: 1.55;
+}
+
+.cmc-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-3);
+  justify-content: flex-end;
+}
+
 .cmc-panel {
   padding: var(--cmc-space-4);
   background: var(--cmc-component-panel-background);
@@ -2469,6 +2557,29 @@ a {
   .cmc-catalogue-track-actions .cmc-button {
     width: 100%;
     white-space: normal;
+  }
+
+  .cmc-modal-shell {
+    align-items: end;
+    padding: var(--cmc-space-3);
+  }
+
+  .cmc-modal-card {
+    width: 100%;
+    padding: var(--cmc-space-4);
+  }
+
+  .cmc-modal-body h2 {
+    font-size: 1.35rem;
+  }
+
+  .cmc-modal-actions,
+  .cmc-modal-actions .cmc-button {
+    width: 100%;
+  }
+
+  .cmc-modal-actions {
+    flex-direction: column-reverse;
   }
 
 }

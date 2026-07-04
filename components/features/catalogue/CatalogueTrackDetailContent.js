@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useCart } from 'react-use-cart'
-import { Button } from 'react-bootstrap'
+import { Button } from '../../ui/primitives'
 
 const WaveFormRegion = dynamic(
   () => import('../../WaveFormRegion'),
@@ -15,8 +15,26 @@ const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  currency: 'GBP',
+  style: 'currency'
+})
+
+const formatTrackPrice = track => {
+  if (Number.isInteger(track.pricePence)) {
+    return currencyFormatter.format(track.pricePence / 100)
+  }
+
+  if (typeof track.formattedPrice === 'string' && track.formattedPrice.startsWith('GBP ')) {
+    return track.formattedPrice.replace(/^GBP\s+/, '£')
+  }
+
+  return track.formattedPrice || 'Price unavailable'
+}
+
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
   const [url, setUrl] = useState('')
+  const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
   const getCatalogueReturnUrl = () => {
@@ -56,7 +74,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
 
   const addToCart = () => {
     addItem({ ...track })
-    alert('Track added to cart!')
+    setShowCartConfirmation(true)
   }
 
   const metadata = [
@@ -71,12 +89,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
       <div className='container'>
         <Button
           type='button'
-          variant='outline-secondary'
+          variant='paper'
           size='sm'
           className='cmc-track-back-button'
           onClick={goBackToCatalogue}
         >
-          Back
+          Back to Catalogue
         </Button>
 
         <section className='cmc-track-hero'>
@@ -88,17 +106,17 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
 
           <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
             <span>Price</span>
-            <strong>{track.formattedPrice || 'Price unavailable'}</strong>
+            <strong>{formatTrackPrice(track)}</strong>
             {catalogueContext.isAuthenticated &&
               !track.viewerState?.isOwned &&
               !track.viewerState?.isUploadedByViewer &&
               !catalogueContext.showOperationsOverlay && (
-              <Button variant='info' size='md' onClick={addToCart}>
+              <Button variant='ink' size='md' onClick={addToCart}>
                 Add to Cart
               </Button>
             )}
             {track.viewerState?.isOwned && (
-              <Button as={Link} href={createTrackProfileHref(track)} variant='info' size='md'>
+              <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
                 View in Library
               </Button>
             )}
@@ -108,7 +126,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
               </p>
             )}
             {catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer && (
-              <Button as={Link} href='/admin' variant='outline-info' size='md'>
+              <Button as={Link} href='/admin' variant='secondary' size='md'>
                 Operations Console
               </Button>
             )}
@@ -184,6 +202,52 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
           Back to the Catalogue
         </Link>
       </div>
+
+      {showCartConfirmation && (
+        <div
+          aria-labelledby='cart-confirmation-title'
+          aria-modal='true'
+          className='cmc-modal-shell'
+          role='dialog'
+          tabIndex='-1'
+        >
+          <button
+            aria-label='Close cart confirmation'
+            className='cmc-modal-backdrop'
+            onClick={() => setShowCartConfirmation(false)}
+            type='button'
+          />
+          <section className='cmc-modal-card cmc-cart-confirmation'>
+            <div className='cmc-modal-header'>
+              <p className='cmc-kicker'>Cart updated</p>
+              <button
+                aria-label='Close cart confirmation'
+                className='cmc-modal-close'
+                onClick={() => setShowCartConfirmation(false)}
+                type='button'
+              >
+                X
+              </button>
+            </div>
+
+            <div className='cmc-modal-body'>
+              <h2 id='cart-confirmation-title'>{track.title} has been added to your cart.</h2>
+              <p>
+                You can keep browsing the archive or review your cart when you are ready to complete checkout.
+              </p>
+            </div>
+
+            <div className='cmc-modal-actions'>
+              <Button variant='paper' onClick={() => setShowCartConfirmation(false)}>
+                Continue Browsing
+              </Button>
+              <Button as={Link} href='/cart' variant='ink'>
+                View Cart
+              </Button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
