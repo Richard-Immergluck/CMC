@@ -89,6 +89,8 @@ const buildWaveformPeaks = audioBuffer => {
   return rawPeaks.map(peak => Math.max(0.08, Math.min(1, peak / maxPeak)))
 }
 
+const clampPercentage = value => Math.max(0, Math.min(100, value))
+
 const getInitials = name => {
   if (!name) {
     return 'CM'
@@ -115,6 +117,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [activeTab, setActiveTab] = useState('preview')
   const [previewVolume, setPreviewVolume] = useState(78)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
+  const [waveformDuration, setWaveformDuration] = useState(track.durationSeconds || track.previewEnd || 1)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
@@ -147,10 +150,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
 
         if (!cancelled) {
           setWaveformPeaks(buildWaveformPeaks(audioBuffer))
+          setWaveformDuration(audioBuffer.duration)
         }
       } catch {
         if (!cancelled) {
           setWaveformPeaks(createFallbackWaveform(track.id))
+          setWaveformDuration(track.durationSeconds || track.previewEnd || 1)
         }
       } finally {
         audioContext?.close?.()
@@ -162,7 +167,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     return () => {
       cancelled = true
     }
-  }, [activeTab, track.id])
+  }, [activeTab, track.durationSeconds, track.id, track.previewEnd])
 
   const getCatalogueReturnUrl = () => {
     const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
@@ -200,6 +205,14 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
   const showPurchaseDivider = showBasketAction || showOwnedAction || showOperationsAction
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
+  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
+  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
+    ? track.previewEnd
+    : waveformDuration
+  const safeWaveformDuration = Math.max(0.01, waveformDuration)
+  const previewWindowStart = clampPercentage((previewStart / safeWaveformDuration) * 100)
+  const previewWindowEnd = clampPercentage((previewEnd / safeWaveformDuration) * 100)
+  const previewWindowWidth = Math.max(0, previewWindowEnd - previewWindowStart)
   const previewFacts = [
     {
       label: 'Key',
@@ -341,6 +354,15 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         style={{ '--cmc-waveform-bars': waveformPeaks.length }}
                         aria-hidden='true'
                       >
+                        {activePreviewTrackId === track.id && (
+                          <span
+                            className='cmc-track-preview-window'
+                            style={{
+                              '--cmc-preview-window-left': `${previewWindowStart}%`,
+                              '--cmc-preview-window-width': `${previewWindowWidth}%`
+                            }}
+                          />
+                        )}
                         {waveformPeaks.map((peak, index) => (
                           <span key={index} style={{ '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%` }} />
                         ))}

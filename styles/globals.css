@@ -2057,6 +2057,7 @@ a {
 }
 
 .cmc-track-waveform-strip {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(var(--cmc-waveform-bars, 180), minmax(1px, 1fr));
   gap: 0.07rem;
@@ -2065,7 +2066,9 @@ a {
   overflow: hidden;
 }
 
-.cmc-track-waveform-strip span {
+.cmc-track-waveform-strip span:not(.cmc-track-preview-window) {
+  position: relative;
+  z-index: 2;
   display: block;
   width: 0.25rem;
   height: var(--cmc-wave-bar);
@@ -2073,6 +2076,21 @@ a {
   justify-self: center;
   background: rgba(24, 31, 38, 0.78);
   border-radius: 999px;
+}
+
+.cmc-track-preview-window {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: var(--cmc-preview-window-left);
+  width: var(--cmc-preview-window-width);
+  min-width: 0.35rem;
+  background: rgba(185, 133, 34, 0.12);
+  border-right: 2px solid rgba(185, 133, 34, 0.92);
+  border-left: 2px solid rgba(185, 133, 34, 0.92);
+  border-radius: 0.35rem;
+  pointer-events: none;
 }
 
 .cmc-track-volume-control {
