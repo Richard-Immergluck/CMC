@@ -29,8 +29,7 @@ const addSessionCookieToBrowser = async ({ page, response }) => {
     {
       name: cookie.name,
       value: cookie.value,
-      domain: responseUrl.hostname,
-      path: '/',
+      url: responseUrl.origin,
       httpOnly: true,
       sameSite: 'Lax',
       secure: responseUrl.protocol === 'https:',
