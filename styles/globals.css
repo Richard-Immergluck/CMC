@@ -2093,8 +2093,8 @@ a {
   z-index: 1;
   top: 0;
   bottom: 0;
-  left: var(--cmc-preview-window-left);
-  width: var(--cmc-preview-window-width);
+  left: calc(var(--cmc-preview-window-left) - 0.38rem);
+  width: calc(var(--cmc-preview-window-width) + 0.76rem);
   min-width: 0.35rem;
   background: rgba(185, 133, 34, 0.12);
   border-right: 2px solid rgba(185, 133, 34, 0.92);
