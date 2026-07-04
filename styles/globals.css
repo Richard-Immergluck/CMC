@@ -1479,6 +1479,7 @@ a {
 .cmc-catalogue-results-shell {
   --cmc-catalogue-grid-template: 2.4rem minmax(12rem, 1.55fr) minmax(7.25rem, 0.82fr) minmax(4.75rem, 0.5fr) minmax(8rem, 0.9fr) minmax(6.25rem, 0.66fr) minmax(4.75rem, 0.44fr) minmax(9.5rem, 0.6fr);
   --cmc-catalogue-row-min-width: 68rem;
+  --cmc-catalogue-scrollbar-buffer: 5px;
 
   overflow: visible;
   padding-right: var(--cmc-space-5);
@@ -1489,7 +1490,7 @@ a {
   grid-template-columns: var(--cmc-catalogue-grid-template);
   gap: var(--cmc-space-3);
   align-items: end;
-  width: max(100%, var(--cmc-catalogue-row-min-width));
+  width: max(calc(100% - var(--cmc-catalogue-scrollbar-buffer)), var(--cmc-catalogue-row-min-width));
   padding: var(--cmc-space-3) 0;
   color: var(--cmc-color-accent-strong);
   font-size: 0.68rem;
@@ -1503,7 +1504,7 @@ a {
   display: grid;
   max-height: 72vh;
   overflow: auto;
-  padding-right: var(--cmc-space-3);
+  padding-right: var(--cmc-catalogue-scrollbar-buffer);
   border-bottom: 1px solid var(--cmc-component-table-row-border);
   scrollbar-gutter: stable;
 }
@@ -1522,7 +1523,7 @@ a {
   grid-template-columns: var(--cmc-catalogue-grid-template);
   gap: var(--cmc-space-3);
   align-items: start;
-  width: max(100%, var(--cmc-catalogue-row-min-width));
+  width: max(calc(100% - var(--cmc-catalogue-scrollbar-buffer)), var(--cmc-catalogue-row-min-width));
   padding: var(--cmc-space-4) 0;
 }
 
