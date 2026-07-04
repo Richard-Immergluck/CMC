@@ -1573,23 +1573,8 @@ a {
   width: 100%;
 }
 
-.cmc-preview-player {
-  grid-column: 2 / -1;
-  min-width: 14rem;
-  padding: var(--cmc-space-3) 0 0;
-  border-top: 1px solid var(--cmc-color-border);
-}
-
-.cmc-audio-preview {
-  display: block;
-  width: min(100%, 28rem);
-  height: 2.35rem;
-}
-
-.cmc-audio-preview-status {
-  margin: 0;
-  color: var(--cmc-color-text-muted);
-  font-size: var(--cmc-font-size-small);
+.cmc-audio-preview-source {
+  display: none;
 }
 
 .cmc-empty-results {
@@ -2365,10 +2350,6 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .cmc-preview-player {
-    grid-column: 2;
-    min-width: 0;
-  }
 }
 
 

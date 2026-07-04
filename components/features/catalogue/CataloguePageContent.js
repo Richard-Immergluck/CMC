@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Container, Form } from 'react-bootstrap'
@@ -90,10 +90,11 @@ const FilterSelect = ({ label, name, options, value }) => (
 
 const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
   const { data: session } = useSession()
-  const [previewTrackId, setPreviewTrackId] = useState(null)
+  const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const isAuthenticated = Boolean(session)
   const previousPage = Math.max(1, pagination.page - 1)
   const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
+  const stopPreview = useCallback(() => setActivePreviewTrackId(null), [])
 
   return (
     <main className='cmc-catalogue-page'>
@@ -256,13 +257,12 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                       <Button as={Link} href={`/catalogue/${track.id}`} variant='secondary'>
                         Details
                       </Button>
-                      <Button
-                        size='sm'
-                        variant={previewTrackId === track.id ? 'secondary' : 'subtle'}
-                        onClick={() => setPreviewTrackId(previewTrackId === track.id ? null : track.id)}
-                      >
-                        {previewTrackId === track.id ? 'Hide Preview' : 'Preview'}
-                      </Button>
+                      <PlaySample
+                        active={activePreviewTrackId === track.id}
+                        onActivate={() => setActivePreviewTrackId(track.id)}
+                        onDeactivate={stopPreview}
+                        track={track}
+                      />
                       <Button
                         as={Link}
                         href={isAuthenticated ? `/catalogue/${track.id}` : `/auth/signin?callbackUrl=/catalogue/${track.id}`}
@@ -272,12 +272,6 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                         {isAuthenticated ? 'Open Track' : 'Sign In to Buy'}
                       </Button>
                     </aside>
-
-                    {previewTrackId === track.id && (
-                      <div className='cmc-preview-player'>
-                        <PlaySample track={track} />
-                      </div>
-                    )}
                   </div>
                 </article>
               ))}

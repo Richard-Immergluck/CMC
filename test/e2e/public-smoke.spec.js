@@ -64,13 +64,15 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
 })
 
-test('anonymous visitor can open an approved audio preview', async ({ page }) => {
+test('anonymous visitor can play an approved audio preview from the action button', async ({ page }) => {
   await page.goto('/catalogue?pageSize=10')
 
   await page.getByRole('button', { name: 'Preview' }).first().click()
 
-  const audioPreview = page.locator('audio.cmc-audio-preview').first()
-  await expect(audioPreview).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Pause Preview' })).toBeVisible()
+  await expect(page.locator('.cmc-preview-player')).toHaveCount(0)
+
+  const audioPreview = page.locator('audio.cmc-audio-preview-source').first()
   await expect(audioPreview).toHaveAttribute('src', /#t=\d+,\d+/)
 })
 
