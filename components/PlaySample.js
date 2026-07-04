@@ -97,22 +97,25 @@ const PlaySample = props => {
     }
   }
 
-  const buttonLabel = loading
-    ? 'Loading Preview'
-    : active
-      ? 'Pause Preview'
-      : error || 'Preview'
+  const buttonLabel = loading ? 'Loading Preview' : error || 'Preview'
 
   return (
     <>
       <Button
+        aria-label={active ? 'Pause Preview' : undefined}
         aria-pressed={active}
+        className={active ? 'cmc-preview-action cmc-preview-action--active' : 'cmc-preview-action'}
         disabled={loading}
         onClick={handlePreviewClick}
         size='sm'
         variant={active ? 'secondary' : 'subtle'}
       >
-        {buttonLabel}
+        {active ? (
+          <span className='cmc-preview-pause-icon' aria-hidden='true'>
+            <span />
+            <span />
+          </span>
+        ) : buttonLabel}
       </Button>
       {url && (
         <audio
