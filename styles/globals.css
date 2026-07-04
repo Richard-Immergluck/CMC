@@ -2067,7 +2067,7 @@ a {
 
 .cmc-track-waveform-strip span {
   display: block;
-  width: 0.1875rem;
+  width: 0.25rem;
   height: var(--cmc-wave-bar);
   min-height: 0.3rem;
   justify-self: center;
