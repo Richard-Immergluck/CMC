@@ -2076,7 +2076,7 @@ a {
   outline-offset: 0.3rem;
 }
 
-.cmc-track-waveform-strip > span:not(.cmc-track-preview-window, .cmc-track-preview-playhead, .cmc-track-waveform-equalizer) {
+.cmc-track-waveform-strip > span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
   position: relative;
   z-index: 2;
   display: block;
@@ -2104,61 +2104,20 @@ a {
   pointer-events: none;
 }
 
-.cmc-track-waveform-strip--loading > span:not(.cmc-track-waveform-equalizer, .cmc-track-preview-window, .cmc-track-preview-playhead) {
-  opacity: 0.14;
+.cmc-track-waveform-strip--loading > span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
+  animation: cmc-waveform-loading-fade 0.3s ease-in-out infinite;
+  background: rgba(23, 63, 56, 0.48);
+  will-change: opacity;
 }
 
-.cmc-track-waveform-equalizer {
-  position: absolute;
-  z-index: 4;
-  inset: 0;
-  display: flex;
-  gap: 0.12rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0.45rem;
-  pointer-events: none;
-}
-
-.cmc-track-waveform-equalizer span {
-  display: block;
-  width: 0.22rem;
-  height: 18%;
-  background: rgba(23, 63, 56, 0.82);
-  border-radius: 999px;
-  animation-name: cmc-waveform-equalizer;
-  animation-duration: 0.88s;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-delay: var(--cmc-equalizer-delay);
-  transform-origin: center;
-  will-change: height, opacity, transform;
-}
-
-@keyframes cmc-waveform-equalizer {
+@keyframes cmc-waveform-loading-fade {
   0%,
   100% {
-    height: 18%;
-    opacity: 0.42;
-    transform: translateY(0.32rem);
+    opacity: 0.24;
   }
 
-  28% {
-    height: 82%;
-    opacity: 0.94;
-    transform: translateY(-0.18rem);
-  }
-
-  58% {
-    height: 34%;
-    opacity: 0.58;
-    transform: translateY(0.12rem);
-  }
-
-  78% {
-    height: 64%;
-    opacity: 0.82;
-    transform: translateY(-0.08rem);
+  50% {
+    opacity: 0.88;
   }
 }
 

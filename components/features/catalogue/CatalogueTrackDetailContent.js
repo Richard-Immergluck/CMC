@@ -114,8 +114,6 @@ const detailTabLabels = {
   requests: 'Requests'
 }
 
-const loadingEqualizerBars = Array.from({ length: 36 }, (_, index) => index)
-
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [activeTab, setActiveTab] = useState('preview')
@@ -479,16 +477,6 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                               style={{ '--cmc-preview-playhead-left': `${previewPlayheadPosition}%` }}
                             />
                           </>
-                        )}
-                        {isWaveformLoading && (
-                          <span className='cmc-track-waveform-equalizer' aria-hidden='true'>
-                            {loadingEqualizerBars.map(index => (
-                              <span
-                                key={index}
-                                style={{ '--cmc-equalizer-delay': `${index * -64}ms` }}
-                              />
-                            ))}
-                          </span>
                         )}
                         {waveformPeaks.map((peak, index) => (
                           <span
