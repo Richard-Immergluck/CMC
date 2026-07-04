@@ -16,6 +16,23 @@ const sortLabels = {
   title: 'Title'
 }
 
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  currency: 'GBP',
+  style: 'currency'
+})
+
+const formatTrackPrice = track => {
+  if (Number.isInteger(track.pricePence)) {
+    return currencyFormatter.format(track.pricePence / 100)
+  }
+
+  if (typeof track.formattedPrice === 'string' && track.formattedPrice.startsWith('GBP ')) {
+    return track.formattedPrice.replace(/^GBP\s+/, '£')
+  }
+
+  return track.formattedPrice || 'TBC'
+}
+
 const createPageHref = ({ page, query }) => {
   const params = new URLSearchParams()
 
@@ -204,7 +221,7 @@ const CatalogueTrackRow = ({
           {track.uploaderName}
         </div>
         <div className='cmc-catalogue-track-price' data-label='Price'>
-          {track.formattedPrice || 'TBC'}
+          {formatTrackPrice(track)}
         </div>
         <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
           <Button as={Link} href={`/catalogue/${track.id}`} variant='ink'>

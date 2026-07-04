@@ -182,6 +182,7 @@ const trackListSelect = {
   id: true,
   instrumentation: true,
   key: true,
+  pricePence: true,
   previewEnd: true,
   previewStart: true,
   title: true,
