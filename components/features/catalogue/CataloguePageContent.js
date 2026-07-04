@@ -1,22 +1,12 @@
 'use client'
 
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
 import { Container, Form } from 'react-bootstrap'
+import { catalogueModes, getCatalogueModeLabel } from '../../../lib/catalogue-view.mjs'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
-
-const getTrackDescription = track => {
-  const detail = track.additionalInfo || track.instrumentation || track.key
-
-  if (!detail) {
-    return 'Preview the sample, inspect the arrangement details, and sign in when you are ready to buy.'
-  }
-
-  return detail.length > 150 ? `${detail.slice(0, 147)}...` : detail
-}
 
 const sortLabels = {
   composer: 'Composer',
@@ -24,6 +14,23 @@ const sortLabels = {
   price_asc: 'Price low-high',
   price_desc: 'Price high-low',
   title: 'Title'
+}
+
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  currency: 'GBP',
+  style: 'currency'
+})
+
+const formatTrackPrice = track => {
+  if (Number.isInteger(track.pricePence)) {
+    return currencyFormatter.format(track.pricePence / 100)
+  }
+
+  if (typeof track.formattedPrice === 'string' && track.formattedPrice.startsWith('GBP ')) {
+    return track.formattedPrice.replace(/^GBP\s+/, '£')
+  }
+
+  return track.formattedPrice || 'TBC'
 }
 
 const createPageHref = ({ page, query }) => {
@@ -88,13 +95,210 @@ const FilterSelect = ({ label, name, options, value }) => (
   </Form.Group>
 )
 
-const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
-  const { data: session } = useSession()
+const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
+
+const catalogueScrollStoragePrefix = 'cmc.catalogue.scroll:'
+const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
+const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
+
+const getCatalogueScrollStorageKey = () => (
+  `${catalogueScrollStoragePrefix}${window.location.pathname}${window.location.search}`
+)
+
+const pluralise = (count, singular, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`
+
+const getTrackActivity = track => {
+  const purchasedDownloadCount = track._count?.TrackOwner || 0
+  const commentCount = track._count?.Comments || 0
+
+  return [
+    pluralise(purchasedDownloadCount, 'download'),
+    pluralise(commentCount, 'comment')
+  ]
+}
+
+const getTrackBadges = ({ catalogueContext, track }) => {
+  const badges = []
+
+  if (track.viewerState?.isOwned) {
+    badges.push('Owned')
+  }
+
+  if (track.viewerState?.isUploadedByViewer) {
+    badges.push('Your upload')
+  }
+
+  if (catalogueContext.showOperationsOverlay) {
+    badges.push(catalogueContext.mode === catalogueModes.admin ? 'Admin view' : 'Support view')
+  }
+
+  return badges
+}
+
+const getPrimaryTrackAction = ({ catalogueContext, track }) => {
+  if (!catalogueContext.isAuthenticated) {
+    return {
+      href: `/auth/signin?callbackUrl=/catalogue/${track.id}`,
+      label: 'Sign In to Buy'
+    }
+  }
+
+  if (track.viewerState?.isOwned) {
+    return {
+      href: createTrackProfileHref(track),
+      label: 'View in Library'
+    }
+  }
+
+  if (track.viewerState?.isUploadedByViewer) {
+    return {
+      href: `/catalogue/${track.id}`,
+      label: 'Your Track'
+    }
+  }
+
+  return null
+}
+
+const getSecondaryOperationsAction = catalogueContext => {
+  if (!catalogueContext.showOperationsOverlay) {
+    return null
+  }
+
+  return {
+    href: '/admin',
+    label: catalogueContext.mode === catalogueModes.admin ? 'Admin Tools' : 'Support Tools'
+  }
+}
+
+const CatalogueTrackRow = ({
+  activePreviewTrackId,
+  catalogueContext,
+  index,
+  onCatalogueNavigation,
+  onStopPreview,
+  pagination,
+  setActivePreviewTrackId,
+  track
+}) => {
+  const badges = getTrackBadges({ catalogueContext, track })
+  const primaryAction = getPrimaryTrackAction({ catalogueContext, track })
+  const operationsAction = getSecondaryOperationsAction(catalogueContext)
+
+  return (
+    <article
+      className='cmc-catalogue-track-card'
+      data-catalogue-owned={track.viewerState?.isOwned ? 'true' : 'false'}
+      data-catalogue-uploaded-by-viewer={track.viewerState?.isUploadedByViewer ? 'true' : 'false'}
+      key={track.id}
+    >
+      <div className='cmc-catalogue-track-row'>
+        <div className='cmc-catalogue-track-index'>{String(pagination.showingFrom + index).padStart(2, '0')}</div>
+
+        <div className='cmc-catalogue-track-title-cell'>
+          <div className='cmc-catalogue-track-heading'>
+            <Link href={`/catalogue/${track.id}`} onClick={onCatalogueNavigation}>
+              {track.title}
+            </Link>
+            {badges.length > 0 && (
+              <div className='cmc-catalogue-track-badges' aria-label={`Catalogue state for ${track.title}`}>
+                {badges.map(badge => (
+                  <span key={badge}>{badge}</span>
+                ))}
+              </div>
+            )}
+            <div className='cmc-catalogue-track-activity' aria-label={`Activity for ${track.title}`}>
+              {getTrackActivity(track).map(item => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+          </div>
+
+          <span className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</span>
+        </div>
+
+        <div className='cmc-catalogue-track-field' data-label='Composer'>
+          {track.composer || 'Unknown composer'}
+        </div>
+        <div className='cmc-catalogue-track-field' data-label='Key'>
+          {track.key || 'Unspecified'}
+        </div>
+        <div className='cmc-catalogue-track-field' data-label='Instrumentation'>
+          {track.instrumentation || 'Unspecified'}
+        </div>
+        <div className='cmc-catalogue-track-field' data-label='Uploader'>
+          {track.uploaderName}
+        </div>
+        <div className='cmc-catalogue-track-price' data-label='Price'>
+          {formatTrackPrice(track)}
+        </div>
+        <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
+          <Button as={Link} href={`/catalogue/${track.id}`} onClick={onCatalogueNavigation} variant='ink'>
+            Details
+          </Button>
+          <PlaySample
+            active={activePreviewTrackId === track.id}
+            onActivate={() => setActivePreviewTrackId(track.id)}
+            onDeactivate={onStopPreview}
+            track={track}
+          />
+          {primaryAction && (
+            <Button
+              as={Link}
+              href={primaryAction.href}
+              size='sm'
+              variant='paper'
+            >
+              {primaryAction.label}
+            </Button>
+          )}
+          {operationsAction && (
+            <Button
+              as={Link}
+              href={operationsAction.href}
+              size='sm'
+              variant='secondary'
+            >
+              {operationsAction.label}
+            </Button>
+          )}
+        </aside>
+      </div>
+    </article>
+  )
+}
+
+const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, query, tracks }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
-  const isAuthenticated = Boolean(session)
+  const resultListRef = useRef(null)
   const previousPage = Math.max(1, pagination.page - 1)
   const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
   const stopPreview = useCallback(() => setActivePreviewTrackId(null), [])
+  const rememberCatalogueScrollPosition = useCallback(trackId => {
+    if (!resultListRef.current) {
+      return
+    }
+
+    sessionStorage.setItem(catalogueReturnTrackIdStorageKey, String(trackId))
+    sessionStorage.setItem(catalogueReturnUrlStorageKey, `${window.location.pathname}${window.location.search}`)
+    sessionStorage.setItem(getCatalogueScrollStorageKey(), String(resultListRef.current.scrollTop))
+  }, [])
+
+  useEffect(() => {
+    const savedScrollPosition = Number(sessionStorage.getItem(getCatalogueScrollStorageKey()))
+
+    if (!Number.isFinite(savedScrollPosition) || savedScrollPosition <= 0) {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      if (resultListRef.current) {
+        resultListRef.current.scrollTop = savedScrollPosition
+        sessionStorage.removeItem(catalogueReturnTrackIdStorageKey)
+        sessionStorage.removeItem(catalogueReturnUrlStorageKey)
+      }
+    })
+  }, [tracks.length])
 
   return (
     <main className='cmc-catalogue-page'>
@@ -107,6 +311,9 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
               <h1 id='catalogue-heading'>
                 <BrandDisplayText text='Browse Archive' />
               </h1>
+              <p className='cmc-catalogue-mode-label'>
+                {getCatalogueModeLabel(catalogueContext.mode)}
+              </p>
             </div>
 
             <Form action='/catalogue' className='cmc-catalogue-query-form' method='get' role='search'>
@@ -221,59 +428,19 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
               <span>Actions</span>
             </div>
 
-            <div className='cmc-catalogue-result-list'>
+            <div className='cmc-catalogue-result-list' ref={resultListRef}>
               {tracks.map((track, index) => (
-                <article className='cmc-catalogue-track-card' key={track.id}>
-                  <div className='cmc-catalogue-track-row'>
-                    <div className='cmc-catalogue-track-index'>{String(pagination.showingFrom + index).padStart(2, '0')}</div>
-
-                    <div className='cmc-catalogue-track-title-cell'>
-                      <div className='cmc-catalogue-track-heading'>
-                        <Link href={`/catalogue/${track.id}`}>
-                          {track.title}
-                        </Link>
-                        <p>{getTrackDescription(track)}</p>
-                      </div>
-
-                      <span className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</span>
-                    </div>
-
-                    <div className='cmc-catalogue-track-field' data-label='Composer'>
-                      {track.composer || 'Unknown composer'}
-                    </div>
-                    <div className='cmc-catalogue-track-field' data-label='Key'>
-                      {track.key || 'Unspecified'}
-                    </div>
-                    <div className='cmc-catalogue-track-field' data-label='Instrumentation'>
-                      {track.instrumentation || 'Unspecified'}
-                    </div>
-                    <div className='cmc-catalogue-track-field' data-label='Uploader'>
-                      {track.uploaderName}
-                    </div>
-                    <div className='cmc-catalogue-track-price' data-label='Price'>
-                      {track.formattedPrice || 'TBC'}
-                    </div>
-                    <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
-                      <Button as={Link} href={`/catalogue/${track.id}`} variant='ink'>
-                        Details
-                      </Button>
-                      <PlaySample
-                        active={activePreviewTrackId === track.id}
-                        onActivate={() => setActivePreviewTrackId(track.id)}
-                        onDeactivate={stopPreview}
-                        track={track}
-                      />
-                      <Button
-                        as={Link}
-                        href={isAuthenticated ? `/catalogue/${track.id}` : `/auth/signin?callbackUrl=/catalogue/${track.id}`}
-                        size='sm'
-                        variant='paper'
-                      >
-                        {isAuthenticated ? 'Open Track' : 'Sign In to Buy'}
-                      </Button>
-                    </aside>
-                  </div>
-                </article>
+                <CatalogueTrackRow
+                  activePreviewTrackId={activePreviewTrackId}
+                  catalogueContext={catalogueContext}
+                  index={index}
+                  key={track.id}
+                  onCatalogueNavigation={() => rememberCatalogueScrollPosition(track.id)}
+                  onStopPreview={stopPreview}
+                  pagination={pagination}
+                  setActivePreviewTrackId={setActivePreviewTrackId}
+                  track={track}
+                />
               ))}
 
               {tracks.length === 0 && (

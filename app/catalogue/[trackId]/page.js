@@ -1,5 +1,9 @@
+import { getServerSession } from 'next-auth'
 import { notFound } from 'next/navigation'
 import CatalogueTrackDetailContent from '../../../components/features/catalogue/CatalogueTrackDetailContent'
+import { getCatalogueContext } from '../../../lib/catalogue-view.mjs'
+import { authOptions } from '../../../lib/server/auth'
+import { getCurrentUser } from '../../../lib/server/ownership'
 import prisma from '../../../lib/server/prisma'
 import { publicTrackWhere } from '../../../lib/server/tracks-core.mjs'
 
@@ -8,6 +12,29 @@ export const dynamic = 'force-dynamic'
 const parseTrackIdParam = value => {
   const trackId = Number(value)
   return Number.isInteger(trackId) && trackId > 0 ? trackId : null
+}
+
+const createTrackRequests = track => {
+  const createdAt = track.uploadedAt.toLocaleDateString()
+
+  return [
+    {
+      createdAt,
+      description: `A slower rehearsal pass for ${track.title}, keeping the same key and cue structure.`,
+      id: `${track.id}-slow-practice`,
+      requestedBy: 'Community request',
+      status: 'Open',
+      title: 'Slower practice tempo'
+    },
+    {
+      createdAt,
+      description: `A reduced piano-only version for first rehearsals before moving to the full ${track.instrumentation || 'instrumentation'} backing.`,
+      id: `${track.id}-piano-reduction`,
+      requestedBy: 'Uploader follow-up',
+      status: 'Planned',
+      title: 'Piano reduction version'
+    }
+  ]
 }
 
 const trackSelect = {
@@ -29,7 +56,13 @@ const trackSelect = {
   downloadCount: true,
   key: true,
   instrumentation: true,
-  additionalInfo: true
+  additionalInfo: true,
+  _count: {
+    select: {
+      Comments: true,
+      TrackOwner: true
+    }
+  }
 }
 
 const getTrackDetail = async trackId => {
@@ -83,6 +116,7 @@ const getTrackDetail = async trackId => {
       userId: comment.userId,
       userName: comment.postedBy?.name || 'Unknown'
     })),
+    requests: createTrackRequests(track),
     track: {
       ...track,
       uploadedAt: track.uploadedAt.toLocaleDateString(),
@@ -92,6 +126,8 @@ const getTrackDetail = async trackId => {
 }
 
 const CatalogueTrackDetailPage = async ({ params }) => {
+  const session = await getServerSession(authOptions)
+  const currentUser = await getCurrentUser(session)
   const { trackId: rawTrackId } = await params
   const trackId = parseTrackIdParam(rawTrackId)
 
@@ -104,11 +140,32 @@ const CatalogueTrackDetailPage = async ({ params }) => {
   if (!detail) {
     notFound()
   }
+  const ownership = currentUser
+    ? await prisma.trackOwner.findUnique({
+        where: {
+          trackId_userId: {
+            trackId,
+            userId: currentUser.id
+          }
+        },
+        select: {
+          id: true
+        }
+      })
+    : null
 
   return (
     <CatalogueTrackDetailContent
+      catalogueContext={getCatalogueContext(currentUser)}
       comments={detail.comments}
-      track={detail.track}
+      requests={detail.requests}
+      track={{
+        ...detail.track,
+        viewerState: {
+          isOwned: Boolean(ownership),
+          isUploadedByViewer: Boolean(currentUser && detail.track.userId === currentUser.id)
+        }
+      }}
     />
   )
 }

@@ -1,4 +1,8 @@
+import { getServerSession } from 'next-auth'
 import CataloguePageContent from '../../components/features/catalogue/CataloguePageContent'
+import { getCatalogueContext } from '../../lib/catalogue-view.mjs'
+import { authOptions } from '../../lib/server/auth'
+import { getCurrentUser } from '../../lib/server/ownership'
 import prisma from '../../lib/server/prisma'
 import { publicTrackWhere } from '../../lib/server/tracks-core.mjs'
 
@@ -178,10 +182,18 @@ const trackListSelect = {
   id: true,
   instrumentation: true,
   key: true,
+  pricePence: true,
   previewEnd: true,
   previewStart: true,
   title: true,
   uploadedAt: true,
+  userId: true,
+  _count: {
+    select: {
+      Comments: true,
+      TrackOwner: true
+    }
+  },
   uploadedBy: {
     select: {
       name: true
@@ -234,7 +246,7 @@ const getCatalogueFilterOptions = async query => {
   }
 }
 
-const getCatalogueTracks = async query => {
+const getCatalogueTracks = async (query, currentUser) => {
   const where = buildCatalogueWhere(query)
   const total = await prisma.track.count({ where })
   const pageCount = Math.max(1, Math.ceil(total / query.pageSize))
@@ -248,6 +260,21 @@ const getCatalogueTracks = async query => {
     skip,
     take: query.pageSize
   })
+  const trackIds = tracks.map(track => track.id)
+  const ownedTrackIds = currentUser && trackIds.length > 0
+    ? await prisma.trackOwner.findMany({
+        where: {
+          trackId: {
+            in: trackIds
+          },
+          userId: currentUser.id
+        },
+        select: {
+          trackId: true
+        }
+      })
+    : []
+  const ownedTrackIdSet = new Set(ownedTrackIds.map(owner => owner.trackId))
 
   return {
     page,
@@ -255,20 +282,30 @@ const getCatalogueTracks = async query => {
     showingFrom: total === 0 ? 0 : skip + 1,
     showingTo: skip + tracks.length,
     total,
-    tracks: tracks.map(serializeTrack)
+    tracks: tracks.map(track => ({
+      ...serializeTrack(track),
+      viewerState: {
+        isOwned: ownedTrackIdSet.has(track.id),
+        isUploadedByViewer: Boolean(currentUser && track.userId === currentUser.id)
+      }
+    }))
   }
 }
 
 const CataloguePage = async ({ searchParams }) => {
   const resolvedSearchParams = await searchParams
+  const session = await getServerSession(authOptions)
+  const currentUser = await getCurrentUser(session)
+  const catalogueContext = getCatalogueContext(currentUser)
   const query = parseCatalogueQuery(resolvedSearchParams || {})
   const [catalogue, filterOptions] = await Promise.all([
-    getCatalogueTracks(query),
+    getCatalogueTracks(query, currentUser),
     getCatalogueFilterOptions(query)
   ])
 
   return (
     <CataloguePageContent
+      catalogueContext={catalogueContext}
       filterOptions={filterOptions}
       pagination={{
         page: catalogue.page,

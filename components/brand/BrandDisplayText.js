@@ -4,19 +4,7 @@ const getFirstDisplayCharacterIndex = text => {
   return [...text].findIndex(character => !isWhitespace(character))
 }
 
-const getFinalDisplayCharacterIndex = text => {
-  const characters = [...text]
-
-  for (let index = characters.length - 1; index >= 0; index -= 1) {
-    if (!isWhitespace(characters[index])) {
-      return index
-    }
-  }
-
-  return -1
-}
-
-const renderCharacter = ({ character, firstDisplayCharacterIndex, finalDisplayCharacterIndex, index }) => {
+const renderCharacter = ({ character, firstDisplayCharacterIndex, index }) => {
   const key = `${character}-${index}`
 
   if (index === firstDisplayCharacterIndex) {
@@ -27,7 +15,7 @@ const renderCharacter = ({ character, firstDisplayCharacterIndex, finalDisplayCh
     )
   }
 
-  if (index === finalDisplayCharacterIndex && character === '.') {
+  if (character === '.') {
     return (
       <span className='cmc-home-hero-dot' key={key}>
         {character}
@@ -50,7 +38,6 @@ const renderCharacter = ({ character, firstDisplayCharacterIndex, finalDisplayCh
 const BrandDisplayText = ({ text }) => {
   const tokens = text.match(/(\n|\s+|[^\s]+)/g) ?? []
   const firstDisplayCharacterIndex = getFirstDisplayCharacterIndex(text)
-  const finalDisplayCharacterIndex = getFinalDisplayCharacterIndex(text)
 
   const visualText = tokens.map((token, tokenIndex) => {
     const tokenCharacters = [...token]
@@ -68,7 +55,6 @@ const BrandDisplayText = ({ text }) => {
       <span className='cmc-brand-display-word' key={`${token}-${tokenIndex}`}>
         {tokenCharacters.map((character, index) => renderCharacter({
           character,
-          finalDisplayCharacterIndex,
           firstDisplayCharacterIndex,
           index: tokenStartIndex + index
         }))}

@@ -64,6 +64,31 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
 })
 
+test('anonymous visitor returns to the same catalogue scroll position from track detail', async ({ page }) => {
+  await page.goto('/catalogue?pageSize=50')
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+
+  const resultList = page.locator('.cmc-catalogue-result-list')
+  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(50)
+
+  await resultList.evaluate(element => {
+    element.scrollTop = element.scrollHeight
+  })
+
+  const scrollBeforeNavigation = await resultList.evaluate(element => element.scrollTop)
+  expect(scrollBeforeNavigation).toBeGreaterThan(0)
+
+  await page.getByRole('link', { name: 'Details' }).last().click()
+  await expect(page).toHaveURL(/\/catalogue\/\d+$/)
+
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page).toHaveURL(/\/catalogue\?pageSize=50$/)
+
+  await expect.poll(
+    async () => resultList.evaluate(element => element.scrollTop)
+  ).toBeGreaterThan(scrollBeforeNavigation - 10)
+})
+
 test('anonymous visitor can play an approved audio preview from the action button', async ({ page }) => {
   await page.goto('/catalogue?pageSize=10')
 

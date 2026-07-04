@@ -1,147 +1,643 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import { Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
-import { Button } from 'react-bootstrap'
+import BrandDisplayText from '../../brand/BrandDisplayText'
+import PlaySample from '../../PlaySample'
+import { Button } from '../../ui/primitives'
 
-const WaveFormRegion = dynamic(
-  () => import('../../WaveFormRegion'),
-  { ssr: false }
-)
+const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
+const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
+const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
+const waveformBarCount = 180
 
-const CatalogueTrackDetailContent = ({ track, comments }) => {
-  const [url, setUrl] = useState('')
-  const { data: session } = useSession()
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  currency: 'GBP',
+  style: 'currency'
+})
+
+const formatTrackPrice = track => {
+  if (Number.isInteger(track.pricePence)) {
+    return currencyFormatter.format(track.pricePence / 100)
+  }
+
+  if (typeof track.formattedPrice === 'string' && track.formattedPrice.startsWith('GBP ')) {
+    return track.formattedPrice.replace(/^GBP\s+/, '£')
+  }
+
+  return track.formattedPrice || 'Price unavailable'
+}
+
+const formatSeconds = seconds => {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return null
+  }
+
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
+const formatDuration = seconds => formatSeconds(seconds) || 'TBC'
+
+const formatPreviewRange = track => {
+  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
+  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
+    ? track.previewEnd
+    : null
+
+  if (!previewEnd) {
+    return `From ${formatSeconds(previewStart) || '0:00'}`
+  }
+
+  return `${formatSeconds(previewStart) || '0:00'}-${formatSeconds(previewEnd) || 'TBC'}`
+}
+
+const createFallbackWaveform = trackId => {
+  return Array.from({ length: waveformBarCount }, (_, index) => {
+    const value = Math.sin((index + trackId) * 0.82) + Math.sin((index + 3) * 0.21)
+
+    return Math.max(0.08, Math.min(0.92, 0.42 + value * 0.18))
+  })
+}
+
+const getAudioContext = () => {
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext
+
+  return AudioContextConstructor ? new AudioContextConstructor() : null
+}
+
+const buildWaveformPeaks = audioBuffer => {
+  const channelData = audioBuffer.getChannelData(0)
+  const samplesPerBar = Math.max(1, Math.floor(channelData.length / waveformBarCount))
+  const rawPeaks = Array.from({ length: waveformBarCount }, (_, index) => {
+    const start = index * samplesPerBar
+    const end = Math.min(channelData.length, start + samplesPerBar)
+    let sampleEnergy = 0
+
+    for (let sampleIndex = start; sampleIndex < end; sampleIndex += 1) {
+      sampleEnergy += channelData[sampleIndex] ** 2
+    }
+
+    return Math.sqrt(sampleEnergy / Math.max(1, end - start))
+  })
+  const maxPeak = Math.max(...rawPeaks, 0.01)
+
+  return rawPeaks.map(peak => Math.max(0.08, Math.min(1, peak / maxPeak)))
+}
+
+const clampPercentage = value => Math.max(0, Math.min(100, value))
+
+const clampValue = (value, min, max) => Math.max(min, Math.min(max, value))
+
+const getInitials = name => {
+  if (!name) {
+    return 'CM'
+  }
+
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+}
+
+const detailTabLabels = {
+  preview: 'Preview',
+  details: 'Details',
+  comments: 'Comments',
+  requests: 'Requests'
+}
+
+const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
+  const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
+  const [activeTab, setActiveTab] = useState('preview')
+  const [previewVolume, setPreviewVolume] = useState(78)
+  const [isWaveformLoading, setIsWaveformLoading] = useState(true)
+  const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
+  const [waveformDuration, setWaveformDuration] = useState(track.durationSeconds || track.previewEnd || 1)
+  const [previewCurrentTime, setPreviewCurrentTime] = useState(() => Number.isFinite(track.previewStart) ? track.previewStart : 0)
+  const [previewSeekCommand, setPreviewSeekCommand] = useState(null)
+  const [isScrubbingPreview, setIsScrubbingPreview] = useState(false)
+  const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
   useEffect(() => {
-    const fetchUrl = async () => {
-      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
-      const data = await response.json()
+    if (activeTab !== 'preview') {
+      return undefined
+    }
 
-      if (response.ok) {
-        setUrl(data.url)
+    let cancelled = false
+    let audioContext
+    let loadingTimer
+
+    const minimumLoadingMs = 900
+
+    const loadWaveform = async () => {
+      const loadingStartedAt = window.performance.now()
+      setIsWaveformLoading(true)
+
+      const finishLoading = () => {
+        const elapsedMs = window.performance.now() - loadingStartedAt
+        const remainingMs = Math.max(0, minimumLoadingMs - elapsedMs)
+
+        loadingTimer = window.setTimeout(() => {
+          if (!cancelled) {
+            setIsWaveformLoading(false)
+          }
+        }, remainingMs)
+      }
+
+      try {
+        const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+        const signedUrlData = await signedUrlResponse.json()
+
+        if (!signedUrlResponse.ok) {
+          throw new Error(signedUrlData.error || 'Preview waveform unavailable')
+        }
+
+        const audioResponse = await fetch(signedUrlData.url)
+        const arrayBuffer = await audioResponse.arrayBuffer()
+        audioContext = getAudioContext()
+
+        if (!audioContext) {
+          throw new Error('Audio decoding unavailable')
+        }
+
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+        if (!cancelled) {
+          setWaveformPeaks(buildWaveformPeaks(audioBuffer))
+          setWaveformDuration(audioBuffer.duration)
+          finishLoading()
+        }
+      } catch {
+        if (!cancelled) {
+          setWaveformPeaks(createFallbackWaveform(track.id))
+          setWaveformDuration(track.durationSeconds || track.previewEnd || 1)
+          finishLoading()
+        }
+      } finally {
+        audioContext?.close?.()
       }
     }
 
-    fetchUrl()
-  }, [track.id])
+    loadWaveform()
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(loadingTimer)
+    }
+  }, [activeTab, track.durationSeconds, track.id, track.previewEnd])
+
+  const getCatalogueReturnUrl = () => {
+    const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
+    const returnUrl = sessionStorage.getItem(catalogueReturnUrlStorageKey)
+
+    if (returnTrackId === String(track.id) && returnUrl?.startsWith('/catalogue')) {
+      return returnUrl
+    }
+
+    return null
+  }
+
+  const goBackToCatalogue = () => {
+    const returnUrl = getCatalogueReturnUrl()
+
+    if (returnUrl && window.history.length > 1) {
+      window.history.back()
+      return
+    }
+
+    window.location.assign(returnUrl || '/catalogue')
+  }
 
   const addToCart = () => {
     addItem({ ...track })
-    alert('Track added to cart!')
+    setShowCartConfirmation(true)
   }
 
-  const metadata = [
-    ['Key', track.key],
-    ['Instrumentation', track.instrumentation],
-    ['Uploaded by', track.uploaderName],
-    ['Uploaded', track.uploadedAt]
-  ].filter(([, value]) => value)
+  const commentCount = comments.length
+  const showBasketAction = catalogueContext.isAuthenticated &&
+    !track.viewerState?.isOwned &&
+    !track.viewerState?.isUploadedByViewer &&
+    !catalogueContext.showOperationsOverlay
+  const showOwnedAction = track.viewerState?.isOwned
+  const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
+  const showPurchaseDivider = showBasketAction || showOwnedAction || showOperationsAction
+  const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
+  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
+  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
+    ? track.previewEnd
+    : waveformDuration
+  const safeWaveformDuration = Math.max(0.01, waveformDuration)
+  const previewWindowStart = clampPercentage((previewStart / safeWaveformDuration) * 100)
+  const previewWindowEnd = clampPercentage((previewEnd / safeWaveformDuration) * 100)
+  const previewWindowWidth = Math.max(0, previewWindowEnd - previewWindowStart)
+  const previewPlayheadPosition = clampPercentage((previewCurrentTime / safeWaveformDuration) * 100)
+  const seekPreviewFromPointer = event => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const pointerRatio = bounds.width > 0
+      ? clampValue((event.clientX - bounds.left) / bounds.width, 0, 1)
+      : 0
+    const waveformTime = pointerRatio * safeWaveformDuration
+    const seekTime = clampValue(waveformTime, previewStart, previewEnd)
+
+    setPreviewCurrentTime(seekTime)
+    setPreviewSeekCommand({ time: seekTime, requestedAt: Date.now() })
+  }
+  const startPreviewScrub = event => {
+    if (activePreviewTrackId !== track.id) {
+      return
+    }
+
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    setIsScrubbingPreview(true)
+    seekPreviewFromPointer(event)
+  }
+  const movePreviewScrub = event => {
+    if (!isScrubbingPreview || activePreviewTrackId !== track.id) {
+      return
+    }
+
+    seekPreviewFromPointer(event)
+  }
+  const stopPreviewScrub = event => {
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+    setIsScrubbingPreview(false)
+  }
+  const seekPreviewBySeconds = seconds => {
+    if (activePreviewTrackId !== track.id) {
+      return
+    }
+
+    const seekTime = clampValue(previewCurrentTime + seconds, previewStart, previewEnd)
+
+    setPreviewCurrentTime(seekTime)
+    setPreviewSeekCommand({ time: seekTime, requestedAt: Date.now() })
+  }
+  const handlePreviewSliderKeyDown = event => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      seekPreviewBySeconds(-1)
+      return
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      seekPreviewBySeconds(1)
+      return
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault()
+      setPreviewCurrentTime(previewStart)
+      setPreviewSeekCommand({ time: previewStart, requestedAt: Date.now() })
+      return
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault()
+      setPreviewCurrentTime(previewEnd)
+      setPreviewSeekCommand({ time: previewEnd, requestedAt: Date.now() })
+    }
+  }
+  const previewFacts = [
+    {
+      label: 'Key',
+      value: track.key || 'Unspecified'
+    },
+    {
+      label: 'Tempo',
+      value: track.tempo || 'Andante'
+    },
+    {
+      label: 'Duration',
+      value: formatDuration(track.durationSeconds)
+    },
+    {
+      label: 'Instrumentation',
+      value: track.instrumentation || 'Unspecified'
+    },
+    {
+      label: 'Quality',
+      value: track.sourceContentType === 'audio/wav' ? '24-bit WAV' : track.sourceContentType || 'Unknown'
+    }
+  ]
+
+  const renderBackButton = className => (
+    <Button
+      type='button'
+      variant='paper'
+      size='sm'
+      className={['cmc-track-back-button', className].filter(Boolean).join(' ')}
+      onClick={goBackToCatalogue}
+    >
+      <span className='cmc-button-icon' aria-hidden='true'>←</span>
+      Back to Catalogue
+    </Button>
+  )
+
+  const renderTabButton = tabId => {
+    const count = tabId === 'comments'
+      ? commentCount
+      : tabId === 'requests'
+        ? requests.length
+        : null
+
+    return (
+      <button
+        aria-controls={`track-tab-panel-${tabId}`}
+        aria-selected={activeTab === tabId}
+        className='cmc-track-tab-button'
+        id={`track-tab-${tabId}`}
+        key={tabId}
+        onClick={() => setActiveTab(tabId)}
+        role='tab'
+        type='button'
+      >
+        {detailTabLabels[tabId]} {count !== null && <span>({count})</span>}
+      </button>
+    )
+  }
 
   return (
     <main className='cmc-track-page'>
       <div className='container'>
-        <Button
-          as={Link}
-          href='/catalogue'
-          variant='outline-secondary'
-          size='sm'
-          className='cmc-track-back-button'
-        >
-          Back
-        </Button>
-
-        <section className='cmc-track-hero'>
-          <div>
-            <p className='cmc-kicker'>Catalogue detail</p>
-            <h1>{track.title}</h1>
-            <p className='cmc-track-composer'>by {track.composer}</p>
-          </div>
-
-          <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
-            <span>Price</span>
-            <strong>{track.formattedPrice || 'Price unavailable'}</strong>
-            {session && (
-              <Button variant='info' size='md' onClick={addToCart}>
-                Add to Cart
-              </Button>
-            )}
-            {!session && (
-              <p>
-                Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
+        <section className='cmc-track-board cmc-track-board--option-one' aria-labelledby='track-detail-heading'>
+          <header className='cmc-track-board-header'>
+            <div className='cmc-track-hero-staff' aria-hidden='true' />
+            <div className='cmc-track-hero-paper' aria-hidden='true' />
+            <div className='cmc-track-title-block'>
+              <h1 id='track-detail-heading'>
+                <BrandDisplayText text={track.title} />
+              </h1>
+              <p className='cmc-track-composer'>{track.composer || 'Unknown composer'}</p>
+              <p className='cmc-track-uploader-line'>
+                <span>Uploaded by {track.uploaderName || 'Unknown'}</span>
+                <span aria-hidden='true' />
+                <time>{track.uploadedAt || 'Unknown date'}</time>
               </p>
-            )}
-          </aside>
-        </section>
-
-        <section className='cmc-track-layout'>
-          <article className='cmc-track-main-panel'>
-            <div className='cmc-track-section-header'>
-              <h2>Preview</h2>
-              <p>Listen to the approved sample before adding this track to your cart.</p>
             </div>
-            <div className='cmc-track-waveform'>
-              {url ? (
-                <WaveFormRegion url={url} track={track} />
-              ) : (
-                <p>Preparing preview...</p>
+
+            <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
+              <strong>{formatTrackPrice(track)}</strong>
+              {showBasketAction && (
+                <Button variant='ink' size='md' onClick={addToCart}>
+                  Add to Cart
+                </Button>
               )}
-            </div>
-          </article>
-
-          <aside className='cmc-track-meta-panel'>
-            <h2>Track Details</h2>
-            <dl className='cmc-track-meta-list'>
-              {metadata.map(([label, value]) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </aside>
-        </section>
-
-        <section className='cmc-track-info-grid'>
-          <article className='cmc-track-main-panel'>
-            <div className='cmc-track-section-header'>
-              <h2>Additional Information</h2>
-            </div>
-            <p className='cmc-track-notes'>
-              {track.additionalInfo || 'No additional information has been supplied for this track.'}
-            </p>
-          </article>
-
-          <article className='cmc-track-main-panel'>
-            <div className='cmc-track-section-header'>
-              <h2>Comments</h2>
-              <p>Purchasers can leave notes and performance feedback here.</p>
-            </div>
-            <div className='cmc-track-comments'>
-              {comments.map((comment, key) => (
-                <div className='cmc-track-comment' key={comment.id}>
-                  <span>{key + 1}</span>
-                  <p>{comment.content}</p>
-                  <small>by {comment.userName}</small>
-                </div>
-              ))}
-              {comments.length === 0 && (
-                <p className='cmc-track-empty'>
-                  No comments yet. After purchasing this track you will be able to leave comments about it.
+              {showOwnedAction && (
+                <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
+                  View in Library
+                </Button>
+              )}
+              {track.viewerState?.isUploadedByViewer && (
+                <p>
+                  This is one of your uploaded catalogue tracks.
                 </p>
               )}
+              {showOperationsAction && (
+                <Button as={Link} href='/admin' variant='secondary' size='md'>
+                  Operations Console
+                </Button>
+              )}
+              {!catalogueContext.isAuthenticated && (
+                <p>
+                  Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
+                </p>
+              )}
+              {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
+              <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
+                <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
+                <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
+              </Button>
+            </aside>
+          </header>
+
+          <section className='cmc-track-tab-board' aria-label='Track media and community'>
+            <div className='cmc-track-tab-list' role='tablist' aria-label='Track detail sections'>
+              {['preview', 'details', 'comments', 'requests'].map(renderTabButton)}
             </div>
-          </article>
+
+            <div
+              aria-labelledby={`track-tab-${activeTab}`}
+              className='cmc-track-tab-panel'
+              id={`track-tab-panel-${activeTab}`}
+              role='tabpanel'
+            >
+              {activeTab === 'preview' && (
+                <div className='cmc-track-preview-tab'>
+                  <div className='cmc-track-preview-panel' id='track-preview' aria-label='Preview'>
+                    <PlaySample
+                      active={activePreviewTrackId === track.id}
+                      onActivate={() => setActivePreviewTrackId(track.id)}
+                      onDeactivate={() => setActivePreviewTrackId(null)}
+                      onProgress={setPreviewCurrentTime}
+                      seekCommand={previewSeekCommand}
+                      track={track}
+                      volume={previewVolume / 100}
+                    />
+                    <div className='cmc-track-preview-waveform'>
+                      <p>Preview <span>({formatPreviewRange(track)})</span></p>
+                      <div
+                        className={isWaveformLoading ? 'cmc-track-waveform-strip cmc-track-waveform-strip--loading' : 'cmc-track-waveform-strip'}
+                        style={{ '--cmc-waveform-bars': waveformPeaks.length }}
+                        aria-label='Preview playback position'
+                        aria-busy={isWaveformLoading}
+                        aria-valuemax={Math.round(previewEnd)}
+                        aria-valuemin={Math.round(previewStart)}
+                        aria-valuenow={Math.round(previewCurrentTime)}
+                        aria-valuetext={`${formatSeconds(Math.round(previewCurrentTime)) || '0:00'} preview position`}
+                        onKeyDown={handlePreviewSliderKeyDown}
+                        onPointerCancel={stopPreviewScrub}
+                        onPointerDown={startPreviewScrub}
+                        onPointerLeave={stopPreviewScrub}
+                        onPointerMove={movePreviewScrub}
+                        onPointerUp={stopPreviewScrub}
+                        role='slider'
+                        tabIndex={activePreviewTrackId === track.id ? 0 : -1}
+                      >
+                        {activePreviewTrackId === track.id && (
+                          <>
+                            <span
+                              className='cmc-track-preview-window'
+                              style={{
+                                '--cmc-preview-window-left': `${previewWindowStart}%`,
+                                '--cmc-preview-window-width': `${previewWindowWidth}%`
+                              }}
+                            />
+                            <span
+                              className='cmc-track-preview-playhead'
+                              style={{ '--cmc-preview-playhead-left': `${previewPlayheadPosition}%` }}
+                            />
+                          </>
+                        )}
+                        {waveformPeaks.map((peak, index) => (
+                          <span
+                            key={index}
+                            style={{
+                              '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%`,
+                              '--cmc-wave-delay': `${index * -28}ms`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className='cmc-track-volume-control'>
+                      <Volume2 aria-hidden='true' />
+                      <input
+                        aria-label='Preview volume'
+                        max='100'
+                        min='0'
+                        onChange={event => setPreviewVolume(Number(event.target.value))}
+                        type='range'
+                        value={previewVolume}
+                      />
+                    </div>
+                  </div>
+
+                  <dl className='cmc-track-facts-grid'>
+                    {previewFacts.map(tile => (
+                      <div key={tile.label}>
+                        <dt>{tile.label}</dt>
+                        <dd>
+                          <strong>{tile.value}</strong>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+
+              {activeTab === 'details' && (
+                <section className='cmc-track-notes-panel' id='track-notes' aria-label='Additional information'>
+                  <span>Additional Notes</span>
+                  <p>{noteText}</p>
+                </section>
+              )}
+
+              {activeTab === 'comments' && (
+                <section className='cmc-track-comments-section' id='track-comments'>
+                  <div className='cmc-track-section-header'>
+                    <h2>Comments <span>({commentCount})</span></h2>
+                    <small>Sort: Newest</small>
+                  </div>
+                  <div className='cmc-track-comments'>
+                    {comments.map((comment, key) => (
+                      <div className='cmc-track-comment' key={comment.id}>
+                        <span className='cmc-track-comment-avatar'>{getInitials(comment.userName)}</span>
+                        <div>
+                          <header>
+                            <strong>{comment.userName}</strong>
+                            <time>{comment.createdAt}</time>
+                          </header>
+                          <p>{comment.content}</p>
+                          <footer>
+                            <button type='button'>Reply</button>
+                            <span>·</span>
+                            <button type='button'>Helpful</button>
+                          </footer>
+                        </div>
+                        <button className='cmc-track-comment-menu' aria-label={`More actions for comment ${key + 1}`} type='button'>
+                          ...
+                        </button>
+                      </div>
+                    ))}
+                    {comments.length === 0 && (
+                      <p className='cmc-track-empty'>
+                        No comments yet. After purchasing this track you will be able to leave comments about it.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {activeTab === 'requests' && (
+                <section className='cmc-track-requests-section' id='track-requests'>
+                  <div className='cmc-track-section-header'>
+                    <h2>Requests <span>({requests.length})</span></h2>
+                    <small>Open community requests</small>
+                  </div>
+                  <div className='cmc-track-requests'>
+                    {requests.map(request => (
+                      <article className='cmc-track-request' key={request.id}>
+                        <header>
+                          <strong>{request.title}</strong>
+                          <span>{request.status}</span>
+                        </header>
+                        <p>{request.description}</p>
+                        <footer>
+                          <span>{request.requestedBy}</span>
+                          <span>{request.createdAt}</span>
+                        </footer>
+                      </article>
+                    ))}
+                    {requests.length === 0 && (
+                      <p className='cmc-track-empty'>
+                        No requests yet. Community requests for alternate cuts, keys, and parts will appear here.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+            </div>
+          </section>
         </section>
 
-        <Link href='/catalogue' className='cmc-track-catalogue-link'>
-          Back to the Catalogue
-        </Link>
+        {renderBackButton('cmc-track-back-button--footer')}
       </div>
+
+      {showCartConfirmation && (
+        <div
+          aria-labelledby='cart-confirmation-title'
+          aria-modal='true'
+          className='cmc-modal-shell'
+          role='dialog'
+          tabIndex='-1'
+        >
+          <button
+            aria-label='Close cart confirmation'
+            className='cmc-modal-backdrop'
+            onClick={() => setShowCartConfirmation(false)}
+            type='button'
+          />
+          <section className='cmc-modal-card cmc-cart-confirmation'>
+            <div className='cmc-modal-header'>
+              <p className='cmc-kicker'>Cart updated</p>
+              <button
+                aria-label='Close cart confirmation'
+                className='cmc-modal-close'
+                onClick={() => setShowCartConfirmation(false)}
+                type='button'
+              >
+                X
+              </button>
+            </div>
+
+            <div className='cmc-modal-body'>
+              <h2 id='cart-confirmation-title'>{track.title} has been added to your cart.</h2>
+              <p>
+                You can keep browsing the archive or review your cart when you are ready to complete checkout.
+              </p>
+            </div>
+
+            <div className='cmc-modal-actions'>
+              <Button variant='paper' onClick={() => setShowCartConfirmation(false)}>
+                Continue Browsing
+              </Button>
+              <Button as={Link} href='/cart' variant='ink'>
+                View Cart
+              </Button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
