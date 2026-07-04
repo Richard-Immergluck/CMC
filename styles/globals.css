@@ -1502,7 +1502,9 @@ a {
   display: grid;
   max-height: 72vh;
   overflow: auto;
+  padding-right: var(--cmc-space-3);
   border-bottom: 1px solid var(--cmc-component-table-row-border);
+  scrollbar-gutter: stable;
 }
 
 .cmc-catalogue-track-card {
@@ -1617,12 +1619,14 @@ a {
 .cmc-catalogue-track-actions {
   display: grid;
   gap: var(--cmc-space-2);
-  justify-items: stretch;
+  justify-items: start;
   min-width: 10.5rem;
 }
 
 .cmc-catalogue-track-actions .cmc-button {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .cmc-preview-action {
@@ -2447,6 +2451,11 @@ a {
 
   .cmc-catalogue-track-actions {
     grid-template-columns: 1fr;
+  }
+
+  .cmc-catalogue-track-actions .cmc-button {
+    width: 100%;
+    white-space: normal;
   }
 
 }
