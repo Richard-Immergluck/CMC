@@ -1580,6 +1580,18 @@ a {
   border-top: 1px solid var(--cmc-color-border);
 }
 
+.cmc-audio-preview {
+  display: block;
+  width: min(100%, 28rem);
+  height: 2.35rem;
+}
+
+.cmc-audio-preview-status {
+  margin: 0;
+  color: var(--cmc-color-text-muted);
+  font-size: var(--cmc-font-size-small);
+}
+
 .cmc-empty-results {
   padding: var(--cmc-space-6) !important;
   color: var(--cmc-color-text-muted);

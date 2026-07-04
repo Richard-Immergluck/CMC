@@ -1,33 +1,97 @@
 import React, { useEffect, useState } from 'react'
-import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
-
-// dynamically import WaveSurfer to avoid 'Self is not defined' error
-const WaveFormRegionHidden = dynamic(() => import("../components/WaveFormRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
 
 const PlaySample = props => {
-  // destructure props
   const { track } = props
   const [url, setUrl] = useState('')
+  const [error, setError] = useState('')
+
+  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
+  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
+    ? track.previewEnd
+    : null
 
   useEffect(() => {
-    const fetchUrl = async () => {
-      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
-      const data = await response.json()
+    let isMounted = true
 
-      if (response.ok) {
-        setUrl(data.url)
+    const fetchUrl = async () => {
+      setError('')
+      setUrl('')
+
+      try {
+        const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Preview unavailable')
+        }
+
+        if (isMounted) {
+          setUrl(data.url)
+        }
+      } catch (previewError) {
+        if (isMounted) {
+          setError(previewError.message)
+        }
       }
     }
 
     fetchUrl()
+
+    return () => {
+      isMounted = false
+    }
   }, [track.id])
 
-  // Render the JSX
+  const handleLoadedMetadata = event => {
+    if (previewStart > 0) {
+      event.currentTarget.currentTime = previewStart
+    }
+  }
+
+  const clampToPreviewRange = audio => {
+    if (audio.currentTime < previewStart || (previewEnd && audio.currentTime >= previewEnd)) {
+      audio.currentTime = previewStart
+    }
+  }
+
+  const handlePlay = event => {
+    clampToPreviewRange(event.currentTarget)
+  }
+
+  const handleSeeking = event => {
+    clampToPreviewRange(event.currentTarget)
+  }
+
+  const handleTimeUpdate = event => {
+    if (previewEnd && event.currentTarget.currentTime >= previewEnd) {
+      event.currentTarget.pause()
+      event.currentTarget.currentTime = previewStart
+    }
+  }
+
+  if (error) {
+    return <p className='cmc-audio-preview-status'>{error}</p>
+  }
+
+  if (!url) {
+    return <p className='cmc-audio-preview-status'>Preparing preview...</p>
+  }
+
   return (
-    <div key={track.id}>
-      {url && <WaveFormRegionHidden url={url} track={track} />}
-    </div>
+    <audio
+      className='cmc-audio-preview'
+      controls
+      controlsList='nodownload'
+      onLoadedMetadata={handleLoadedMetadata}
+      onPlay={handlePlay}
+      onSeeking={handleSeeking}
+      onTimeUpdate={handleTimeUpdate}
+      preload='metadata'
+      src={url}
+    >
+      Your browser does not support audio playback.
+    </audio>
   )
 }
 
-export default (PlaySample)
+export default PlaySample
