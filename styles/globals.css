@@ -1876,9 +1876,9 @@ a {
   position: relative;
   z-index: 3;
   display: grid;
-  gap: var(--cmc-space-2);
+  gap: var(--cmc-space-3);
   align-self: start;
-  padding: var(--cmc-space-3);
+  padding: var(--cmc-space-4) var(--cmc-space-3);
   text-align: left;
   background: rgba(255, 253, 248, 0.72);
   border: 2px solid rgba(196, 139, 27, 0.26);
@@ -1886,7 +1886,7 @@ a {
 
 .cmc-track-purchase-panel strong {
   display: block;
-  padding: 0 var(--cmc-space-5);
+  padding: 0 calc(var(--cmc-space-5) + 0.34rem);
   color: var(--cmc-color-accent-strong);
   font-size: 1.8rem;
   line-height: 1;
@@ -1907,16 +1907,17 @@ a {
   display: block;
   width: min(100%, 12rem);
   height: 1px;
-  margin: var(--cmc-space-1) auto;
+  margin: var(--cmc-space-1) auto 0;
   background: rgba(23, 63, 56, 0.42);
 }
 
 .cmc-track-wishlist-button.cmc-button {
-  justify-content: flex-start;
-  gap: var(--cmc-space-3);
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1fr) 1.2rem;
+  gap: var(--cmc-space-2);
   min-height: var(--cmc-component-control-height-md);
-  padding-right: var(--cmc-space-5);
-  padding-left: var(--cmc-space-5);
+  padding-right: calc(var(--cmc-space-5) + 0.34rem);
+  padding-left: calc(var(--cmc-space-5) + 0.34rem);
   color: var(--cmc-color-text);
   background: transparent;
   border-color: transparent;
@@ -1935,6 +1936,10 @@ a {
   flex: 0 0 auto;
   width: 1.2rem;
   height: 1.2rem;
+}
+
+.cmc-track-wishlist-label {
+  justify-self: center;
 }
 
 .cmc-track-preview-panel {

@@ -210,7 +210,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
               {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
               <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
                 <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
-                Add to Wishlist
+                <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
               </Button>
             </aside>
           </header>
