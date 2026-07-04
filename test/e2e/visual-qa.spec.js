@@ -1,12 +1,5 @@
 const { expect, test } = require('@playwright/test')
-
-const signInPageAs = async (page, email) => {
-  const response = await page.request.post('/api/e2e/session', {
-    data: { email }
-  })
-
-  expect(response.status()).toBe(200)
-}
+const { signInPageAs } = require('./helpers/e2e-session')
 
 const getLayoutMetrics = async page => {
   return page.evaluate(() => ({
@@ -38,7 +31,7 @@ test.describe('visual QA snapshots', () => {
     await capture({ name: 'home-desktop', page }, testInfo)
 
     await page.goto('/catalogue')
-    await expect(page.getByRole('heading', { name: 'Track Listing' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Browse Archive' })).toBeVisible()
     await capture({ name: 'catalogue-desktop', page }, testInfo)
 
     await page.goto('/auth/signin?callbackUrl=/catalogue')
@@ -54,7 +47,7 @@ test.describe('visual QA snapshots', () => {
     await capture({ name: 'home-mobile', page }, testInfo)
 
     await page.goto('/catalogue')
-    await expect(page.getByRole('heading', { name: 'Track Listing' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Browse Archive' })).toBeVisible()
     await capture({ name: 'catalogue-mobile', page }, testInfo)
 
     await page.goto('/auth/signin?callbackUrl=/catalogue')

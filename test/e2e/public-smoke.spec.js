@@ -26,8 +26,8 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
 
   await primaryNav.getByRole('link', { name: 'Catalogue', exact: true }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
-  await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+  await expect(page.getByLabel('Search catalogue')).toBeVisible()
 
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/auth\/signin\?callbackUrl=(%2F|\/)profile/)
@@ -49,25 +49,67 @@ test('anonymous visitor can use the bespoke sign-in entry point', async ({ page 
 
 test('anonymous visitor can open a catalogue track and return to the listing', async ({ page }) => {
   await page.goto('/catalogue')
-  await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
 
-  await page.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).first().click()
+  const firstTrackLink = page.locator('.cmc-catalogue-track-heading a').first()
+  const firstTrackTitle = await firstTrackLink.innerText()
+
+  await firstTrackLink.click()
   await expect(page).toHaveURL(/\/catalogue\/\d+$/)
-  await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
-  await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
+  await expect(page.getByRole('heading', { name: firstTrackTitle })).toBeVisible()
+  await expect(page.getByText(/Please .*login.* to add this track to your cart\./)).toBeVisible()
 
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
-  await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+})
+
+test('anonymous visitor can play an approved audio preview from the action button', async ({ page }) => {
+  await page.goto('/catalogue?pageSize=10')
+
+  await page.getByRole('button', { name: 'Preview' }).first().click()
+
+  await expect(page.getByRole('button', { name: 'Pause Preview' })).toBeVisible()
+  await expect(page.locator('.cmc-preview-player')).toHaveCount(0)
+
+  const audioPreview = page.locator('audio.cmc-audio-preview-source').first()
+  await expect(audioPreview).toHaveAttribute('src', /#t=\d+,\d+/)
 })
 
 test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   await page.goto('/catalogue')
-  await page.getByLabel('Search catalogue').fill('Mendelssohn')
-  await page.getByRole('button', { name: 'Search' }).click()
+  await expect(page.getByRole('link', { name: /Login \/ Sign up/i })).toBeVisible()
+  const search = page.getByLabel('Search catalogue')
+  await search.click()
+  await search.pressSequentially('Mendelssohn')
+  await search.press('Enter')
 
   await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
-  await expect(page.getByRole('link', { name: /Bach/i })).toHaveCount(0)
+  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(5)
+  await expect(page.locator('.cmc-catalogue-track-card').filter({ hasText: /Bach/i })).toHaveCount(0)
+  await expect(page.getByLabel('Composer').locator('option')).toHaveText([
+    'All',
+    'Mendelssohn Style Synthetic Fixture'
+  ])
+  await expect(page.getByLabel('Key').locator('option')).toHaveText([
+    'All',
+    'B-flat major',
+    'C major',
+    'E-flat major',
+    'G minor'
+  ])
+
+  await page.getByRole('link', { name: 'Clear search' }).click()
+  await expect(page).toHaveURL(/\/catalogue/)
+  await expect(page.getByLabel('Search catalogue')).toHaveValue('')
+})
+
+test('anonymous catalogue filters apply when changed', async ({ page }) => {
+  await page.goto('/catalogue')
+  await page.getByLabel('Page size').selectOption('10')
+
+  await expect(page).toHaveURL(/pageSize=10/)
+  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(10)
 })
 
 test('invalid catalogue track routes render a not found page', async ({ page }) => {

@@ -1,18 +1,8 @@
 const { expect, test } = require('@playwright/test')
+const { signInPageAs } = require('./helpers/e2e-session')
 
 const signInAs = async (request, email) => {
   const response = await request.post('/api/e2e/session', {
-    data: {
-      email
-    }
-  })
-
-  expect(response.status()).toBe(200)
-  return response.json()
-}
-
-const signInPageAs = async (page, email) => {
-  const response = await page.request.post('/api/e2e/session', {
     data: {
       email
     }
@@ -94,7 +84,7 @@ test.describe('authenticated smoke', () => {
     await page.goto('/')
 
     await expect(page).toHaveURL(/\/catalogue$/)
-    await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
     const primaryNav = page.getByRole('navigation', { name: 'Primary navigation' })
     await expect(primaryNav.getByRole('link', { name: 'Profile' })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: /^Cart \(\d+\)$/ })).toBeVisible()

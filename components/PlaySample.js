@@ -1,33 +1,136 @@
-import React, { useEffect, useState } from 'react'
-import dynamic from "next/dynamic"; // needed for 'Self is not defined' error
-
-// dynamically import WaveSurfer to avoid 'Self is not defined' error
-const WaveFormRegionHidden = dynamic(() => import("../components/WaveFormRegionHidden"), { ssr: false }); // needed for 'Self is not defined' error
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Button } from './ui/primitives'
 
 const PlaySample = props => {
-  // destructure props
-  const { track } = props
+  const { active, onActivate, onDeactivate, track } = props
+  const audioRef = useRef(null)
   const [url, setUrl] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
+  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
+    ? track.previewEnd
+    : null
+
+  const clampToPreviewRange = useCallback(audio => {
+    if (audio.currentTime < previewStart || (previewEnd && audio.currentTime >= previewEnd)) {
+      audio.currentTime = previewStart
+    }
+  }, [previewEnd, previewStart])
 
   useEffect(() => {
-    const fetchUrl = async () => {
+    const audio = audioRef.current
+
+    if (!audio || !url) {
+      return undefined
+    }
+
+    if (!active) {
+      audio.pause()
+      return undefined
+    }
+
+    clampToPreviewRange(audio)
+    audio.play().catch(() => {
+      setError('Preview unavailable')
+      onDeactivate()
+    })
+
+    return undefined
+  }, [active, clampToPreviewRange, onDeactivate, url])
+
+  useEffect(() => () => {
+    audioRef.current?.pause()
+  }, [])
+
+  const fetchPreviewUrl = async () => {
+    if (url) {
+      return url
+    }
+
+    setError('')
+    setLoading(true)
+
+    try {
       const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
       const data = await response.json()
 
-      if (response.ok) {
-        setUrl(data.url)
+      if (!response.ok) {
+        throw new Error(data.error || 'Preview unavailable')
       }
+
+      setUrl(data.url)
+      return data.url
+    } catch (previewError) {
+      setError(previewError.message)
+      onDeactivate()
+      return ''
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePreviewClick = async () => {
+    if (active) {
+      onDeactivate()
+      return
     }
 
-    fetchUrl()
-  }, [track.id])
+    onActivate()
+    await fetchPreviewUrl()
+  }
 
-  // Render the JSX
+  const handleLoadedMetadata = event => {
+    event.currentTarget.currentTime = previewStart
+  }
+
+  const handleSeeking = event => {
+    clampToPreviewRange(event.currentTarget)
+  }
+
+  const handleTimeUpdate = event => {
+    if (previewEnd && event.currentTarget.currentTime >= previewEnd) {
+      event.currentTarget.pause()
+      event.currentTarget.currentTime = previewStart
+      onDeactivate()
+    }
+  }
+
+  const buttonLabel = loading ? 'Loading Preview' : error || 'Preview'
+
   return (
-    <div key={track.id}>
-      {url && <WaveFormRegionHidden url={url} track={track} />}
-    </div>
+    <>
+      <Button
+        aria-label={active ? 'Pause Preview' : undefined}
+        aria-pressed={active}
+        className={active ? 'cmc-preview-action cmc-provider-action-button cmc-preview-action--active' : 'cmc-preview-action cmc-provider-action-button'}
+        disabled={loading}
+        onClick={handlePreviewClick}
+        size='sm'
+        variant='secondary'
+      >
+        {active ? (
+          <span className='cmc-preview-pause-icon' aria-hidden='true'>
+            <span />
+            <span />
+          </span>
+        ) : buttonLabel}
+      </Button>
+      {url && (
+        <audio
+          ref={audioRef}
+          className='cmc-audio-preview-source'
+          onEnded={onDeactivate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onSeeking={handleSeeking}
+          onTimeUpdate={handleTimeUpdate}
+          preload='metadata'
+          src={url}
+        />
+      )}
+    </>
   )
 }
 
-export default (PlaySample)
+export default PlaySample

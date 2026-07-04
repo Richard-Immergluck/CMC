@@ -59,3 +59,35 @@ Goals:
 - Run a catalogue page design pass against review feedback, including mobile behaviour and longer seeded track lists.
 - Add theme controls only after the first reviewed light theme is coherent.
 - Refine admin/profile density after the catalogue and public experience are directionally settled.
+
+## Catalogue UI Sprint
+
+Status: In progress
+
+State model:
+
+- Anonymous visitors use `/catalogue` as a public marketplace/archive view with search, preview, price, uploader identity, and sign-in prompts for gated actions.
+- Logged-in customers use the same route with owned/download, cart, comment, and personal-state affordances added after the anonymous pass.
+- Uploaders and admins use the same route with subtle contextual markers added after customer states are stable.
+
+Initial PR focus:
+
+- [x] Redesign the anonymous catalogue list page.
+- [x] Preserve existing public search, preview, detail navigation, and smoke-test coverage.
+- [ ] Keep signed-in catalogue behaviour unchanged unless needed to avoid regressions.
+- [ ] Verify desktop and mobile catalogue layouts before review.
+
+Current checkpoint:
+
+- The anonymous catalogue now presents archive stats, public-preview guidance, richer track summaries, composer/price markers, and explicit sign-in purchase prompts.
+- Route-level verification confirms `/catalogue` returns 200 and renders the expected anonymous catalogue content on the local dev server.
+- Anonymous functional Playwright coverage passes for public catalogue reachability, bespoke sign-in entry, opening a listed track, returning to the list, and searching visible catalogue results when run against the responding `localhost` dev host.
+- Local Playwright runs against `127.0.0.1` can fail to hydrate the catalogue under the already-running Next dev server because the dev HMR websocket rejects that host. Use the same host shown by the dev server for local HITL checks.
+- The catalogue layout has been simplified into a functional archive board: compact heading, search field, result count, table-like desktop rows, and stacked mobile rows. The removed hero stats, first-result block, and public-preview note were judged clutter for the browsing task.
+- The catalogue now uses URL-backed server-side search, filters, sorting, page size, and pagination so the UI can scale beyond small prototype datasets without rendering the entire archive at once.
+
+Deferred follow-up:
+
+- [ ] Add local/dev preview controls or instructions for seeded customer, uploader, and admin catalogue states.
+- [ ] Add ownership-aware catalogue row actions.
+- [ ] Add uploader/admin contextual markers.

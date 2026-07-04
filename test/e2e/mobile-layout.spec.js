@@ -1,15 +1,5 @@
 const { expect, test } = require('@playwright/test')
-
-const signInPageAs = async (page, email) => {
-  const response = await page.request.post('/api/e2e/session', {
-    data: {
-      email
-    }
-  })
-
-  expect(response.status()).toBe(200)
-  return response.json()
-}
+const { signInPageAs } = require('./helpers/e2e-session')
 
 const expectNoDocumentHorizontalOverflow = async page => {
   const overflow = await page.evaluate(() => {
@@ -45,14 +35,17 @@ test.describe('mobile layout smoke', () => {
   test('catalogue list and track detail fit a mobile viewport', async ({ page }) => {
     await page.goto('/catalogue')
 
-    await expect(page.getByRole('heading', { name: /Track Listing/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
     await expect(page.getByLabel('Search catalogue')).toBeVisible()
     await expectNoDocumentHorizontalOverflow(page)
 
-    await page.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).first().click()
+    const firstTrackLink = page.locator('.cmc-catalogue-track-heading a').first()
+    const firstTrackTitle = await firstTrackLink.innerText()
+
+    await firstTrackLink.click()
 
     await expect(page).toHaveURL(/\/catalogue\/\d+$/)
-    await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: firstTrackTitle })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Back' })).toBeVisible()
     await expectNoDocumentHorizontalOverflow(page)
   })

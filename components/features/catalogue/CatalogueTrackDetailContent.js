@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useCart } from 'react-use-cart'
@@ -14,7 +13,6 @@ const WaveFormRegion = dynamic(
 )
 
 const CatalogueTrackDetailContent = ({ track, comments }) => {
-  const router = useRouter()
   const [url, setUrl] = useState('')
   const { data: session } = useSession()
   const { addItem } = useCart()
@@ -37,10 +35,6 @@ const CatalogueTrackDetailContent = ({ track, comments }) => {
     alert('Track added to cart!')
   }
 
-  const goBack = () => {
-    router.push('/catalogue')
-  }
-
   const metadata = [
     ['Key', track.key],
     ['Instrumentation', track.instrumentation],
@@ -51,7 +45,13 @@ const CatalogueTrackDetailContent = ({ track, comments }) => {
   return (
     <main className='cmc-track-page'>
       <div className='container'>
-        <Button variant='outline-secondary' size='sm' onClick={goBack} className='cmc-track-back-button'>
+        <Button
+          as={Link}
+          href='/catalogue'
+          variant='outline-secondary'
+          size='sm'
+          className='cmc-track-back-button'
+        >
           Back
         </Button>
 
