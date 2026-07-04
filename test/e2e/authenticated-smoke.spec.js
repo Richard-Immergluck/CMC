@@ -62,13 +62,14 @@ test.describe('authenticated smoke', () => {
     await page.goto('/profile')
 
     await expect(page.getByText('e2e-customer@example.com')).toBeVisible()
-    await expect(page.getByRole('button', { name: /Purchased Tracks:\s*\d+/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Downloaded tracks' })).toBeVisible()
+    await expect(page.getByRole('searchbox', { name: 'Search downloaded tracks' })).toBeVisible()
 
-    const purchasedPanel = page.locator('.tab-pane.active')
-    await expect(purchasedPanel.getByRole('link', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
-    await expect(purchasedPanel.getByText('Synthetic Test Fixture')).toBeVisible()
+    const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
+    await expect(downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(downloadsTable.getByText('Synthetic Test Fixture')).toBeVisible()
 
-    await purchasedPanel.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
+    await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
 
     await expect(page).toHaveURL(/\/profile\/\d+-/)
     await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
