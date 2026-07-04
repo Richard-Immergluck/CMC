@@ -160,9 +160,16 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
 
         <section className='cmc-track-board cmc-track-board--option-one' aria-labelledby='track-detail-heading'>
           <header className='cmc-track-board-header'>
+            <div className='cmc-track-hero-staff' aria-hidden='true' />
+            <div className='cmc-track-hero-paper' aria-hidden='true' />
             <div className='cmc-track-title-block'>
               <h1 id='track-detail-heading'>{track.title}</h1>
               <p className='cmc-track-composer'>{track.composer || 'Unknown composer'}</p>
+              <p className='cmc-track-uploader-line'>
+                <span>Uploaded by {track.uploaderName || 'Unknown'}</span>
+                <span aria-hidden='true' />
+                <time>{track.uploadedAt || 'Unknown date'}</time>
+              </p>
             </div>
 
             <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
@@ -173,7 +180,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
                 !track.viewerState?.isUploadedByViewer &&
                 !catalogueContext.showOperationsOverlay && (
                 <Button variant='ink' size='md' onClick={addToCart}>
-                  Add to Cart
+                  Add to Basket
                 </Button>
               )}
               {track.viewerState?.isOwned && (
@@ -196,8 +203,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
                   Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
                 </p>
               )}
-              <Button as={Link} href={createTrackProfileHref(track)} variant='paper' size='sm'>
-                View Uploader
+              <Button variant='paper' size='sm'>
+                Add to Wishlist
               </Button>
             </aside>
           </header>
@@ -307,9 +314,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
             </div>
 
             <div className='cmc-modal-body'>
-              <h2 id='cart-confirmation-title'>{track.title} has been added to your cart.</h2>
+              <h2 id='cart-confirmation-title'>{track.title} has been added to your basket.</h2>
               <p>
-                You can keep browsing the archive or review your cart when you are ready to complete checkout.
+                You can keep browsing the archive or review your basket when you are ready to complete checkout.
               </p>
             </div>
 
