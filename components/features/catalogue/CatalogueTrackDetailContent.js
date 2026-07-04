@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
+import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 
@@ -186,7 +187,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
             <div className='cmc-track-hero-staff' aria-hidden='true' />
             <div className='cmc-track-hero-paper' aria-hidden='true' />
             <div className='cmc-track-title-block'>
-              <h1 id='track-detail-heading'>{track.title}</h1>
+              <h1 id='track-detail-heading'>
+                <BrandDisplayText text={track.title} />
+              </h1>
               <p className='cmc-track-composer'>{track.composer || 'Unknown composer'}</p>
               <p className='cmc-track-uploader-line'>
                 <span>Uploaded by {track.uploaderName || 'Unknown'}</span>
