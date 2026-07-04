@@ -101,6 +101,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
 
   const commentCount = comments.length
   const downloadCount = track._count?.TrackOwner || 0
+  const showBasketAction = catalogueContext.isAuthenticated &&
+    !track.viewerState?.isOwned &&
+    !track.viewerState?.isUploadedByViewer &&
+    !catalogueContext.showOperationsOverlay
+  const showOwnedAction = track.viewerState?.isOwned
+  const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
+  const showPurchaseDivider = showBasketAction || showOwnedAction || showOperationsAction
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
   const detailTiles = [
     {
@@ -174,16 +181,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
 
             <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
               <strong>{formatTrackPrice(track)}</strong>
-              <span>Standard Licence</span>
-              {catalogueContext.isAuthenticated &&
-                !track.viewerState?.isOwned &&
-                !track.viewerState?.isUploadedByViewer &&
-                !catalogueContext.showOperationsOverlay && (
+              {showBasketAction && (
                 <Button variant='ink' size='md' onClick={addToCart}>
                   Add to Basket
                 </Button>
               )}
-              {track.viewerState?.isOwned && (
+              {showOwnedAction && (
                 <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
                   View in Library
                 </Button>
@@ -193,7 +196,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
                   This is one of your uploaded catalogue tracks.
                 </p>
               )}
-              {catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer && (
+              {showOperationsAction && (
                 <Button as={Link} href='/admin' variant='secondary' size='md'>
                   Operations Console
                 </Button>
@@ -203,7 +206,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
                   Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
                 </p>
               )}
-              <Button variant='paper' size='sm'>
+              {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
+              <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
+                <span className='cmc-track-wishlist-icon' aria-hidden='true' />
                 Add to Wishlist
               </Button>
             </aside>
