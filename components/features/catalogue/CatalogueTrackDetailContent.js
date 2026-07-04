@@ -180,8 +180,6 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   return (
     <main className='cmc-track-page'>
       <div className='container'>
-        {renderBackButton()}
-
         <section className='cmc-track-board cmc-track-board--option-one' aria-labelledby='track-detail-heading'>
           <header className='cmc-track-board-header'>
             <div className='cmc-track-hero-staff' aria-hidden='true' />
