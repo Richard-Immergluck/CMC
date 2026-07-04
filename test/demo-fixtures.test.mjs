@@ -5,9 +5,9 @@ import {
   demoCatalogueTracks
 } from '../lib/demo/catalogue-fixtures.mjs'
 
-test('demo catalogue exposes 50 generated tracks for browsing tests', () => {
-  assert.equal(demoCatalogueTracks.length, 50)
-  assert.equal(Object.keys(demoCatalogueFixtureMap).length, 50)
+test('demo catalogue exposes 100 generated tracks for browsing tests', () => {
+  assert.equal(demoCatalogueTracks.length, 100)
+  assert.equal(Object.keys(demoCatalogueFixtureMap).length, 100)
 })
 
 test('demo catalogue tracks have stable marketplace metadata', () => {
