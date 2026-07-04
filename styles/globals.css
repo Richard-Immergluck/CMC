@@ -1883,6 +1883,7 @@ a {
   text-align: left;
   background: rgba(255, 253, 248, 0.72);
   border: 1px solid rgba(23, 63, 56, 0.16);
+  transform: translateY(40px);
 }
 
 .cmc-track-purchase-panel strong {
@@ -1944,7 +1945,7 @@ a {
 }
 
 .cmc-track-tab-board {
-  margin: 0 0 var(--cmc-space-4);
+  margin: var(--cmc-space-6) 0 var(--cmc-space-4);
   background: rgba(255, 253, 248, 0.44);
   border: 1px solid rgba(23, 63, 56, 0.16);
 }
