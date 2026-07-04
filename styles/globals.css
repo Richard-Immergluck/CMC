@@ -1881,7 +1881,7 @@ a {
   padding: var(--cmc-space-4);
   text-align: left;
   background: rgba(255, 253, 248, 0.72);
-  border: 2px solid rgba(23, 63, 56, 0.34);
+  border: 1px solid rgba(23, 63, 56, 0.16);
 }
 
 .cmc-track-purchase-panel strong {
