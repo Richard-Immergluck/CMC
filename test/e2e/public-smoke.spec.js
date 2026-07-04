@@ -118,9 +118,8 @@ test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   ])
   await expect(page.getByLabel('Key').locator('option')).toHaveText([
     'All',
-    'B-flat major',
     'C major',
-    'E-flat major',
+    'E minor',
     'G minor'
   ])
 

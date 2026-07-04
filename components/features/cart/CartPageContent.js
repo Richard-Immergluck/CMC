@@ -1,26 +1,32 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { Music2, ShieldCheck, Trash2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { useCart } from 'react-use-cart'
-import Link from 'next/link'
-import {
-  Button,
-  Card,
-  CloseButton,
-  Col,
-  Container,
-  ListGroup,
-  Row
-} from 'react-bootstrap'
+import BrandDisplayText from '../../brand/BrandDisplayText'
+import { Button } from '../../ui/primitives'
 
 const checkoutCanceledMessage = 'Checkout was cancelled. Your cart has been kept so you can review it or try again when you are ready.'
 
-const formatter = new Intl.NumberFormat('en-UK', {
+const formatter = new Intl.NumberFormat('en-GB', {
   style: 'currency',
   currency: 'GBP'
 })
+
+const formatItemPrice = item => {
+  if (typeof item.formattedPrice === 'string') {
+    return item.formattedPrice.replace(/^GBP\s+/, '£')
+  }
+
+  if (Number.isFinite(item.price)) {
+    return formatter.format(item.price)
+  }
+
+  return '£0.00'
+}
 
 const CartPageContent = () => {
   const [checkoutError, setCheckoutError] = useState('')
@@ -60,105 +66,140 @@ const CartPageContent = () => {
   }
 
   if (!session?.user) {
-    return <p>You must be logged in to view the cart</p>
+    return (
+      <main className='cmc-cart-page'>
+        <div className='container'>
+          <section className='cmc-cart-auth-panel' aria-labelledby='cart-auth-heading'>
+            <p className='cmc-cart-kicker'>Member checkout</p>
+            <h1 id='cart-auth-heading'>Sign in to view your cart</h1>
+            <p>
+              Your selected tracks are held in your browser. Sign in to complete checkout and attach purchases to your downloads.
+            </p>
+            <Button as={Link} href='/auth/signin?callbackUrl=/cart' variant='ink'>
+              Sign in
+            </Button>
+          </section>
+        </div>
+      </main>
+    )
   }
 
+  const hasItems = items.length > 0
+
   return (
-    <Container className='mt-5 justify-content-md-center'>
-      {checkoutCanceled && (
-        <div className='alert alert-warning' role='alert'>
-          {checkoutCanceledMessage}
-        </div>
-      )}
-      <Row>
-        <Col />
-        <Col xs={12} md={9} lg={6} xl={5} xxl={5}>
-          <Container className='bg-light border mt-5 p-3'>
-            <Card>
-              <Card.Body>
-                <Card.Title>Shopping Cart</Card.Title>
-                <Card.Subtitle className='mb-2 text-muted'>
-                  Below is a list of the items in your cart.
-                </Card.Subtitle>
-                {items.length > 0 ? (
-                  <>
-                    <Card.Text>
-                      Please check your items before purchasing. Use the
-                      &#39;X&#39; on the right to remove items from the
-                      cart. When you are ready to buy, click &#39;Buy
-                      Now&#39;.
-                    </Card.Text>
-                    <hr />
-                    {items.map(item => (
-                      <Container
-                        className='border border-info mb-3'
-                        key={item.id}
+    <main className='cmc-cart-page'>
+      <div className='container'>
+        <section className='cmc-cart-board' aria-labelledby='cart-heading'>
+          <header className='cmc-cart-header'>
+            <div className='cmc-cart-staff' aria-hidden='true' />
+            <div className='cmc-cart-paper' aria-hidden='true' />
+            <div className='cmc-cart-heading'>
+              <p className='cmc-cart-kicker'>Checkout ledger</p>
+              <h1 id='cart-heading'>
+                <BrandDisplayText text='Shopping Cart' />
+              </h1>
+              <p>
+                Check the tracks, licence and creator details before checkout.
+              </p>
+            </div>
+          </header>
+
+          {checkoutCanceled && (
+            <div className='cmc-cart-notice cmc-cart-notice--warning' role='alert'>
+              {checkoutCanceledMessage}
+            </div>
+          )}
+
+          <div className='cmc-cart-layout'>
+            <section className='cmc-cart-items' aria-label='Tracks in cart'>
+              <div className='cmc-cart-items-header'>
+                <span>Track</span>
+                <span>Licence</span>
+                <span>Price</span>
+                <span className='cmc-sr-only'>Remove</span>
+              </div>
+
+              {hasItems ? (
+                <ul className='cmc-cart-list'>
+                  {items.map((item, index) => (
+                    <li className='cmc-cart-item' key={item.id}>
+                      <span className='cmc-cart-item-index'>{String(index + 1).padStart(2, '0')}</span>
+                      <div className='cmc-cart-item-track'>
+                        <Link href={`/catalogue/${item.id}`}>
+                          {item.title}
+                        </Link>
+                        <span>{item.composer || 'Unknown composer'}</span>
+                      </div>
+                      <span className='cmc-cart-item-licence'>Standard</span>
+                      <span className='cmc-cart-item-price'>{formatItemPrice(item)}</span>
+                      <button
+                        aria-label={`Remove ${item.title} from cart`}
+                        className='cmc-cart-remove'
+                        onClick={() => removeItem(item.id)}
+                        type='button'
                       >
-                        <ListGroup variant='flush'>
-                          <ListGroup.Item>
-                            <h5>
-                              &quot;
-                              <Link href={`/catalogue/${item.id}`}>
-                                {item.title}
-                              </Link>
-                              &quot;
-                            </h5>
-                            &nbsp;&nbsp;&nbsp;By &nbsp;&nbsp;{item.composer}
-                          </ListGroup.Item>
-                          <Row>
-                            <Col>
-                              <ListGroup.Item className='mt-3 border-0'>
-                                {item.formattedPrice}
-                              </ListGroup.Item>
-                            </Col>
-                            <Col md={3}>
-                              <ListGroup.Item className='mt-3 border-0'>
-                                <CloseButton
-                                  onClick={() => removeItem(item.id)}
-                                />
-                              </ListGroup.Item>
-                            </Col>
-                          </Row>
-                        </ListGroup>
-                      </Container>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    <Card.Text className='primary'>
-                      Your cart is empty!
-                    </Card.Text>
-                    <Card.Text>
-                      Please got to the{' '}
-                      <Link href='/catalogue' className='text-primary'>
-                        CATALOGUE
-                      </Link>{' '}
-                      to add tracks to your cart
-                    </Card.Text>
-                  </>
-                )}
-                <Card.Text className='p-2 bg-info text-white'>
-                  Total = {total}
-                </Card.Text>
-                {checkoutError && (
-                  <Card.Text className='p-2 bg-danger text-white'>
-                    {checkoutError}
-                  </Card.Text>
-                )}
-              </Card.Body>
-            </Card>
-            <Button
-              onClick={checkout}
-              className='btn btn-info mt-3 text-white'
-              disabled={items.length === 0 || isCheckingOut}
-            >
-              {isCheckingOut ? 'Redirecting...' : 'Buy Now'}
-            </Button>
-          </Container>
-        </Col>
-        <Col />
-      </Row>
-    </Container>
+                        <Trash2 aria-hidden='true' strokeWidth={1.8} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className='cmc-cart-empty'>
+                  <Music2 aria-hidden='true' strokeWidth={1.7} />
+                  <h2>Your cart is empty</h2>
+                  <p>Browse the archive and add rehearsal tracks when you are ready.</p>
+                  <Button as={Link} href='/catalogue' variant='paper'>
+                    Browse Archive
+                  </Button>
+                </div>
+              )}
+            </section>
+
+            <aside className='cmc-cart-summary' aria-label='Order summary'>
+              <p className='cmc-cart-kicker'>Order summary</p>
+              <dl>
+                <div>
+                  <dt>{items.length === 1 ? '1 track' : `${items.length} tracks`}</dt>
+                  <dd>{total}</dd>
+                </div>
+                <div>
+                  <dt>Platform fees</dt>
+                  <dd>{formatter.format(0)}</dd>
+                </div>
+                <div className='cmc-cart-summary-total'>
+                  <dt>Total</dt>
+                  <dd>{total}</dd>
+                </div>
+              </dl>
+
+              {checkoutError && (
+                <p className='cmc-cart-notice cmc-cart-notice--error' role='alert'>
+                  {checkoutError}
+                </p>
+              )}
+
+              <Button
+                className='cmc-cart-checkout'
+                disabled={!hasItems || isCheckingOut}
+                onClick={checkout}
+                variant='ink'
+              >
+                {isCheckingOut ? 'Redirecting...' : 'Buy Now'}
+              </Button>
+
+              <Button as={Link} href='/catalogue' variant='paper'>
+                Continue Browsing
+              </Button>
+
+              <p className='cmc-cart-secure'>
+                <ShieldCheck aria-hidden='true' strokeWidth={1.8} />
+                Secure checkout via Stripe. Purchased tracks appear in your downloads after payment.
+              </p>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
   )
 }
 
