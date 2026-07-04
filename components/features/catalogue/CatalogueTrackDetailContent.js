@@ -389,7 +389,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               <strong>{formatTrackPrice(track)}</strong>
               {showBasketAction && (
                 <Button variant='ink' size='md' onClick={addToCart}>
-                  Add to Basket
+                  Add to Cart
                 </Button>
               )}
               {showOwnedAction && (
@@ -621,9 +621,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
             </div>
 
             <div className='cmc-modal-body'>
-              <h2 id='cart-confirmation-title'>{track.title} has been added to your basket.</h2>
+              <h2 id='cart-confirmation-title'>{track.title} has been added to your cart.</h2>
               <p>
-                You can keep browsing the archive or review your basket when you are ready to complete checkout.
+                You can keep browsing the archive or review your cart when you are ready to complete checkout.
               </p>
             </div>
 
