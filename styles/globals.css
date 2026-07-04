@@ -1477,8 +1477,7 @@ a {
 }
 
 .cmc-catalogue-results-shell {
-  --cmc-catalogue-grid-template: 2.4rem minmax(12rem, 1.55fr) minmax(7.25rem, 0.82fr) minmax(4.75rem, 0.5fr) minmax(8rem, 0.9fr) minmax(6.25rem, 0.66fr) minmax(4.75rem, 0.44fr) minmax(9.5rem, 0.6fr);
-  --cmc-catalogue-row-min-width: 68rem;
+  --cmc-catalogue-grid-template: 2.4rem minmax(0, 1.65fr) minmax(0, 0.85fr) minmax(0, 0.48fr) minmax(0, 0.9fr) minmax(0, 0.68fr) minmax(4.25rem, 0.4fr) 9.75rem;
   --cmc-catalogue-scrollbar-buffer: 5px;
 
   overflow: visible;
@@ -1490,7 +1489,7 @@ a {
   grid-template-columns: var(--cmc-catalogue-grid-template);
   gap: var(--cmc-space-3);
   align-items: end;
-  width: max(calc(100% - var(--cmc-catalogue-scrollbar-buffer)), var(--cmc-catalogue-row-min-width));
+  width: 100%;
   padding: var(--cmc-space-3) 0;
   color: var(--cmc-color-accent-strong);
   font-size: 0.68rem;
@@ -1500,10 +1499,16 @@ a {
   border-bottom: 1px solid rgba(23, 63, 56, 0.28);
 }
 
+.cmc-catalogue-table-header span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .cmc-catalogue-result-list {
   display: grid;
   max-height: 72vh;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: var(--cmc-catalogue-scrollbar-buffer);
   border-bottom: 1px solid var(--cmc-component-table-row-border);
   scrollbar-gutter: stable;
@@ -1523,7 +1528,7 @@ a {
   grid-template-columns: var(--cmc-catalogue-grid-template);
   gap: var(--cmc-space-3);
   align-items: start;
-  width: max(calc(100% - var(--cmc-catalogue-scrollbar-buffer)), var(--cmc-catalogue-row-min-width));
+  width: 100%;
   padding: var(--cmc-space-4) 0;
 }
 
@@ -1624,7 +1629,7 @@ a {
   display: grid;
   gap: var(--cmc-space-2);
   justify-items: end;
-  min-width: 10.5rem;
+  min-width: 0;
 }
 
 .cmc-catalogue-track-actions .cmc-button {
@@ -2098,8 +2103,7 @@ a {
   }
 
   .cmc-catalogue-results-shell {
-    --cmc-catalogue-grid-template: 2.1rem minmax(10.5rem, 1.3fr) minmax(6.75rem, 0.72fr) minmax(4.35rem, 0.44fr) minmax(7.2rem, 0.7fr) minmax(5.6rem, 0.54fr) minmax(4.4rem, 0.36fr) minmax(9.25rem, 0.58fr);
-    --cmc-catalogue-row-min-width: 64.5rem;
+    --cmc-catalogue-grid-template: 2.1rem minmax(0, 1.4fr) minmax(0, 0.72fr) minmax(0, 0.42fr) minmax(0, 0.72fr) minmax(0, 0.54fr) minmax(4rem, 0.34fr) 9.25rem;
   }
 
   .cmc-catalogue-table-header,
