@@ -68,6 +68,13 @@ test.describe('authenticated smoke', () => {
     const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
     await expect(downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
     await expect(downloadsTable.getByText('Synthetic Test Fixture')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'My requests' })).toBeVisible()
+    await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
+    const recentCommentsPanel = page.getByRole('article').filter({
+      has: page.getByRole('heading', { name: 'Recent comments' })
+    })
+    await expect(recentCommentsPanel).toBeVisible()
+    await expect(recentCommentsPanel.getByText('E2E Catalogue Mendelssohn Sonata Excerpt Op. 16')).toBeVisible()
 
     await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
 

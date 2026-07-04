@@ -131,7 +131,9 @@ const ProfilePageContent = ({
   checkoutSessionId,
   currentUser,
   purchase,
+  userComments,
   userUploadedTracks,
+  userTrackRequests,
   userPurchasedTracks
 }) => {
   const [checkoutError, setCheckoutError] = useState('')
@@ -211,13 +213,27 @@ const ProfilePageContent = ({
     },
     {
       label: 'My requests',
-      value: '0',
-      text: 'Track requests and followed requests will live here.'
+      value: userTrackRequests.length,
+      text: userTrackRequests.length === 0
+        ? 'Track requests and followed requests will live here.'
+        : 'Recent requests you have created or followed.',
+      items: userTrackRequests.slice(0, 3).map(request => ({
+        href: null,
+        meta: `${request.status.toLowerCase().replace('_', ' ')} · ${request.createdAt}`,
+        title: request.title.replace(/^E2E Request /, '')
+      }))
     },
     {
       label: 'Recent comments',
-      value: '0',
-      text: 'Your contribution history will appear here as community features expand.'
+      value: userComments.length,
+      text: userComments.length === 0
+        ? 'Your contribution history will appear here as community features expand.'
+        : 'Recent comments you have added to downloaded tracks.',
+      items: userComments.slice(0, 3).map(comment => ({
+        href: `/profile/${comment.trackId}-${comment.trackUserId}`,
+        meta: comment.createdAt,
+        title: comment.trackTitle
+      }))
     }
   ]
 
@@ -342,6 +358,20 @@ const ProfilePageContent = ({
                 <span>{panel.value}</span>
                 <h2>{panel.label}</h2>
                 <p>{panel.text}</p>
+                {panel.items?.length > 0 && (
+                  <ul>
+                    {panel.items.map(item => (
+                      <li key={`${panel.label}-${item.title}-${item.meta}`}>
+                        {item.href ? (
+                          <Link href={item.href}>{item.title}</Link>
+                        ) : (
+                          <strong>{item.title}</strong>
+                        )}
+                        <small>{item.meta}</small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </article>
             ))}
           </section>

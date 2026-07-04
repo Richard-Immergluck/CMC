@@ -3338,6 +3338,43 @@ a {
   line-height: 1.45;
 }
 
+.cmc-profile-secondary-panel ul {
+  display: grid;
+  gap: var(--cmc-space-2);
+  padding: var(--cmc-space-3) 0 0;
+  margin: var(--cmc-space-3) 0 0;
+  border-top: 1px solid rgba(23, 63, 56, 0.14);
+  list-style: none;
+}
+
+.cmc-profile-secondary-panel li {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.cmc-profile-secondary-panel a,
+.cmc-profile-secondary-panel strong {
+  color: var(--cmc-color-text);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.cmc-profile-secondary-panel a:hover {
+  color: var(--cmc-color-accent-strong);
+  text-decoration: underline;
+  text-decoration-color: var(--cmc-color-accent-gold);
+  text-underline-offset: 0.18em;
+}
+
+.cmc-profile-secondary-panel small {
+  color: var(--cmc-color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
 .cmc-profile-role-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }

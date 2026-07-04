@@ -59,6 +59,13 @@ const cleanGeneratedE2EData = async () => {
   const generatedOrderEntityIds = generatedOrderIds.map(id => `${id}`)
 
   await prisma.$transaction([
+    prisma.trackRequest.deleteMany({
+      where: {
+        title: {
+          startsWith: 'E2E Request '
+        }
+      }
+    }),
     prisma.paymentEvent.deleteMany({
       where: {
         orderId: {
@@ -285,6 +292,7 @@ const seed = async () => {
     }
   })
 
+  const purchasedTracks = [track]
   const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
     fileName: `demo-fixtures/${demoTrack.slug}.wav`,
     title: `E2E Catalogue ${demoTrack.title}`,
@@ -314,7 +322,7 @@ const seed = async () => {
     additionalInfo: demoTrack.additionalInfo
   }))
 
-  for (const extraTrack of extraCatalogueTracks) {
+  for (const [index, extraTrack] of extraCatalogueTracks.entries()) {
     const existingExtraTrack = await prisma.track.findFirst({
       where: {
         title: extraTrack.title,
@@ -323,22 +331,116 @@ const seed = async () => {
       }
     })
 
-    if (existingExtraTrack) {
-      await prisma.track.update({
+    const savedTrack = existingExtraTrack
+      ? await prisma.track.update({
         where: {
           id: existingExtraTrack.id
         },
         data: extraTrack
       })
-    } else {
-      await prisma.track.create({
+      : await prisma.track.create({
         data: extraTrack
+      })
+
+    if (index < 5) {
+      purchasedTracks.push(savedTrack)
+      await prisma.trackOwner.upsert({
+        where: {
+          trackId_userId: {
+            trackId: savedTrack.id,
+            userId: customer.id
+          }
+        },
+        update: {
+          purchasedAt: new Date(`2026-07-${String(index + 1).padStart(2, '0')}T10:00:00.000Z`)
+        },
+        create: {
+          trackId: savedTrack.id,
+          userId: customer.id,
+          purchasedAt: new Date(`2026-07-${String(index + 1).padStart(2, '0')}T10:00:00.000Z`)
+        }
       })
     }
   }
 
+  const customerComments = [
+    'Useful balance for slow practice; the piano guide sits clearly in the texture.',
+    'This one is especially helpful for checking entries after the development section.',
+    'Good rehearsal tempo, and the harmonic cues are easy to follow.',
+    'I would like a slightly longer preview window on this style of track.',
+    'The accompaniment feels natural enough for daily practice.'
+  ]
+
+  for (const [index, purchasedTrack] of purchasedTracks.slice(0, 5).entries()) {
+    await prisma.comment.create({
+      data: {
+        content: customerComments[index],
+        postedBy: {
+          connect: {
+            id: customer.id
+          }
+        },
+        track: {
+          connect: {
+            id: purchasedTrack.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 2).padStart(2, '0')}T14:30:00.000Z`)
+      }
+    })
+  }
+
+  const requestFixtures = [
+    {
+      title: 'E2E Request Poulenc Oboe Sonata',
+      composer: 'Francis Poulenc',
+      instrumentation: 'Oboe and piano',
+      notes: 'Looking for a steady rehearsal track with clear piano cues.',
+      status: 'OPEN'
+    },
+    {
+      title: 'E2E Request Saint-Saens Allegro appassionato',
+      composer: 'Camille Saint-Saens',
+      instrumentation: 'Cello and piano',
+      notes: 'Useful if the accompaniment has a flexible but stable tempo.',
+      status: 'IN_PROGRESS'
+    },
+    {
+      title: 'E2E Request Mozart Clarinet Concerto Adagio',
+      composer: 'W. A. Mozart',
+      instrumentation: 'Clarinet and orchestra reduction',
+      notes: 'Request fulfilled by an existing catalogue upload for smoke coverage.',
+      status: 'FULFILLED'
+    }
+  ]
+
+  await prisma.trackRequest.deleteMany({
+    where: {
+      userId: customer.id,
+      title: {
+        startsWith: 'E2E Request '
+      }
+    }
+  })
+
+  for (const [index, requestFixture] of requestFixtures.entries()) {
+    await prisma.trackRequest.create({
+      data: {
+        ...requestFixture,
+        requestedBy: {
+          connect: {
+            id: customer.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 3).padStart(2, '0')}T09:15:00.000Z`)
+      }
+    })
+  }
+
   console.log(`Seeded ${extraCatalogueTracks.length + 1} E2E catalogue tracks for ${uploader.email}`)
-  console.log(`Seeded E2E customer ownership for ${customer.email}`)
+  console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
+  console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
+  console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
 }
 
 try {

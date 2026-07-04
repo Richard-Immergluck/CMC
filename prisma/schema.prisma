@@ -60,6 +60,7 @@ model User {
   Comment        Comment[]
   orders         Order[]
   auditEvents    AuditEvent[]
+  TrackRequests  TrackRequest[]
   accessChangeRequestsRequested UserAccessChangeRequest[] @relation("UserAccessChangeRequestedBy")
   accessChangeRequestsReviewed  UserAccessChangeRequest[] @relation("UserAccessChangeReviewedBy")
   accessChangeRequestsTargeted  UserAccessChangeRequest[] @relation("UserAccessChangeTarget")
@@ -143,6 +144,22 @@ model Comment {
 
   @@index([trackId])
   @@index([userId])
+}
+
+model TrackRequest {
+  id              Int                @id @default(autoincrement())
+  requestedBy     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  title           String
+  composer        String?
+  instrumentation String?
+  notes           String?            @db.Text
+  status          TrackRequestStatus @default(OPEN)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }
 
 model Order {
@@ -243,6 +260,13 @@ enum TrackStatus {
   PUBLISHED
   REJECTED
   ARCHIVED
+}
+
+enum TrackRequestStatus {
+  OPEN
+  IN_PROGRESS
+  FULFILLED
+  CLOSED
 }
 
 enum UserRole {
