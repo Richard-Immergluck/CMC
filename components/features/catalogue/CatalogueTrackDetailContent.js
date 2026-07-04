@@ -109,7 +109,6 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   }
 
   const commentCount = comments.length
-  const downloadCount = track._count?.TrackOwner || 0
   const showBasketAction = catalogueContext.isAuthenticated &&
     !track.viewerState?.isOwned &&
     !track.viewerState?.isUploadedByViewer &&
@@ -118,41 +117,26 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
   const showPurchaseDivider = showBasketAction || showOwnedAction || showOperationsAction
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
-  const detailTiles = [
+  const previewFacts = [
     {
-      icon: '𝄞',
       label: 'Key',
       value: track.key || 'Unspecified'
     },
     {
-      icon: '♬',
-      label: 'Instrumentation',
-      value: track.instrumentation || 'Unspecified'
+      label: 'Tempo',
+      value: track.tempo || 'Andante'
     },
     {
-      icon: '◷',
       label: 'Duration',
       value: formatDuration(track.durationSeconds)
     },
     {
-      icon: '♙',
-      label: 'Uploaded by',
-      value: track.uploaderName || 'Unknown'
+      label: 'Instrumentation',
+      value: track.instrumentation || 'Unspecified'
     },
     {
-      icon: '□',
-      label: 'Uploaded',
-      value: track.uploadedAt || 'Unknown'
-    },
-    {
-      icon: '↓',
-      label: 'Downloads',
-      value: String(downloadCount)
-    },
-    {
-      icon: '○',
-      label: 'Comments',
-      value: String(commentCount)
+      label: 'Quality',
+      value: track.sourceContentType === 'audio/wav' ? '24-bit WAV' : track.sourceContentType || 'Unknown'
     }
   ]
 
@@ -281,11 +265,10 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   </div>
 
                   <dl className='cmc-track-facts-grid'>
-                    {detailTiles.map(tile => (
+                    {previewFacts.map(tile => (
                       <div key={tile.label}>
                         <dt>{tile.label}</dt>
                         <dd>
-                          <span className='cmc-track-fact-icon' aria-hidden='true'>{tile.icon}</span>
                           <strong>{tile.value}</strong>
                         </dd>
                       </div>
