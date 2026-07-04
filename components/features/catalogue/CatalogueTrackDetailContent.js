@@ -118,6 +118,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [activeTab, setActiveTab] = useState('preview')
   const [previewVolume, setPreviewVolume] = useState(78)
+  const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
   const [waveformDuration, setWaveformDuration] = useState(track.durationSeconds || track.previewEnd || 1)
   const [previewCurrentTime, setPreviewCurrentTime] = useState(() => Number.isFinite(track.previewStart) ? track.previewStart : 0)
@@ -156,11 +157,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
         if (!cancelled) {
           setWaveformPeaks(buildWaveformPeaks(audioBuffer))
           setWaveformDuration(audioBuffer.duration)
+          setIsWaveformLoading(false)
         }
       } catch {
         if (!cancelled) {
           setWaveformPeaks(createFallbackWaveform(track.id))
           setWaveformDuration(track.durationSeconds || track.previewEnd || 1)
+          setIsWaveformLoading(false)
         }
       } finally {
         audioContext?.close?.()
@@ -425,9 +428,10 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     <div className='cmc-track-preview-waveform'>
                       <p>Preview <span>({formatPreviewRange(track)})</span></p>
                       <div
-                        className='cmc-track-waveform-strip'
+                        className={isWaveformLoading ? 'cmc-track-waveform-strip cmc-track-waveform-strip--loading' : 'cmc-track-waveform-strip'}
                         style={{ '--cmc-waveform-bars': waveformPeaks.length }}
                         aria-label='Preview playback position'
+                        aria-busy={isWaveformLoading}
                         aria-valuemax={Math.round(previewEnd)}
                         aria-valuemin={Math.round(previewStart)}
                         aria-valuenow={Math.round(previewCurrentTime)}
@@ -457,7 +461,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                           </>
                         )}
                         {waveformPeaks.map((peak, index) => (
-                          <span key={index} style={{ '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%` }} />
+                          <span
+                            key={index}
+                            style={{
+                              '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%`,
+                              '--cmc-wave-delay': `${index * 18}ms`
+                            }}
+                          />
                         ))}
                       </div>
                     </div>
