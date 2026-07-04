@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Bookmark } from 'lucide-react'
 import { useCart } from 'react-use-cart'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
@@ -208,7 +209,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
               )}
               {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
               <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
-                <span className='cmc-track-wishlist-icon' aria-hidden='true' />
+                <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
                 Add to Wishlist
               </Button>
             </aside>
