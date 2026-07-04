@@ -1477,13 +1477,16 @@ a {
 }
 
 .cmc-catalogue-results-shell {
+  --cmc-catalogue-grid-template: 2.4rem minmax(12rem, 1.25fr) minmax(7.25rem, 0.72fr) minmax(4.75rem, 0.48fr) minmax(8rem, 0.75fr) minmax(6.25rem, 0.58fr) minmax(4.75rem, 0.42fr) minmax(10.5rem, 0.9fr);
+  --cmc-catalogue-row-min-width: 68rem;
+
   overflow: visible;
   padding-right: var(--cmc-space-5);
 }
 
 .cmc-catalogue-table-header {
   display: grid;
-  grid-template-columns: 2.4rem minmax(15rem, 1.55fr) minmax(8rem, 0.8fr) minmax(5rem, 0.55fr) minmax(9rem, 0.9fr) minmax(7rem, 0.7fr) minmax(5.5rem, 0.5fr) minmax(9rem, 0.75fr);
+  grid-template-columns: var(--cmc-catalogue-grid-template);
   gap: var(--cmc-space-3);
   align-items: end;
   padding: var(--cmc-space-3) 0;
@@ -1513,10 +1516,10 @@ a {
 
 .cmc-catalogue-track-row {
   display: grid;
-  grid-template-columns: 2.4rem minmax(15rem, 1.55fr) minmax(8rem, 0.8fr) minmax(5rem, 0.55fr) minmax(9rem, 0.9fr) minmax(7rem, 0.7fr) minmax(5.5rem, 0.5fr) minmax(9rem, 0.75fr);
+  grid-template-columns: var(--cmc-catalogue-grid-template);
   gap: var(--cmc-space-3);
   align-items: start;
-  min-width: 74rem;
+  min-width: var(--cmc-catalogue-row-min-width);
   padding: var(--cmc-space-4) 0;
 }
 
@@ -1615,6 +1618,7 @@ a {
   display: grid;
   gap: var(--cmc-space-2);
   justify-items: stretch;
+  min-width: 10.5rem;
 }
 
 .cmc-catalogue-track-actions .cmc-button {
@@ -2074,6 +2078,28 @@ a {
 
   .cmc-upload-guidance {
     position: static;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1320px) {
+  .cmc-catalogue-board-header,
+  .cmc-catalogue-toolbar,
+  .cmc-catalogue-results-shell {
+    padding-right: var(--cmc-space-3);
+  }
+
+  .cmc-catalogue-results-shell {
+    --cmc-catalogue-grid-template: 2.1rem minmax(10.5rem, 1.1fr) minmax(6.75rem, 0.65fr) minmax(4.35rem, 0.42fr) minmax(7.2rem, 0.64fr) minmax(5.6rem, 0.52fr) minmax(4.4rem, 0.36fr) minmax(10.25rem, 0.88fr);
+    --cmc-catalogue-row-min-width: 64.5rem;
+  }
+
+  .cmc-catalogue-table-header,
+  .cmc-catalogue-track-row {
+    gap: var(--cmc-space-2);
+  }
+
+  .cmc-catalogue-track-actions {
+    min-width: 10.25rem;
   }
 }
 
