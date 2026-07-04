@@ -130,10 +130,7 @@ const getPrimaryTrackAction = ({ catalogueContext, track }) => {
     }
   }
 
-  return {
-    href: `/catalogue/${track.id}`,
-    label: 'Open Track'
-  }
+  return null
 }
 
 const getSecondaryOperationsAction = catalogueContext => {
@@ -213,14 +210,16 @@ const CatalogueTrackRow = ({
             onDeactivate={onStopPreview}
             track={track}
           />
-          <Button
-            as={Link}
-            href={primaryAction.href}
-            size='sm'
-            variant='paper'
-          >
-            {primaryAction.label}
-          </Button>
+          {primaryAction && (
+            <Button
+              as={Link}
+              href={primaryAction.href}
+              size='sm'
+              variant='paper'
+            >
+              {primaryAction.label}
+            </Button>
+          )}
           {operationsAction && (
             <Button
               as={Link}
