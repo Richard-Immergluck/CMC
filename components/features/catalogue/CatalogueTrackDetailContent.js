@@ -12,10 +12,34 @@ const WaveFormRegion = dynamic(
 )
 
 const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
+const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
+const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
   const [url, setUrl] = useState('')
   const { addItem } = useCart()
+
+  const getCatalogueReturnUrl = () => {
+    const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
+    const returnUrl = sessionStorage.getItem(catalogueReturnUrlStorageKey)
+
+    if (returnTrackId === String(track.id) && returnUrl?.startsWith('/catalogue')) {
+      return returnUrl
+    }
+
+    return null
+  }
+
+  const goBackToCatalogue = () => {
+    const returnUrl = getCatalogueReturnUrl()
+
+    if (returnUrl && window.history.length > 1) {
+      window.history.back()
+      return
+    }
+
+    window.location.assign(returnUrl || '/catalogue')
+  }
 
   useEffect(() => {
     const fetchUrl = async () => {
@@ -46,11 +70,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
     <main className='cmc-track-page'>
       <div className='container'>
         <Button
-          as={Link}
-          href='/catalogue'
+          type='button'
           variant='outline-secondary'
           size='sm'
           className='cmc-track-back-button'
+          onClick={goBackToCatalogue}
         >
           Back
         </Button>

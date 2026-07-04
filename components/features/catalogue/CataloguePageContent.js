@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Container, Form } from 'react-bootstrap'
 import { catalogueModes, getCatalogueModeLabel } from '../../../lib/catalogue-view.mjs'
@@ -97,6 +97,14 @@ const FilterSelect = ({ label, name, options, value }) => (
 
 const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
 
+const catalogueScrollStoragePrefix = 'cmc.catalogue.scroll:'
+const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
+const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
+
+const getCatalogueScrollStorageKey = () => (
+  `${catalogueScrollStoragePrefix}${window.location.pathname}${window.location.search}`
+)
+
 const pluralise = (count, singular, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`
 
 const getTrackActivity = track => {
@@ -167,6 +175,7 @@ const CatalogueTrackRow = ({
   activePreviewTrackId,
   catalogueContext,
   index,
+  onCatalogueNavigation,
   onStopPreview,
   pagination,
   setActivePreviewTrackId,
@@ -188,7 +197,7 @@ const CatalogueTrackRow = ({
 
         <div className='cmc-catalogue-track-title-cell'>
           <div className='cmc-catalogue-track-heading'>
-            <Link href={`/catalogue/${track.id}`}>
+            <Link href={`/catalogue/${track.id}`} onClick={onCatalogueNavigation}>
               {track.title}
             </Link>
             {badges.length > 0 && (
@@ -224,7 +233,7 @@ const CatalogueTrackRow = ({
           {formatTrackPrice(track)}
         </div>
         <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
-          <Button as={Link} href={`/catalogue/${track.id}`} variant='ink'>
+          <Button as={Link} href={`/catalogue/${track.id}`} onClick={onCatalogueNavigation} variant='ink'>
             Details
           </Button>
           <PlaySample
@@ -261,9 +270,35 @@ const CatalogueTrackRow = ({
 
 const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, query, tracks }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
+  const resultListRef = useRef(null)
   const previousPage = Math.max(1, pagination.page - 1)
   const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
   const stopPreview = useCallback(() => setActivePreviewTrackId(null), [])
+  const rememberCatalogueScrollPosition = useCallback(trackId => {
+    if (!resultListRef.current) {
+      return
+    }
+
+    sessionStorage.setItem(catalogueReturnTrackIdStorageKey, String(trackId))
+    sessionStorage.setItem(catalogueReturnUrlStorageKey, `${window.location.pathname}${window.location.search}`)
+    sessionStorage.setItem(getCatalogueScrollStorageKey(), String(resultListRef.current.scrollTop))
+  }, [])
+
+  useEffect(() => {
+    const savedScrollPosition = Number(sessionStorage.getItem(getCatalogueScrollStorageKey()))
+
+    if (!Number.isFinite(savedScrollPosition) || savedScrollPosition <= 0) {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      if (resultListRef.current) {
+        resultListRef.current.scrollTop = savedScrollPosition
+        sessionStorage.removeItem(catalogueReturnTrackIdStorageKey)
+        sessionStorage.removeItem(catalogueReturnUrlStorageKey)
+      }
+    })
+  }, [tracks.length])
 
   return (
     <main className='cmc-catalogue-page'>
@@ -393,13 +428,14 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
               <span>Actions</span>
             </div>
 
-            <div className='cmc-catalogue-result-list'>
+            <div className='cmc-catalogue-result-list' ref={resultListRef}>
               {tracks.map((track, index) => (
                 <CatalogueTrackRow
                   activePreviewTrackId={activePreviewTrackId}
                   catalogueContext={catalogueContext}
                   index={index}
                   key={track.id}
+                  onCatalogueNavigation={() => rememberCatalogueScrollPosition(track.id)}
                   onStopPreview={stopPreview}
                   pagination={pagination}
                   setActivePreviewTrackId={setActivePreviewTrackId}
