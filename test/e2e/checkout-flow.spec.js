@@ -58,8 +58,9 @@ const addTrackToCart = async (page, track) => {
   await page.goto('/cart')
 
   await expect(page.getByText('Shopping Cart')).toBeVisible()
-  await expect(page.getByRole('link', { name: track.title })).toBeVisible()
-  await expect(page.getByText('£4.75')).toBeVisible()
+  const cartItems = page.getByLabel('Tracks in cart')
+  await expect(cartItems.getByRole('link', { name: track.title })).toBeVisible()
+  await expect(cartItems.getByText('£4.75')).toBeVisible()
 }
 
 const denyDownload = async (page, trackId) => {
