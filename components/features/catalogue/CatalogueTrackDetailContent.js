@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useCart } from 'react-use-cart'
@@ -12,9 +11,10 @@ const WaveFormRegion = dynamic(
   { ssr: false }
 )
 
-const CatalogueTrackDetailContent = ({ track, comments }) => {
+const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
+
+const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
   const [url, setUrl] = useState('')
-  const { data: session } = useSession()
   const { addItem } = useCart()
 
   useEffect(() => {
@@ -65,12 +65,30 @@ const CatalogueTrackDetailContent = ({ track, comments }) => {
           <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
             <span>Price</span>
             <strong>{track.formattedPrice || 'Price unavailable'}</strong>
-            {session && (
+            {catalogueContext.isAuthenticated &&
+              !track.viewerState?.isOwned &&
+              !track.viewerState?.isUploadedByViewer &&
+              !catalogueContext.showOperationsOverlay && (
               <Button variant='info' size='md' onClick={addToCart}>
                 Add to Cart
               </Button>
             )}
-            {!session && (
+            {track.viewerState?.isOwned && (
+              <Button as={Link} href={createTrackProfileHref(track)} variant='info' size='md'>
+                View in Library
+              </Button>
+            )}
+            {track.viewerState?.isUploadedByViewer && (
+              <p>
+                This is one of your uploaded catalogue tracks.
+              </p>
+            )}
+            {catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer && (
+              <Button as={Link} href='/admin' variant='outline-info' size='md'>
+                Operations Console
+              </Button>
+            )}
+            {!catalogueContext.isAuthenticated && (
               <p>
                 Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
               </p>

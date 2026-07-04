@@ -1,5 +1,9 @@
+import { getServerSession } from 'next-auth'
 import { notFound } from 'next/navigation'
 import CatalogueTrackDetailContent from '../../../components/features/catalogue/CatalogueTrackDetailContent'
+import { getCatalogueContext } from '../../../lib/catalogue-view.mjs'
+import { authOptions } from '../../../lib/server/auth'
+import { getCurrentUser } from '../../../lib/server/ownership'
 import prisma from '../../../lib/server/prisma'
 import { publicTrackWhere } from '../../../lib/server/tracks-core.mjs'
 
@@ -92,6 +96,8 @@ const getTrackDetail = async trackId => {
 }
 
 const CatalogueTrackDetailPage = async ({ params }) => {
+  const session = await getServerSession(authOptions)
+  const currentUser = await getCurrentUser(session)
   const { trackId: rawTrackId } = await params
   const trackId = parseTrackIdParam(rawTrackId)
 
@@ -104,11 +110,31 @@ const CatalogueTrackDetailPage = async ({ params }) => {
   if (!detail) {
     notFound()
   }
+  const ownership = currentUser
+    ? await prisma.trackOwner.findUnique({
+        where: {
+          trackId_userId: {
+            trackId,
+            userId: currentUser.id
+          }
+        },
+        select: {
+          id: true
+        }
+      })
+    : null
 
   return (
     <CatalogueTrackDetailContent
+      catalogueContext={getCatalogueContext(currentUser)}
       comments={detail.comments}
-      track={detail.track}
+      track={{
+        ...detail.track,
+        viewerState: {
+          isOwned: Boolean(ownership),
+          isUploadedByViewer: Boolean(currentUser && detail.track.userId === currentUser.id)
+        }
+      }}
     />
   )
 }

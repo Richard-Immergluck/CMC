@@ -1355,6 +1355,15 @@ a {
   display: block;
 }
 
+.cmc-catalogue-mode-label {
+  margin: var(--cmc-space-2) 0 0;
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .cmc-catalogue-query-form {
   display: grid;
   gap: var(--cmc-space-3);
@@ -1528,6 +1537,27 @@ a {
   font-size: 0.96rem;
   font-weight: 700;
   line-height: 1.35;
+}
+
+.cmc-catalogue-track-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.cmc-catalogue-track-badges span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.35rem;
+  padding: 0.1rem 0.45rem;
+  color: var(--cmc-color-accent-strong);
+  background: rgba(243, 213, 172, 0.58);
+  border: 1px solid rgba(196, 139, 27, 0.35);
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .cmc-catalogue-track-heading p {
