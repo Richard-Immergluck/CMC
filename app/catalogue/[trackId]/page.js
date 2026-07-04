@@ -33,7 +33,13 @@ const trackSelect = {
   downloadCount: true,
   key: true,
   instrumentation: true,
-  additionalInfo: true
+  additionalInfo: true,
+  _count: {
+    select: {
+      Comments: true,
+      TrackOwner: true
+    }
+  }
 }
 
 const getTrackDetail = async trackId => {
