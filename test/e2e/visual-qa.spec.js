@@ -1,12 +1,5 @@
 const { expect, test } = require('@playwright/test')
-
-const signInPageAs = async (page, email) => {
-  const response = await page.request.post('/api/e2e/session', {
-    data: { email }
-  })
-
-  expect(response.status()).toBe(200)
-}
+const { signInPageAs } = require('./helpers/e2e-session')
 
 const getLayoutMetrics = async page => {
   return page.evaluate(() => ({

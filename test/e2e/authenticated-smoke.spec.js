@@ -1,18 +1,8 @@
 const { expect, test } = require('@playwright/test')
+const { signInPageAs } = require('./helpers/e2e-session')
 
 const signInAs = async (request, email) => {
   const response = await request.post('/api/e2e/session', {
-    data: {
-      email
-    }
-  })
-
-  expect(response.status()).toBe(200)
-  return response.json()
-}
-
-const signInPageAs = async (page, email) => {
-  const response = await page.request.post('/api/e2e/session', {
     data: {
       email
     }
