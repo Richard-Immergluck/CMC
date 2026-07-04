@@ -2203,7 +2203,7 @@ a {
 }
 
 .cmc-track-facts-grid dt {
-  color: var(--cmc-color-red);
+  color: var(--cmc-color-accent-rose);
   font-size: 0.72rem;
   font-weight: 820;
   letter-spacing: 0.08em;
@@ -2216,7 +2216,7 @@ a {
   justify-items: center;
   margin: var(--cmc-space-2) 0 0;
   color: var(--cmc-color-text);
-  font-size: 1rem;
+  font-size: 1.08rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -2231,7 +2231,7 @@ a {
 }
 
 .cmc-track-facts-grid strong {
-  font-weight: 620;
+  font-weight: 640;
 }
 
 .cmc-track-notes-panel {
