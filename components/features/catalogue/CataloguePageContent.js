@@ -108,11 +108,11 @@ const getCatalogueScrollStorageKey = () => (
 const pluralise = (count, singular, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`
 
 const getTrackActivity = track => {
-  const purchaseCount = track._count?.TrackOwner || 0
+  const purchasedDownloadCount = track._count?.TrackOwner || 0
   const commentCount = track._count?.Comments || 0
 
   return [
-    pluralise(purchaseCount, 'purchase'),
+    pluralise(purchasedDownloadCount, 'download'),
     pluralise(commentCount, 'comment')
   ]
 }
