@@ -4,7 +4,7 @@ import { Button } from './ui/primitives'
 const normalizeVolume = volume => Math.min(1, Math.max(0, Number.isFinite(volume) ? volume : 1))
 
 const PlaySample = props => {
-  const { active, onActivate, onDeactivate, track, volume = 1 } = props
+  const { active, onActivate, onDeactivate, onProgress, seekCommand, track, volume = 1 } = props
   const audioRef = useRef(null)
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
@@ -26,6 +26,16 @@ const PlaySample = props => {
       audioRef.current.volume = normalizeVolume(volume)
     }
   }, [volume])
+
+  useEffect(() => {
+    const audio = audioRef.current
+
+    if (!audio || !seekCommand || !Number.isFinite(seekCommand.time)) {
+      return
+    }
+
+    audio.currentTime = Math.max(previewStart, previewEnd ? Math.min(previewEnd, seekCommand.time) : seekCommand.time)
+  }, [previewEnd, previewStart, seekCommand, url])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -91,8 +101,9 @@ const PlaySample = props => {
   }
 
   const handleLoadedMetadata = event => {
-    event.currentTarget.currentTime = previewStart
+    event.currentTarget.currentTime = seekCommand?.time ?? previewStart
     event.currentTarget.volume = normalizeVolume(volume)
+    onProgress?.(event.currentTarget.currentTime)
   }
 
   const handleSeeking = event => {
@@ -103,8 +114,12 @@ const PlaySample = props => {
     if (previewEnd && event.currentTarget.currentTime >= previewEnd) {
       event.currentTarget.pause()
       event.currentTarget.currentTime = previewStart
+      onProgress?.(previewStart)
       onDeactivate()
+      return
     }
+
+    onProgress?.(event.currentTarget.currentTime)
   }
 
   const buttonLabel = loading ? 'Loading Preview' : error || 'Preview'

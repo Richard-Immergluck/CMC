@@ -91,6 +91,8 @@ const buildWaveformPeaks = audioBuffer => {
 
 const clampPercentage = value => Math.max(0, Math.min(100, value))
 
+const clampValue = (value, min, max) => Math.max(min, Math.min(max, value))
+
 const getInitials = name => {
   if (!name) {
     return 'CM'
@@ -118,6 +120,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [previewVolume, setPreviewVolume] = useState(78)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
   const [waveformDuration, setWaveformDuration] = useState(track.durationSeconds || track.previewEnd || 1)
+  const [previewCurrentTime, setPreviewCurrentTime] = useState(() => Number.isFinite(track.previewStart) ? track.previewStart : 0)
+  const [previewSeekCommand, setPreviewSeekCommand] = useState(null)
+  const [isScrubbingPreview, setIsScrubbingPreview] = useState(false)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
@@ -213,6 +218,74 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const previewWindowStart = clampPercentage((previewStart / safeWaveformDuration) * 100)
   const previewWindowEnd = clampPercentage((previewEnd / safeWaveformDuration) * 100)
   const previewWindowWidth = Math.max(0, previewWindowEnd - previewWindowStart)
+  const previewPlayheadPosition = clampPercentage((previewCurrentTime / safeWaveformDuration) * 100)
+  const seekPreviewFromPointer = event => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const pointerRatio = bounds.width > 0
+      ? clampValue((event.clientX - bounds.left) / bounds.width, 0, 1)
+      : 0
+    const waveformTime = pointerRatio * safeWaveformDuration
+    const seekTime = clampValue(waveformTime, previewStart, previewEnd)
+
+    setPreviewCurrentTime(seekTime)
+    setPreviewSeekCommand({ time: seekTime, requestedAt: Date.now() })
+  }
+  const startPreviewScrub = event => {
+    if (activePreviewTrackId !== track.id) {
+      return
+    }
+
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    setIsScrubbingPreview(true)
+    seekPreviewFromPointer(event)
+  }
+  const movePreviewScrub = event => {
+    if (!isScrubbingPreview || activePreviewTrackId !== track.id) {
+      return
+    }
+
+    seekPreviewFromPointer(event)
+  }
+  const stopPreviewScrub = event => {
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+    setIsScrubbingPreview(false)
+  }
+  const seekPreviewBySeconds = seconds => {
+    if (activePreviewTrackId !== track.id) {
+      return
+    }
+
+    const seekTime = clampValue(previewCurrentTime + seconds, previewStart, previewEnd)
+
+    setPreviewCurrentTime(seekTime)
+    setPreviewSeekCommand({ time: seekTime, requestedAt: Date.now() })
+  }
+  const handlePreviewSliderKeyDown = event => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      seekPreviewBySeconds(-1)
+      return
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      seekPreviewBySeconds(1)
+      return
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault()
+      setPreviewCurrentTime(previewStart)
+      setPreviewSeekCommand({ time: previewStart, requestedAt: Date.now() })
+      return
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault()
+      setPreviewCurrentTime(previewEnd)
+      setPreviewSeekCommand({ time: previewEnd, requestedAt: Date.now() })
+    }
+  }
   const previewFacts = [
     {
       label: 'Key',
@@ -344,6 +417,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                       active={activePreviewTrackId === track.id}
                       onActivate={() => setActivePreviewTrackId(track.id)}
                       onDeactivate={() => setActivePreviewTrackId(null)}
+                      onProgress={setPreviewCurrentTime}
+                      seekCommand={previewSeekCommand}
                       track={track}
                       volume={previewVolume / 100}
                     />
@@ -352,16 +427,34 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                       <div
                         className='cmc-track-waveform-strip'
                         style={{ '--cmc-waveform-bars': waveformPeaks.length }}
-                        aria-hidden='true'
+                        aria-label='Preview playback position'
+                        aria-valuemax={Math.round(previewEnd)}
+                        aria-valuemin={Math.round(previewStart)}
+                        aria-valuenow={Math.round(previewCurrentTime)}
+                        aria-valuetext={`${formatSeconds(Math.round(previewCurrentTime)) || '0:00'} preview position`}
+                        onKeyDown={handlePreviewSliderKeyDown}
+                        onPointerCancel={stopPreviewScrub}
+                        onPointerDown={startPreviewScrub}
+                        onPointerLeave={stopPreviewScrub}
+                        onPointerMove={movePreviewScrub}
+                        onPointerUp={stopPreviewScrub}
+                        role='slider'
+                        tabIndex={activePreviewTrackId === track.id ? 0 : -1}
                       >
                         {activePreviewTrackId === track.id && (
-                          <span
-                            className='cmc-track-preview-window'
-                            style={{
-                              '--cmc-preview-window-left': `${previewWindowStart}%`,
-                              '--cmc-preview-window-width': `${previewWindowWidth}%`
-                            }}
-                          />
+                          <>
+                            <span
+                              className='cmc-track-preview-window'
+                              style={{
+                                '--cmc-preview-window-left': `${previewWindowStart}%`,
+                                '--cmc-preview-window-width': `${previewWindowWidth}%`
+                              }}
+                            />
+                            <span
+                              className='cmc-track-preview-playhead'
+                              style={{ '--cmc-preview-playhead-left': `${previewPlayheadPosition}%` }}
+                            />
+                          </>
                         )}
                         {waveformPeaks.map((peak, index) => (
                           <span key={index} style={{ '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%` }} />

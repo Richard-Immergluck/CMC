@@ -2064,9 +2064,19 @@ a {
   align-items: center;
   min-height: 3.4rem;
   overflow: hidden;
+  cursor: default;
 }
 
-.cmc-track-waveform-strip span:not(.cmc-track-preview-window) {
+.cmc-track-waveform-strip[tabindex="0"] {
+  cursor: col-resize;
+}
+
+.cmc-track-waveform-strip:focus-visible {
+  outline: 2px solid rgba(185, 133, 34, 0.6);
+  outline-offset: 0.3rem;
+}
+
+.cmc-track-waveform-strip span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
   position: relative;
   z-index: 2;
   display: block;
@@ -2091,6 +2101,34 @@ a {
   border-left: 2px solid rgba(185, 133, 34, 0.92);
   border-radius: 0.35rem;
   pointer-events: none;
+}
+
+.cmc-track-preview-playhead {
+  position: absolute;
+  z-index: 3;
+  top: -0.15rem;
+  bottom: -0.15rem;
+  left: var(--cmc-preview-playhead-left);
+  width: 2px;
+  background: var(--cmc-color-ink);
+  box-shadow:
+    0 0 0 1px rgba(255, 253, 247, 0.9),
+    0 0 0 3px rgba(185, 133, 34, 0.28);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.cmc-track-preview-playhead::before {
+  position: absolute;
+  top: -0.38rem;
+  left: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--cmc-color-gold);
+  border: 2px solid var(--cmc-color-ink);
+  border-radius: 999px;
+  content: '';
+  transform: translateX(-50%);
 }
 
 .cmc-track-volume-control {
