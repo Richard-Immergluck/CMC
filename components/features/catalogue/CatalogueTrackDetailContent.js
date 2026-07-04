@@ -1,15 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { useCart } from 'react-use-cart'
+import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
-
-const WaveFormRegion = dynamic(
-  () => import('../../WaveFormRegion'),
-  { ssr: false }
-)
 
 const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
@@ -32,8 +27,34 @@ const formatTrackPrice = track => {
   return track.formattedPrice || 'Price unavailable'
 }
 
+const formatSeconds = seconds => {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return null
+  }
+
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
+const formatDuration = seconds => formatSeconds(seconds) || 'TBC'
+
+const formatPreviewRange = track => {
+  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
+  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
+    ? track.previewEnd
+    : null
+
+  if (!previewEnd) {
+    return `From ${formatSeconds(previewStart) || '0:00'}`
+  }
+
+  return `${formatSeconds(previewStart) || '0:00'}-${formatSeconds(previewEnd) || 'TBC'}`
+}
+
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
-  const [url, setUrl] = useState('')
+  const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
@@ -59,30 +80,22 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
     window.location.assign(returnUrl || '/catalogue')
   }
 
-  useEffect(() => {
-    const fetchUrl = async () => {
-      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
-      const data = await response.json()
-
-      if (response.ok) {
-        setUrl(data.url)
-      }
-    }
-
-    fetchUrl()
-  }, [track.id])
-
   const addToCart = () => {
     addItem({ ...track })
     setShowCartConfirmation(true)
   }
 
-  const metadata = [
+  const keyFacts = [
     ['Key', track.key],
     ['Instrumentation', track.instrumentation],
     ['Uploaded by', track.uploaderName],
-    ['Uploaded', track.uploadedAt]
+    ['Uploaded', track.uploadedAt],
+    ['Duration', formatDuration(track.durationSeconds)],
+    ['Preview', formatPreviewRange(track)]
   ].filter(([, value]) => value)
+
+  const commentCount = comments.length
+  const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
 
   const renderBackButton = className => (
     <Button
@@ -102,89 +115,103 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
       <div className='container'>
         {renderBackButton()}
 
-        <section className='cmc-track-hero'>
-          <div>
-            <p className='cmc-kicker'>Catalogue detail</p>
-            <h1>{track.title}</h1>
-            <p className='cmc-track-composer'>by {track.composer}</p>
-          </div>
+        <section className='cmc-track-board' aria-labelledby='track-detail-heading'>
+          <div className='cmc-track-board-rail' aria-hidden='true' />
+          <div className='cmc-track-board-staff' aria-hidden='true' />
 
-          <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
-            <span>Price</span>
-            <strong>{formatTrackPrice(track)}</strong>
-            {catalogueContext.isAuthenticated &&
-              !track.viewerState?.isOwned &&
-              !track.viewerState?.isUploadedByViewer &&
-              !catalogueContext.showOperationsOverlay && (
-              <Button variant='ink' size='md' onClick={addToCart}>
-                Add to Cart
-              </Button>
-            )}
-            {track.viewerState?.isOwned && (
-              <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
-                View in Library
-              </Button>
-            )}
-            {track.viewerState?.isUploadedByViewer && (
-              <p>
-                This is one of your uploaded catalogue tracks.
-              </p>
-            )}
-            {catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer && (
-              <Button as={Link} href='/admin' variant='secondary' size='md'>
-                Operations Console
-              </Button>
-            )}
-            {!catalogueContext.isAuthenticated && (
-              <p>
-                Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
-              </p>
-            )}
-          </aside>
-        </section>
-
-        <section className='cmc-track-layout'>
-          <article className='cmc-track-main-panel'>
-            <div className='cmc-track-section-header'>
-              <h2>Preview</h2>
-              <p>Listen to the approved sample before adding this track to your cart.</p>
+          <header className='cmc-track-board-header'>
+            <div className='cmc-track-title-block'>
+              <p className='cmc-kicker'>Catalogue detail</p>
+              <h1 id='track-detail-heading'>{track.title}</h1>
+              <p className='cmc-track-composer'>by {track.composer || 'Unknown composer'}</p>
             </div>
-            <div className='cmc-track-waveform'>
-              {url ? (
-                <WaveFormRegion url={url} track={track} />
-              ) : (
-                <p>Preparing preview...</p>
+
+            <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
+              <span>Price</span>
+              <strong>{formatTrackPrice(track)}</strong>
+              {catalogueContext.isAuthenticated &&
+                !track.viewerState?.isOwned &&
+                !track.viewerState?.isUploadedByViewer &&
+                !catalogueContext.showOperationsOverlay && (
+                <Button variant='ink' size='md' onClick={addToCart}>
+                  Add to Cart
+                </Button>
               )}
-            </div>
-          </article>
+              {track.viewerState?.isOwned && (
+                <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
+                  View in Library
+                </Button>
+              )}
+              {track.viewerState?.isUploadedByViewer && (
+                <p>
+                  This is one of your uploaded catalogue tracks.
+                </p>
+              )}
+              {catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer && (
+                <Button as={Link} href='/admin' variant='secondary' size='md'>
+                  Operations Console
+                </Button>
+              )}
+              {!catalogueContext.isAuthenticated && (
+                <p>
+                  Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
+                </p>
+              )}
+            </aside>
+          </header>
 
-          <aside className='cmc-track-meta-panel'>
-            <h2>Track Details</h2>
-            <dl className='cmc-track-meta-list'>
-              {metadata.map(([label, value]) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
+          <nav className='cmc-track-tabs' aria-label='Track detail sections'>
+            <a href='#track-preview'>Preview</a>
+            <a href='#track-details'>Details</a>
+            <a href='#track-notes'>Notes</a>
+            <a href='#track-comments'>Comments ({commentCount})</a>
+          </nav>
+
+          <div className='cmc-track-board-content'>
+            <section className='cmc-track-preview-panel' id='track-preview' aria-label='Preview'>
+              <div className='cmc-track-preview-copy'>
+                <span>Preview</span>
+                <strong>{formatPreviewRange(track)}</strong>
+                <p>Listen to the approved sample chosen by the uploader.</p>
+              </div>
+              <div className='cmc-track-preview-player'>
+                <PlaySample
+                  active={activePreviewTrackId === track.id}
+                  onActivate={() => setActivePreviewTrackId(track.id)}
+                  onDeactivate={() => setActivePreviewTrackId(null)}
+                  track={track}
+                />
+                <div className='cmc-track-waveform-strip' aria-hidden='true'>
+                  {Array.from({ length: 54 }).map((_, index) => (
+                    <span key={index} style={{ '--cmc-wave-bar': `${26 + ((index * 17) % 48)}%` }} />
+                  ))}
                 </div>
-              ))}
-            </dl>
-          </aside>
+              </div>
+            </section>
+
+            <section className='cmc-track-facts-panel' id='track-details' aria-label='Track details'>
+              <dl className='cmc-track-facts-grid'>
+                {keyFacts.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+
+            <section className='cmc-track-notes-panel' id='track-notes' aria-label='Additional information'>
+              <span>Notes</span>
+              <p>{noteText}</p>
+            </section>
+          </div>
         </section>
 
-        <section className='cmc-track-info-grid'>
-          <article className='cmc-track-main-panel'>
-            <div className='cmc-track-section-header'>
-              <h2>Additional Information</h2>
-            </div>
-            <p className='cmc-track-notes'>
-              {track.additionalInfo || 'No additional information has been supplied for this track.'}
-            </p>
-          </article>
-
-          <article className='cmc-track-main-panel'>
+        <section className='cmc-track-comments-section' id='track-comments'>
+          <article className='cmc-track-comments-card'>
             <div className='cmc-track-section-header'>
               <h2>Comments</h2>
-              <p>Purchasers can leave notes and performance feedback here.</p>
+              <p>Purchasers can leave notes and performance feedback below the main track sheet.</p>
             </div>
             <div className='cmc-track-comments'>
               {comments.map((comment, key) => (
