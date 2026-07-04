@@ -23,7 +23,7 @@
       <stop offset="1" stop-color="#101514" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <g fill="none" stroke-linecap="round" filter="url(#charcoalRough)" transform="translate(0 -10.6) scale(1 1.22)">
+  <g fill="none" stroke-linecap="round" filter="url(#charcoalRough)" transform="translate(0 -12) scale(1 1.25)">
     <g stroke-width="2.05">
       <path d="M0 25.8 C151 25.1 264 26.7 406 25.9 C521 25.2 636 25.6 760 26.4 C860 27.1 948 25.2 1049 25.7 C1128 26.1 1200 25.8 1282 25.6" stroke="url(#fadeLong)"/>
       <path d="M0 36.7 C141 37.2 279 35.7 433 36.4 C542 36.9 646 37.5 746 36.2 C823 35.2 903 37 1006 36.1 C1080 35.5 1138 35.8 1196 36.2" stroke="url(#fadeShort)"/>
