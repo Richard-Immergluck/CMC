@@ -104,11 +104,11 @@ const PlaySample = props => {
       <Button
         aria-label={active ? 'Pause Preview' : undefined}
         aria-pressed={active}
-        className={active ? 'cmc-preview-action cmc-preview-action--active' : 'cmc-preview-action'}
+        className={active ? 'cmc-preview-action cmc-provider-action-button cmc-preview-action--active' : 'cmc-preview-action cmc-provider-action-button'}
         disabled={loading}
         onClick={handlePreviewClick}
         size='sm'
-        variant={active ? 'secondary' : 'subtle'}
+        variant='secondary'
       >
         {active ? (
           <span className='cmc-preview-pause-icon' aria-hidden='true'>

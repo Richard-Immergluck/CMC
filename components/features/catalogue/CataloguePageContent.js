@@ -254,7 +254,7 @@ const CataloguePageContent = ({ filterOptions, pagination, query, tracks }) => {
                       {track.formattedPrice || 'TBC'}
                     </div>
                     <aside className='cmc-catalogue-track-actions' aria-label={`Actions for ${track.title}`}>
-                      <Button as={Link} href={`/catalogue/${track.id}`} variant='secondary'>
+                      <Button as={Link} href={`/catalogue/${track.id}`} variant='ink'>
                         Details
                       </Button>
                       <PlaySample
