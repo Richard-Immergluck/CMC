@@ -27,6 +27,54 @@ const prisma = new PrismaClient({
   })
 })
 
+const seededCommenters = [
+  {
+    email: process.env.DEMO_SEED_COMMENTER_EMAIL || 'demo-listener@example.com',
+    name: process.env.DEMO_SEED_COMMENTER_NAME || 'Demo Listener'
+  },
+  {
+    email: 'demo-soprano@example.com',
+    name: 'Amelia Hart'
+  },
+  {
+    email: 'demo-cellist@example.com',
+    name: 'Jonah Reed'
+  },
+  {
+    email: 'demo-repetiteur@example.com',
+    name: 'Nadia Clarke'
+  },
+  {
+    email: 'demo-conductor@example.com',
+    name: 'Marcus Vale'
+  },
+  {
+    email: 'demo-student@example.com',
+    name: 'Priya Mason'
+  },
+  {
+    email: 'demo-teacher@example.com',
+    name: 'Eleanor Shaw'
+  },
+  {
+    email: 'demo-oboist@example.com',
+    name: 'Felix Turner'
+  }
+]
+
+const seededCommentTemplates = [
+  'Clear cueing and a useful rehearsal balance for working through the middle section.',
+  'The preview gives enough of the texture to understand whether this will suit a lesson or practice session.',
+  'This sits at a practical tempo and leaves enough space to hear entries clearly.',
+  'The accompaniment texture is helpful without overwhelming the solo line.',
+  'I would use this for first rehearsals before moving to a full ensemble recording.',
+  'The balance feels especially useful for checking intonation and phrase endings.',
+  'A slower alternative would be welcome, but this version is already useful for daily practice.',
+  'Good for sectional work because the pulse stays clear through the transitions.',
+  'The reduction gives enough harmonic information for confident rehearsal.',
+  'This would be helpful in a teaching studio where students need repeatable accompaniment.'
+]
+
 const s3 = new AWS.S3({
   accessKeyId: process.env.S3_ACCESS_ID,
   secretAccessKey: process.env.S3_APP_ACCESS_KEY,
@@ -75,6 +123,91 @@ const createToneWav = ({ frequency, seconds }) => {
   return buffer
 }
 
+const cleanStaleDemoTracks = async userId => {
+  const currentTrackFilters = demoCatalogueTracks.map(track => ({
+    title: track.title,
+    composer: track.composer
+  }))
+  const staleTracks = await prisma.track.findMany({
+    where: {
+      userId,
+      additionalInfo: {
+        contains: 'Synthetic CC0 catalogue fixture generated'
+      },
+      NOT: {
+        OR: currentTrackFilters
+      }
+    },
+    select: {
+      id: true
+    }
+  })
+  const staleTrackIds = staleTracks.map(track => track.id)
+
+  if (staleTrackIds.length === 0) {
+    return 0
+  }
+
+  const staleOrderItems = await prisma.orderItem.findMany({
+    where: {
+      trackId: {
+        in: staleTrackIds
+      }
+    },
+    select: {
+      orderId: true
+    }
+  })
+  const staleOrderIds = [...new Set(staleOrderItems.map(item => item.orderId))]
+
+  await prisma.$transaction([
+    prisma.paymentEvent.deleteMany({
+      where: {
+        orderId: {
+          in: staleOrderIds
+        }
+      }
+    }),
+    prisma.orderItem.deleteMany({
+      where: {
+        trackId: {
+          in: staleTrackIds
+        }
+      }
+    }),
+    prisma.order.deleteMany({
+      where: {
+        id: {
+          in: staleOrderIds
+        }
+      }
+    }),
+    prisma.comment.deleteMany({
+      where: {
+        trackId: {
+          in: staleTrackIds
+        }
+      }
+    }),
+    prisma.trackOwner.deleteMany({
+      where: {
+        trackId: {
+          in: staleTrackIds
+        }
+      }
+    }),
+    prisma.track.deleteMany({
+      where: {
+        id: {
+          in: staleTrackIds
+        }
+      }
+    })
+  ])
+
+  return staleTrackIds.length
+}
+
 const uploadFixture = async track => {
   const key = `${normalizeS3Prefix(process.env.S3_KEY_PREFIX)}demo-fixtures/${track.slug}.wav`
   const body = createToneWav({
@@ -101,8 +234,6 @@ const uploadFixture = async track => {
 const seed = async () => {
   const email = process.env.DEMO_SEED_USER_EMAIL || 'demo-uploader@example.com'
   const name = process.env.DEMO_SEED_USER_NAME || 'Demo Uploader'
-  const commenterEmail = process.env.DEMO_SEED_COMMENTER_EMAIL || 'demo-listener@example.com'
-  const commenterName = process.env.DEMO_SEED_COMMENTER_NAME || 'Demo Listener'
 
   const user = await prisma.user.upsert({
     where: {
@@ -122,23 +253,28 @@ const seed = async () => {
       accountStatus: 'ACTIVE'
     }
   })
+  const staleDemoTrackCount = await cleanStaleDemoTracks(user.id)
 
-  const commenter = await prisma.user.upsert({
-    where: {
-      email: commenterEmail
-    },
-    update: {
-      name: commenterName,
-      role: 'CUSTOMER',
-      accountStatus: 'ACTIVE'
-    },
-    create: {
-      email: commenterEmail,
-      name: commenterName,
-      role: 'CUSTOMER',
-      accountStatus: 'ACTIVE'
-    }
-  })
+  const commenters = []
+
+  for (const commenter of seededCommenters) {
+    commenters.push(await prisma.user.upsert({
+      where: {
+        email: commenter.email
+      },
+      update: {
+        name: commenter.name,
+        role: 'CUSTOMER',
+        accountStatus: 'ACTIVE'
+      },
+      create: {
+        email: commenter.email,
+        name: commenter.name,
+        role: 'CUSTOMER',
+        accountStatus: 'ACTIVE'
+      }
+    }))
+  }
 
   for (const track of demoCatalogueTracks) {
     const fileName = await uploadFixture(track)
@@ -174,7 +310,7 @@ const seed = async () => {
       currency: 'gbp',
       formattedPrice: track.formattedPrice,
       downloadName: `${track.slug}.wav`,
-      downloadCount: 0,
+      downloadCount: track.downloadCount,
       key: track.key,
       instrumentation: track.instrumentation,
       additionalInfo: track.additionalInfo
@@ -194,27 +330,33 @@ const seed = async () => {
     await prisma.comment.deleteMany({
       where: {
         trackId: savedTrack.id,
-        userId: commenter.id
+        userId: {
+          in: commenters.map(commenter => commenter.id)
+        }
       }
     })
 
+    const commentCount = track.slug.length % 5 === 0
+      ? 7
+      : track.slug.length % 4 === 0
+        ? 6
+        : 2 + (track.slug.length % 3)
+    const createdAtBase = savedTrack.uploadedAt || now
+
     await prisma.comment.createMany({
-      data: [
-        {
-          trackId: savedTrack.id,
-          userId: commenter.id,
-          content: 'Clear cueing and a useful rehearsal balance for working through the middle section.'
-        },
-        {
-          trackId: savedTrack.id,
-          userId: commenter.id,
-          content: 'The preview gives enough of the texture to understand whether this will suit a lesson or practice session.'
-        }
-      ]
+      data: Array.from({ length: commentCount }, (_, index) => ({
+        trackId: savedTrack.id,
+        userId: commenters[index % commenters.length].id,
+        content: seededCommentTemplates[(index + savedTrack.id) % seededCommentTemplates.length],
+        createdAt: new Date(createdAtBase.getTime() + (index + 1) * 36 * 60 * 60 * 1000)
+      }))
     })
   }
 
-  console.log(`Seeded ${demoCatalogueTracks.length} demo tracks for ${email} with comments from ${commenterEmail}`)
+  console.log(`Seeded ${demoCatalogueTracks.length} demo tracks for ${email} with comments from ${commenters.length} demo listeners`)
+  if (staleDemoTrackCount > 0) {
+    console.log(`Removed ${staleDemoTrackCount} stale synthetic demo tracks`)
+  }
 }
 
 try {

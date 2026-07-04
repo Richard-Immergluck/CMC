@@ -14,27 +14,82 @@ const parseTrackIdParam = value => {
   return Number.isInteger(trackId) && trackId > 0 ? trackId : null
 }
 
+const requestTemplates = [
+  {
+    description: track => `A slower rehearsal pass for ${track.title}, keeping the same key and cue structure.`,
+    id: 'slow-practice',
+    requestedBy: 'Community request',
+    status: 'Open',
+    title: 'Slower practice tempo'
+  },
+  {
+    description: track => `A reduced piano-only version for first rehearsals before moving to the full ${track.instrumentation || 'instrumentation'} backing.`,
+    id: 'piano-reduction',
+    requestedBy: 'Uploader follow-up',
+    status: 'Planned',
+    title: 'Piano reduction version'
+  },
+  {
+    description: track => `A version transposed away from ${track.key || 'the original key'} for singers or younger players preparing the same material.`,
+    id: 'alternate-key',
+    requestedBy: 'Singer request',
+    status: 'Open',
+    title: 'Alternative key'
+  },
+  {
+    description: track => `A shorter audition-length cut of ${track.title} with a clear opening cue and clean ending.`,
+    id: 'audition-cut',
+    requestedBy: 'Audition prep request',
+    status: 'In review',
+    title: 'Audition cut'
+  },
+  {
+    description: track => `A click-supported version for ensemble classes that need a firmer pulse through the ${track.instrumentation || 'texture'}.`,
+    id: 'click-track',
+    requestedBy: 'Teacher request',
+    status: 'Open',
+    title: 'Click-supported practice track'
+  },
+  {
+    description: track => `A no-click performance-feel version of ${track.title} for later-stage rehearsal.`,
+    id: 'performance-feel',
+    requestedBy: 'Performer request',
+    status: 'Planned',
+    title: 'Performance-feel version'
+  },
+  {
+    description: track => `A sectional loop focused on the transition into the final phrase of ${track.title}.`,
+    id: 'sectional-loop',
+    requestedBy: 'Practice group request',
+    status: 'Open',
+    title: 'Sectional loop'
+  },
+  {
+    description: track => `A simplified school rehearsal version preserving the harmonic outline of ${track.composer}.`,
+    id: 'student-version',
+    requestedBy: 'School ensemble request',
+    status: 'Open',
+    title: 'Student rehearsal version'
+  }
+]
+
 const createTrackRequests = track => {
   const createdAt = track.uploadedAt.toLocaleDateString()
+  const requestCount = 2 + (track.id % 3)
+  const startIndex = track.id % requestTemplates.length
 
-  return [
-    {
+  return Array.from({ length: requestCount }, (_, index) => {
+    const template = requestTemplates[(startIndex + index) % requestTemplates.length]
+
+    return {
       createdAt,
-      description: `A slower rehearsal pass for ${track.title}, keeping the same key and cue structure.`,
-      id: `${track.id}-slow-practice`,
-      requestedBy: 'Community request',
-      status: 'Open',
-      title: 'Slower practice tempo'
-    },
-    {
-      createdAt,
-      description: `A reduced piano-only version for first rehearsals before moving to the full ${track.instrumentation || 'instrumentation'} backing.`,
-      id: `${track.id}-piano-reduction`,
-      requestedBy: 'Uploader follow-up',
-      status: 'Planned',
-      title: 'Piano reduction version'
+      description: template.description(track),
+      id: `${track.id}-${template.id}`,
+      requestedBy: template.requestedBy,
+      status: template.status,
+      title: template.title
     }
-  ]
+  })
 }
 
 const trackSelect = {
