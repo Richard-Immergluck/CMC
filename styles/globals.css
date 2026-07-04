@@ -2151,8 +2151,6 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .cmc-track-waveform-strip--loading span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
-    animation: none;
-    opacity: 0.58;
     transform: none;
   }
 }
