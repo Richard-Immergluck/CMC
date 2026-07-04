@@ -84,7 +84,7 @@ const createContainsFilter = value => ({
   mode: 'insensitive'
 })
 
-const buildCatalogueWhere = query => {
+const buildCatalogueWhere = (query, { omit } = {}) => {
   const filters = []
 
   if (query.q) {
@@ -116,7 +116,7 @@ const buildCatalogueWhere = query => {
     })
   }
 
-  if (query.composer) {
+  if (query.composer && omit !== 'composer') {
     filters.push({
       composer: {
         equals: query.composer,
@@ -125,7 +125,7 @@ const buildCatalogueWhere = query => {
     })
   }
 
-  if (query.key) {
+  if (query.key && omit !== 'key') {
     filters.push({
       key: {
         equals: query.key,
@@ -134,7 +134,7 @@ const buildCatalogueWhere = query => {
     })
   }
 
-  if (query.instrumentation) {
+  if (query.instrumentation && omit !== 'instrumentation') {
     filters.push({
       instrumentation: {
         equals: query.instrumentation,
@@ -143,7 +143,7 @@ const buildCatalogueWhere = query => {
     })
   }
 
-  if (query.uploader) {
+  if (query.uploader && omit !== 'uploader') {
     filters.push({
       uploadedBy: {
         name: {
@@ -191,34 +191,46 @@ const trackListSelect = {
 
 const toOptionList = values => [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b))
 
-const getCatalogueFilterOptions = async () => {
-  const tracks = await prisma.track.findMany({
-    where: publicTrackWhere,
-    select: {
-      composer: true,
-      instrumentation: true,
-      key: true,
-      uploadedBy: {
-        select: {
-          name: true
-        }
+const getFacetTracks = (query, omit) => prisma.track.findMany({
+  where: buildCatalogueWhere(query, { omit }),
+  select: {
+    composer: true,
+    instrumentation: true,
+    key: true,
+    uploadedBy: {
+      select: {
+        name: true
       }
+    }
+  },
+  orderBy: [
+    {
+      composer: 'asc'
     },
-    orderBy: [
-      {
-        composer: 'asc'
-      },
-      {
-        title: 'asc'
-      }
-    ]
-  })
+    {
+      title: 'asc'
+    }
+  ]
+})
+
+const getCatalogueFilterOptions = async query => {
+  const [
+    composerTracks,
+    instrumentationTracks,
+    keyTracks,
+    uploaderTracks
+  ] = await Promise.all([
+    getFacetTracks(query, 'composer'),
+    getFacetTracks(query, 'instrumentation'),
+    getFacetTracks(query, 'key'),
+    getFacetTracks(query, 'uploader')
+  ])
 
   return {
-    composers: toOptionList(tracks.map(track => track.composer)),
-    instrumentations: toOptionList(tracks.map(track => track.instrumentation)),
-    keys: toOptionList(tracks.map(track => track.key)),
-    uploaders: toOptionList(tracks.map(track => track.uploadedBy?.name))
+    composers: toOptionList(composerTracks.map(track => track.composer)),
+    instrumentations: toOptionList(instrumentationTracks.map(track => track.instrumentation)),
+    keys: toOptionList(keyTracks.map(track => track.key)),
+    uploaders: toOptionList(uploaderTracks.map(track => track.uploadedBy?.name))
   }
 }
 
@@ -252,7 +264,7 @@ const CataloguePage = async ({ searchParams }) => {
   const query = parseCatalogueQuery(resolvedSearchParams || {})
   const [catalogue, filterOptions] = await Promise.all([
     getCatalogueTracks(query),
-    getCatalogueFilterOptions()
+    getCatalogueFilterOptions(query)
   ])
 
   return (
