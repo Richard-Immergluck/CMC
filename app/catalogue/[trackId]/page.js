@@ -14,6 +14,29 @@ const parseTrackIdParam = value => {
   return Number.isInteger(trackId) && trackId > 0 ? trackId : null
 }
 
+const createTrackRequests = track => {
+  const createdAt = track.uploadedAt.toLocaleDateString()
+
+  return [
+    {
+      createdAt,
+      description: `A slower rehearsal pass for ${track.title}, keeping the same key and cue structure.`,
+      id: `${track.id}-slow-practice`,
+      requestedBy: 'Community request',
+      status: 'Open',
+      title: 'Slower practice tempo'
+    },
+    {
+      createdAt,
+      description: `A reduced piano-only version for first rehearsals before moving to the full ${track.instrumentation || 'instrumentation'} backing.`,
+      id: `${track.id}-piano-reduction`,
+      requestedBy: 'Uploader follow-up',
+      status: 'Planned',
+      title: 'Piano reduction version'
+    }
+  ]
+}
+
 const trackSelect = {
   id: true,
   fileName: true,
@@ -93,6 +116,7 @@ const getTrackDetail = async trackId => {
       userId: comment.userId,
       userName: comment.postedBy?.name || 'Unknown'
     })),
+    requests: createTrackRequests(track),
     track: {
       ...track,
       uploadedAt: track.uploadedAt.toLocaleDateString(),
@@ -134,6 +158,7 @@ const CatalogueTrackDetailPage = async ({ params }) => {
     <CatalogueTrackDetailContent
       catalogueContext={getCatalogueContext(currentUser)}
       comments={detail.comments}
+      requests={detail.requests}
       track={{
         ...detail.track,
         viewerState: {

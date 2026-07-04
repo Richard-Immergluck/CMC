@@ -101,6 +101,8 @@ const uploadFixture = async track => {
 const seed = async () => {
   const email = process.env.DEMO_SEED_USER_EMAIL || 'demo-uploader@example.com'
   const name = process.env.DEMO_SEED_USER_NAME || 'Demo Uploader'
+  const commenterEmail = process.env.DEMO_SEED_COMMENTER_EMAIL || 'demo-listener@example.com'
+  const commenterName = process.env.DEMO_SEED_COMMENTER_NAME || 'Demo Listener'
 
   const user = await prisma.user.upsert({
     where: {
@@ -117,6 +119,23 @@ const seed = async () => {
       name,
       role: 'UPLOADER',
       uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
+    }
+  })
+
+  const commenter = await prisma.user.upsert({
+    where: {
+      email: commenterEmail
+    },
+    update: {
+      name: commenterName,
+      role: 'CUSTOMER',
+      accountStatus: 'ACTIVE'
+    },
+    create: {
+      email: commenterEmail,
+      name: commenterName,
+      role: 'CUSTOMER',
       accountStatus: 'ACTIVE'
     }
   })
@@ -161,21 +180,41 @@ const seed = async () => {
       additionalInfo: track.additionalInfo
     }
 
-    if (existing) {
-      await prisma.track.update({
+    const savedTrack = existing
+      ? await prisma.track.update({
         where: {
           id: existing.id
         },
         data
       })
-    } else {
-      await prisma.track.create({
+      : await prisma.track.create({
         data
       })
-    }
+
+    await prisma.comment.deleteMany({
+      where: {
+        trackId: savedTrack.id,
+        userId: commenter.id
+      }
+    })
+
+    await prisma.comment.createMany({
+      data: [
+        {
+          trackId: savedTrack.id,
+          userId: commenter.id,
+          content: 'Clear cueing and a useful rehearsal balance for working through the middle section.'
+        },
+        {
+          trackId: savedTrack.id,
+          userId: commenter.id,
+          content: 'The preview gives enough of the texture to understand whether this will suit a lesson or practice session.'
+        }
+      ]
+    })
   }
 
-  console.log(`Seeded ${demoCatalogueTracks.length} demo tracks for ${email}`)
+  console.log(`Seeded ${demoCatalogueTracks.length} demo tracks for ${email} with comments from ${commenterEmail}`)
 }
 
 try {

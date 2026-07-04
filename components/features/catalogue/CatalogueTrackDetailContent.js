@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
@@ -68,8 +68,16 @@ const getInitials = name => {
     .toUpperCase()
 }
 
-const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
+const detailTabLabels = {
+  preview: 'Preview',
+  details: 'Details',
+  comments: 'Comments',
+  requests: 'Requests'
+}
+
+const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
+  const [activeTab, setActiveTab] = useState('preview')
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
@@ -161,6 +169,29 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
     </Button>
   )
 
+  const renderTabButton = tabId => {
+    const count = tabId === 'comments'
+      ? commentCount
+      : tabId === 'requests'
+        ? requests.length
+        : null
+
+    return (
+      <button
+        aria-controls={`track-tab-panel-${tabId}`}
+        aria-selected={activeTab === tabId}
+        className='cmc-track-tab-button'
+        id={`track-tab-${tabId}`}
+        key={tabId}
+        onClick={() => setActiveTab(tabId)}
+        role='tab'
+        type='button'
+      >
+        {detailTabLabels[tabId]} {count !== null && <span>({count})</span>}
+      </button>
+    )
+  }
+
   return (
     <main className='cmc-track-page'>
       <div className='container'>
@@ -215,77 +246,126 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
             </aside>
           </header>
 
-          <section className='cmc-track-preview-panel' id='track-preview' aria-label='Preview'>
-            <PlaySample
-              active={activePreviewTrackId === track.id}
-              onActivate={() => setActivePreviewTrackId(track.id)}
-              onDeactivate={() => setActivePreviewTrackId(null)}
-              track={track}
-            />
-            <span className='cmc-track-preview-time'>0:00</span>
-            <div className='cmc-track-preview-waveform'>
-              <div className='cmc-track-waveform-strip' aria-hidden='true'>
-                {Array.from({ length: 72 }).map((_, index) => (
-                  <span key={index} style={{ '--cmc-wave-bar': `${24 + ((index * 17) % 54)}%` }} />
-                ))}
-              </div>
-              <p>Preview: {formatPreviewRange(track)}</p>
+          <section className='cmc-track-tab-board' aria-label='Track media and community'>
+            <div className='cmc-track-tab-list' role='tablist' aria-label='Track detail sections'>
+              {['preview', 'details', 'comments', 'requests'].map(renderTabButton)}
             </div>
-            <span className='cmc-track-preview-time'>{formatDuration(track.durationSeconds)}</span>
-          </section>
 
-          <section className='cmc-track-facts-panel' id='track-details' aria-label='Track details'>
-            <dl className='cmc-track-facts-grid'>
-              {detailTiles.map(tile => (
-                <div key={tile.label}>
-                  <dt>{tile.label}</dt>
-                  <dd>
-                    <span className='cmc-track-fact-icon' aria-hidden='true'>{tile.icon}</span>
-                    <strong>{tile.value}</strong>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-
-          <section className='cmc-track-notes-panel' id='track-notes' aria-label='Additional information'>
-            <span>Additional Notes</span>
-            <p>{noteText}</p>
-          </section>
-
-          <section className='cmc-track-comments-section' id='track-comments'>
-            <div className='cmc-track-section-header'>
-              <h2>Comments <span>({commentCount})</span></h2>
-              <small>Sort: Newest</small>
-            </div>
-            <div className='cmc-track-comments'>
-              {comments.map((comment, key) => (
-                <div className='cmc-track-comment' key={comment.id}>
-                  <span className='cmc-track-comment-avatar'>{getInitials(comment.userName)}</span>
-                  <div>
-                    <header>
-                      <strong>{comment.userName}</strong>
-                      <time>{comment.createdAt}</time>
-                    </header>
-                    <p>{comment.content}</p>
-                    <footer>
-                      <button type='button'>Reply</button>
-                      <span>·</span>
-                      <button type='button'>Helpful</button>
-                    </footer>
+            <div
+              aria-labelledby={`track-tab-${activeTab}`}
+              className='cmc-track-tab-panel'
+              id={`track-tab-panel-${activeTab}`}
+              role='tabpanel'
+            >
+              {activeTab === 'preview' && (
+                <div className='cmc-track-preview-tab'>
+                  <div className='cmc-track-preview-panel' id='track-preview' aria-label='Preview'>
+                    <PlaySample
+                      active={activePreviewTrackId === track.id}
+                      onActivate={() => setActivePreviewTrackId(track.id)}
+                      onDeactivate={() => setActivePreviewTrackId(null)}
+                      track={track}
+                    />
+                    <div className='cmc-track-preview-waveform'>
+                      <p>Preview <span>({formatPreviewRange(track)})</span></p>
+                      <div className='cmc-track-waveform-strip' aria-hidden='true'>
+                        {Array.from({ length: 82 }).map((_, index) => (
+                          <span key={index} style={{ '--cmc-wave-bar': `${18 + ((index * 19) % 66)}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className='cmc-track-volume-control'>
+                      <Volume2 aria-hidden='true' />
+                      <input aria-label='Preview volume' defaultValue='78' max='100' min='0' type='range' />
+                    </div>
                   </div>
-                  <button className='cmc-track-comment-menu' aria-label={`More actions for comment ${key + 1}`} type='button'>
-                    ...
-                  </button>
+
+                  <dl className='cmc-track-facts-grid'>
+                    {detailTiles.map(tile => (
+                      <div key={tile.label}>
+                        <dt>{tile.label}</dt>
+                        <dd>
+                          <span className='cmc-track-fact-icon' aria-hidden='true'>{tile.icon}</span>
+                          <strong>{tile.value}</strong>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
-              ))}
-              {comments.length === 0 && (
-                <p className='cmc-track-empty'>
-                  No comments yet. After purchasing this track you will be able to leave comments about it.
-                </p>
+              )}
+
+              {activeTab === 'details' && (
+                <section className='cmc-track-notes-panel' id='track-notes' aria-label='Additional information'>
+                  <span>Additional Notes</span>
+                  <p>{noteText}</p>
+                </section>
+              )}
+
+              {activeTab === 'comments' && (
+                <section className='cmc-track-comments-section' id='track-comments'>
+                  <div className='cmc-track-section-header'>
+                    <h2>Comments <span>({commentCount})</span></h2>
+                    <small>Sort: Newest</small>
+                  </div>
+                  <div className='cmc-track-comments'>
+                    {comments.map((comment, key) => (
+                      <div className='cmc-track-comment' key={comment.id}>
+                        <span className='cmc-track-comment-avatar'>{getInitials(comment.userName)}</span>
+                        <div>
+                          <header>
+                            <strong>{comment.userName}</strong>
+                            <time>{comment.createdAt}</time>
+                          </header>
+                          <p>{comment.content}</p>
+                          <footer>
+                            <button type='button'>Reply</button>
+                            <span>·</span>
+                            <button type='button'>Helpful</button>
+                          </footer>
+                        </div>
+                        <button className='cmc-track-comment-menu' aria-label={`More actions for comment ${key + 1}`} type='button'>
+                          ...
+                        </button>
+                      </div>
+                    ))}
+                    {comments.length === 0 && (
+                      <p className='cmc-track-empty'>
+                        No comments yet. After purchasing this track you will be able to leave comments about it.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {activeTab === 'requests' && (
+                <section className='cmc-track-requests-section' id='track-requests'>
+                  <div className='cmc-track-section-header'>
+                    <h2>Requests <span>({requests.length})</span></h2>
+                    <small>Open community requests</small>
+                  </div>
+                  <div className='cmc-track-requests'>
+                    {requests.map(request => (
+                      <article className='cmc-track-request' key={request.id}>
+                        <header>
+                          <strong>{request.title}</strong>
+                          <span>{request.status}</span>
+                        </header>
+                        <p>{request.description}</p>
+                        <footer>
+                          <span>{request.requestedBy}</span>
+                          <span>{request.createdAt}</span>
+                        </footer>
+                      </article>
+                    ))}
+                    {requests.length === 0 && (
+                      <p className='cmc-track-empty'>
+                        No requests yet. Community requests for alternate cuts, keys, and parts will appear here.
+                      </p>
+                    )}
+                  </div>
+                </section>
               )}
             </div>
-            <div className='cmc-track-paper-edge' aria-hidden='true' />
           </section>
         </section>
 
