@@ -79,6 +79,7 @@ const detailTabLabels = {
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [activeTab, setActiveTab] = useState('preview')
+  const [previewVolume, setPreviewVolume] = useState(78)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
 
@@ -250,6 +251,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                       onActivate={() => setActivePreviewTrackId(track.id)}
                       onDeactivate={() => setActivePreviewTrackId(null)}
                       track={track}
+                      volume={previewVolume / 100}
                     />
                     <div className='cmc-track-preview-waveform'>
                       <p>Preview <span>({formatPreviewRange(track)})</span></p>
@@ -261,7 +263,14 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     </div>
                     <div className='cmc-track-volume-control'>
                       <Volume2 aria-hidden='true' />
-                      <input aria-label='Preview volume' defaultValue='78' max='100' min='0' type='range' />
+                      <input
+                        aria-label='Preview volume'
+                        max='100'
+                        min='0'
+                        onChange={event => setPreviewVolume(Number(event.target.value))}
+                        type='range'
+                        value={previewVolume}
+                      />
                     </div>
                   </div>
 

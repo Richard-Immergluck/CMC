@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from './ui/primitives'
 
+const normalizeVolume = volume => Math.min(1, Math.max(0, Number.isFinite(volume) ? volume : 1))
+
 const PlaySample = props => {
-  const { active, onActivate, onDeactivate, track } = props
+  const { active, onActivate, onDeactivate, track, volume = 1 } = props
   const audioRef = useRef(null)
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
@@ -20,6 +22,12 @@ const PlaySample = props => {
   }, [previewEnd, previewStart])
 
   useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = normalizeVolume(volume)
+    }
+  }, [volume])
+
+  useEffect(() => {
     const audio = audioRef.current
 
     if (!audio || !url) {
@@ -32,13 +40,14 @@ const PlaySample = props => {
     }
 
     clampToPreviewRange(audio)
+    audio.volume = normalizeVolume(volume)
     audio.play().catch(() => {
       setError('Preview unavailable')
       onDeactivate()
     })
 
     return undefined
-  }, [active, clampToPreviewRange, onDeactivate, url])
+  }, [active, clampToPreviewRange, onDeactivate, url, volume])
 
   useEffect(() => () => {
     audioRef.current?.pause()
@@ -83,6 +92,7 @@ const PlaySample = props => {
 
   const handleLoadedMetadata = event => {
     event.currentTarget.currentTime = previewStart
+    event.currentTarget.volume = normalizeVolume(volume)
   }
 
   const handleSeeking = event => {
