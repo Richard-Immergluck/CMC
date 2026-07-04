@@ -136,6 +136,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     let audioContext
 
     const loadWaveform = async () => {
+      setIsWaveformLoading(true)
+
       try {
         const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
         const signedUrlData = await signedUrlResponse.json()
@@ -465,7 +467,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                             key={index}
                             style={{
                               '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%`,
-                              '--cmc-wave-delay': `${index * 18}ms`
+                              '--cmc-wave-delay': `${index * -28}ms`
                             }}
                           />
                         ))}

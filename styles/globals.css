@@ -2090,21 +2090,30 @@ a {
 }
 
 .cmc-track-waveform-strip--loading span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
-  animation: cmc-waveform-loading 1.45s ease-in-out infinite;
+  animation: cmc-waveform-loading 1.15s ease-in-out infinite;
   animation-delay: var(--cmc-wave-delay);
-  background: rgba(23, 63, 56, 0.44);
+  background: rgba(23, 63, 56, 0.48);
 }
 
 @keyframes cmc-waveform-loading {
-  0%,
-  100% {
-    opacity: 0.42;
-    transform: scaleY(0.42);
+  0% {
+    opacity: 0.34;
+    transform: translateY(0.38rem) scaleY(0.32);
   }
 
-  45% {
-    opacity: 0.92;
-    transform: scaleY(1.08);
+  35% {
+    opacity: 0.94;
+    transform: translateY(-0.2rem) scaleY(1.18);
+  }
+
+  70% {
+    opacity: 0.58;
+    transform: translateY(0.16rem) scaleY(0.68);
+  }
+
+  100% {
+    opacity: 0.34;
+    transform: translateY(0.38rem) scaleY(0.32);
   }
 }
 
