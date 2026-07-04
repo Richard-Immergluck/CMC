@@ -132,6 +132,15 @@ a {
   padding: var(--cmc-space-3) var(--cmc-space-5);
 }
 
+.cmc-button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--cmc-space-2);
+  font-size: 1.05em;
+  line-height: 1;
+}
+
 .cmc-modal-shell {
   position: fixed;
   z-index: 1050;
@@ -1773,6 +1782,11 @@ a {
   margin-bottom: var(--cmc-space-4);
 }
 
+.cmc-track-back-button--footer {
+  margin-top: var(--cmc-space-5);
+  margin-bottom: 0;
+}
+
 .cmc-track-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
@@ -1828,8 +1842,7 @@ a {
   color: var(--cmc-color-text-muted);
 }
 
-.cmc-track-purchase-panel a,
-.cmc-track-catalogue-link {
+.cmc-track-purchase-panel a {
   color: var(--cmc-color-accent-strong);
   font-weight: 700;
 }
@@ -1948,11 +1961,6 @@ a {
 .cmc-track-comment small {
   grid-column: 2;
   color: var(--cmc-color-text-muted);
-}
-
-.cmc-track-catalogue-link {
-  display: inline-flex;
-  margin-top: var(--cmc-space-5);
 }
 
 .cmc-upload-page {

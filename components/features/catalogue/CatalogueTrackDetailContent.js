@@ -84,18 +84,23 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
     ['Uploaded', track.uploadedAt]
   ].filter(([, value]) => value)
 
+  const renderBackButton = className => (
+    <Button
+      type='button'
+      variant='paper'
+      size='sm'
+      className={['cmc-track-back-button', className].filter(Boolean).join(' ')}
+      onClick={goBackToCatalogue}
+    >
+      <span className='cmc-button-icon' aria-hidden='true'>←</span>
+      Back to Catalogue
+    </Button>
+  )
+
   return (
     <main className='cmc-track-page'>
       <div className='container'>
-        <Button
-          type='button'
-          variant='paper'
-          size='sm'
-          className='cmc-track-back-button'
-          onClick={goBackToCatalogue}
-        >
-          Back to Catalogue
-        </Button>
+        {renderBackButton()}
 
         <section className='cmc-track-hero'>
           <div>
@@ -198,9 +203,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments }) => {
           </article>
         </section>
 
-        <Link href='/catalogue' className='cmc-track-catalogue-link'>
-          Back to the Catalogue
-        </Link>
+        {renderBackButton('cmc-track-back-button--footer')}
       </div>
 
       {showCartConfirmation && (
