@@ -187,6 +187,12 @@ const trackListSelect = {
   title: true,
   uploadedAt: true,
   userId: true,
+  _count: {
+    select: {
+      Comments: true,
+      TrackOwner: true
+    }
+  },
   uploadedBy: {
     select: {
       name: true

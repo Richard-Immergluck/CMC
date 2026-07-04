@@ -8,16 +8,6 @@ import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 
-const getTrackDescription = track => {
-  const detail = track.additionalInfo || track.instrumentation || track.key
-
-  if (!detail) {
-    return 'Preview the sample, inspect the arrangement details, and sign in when you are ready to buy.'
-  }
-
-  return detail.length > 150 ? `${detail.slice(0, 147)}...` : detail
-}
-
 const sortLabels = {
   composer: 'Composer',
   newest: 'Newest',
@@ -89,6 +79,18 @@ const FilterSelect = ({ label, name, options, value }) => (
 )
 
 const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
+
+const pluralise = (count, singular, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`
+
+const getTrackActivity = track => {
+  const purchaseCount = track._count?.TrackOwner || 0
+  const commentCount = track._count?.Comments || 0
+
+  return [
+    pluralise(purchaseCount, 'purchase'),
+    pluralise(commentCount, 'comment')
+  ]
+}
 
 const getTrackBadges = ({ catalogueContext, track }) => {
   const badges = []
@@ -179,7 +181,11 @@ const CatalogueTrackRow = ({
                 ))}
               </div>
             )}
-            <p>{getTrackDescription(track)}</p>
+            <div className='cmc-catalogue-track-activity' aria-label={`Activity for ${track.title}`}>
+              {getTrackActivity(track).map(item => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
           </div>
 
           <span className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</span>
