@@ -7,6 +7,25 @@ import { Alert, Col, Container, Form, Row } from 'react-bootstrap'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button, Panel } from '../../ui/primitives'
 
+const devLoginUsers = [
+  {
+    email: 'e2e-customer@example.com',
+    label: 'Customer'
+  },
+  {
+    email: 'e2e-uploader@example.com',
+    label: 'Uploader'
+  },
+  {
+    email: 'e2e-admin@example.com',
+    label: 'Admin'
+  },
+  {
+    email: 'e2e-support@example.com',
+    label: 'Support'
+  }
+]
+
 const errorMessages = {
   OAuthSignin: 'The sign-in provider could not be reached. Please try again.',
   OAuthCallback: 'The sign-in provider returned an unexpected response.',
@@ -17,9 +36,11 @@ const errorMessages = {
   Verification: 'That sign-in link has expired or has already been used.'
 }
 
-const SignInPageContent = ({ callbackUrl, error, providers }) => {
+const SignInPageContent = ({ callbackUrl, devLoginEnabled = false, error, providers }) => {
   const [email, setEmail] = useState('')
   const [emailSubmitting, setEmailSubmitting] = useState(false)
+  const [devLoginSubmitting, setDevLoginSubmitting] = useState('')
+  const [devLoginError, setDevLoginError] = useState('')
   const providerList = Object.values(providers).filter(provider => provider.id !== 'email')
   const emailProvider = providers.email
   const message = error ? errorMessages[error] || 'Sign-in could not be completed. Please try again.' : ''
@@ -32,6 +53,32 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
       email
     })
     setEmailSubmitting(false)
+  }
+
+  const submitDevLogin = async user => {
+    setDevLoginSubmitting(user.email)
+    setDevLoginError('')
+
+    try {
+      const response = await fetch('/api/e2e/session', {
+        body: JSON.stringify({ email: user.email }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error || body.message || 'Dev login could not be completed.')
+      }
+
+      window.location.assign(callbackUrl)
+    } catch (loginError) {
+      setDevLoginError(loginError.message)
+    } finally {
+      setDevLoginSubmitting('')
+    }
   }
 
   return (
@@ -65,6 +112,12 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
               {message && (
                 <Alert variant='danger' className='cmc-auth-alert'>
                   {message}
+                </Alert>
+              )}
+
+              {devLoginError && (
+                <Alert variant='danger' className='cmc-auth-alert'>
+                  {devLoginError}
                 </Alert>
               )}
 
@@ -105,6 +158,27 @@ const SignInPageContent = ({ callbackUrl, error, providers }) => {
                     {emailSubmitting ? 'Sending link...' : 'Send magic link'}
                   </Button>
                 </Form>
+              )}
+
+              {devLoginEnabled && (
+                <div className='cmc-auth-dev-login' aria-label='Development sign in options'>
+                  <span>Local development access</span>
+                  <p>Use seeded test roles for local UI checks.</p>
+                  <div className='cmc-auth-dev-login-grid'>
+                    {devLoginUsers.map(user => (
+                      <Button
+                        className='cmc-auth-provider-button'
+                        disabled={Boolean(devLoginSubmitting)}
+                        key={user.email}
+                        type='button'
+                        variant='secondary'
+                        onClick={() => submitDevLogin(user)}
+                      >
+                        {devLoginSubmitting === user.email ? 'Signing in...' : user.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {providerList.length === 0 && !emailProvider && (

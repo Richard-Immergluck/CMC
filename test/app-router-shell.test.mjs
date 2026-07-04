@@ -15,6 +15,7 @@ test('app router shell and first public routes are present', () => {
   const appProfilePage = fs.readFileSync(path.join(root, 'app/profile/page.js'), 'utf8')
   const appProfileTrackPage = fs.readFileSync(path.join(root, 'app/profile/[trackId]/page.js'), 'utf8')
   const appSignInPage = fs.readFileSync(path.join(root, 'app/auth/signin/page.js'), 'utf8')
+  const signInPageContent = fs.readFileSync(path.join(root, 'components/features/auth/SignInPageContent.js'), 'utf8')
   const appUploadPage = fs.readFileSync(path.join(root, 'app/upload/page.js'), 'utf8')
   const providers = fs.readFileSync(path.join(root, 'components/providers/AppProviders.js'), 'utf8')
 
@@ -39,6 +40,9 @@ test('app router shell and first public routes are present', () => {
   assert.match(appProfileTrackPage, /notFound/)
   assert.match(appSignInPage, /getServerSession/)
   assert.match(appSignInPage, /SignInPageContent/)
+  assert.match(appSignInPage, /CMC_ENABLE_E2E_AUTH/)
+  assert.match(signInPageContent, /Development sign in options/)
+  assert.match(signInPageContent, /\/api\/e2e\/session/)
   assert.match(appUploadPage, /UploadForm/)
   assert.match(providers, /SessionProvider/)
   assert.match(providers, /CartProvider/)

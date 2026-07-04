@@ -21,6 +21,22 @@ const normaliseCallbackUrl = value => {
   }
 }
 
+const getLocalHostname = () => {
+  try {
+    return new URL(process.env.NEXTAUTH_URL || '').hostname
+  } catch {
+    return ''
+  }
+}
+
+const devLoginEnabled = () => {
+  const hostname = getLocalHostname()
+
+  return process.env.CMC_ENABLE_E2E_AUTH === 'true' &&
+    process.env.VERCEL_ENV !== 'production' &&
+    ['localhost', '127.0.0.1', '::1'].includes(hostname)
+}
+
 const SignInPage = async ({ searchParams }) => {
   const query = await searchParams
   const callbackUrl = normaliseCallbackUrl(query?.callbackUrl)
@@ -35,6 +51,7 @@ const SignInPage = async ({ searchParams }) => {
   return (
     <SignInPageContent
       callbackUrl={callbackUrl}
+      devLoginEnabled={devLoginEnabled()}
       error={query?.error || null}
       providers={providers || {}}
     />
