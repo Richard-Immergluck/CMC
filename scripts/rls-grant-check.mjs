@@ -10,6 +10,7 @@ const requiredTables = [
   'Track',
   'TrackOwner',
   'Comment',
+  'TrackRequest',
   'Order',
   'OrderItem',
   'PaymentEvent',

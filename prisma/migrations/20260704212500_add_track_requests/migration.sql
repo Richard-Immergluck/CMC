@@ -31,9 +31,11 @@ DO $$
 BEGIN
   IF to_regrole('anon') IS NOT NULL THEN
     REVOKE ALL ON TABLE "TrackRequest" FROM anon;
+    REVOKE ALL ON SEQUENCE "TrackRequest_id_seq" FROM anon;
   END IF;
 
   IF to_regrole('authenticated') IS NOT NULL THEN
     REVOKE ALL ON TABLE "TrackRequest" FROM authenticated;
+    REVOKE ALL ON SEQUENCE "TrackRequest_id_seq" FROM authenticated;
   END IF;
 END $$;
