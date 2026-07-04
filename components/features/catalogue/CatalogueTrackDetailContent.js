@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
@@ -11,6 +11,7 @@ import { Button } from '../../ui/primitives'
 const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
+const waveformBarCount = 180
 
 const currencyFormatter = new Intl.NumberFormat('en-GB', {
   currency: 'GBP',
@@ -55,6 +56,39 @@ const formatPreviewRange = track => {
   return `${formatSeconds(previewStart) || '0:00'}-${formatSeconds(previewEnd) || 'TBC'}`
 }
 
+const createFallbackWaveform = trackId => {
+  return Array.from({ length: waveformBarCount }, (_, index) => {
+    const value = Math.sin((index + trackId) * 0.82) + Math.sin((index + 3) * 0.21)
+
+    return Math.max(0.08, Math.min(0.92, 0.42 + value * 0.18))
+  })
+}
+
+const getAudioContext = () => {
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext
+
+  return AudioContextConstructor ? new AudioContextConstructor() : null
+}
+
+const buildWaveformPeaks = audioBuffer => {
+  const channelData = audioBuffer.getChannelData(0)
+  const samplesPerBar = Math.max(1, Math.floor(channelData.length / waveformBarCount))
+  const rawPeaks = Array.from({ length: waveformBarCount }, (_, index) => {
+    const start = index * samplesPerBar
+    const end = Math.min(channelData.length, start + samplesPerBar)
+    let sampleEnergy = 0
+
+    for (let sampleIndex = start; sampleIndex < end; sampleIndex += 1) {
+      sampleEnergy += channelData[sampleIndex] ** 2
+    }
+
+    return Math.sqrt(sampleEnergy / Math.max(1, end - start))
+  })
+  const maxPeak = Math.max(...rawPeaks, 0.01)
+
+  return rawPeaks.map(peak => Math.max(0.08, Math.min(1, peak / maxPeak)))
+}
+
 const getInitials = name => {
   if (!name) {
     return 'CM'
@@ -80,8 +114,55 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [activeTab, setActiveTab] = useState('preview')
   const [previewVolume, setPreviewVolume] = useState(78)
+  const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
+
+  useEffect(() => {
+    if (activeTab !== 'preview') {
+      return undefined
+    }
+
+    let cancelled = false
+    let audioContext
+
+    const loadWaveform = async () => {
+      try {
+        const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+        const signedUrlData = await signedUrlResponse.json()
+
+        if (!signedUrlResponse.ok) {
+          throw new Error(signedUrlData.error || 'Preview waveform unavailable')
+        }
+
+        const audioResponse = await fetch(signedUrlData.url)
+        const arrayBuffer = await audioResponse.arrayBuffer()
+        audioContext = getAudioContext()
+
+        if (!audioContext) {
+          throw new Error('Audio decoding unavailable')
+        }
+
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+
+        if (!cancelled) {
+          setWaveformPeaks(buildWaveformPeaks(audioBuffer))
+        }
+      } catch {
+        if (!cancelled) {
+          setWaveformPeaks(createFallbackWaveform(track.id))
+        }
+      } finally {
+        audioContext?.close?.()
+      }
+    }
+
+    loadWaveform()
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab, track.id])
 
   const getCatalogueReturnUrl = () => {
     const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
@@ -255,9 +336,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     />
                     <div className='cmc-track-preview-waveform'>
                       <p>Preview <span>({formatPreviewRange(track)})</span></p>
-                      <div className='cmc-track-waveform-strip' aria-hidden='true'>
-                        {Array.from({ length: 82 }).map((_, index) => (
-                          <span key={index} style={{ '--cmc-wave-bar': `${18 + ((index * 19) % 66)}%` }} />
+                      <div
+                        className='cmc-track-waveform-strip'
+                        style={{ '--cmc-waveform-bars': waveformPeaks.length }}
+                        aria-hidden='true'
+                      >
+                        {waveformPeaks.map((peak, index) => (
+                          <span key={index} style={{ '--cmc-wave-bar': `${Math.round(8 + peak * 92)}%` }} />
                         ))}
                       </div>
                     </div>

@@ -2058,10 +2058,11 @@ a {
 
 .cmc-track-waveform-strip {
   display: grid;
-  grid-template-columns: repeat(82, minmax(2px, 1fr));
-  gap: 0.14rem;
+  grid-template-columns: repeat(var(--cmc-waveform-bars, 180), minmax(1px, 1fr));
+  gap: 0.07rem;
   align-items: center;
   min-height: 3.4rem;
+  overflow: hidden;
 }
 
 .cmc-track-waveform-strip span {
@@ -2928,12 +2929,7 @@ a {
   }
 
   .cmc-track-waveform-strip {
-    grid-template-columns: repeat(42, minmax(2px, 1fr));
-    overflow: hidden;
-  }
-
-  .cmc-track-waveform-strip span:nth-child(n + 43) {
-    display: none;
+    gap: 0.05rem;
   }
 
   .cmc-track-facts-grid {
