@@ -2090,9 +2090,13 @@ a {
 }
 
 .cmc-track-waveform-strip--loading span:not(.cmc-track-preview-window, .cmc-track-preview-playhead) {
-  animation: cmc-waveform-loading 1.15s ease-in-out infinite;
+  animation-name: cmc-waveform-loading;
+  animation-duration: 1.15s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   animation-delay: var(--cmc-wave-delay);
   background: rgba(23, 63, 56, 0.48);
+  will-change: opacity, transform;
 }
 
 @keyframes cmc-waveform-loading {

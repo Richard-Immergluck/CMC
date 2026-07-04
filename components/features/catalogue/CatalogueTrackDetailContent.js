@@ -134,9 +134,24 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
 
     let cancelled = false
     let audioContext
+    let loadingTimer
+
+    const minimumLoadingMs = 900
 
     const loadWaveform = async () => {
+      const loadingStartedAt = window.performance.now()
       setIsWaveformLoading(true)
+
+      const finishLoading = () => {
+        const elapsedMs = window.performance.now() - loadingStartedAt
+        const remainingMs = Math.max(0, minimumLoadingMs - elapsedMs)
+
+        loadingTimer = window.setTimeout(() => {
+          if (!cancelled) {
+            setIsWaveformLoading(false)
+          }
+        }, remainingMs)
+      }
 
       try {
         const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
@@ -159,13 +174,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
         if (!cancelled) {
           setWaveformPeaks(buildWaveformPeaks(audioBuffer))
           setWaveformDuration(audioBuffer.duration)
-          setIsWaveformLoading(false)
+          finishLoading()
         }
       } catch {
         if (!cancelled) {
           setWaveformPeaks(createFallbackWaveform(track.id))
           setWaveformDuration(track.durationSeconds || track.previewEnd || 1)
-          setIsWaveformLoading(false)
+          finishLoading()
         }
       } finally {
         audioContext?.close?.()
@@ -176,6 +191,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
 
     return () => {
       cancelled = true
+      window.clearTimeout(loadingTimer)
     }
   }, [activeTab, track.durationSeconds, track.id, track.previewEnd])
 
