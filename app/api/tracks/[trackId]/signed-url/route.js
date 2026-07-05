@@ -26,6 +26,7 @@ import {
   getSignedTrackUrl,
   signedUrlExpirySeconds
 } from '../../../../../lib/server/s3'
+import { getSampleAudioKey } from '../../../../../lib/track-audio-access.mjs'
 import { publicTrackWhere } from '../../../../../lib/server/tracks-core.mjs'
 import { getApplicationBaseUrl } from '../../../../../lib/server/url'
 import {
@@ -105,11 +106,36 @@ export async function GET(request, { params }) {
 
       const syntheticFixtureUrl = getSyntheticFixtureUrl({ request, track, mode })
       const expiresSeconds = signedUrlExpirySeconds.sample
+      const sampleAudioKey = getSampleAudioKey(track)
+
+      if (!syntheticFixtureUrl && !sampleAudioKey) {
+        logServerEvent({
+          event: 'track.sample_unavailable',
+          message: 'Sample track URL denied because no preview asset exists',
+          requestId,
+          metadata: {
+            trackId: track.id,
+            mode
+          }
+        })
+
+        telemetry.complete({
+          statusCode: 404,
+          trackId: track.id,
+          mode,
+          outcome: 'sample_unavailable'
+        })
+
+        return jsonResponse(404, { message: 'Preview unavailable' })
+      }
+
       const url = syntheticFixtureUrl || getSignedTrackUrl({
-        key: track.fileName,
+        key: sampleAudioKey,
         expires: expiresSeconds
       })
-      const sampleUrl = `${url}#t=${track.previewStart},${track.previewEnd}`
+      const sampleUrl = syntheticFixtureUrl
+        ? `${url}#t=${track.previewStart},${track.previewEnd}`
+        : url
 
       logServerEvent({
         event: 'track.signed_url_issued',
@@ -119,6 +145,7 @@ export async function GET(request, { params }) {
           trackId: track.id,
           mode,
           redirect: redirect === '1',
+          previewAsset: Boolean(sampleAudioKey),
           syntheticFixture: Boolean(syntheticFixtureUrl)
         }
       })
@@ -128,6 +155,7 @@ export async function GET(request, { params }) {
         trackId: track.id,
         mode,
         redirect: redirect === '1',
+        previewAsset: Boolean(sampleAudioKey),
         syntheticFixture: Boolean(syntheticFixtureUrl)
       })
 

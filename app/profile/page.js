@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import ProfilePageContent from '../../components/features/profile/ProfilePageContent'
+import { formatDisplayDate } from '../../lib/date-format.mjs'
 import { authOptions } from '../../lib/server/auth'
 import prisma from '../../lib/server/prisma'
 
@@ -30,13 +31,13 @@ const trackSelect = {
 
 const serializeTrack = track => ({
   ...track,
-  uploadedAt: track.uploadedAt.toLocaleDateString()
+  uploadedAt: formatDisplayDate(track.uploadedAt)
 })
 
 const serializeComment = comment => ({
   id: comment.id,
   content: comment.content,
-  createdAt: comment.createdAt.toLocaleDateString(),
+  createdAt: formatDisplayDate(comment.createdAt),
   trackId: comment.trackId,
   trackTitle: comment.track.title,
   trackUserId: comment.track.userId
@@ -44,8 +45,8 @@ const serializeComment = comment => ({
 
 const serializeTrackRequest = request => ({
   ...request,
-  createdAt: request.createdAt.toLocaleDateString(),
-  updatedAt: request.updatedAt.toLocaleDateString()
+  createdAt: formatDisplayDate(request.createdAt),
+  updatedAt: formatDisplayDate(request.updatedAt)
 })
 
 const getProfileData = async email => {
@@ -112,6 +113,15 @@ const getProfileData = async email => {
     prisma.trackRequest.findMany({
       where: {
         userId: currentUser.id
+      },
+      include: {
+        track: {
+          select: {
+            id: true,
+            title: true,
+            userId: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'

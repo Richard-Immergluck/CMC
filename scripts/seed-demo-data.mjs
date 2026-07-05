@@ -289,6 +289,7 @@ const seed = async () => {
 
     const data = {
       fileName,
+      previewFileName: fileName,
       title: track.title,
       composer: track.composer,
       status: 'PUBLISHED',

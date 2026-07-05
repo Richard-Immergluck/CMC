@@ -58,6 +58,10 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await expect(page).toHaveURL(/\/catalogue\/\d+$/)
   await expect(page.getByRole('heading', { name: firstTrackTitle })).toBeVisible()
   await expect(page.getByText(/Please .*login.* to add this track to your cart\./)).toBeVisible()
+  await page.getByRole('tab', { name: /Comments/i }).click()
+  await expect(page.getByLabel('Sign in and purchase this track to add your comment')).toBeVisible()
+  await page.getByRole('tab', { name: /Requests/i }).click()
+  await expect(page.getByLabel('Sign in to make a request')).toBeVisible()
 
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
@@ -98,7 +102,8 @@ test('anonymous visitor can play an approved audio preview from the action butto
   await expect(page.locator('.cmc-preview-player')).toHaveCount(0)
 
   const audioPreview = page.locator('audio.cmc-audio-preview-source').first()
-  await expect(audioPreview).toHaveAttribute('src', /#t=\d+,\d+/)
+  await expect(audioPreview).toHaveAttribute('src', /\/demo-fixtures\/.+\.(mp3|wav)/)
+  await expect(audioPreview).not.toHaveAttribute('src', /\/uploads\//)
 })
 
 test('anonymous visitor can search catalogue tracks', async ({ page }) => {

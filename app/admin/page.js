@@ -11,6 +11,7 @@ import {
   canAccessAdminSurface,
   canAccessSupportSurface
 } from '../../lib/server/permissions.mjs'
+import { formatDisplayDate } from '../../lib/date-format.mjs'
 import prisma from '../../lib/server/prisma'
 import { authOptions } from '../../lib/server/auth'
 
@@ -90,7 +91,7 @@ const getAdminInitialData = async currentUser => {
     }),
     initialTracks: tracks.map(track => ({
       ...toTrackReviewItem(track),
-      uploadedAt: track.uploadedAt.toISOString()
+      uploadedAt: formatDisplayDate(track.uploadedAt)
     })),
     initialUsers: users.map(toUserAdminItem)
   }

@@ -93,6 +93,7 @@ model Track {
   reviewedAt          DateTime?
   uploadedBy          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              String
+  previewFileName     String?
   previewStart        Int?
   previewEnd          Int?
   durationSeconds     Int?
@@ -110,6 +111,7 @@ model Track {
   processingError     String?               @db.Text
   TrackOwner          TrackOwner[]
   Comments            Comment[]
+  TrackRequests       TrackRequest[]
   orderItems          OrderItem[]
 
   @@index([status])
@@ -150,6 +152,8 @@ model TrackRequest {
   id              Int                @id @default(autoincrement())
   requestedBy     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String
+  track           Track?             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId         Int?
   title           String
   composer        String?
   instrumentation String?
@@ -159,6 +163,7 @@ model TrackRequest {
   updatedAt       DateTime           @updatedAt
 
   @@index([userId, createdAt])
+  @@index([trackId, createdAt])
   @@index([status, createdAt])
 }
 

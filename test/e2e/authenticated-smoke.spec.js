@@ -13,6 +13,46 @@ const signInAs = async (request, email) => {
 }
 
 test.describe('authenticated smoke', () => {
+  test('signed-in customers cannot access full audio for unowned tracks', async ({ page }) => {
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    const [profileResponse, catalogueResponse] = await Promise.all([
+      page.request.get('/api/profile'),
+      page.request.get('/api/tracks/list')
+    ])
+    const profile = await profileResponse.json()
+    const catalogue = await catalogueResponse.json()
+    const ownedTrackIds = new Set(profile.map(ownership => ownership.trackId))
+    const unownedTrack = catalogue.find(track => !ownedTrackIds.has(track.id))
+
+    expect(profileResponse.status()).toBe(200)
+    expect(catalogueResponse.status()).toBe(200)
+    expect(unownedTrack).toEqual(expect.objectContaining({ id: expect.any(Number) }))
+
+    const fullResponse = await page.request.get(`/api/tracks/${unownedTrack.id}/signed-url?mode=full`)
+    const fullBody = await fullResponse.json()
+
+    expect(fullResponse.status()).toBe(403)
+    expect(fullBody.message).toBe('Track access denied')
+
+    const downloadResponse = await page.request.get(`/api/tracks/${unownedTrack.id}/signed-url?mode=download`)
+    const downloadBody = await downloadResponse.json()
+
+    expect(downloadResponse.status()).toBe(403)
+    expect(downloadBody.message).toBe('Track access denied')
+
+    const reviewResponse = await page.request.get(`/api/tracks/${unownedTrack.id}/signed-url?mode=review`)
+    const reviewBody = await reviewResponse.json()
+
+    expect(reviewResponse.status()).toBe(403)
+    expect(reviewBody.message).toBe('Review access denied')
+
+    await page.goto(`/catalogue/${unownedTrack.id}`)
+
+    await expect(page.getByRole('button', { name: 'Preview' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Play Track' })).toHaveCount(0)
+  })
+
   test('seeded customers can access protected ownership APIs', async ({ request }) => {
     const session = await signInAs(request, 'e2e-customer@example.com')
 
@@ -66,24 +106,83 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('searchbox', { name: 'Search downloaded tracks' })).toBeVisible()
 
     const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
-    await expect(downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study', exact: true })).toBeVisible()
     await expect(downloadsTable.getByText('Synthetic Test Fixture')).toBeVisible()
+    await expect(downloadsTable.getByRole('columnheader', { name: 'Instrumentation' })).toHaveCount(0)
+    await downloadsTable.getByRole('button', { name: 'Play E2E Catalogue Navigation Study' }).click()
+    await expect(downloadsTable.getByRole('button', { name: 'Pause E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(downloadsTable.getByRole('alert').filter({ hasText: /unavailable/i })).toHaveCount(0)
+    await expect(downloadsTable.getByLabel('Playback position for E2E Catalogue Navigation Study')).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: 'Download E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: 'Open' })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'My requests' })).toBeVisible()
     await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
+    await expect(page.getByText(/open · \d{2}\/\d{2}\/\d{4}/i).first()).toBeVisible()
+    await page.getByRole('link', { name: 'Poulenc Oboe Sonata' }).click()
+
+    await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=requests&requestId=\d+/)
+    await expect(page.getByRole('tab', { name: /Requests/i })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
+    await expect(page.getByText('OPEN').first()).toBeVisible()
+    await expect(page.getByLabel('Request title')).toBeVisible()
+    await page.goto('/profile')
+
     const recentCommentsPanel = page.getByRole('article').filter({
       has: page.getByRole('heading', { name: 'Recent comments' })
     })
     await expect(recentCommentsPanel).toBeVisible()
-    await expect(recentCommentsPanel.getByText('E2E Catalogue Mendelssohn Sonata Excerpt Op. 16')).toBeVisible()
+    const recentCommentLink = recentCommentsPanel.getByRole('link', { name: 'E2E Catalogue Mendelssohn Sonata Excerpt Op. 16' })
+    await expect(recentCommentLink).toBeVisible()
+    await recentCommentLink.click()
 
-    await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
+    await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=comments&commentId=\d+/)
+    await expect(page.getByRole('tab', { name: /Comments/i })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('textbox', { name: 'Add your comment' })).toBeVisible()
+    const ownedPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
+    await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
+    await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toHaveAttribute('href', '/profile')
+    await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
+    await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Wishlist' })).toHaveCount(0)
+    await expect(ownedPurchasePanel.getByText(/£/)).toHaveCount(0)
+    await page.goto('/profile')
 
-    await expect(page).toHaveURL(/\/profile\/\d+-/)
+    await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study', exact: true }).click()
+
+    await expect(page).toHaveURL(/\/catalogue\/\d+$/)
     await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
     await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible()
-    await expect(page.getByRole('textbox', { name: 'Comment' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+    const libraryPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
+    await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
+    await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toHaveAttribute('href', '/profile')
+    await expect(libraryPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
+
+    await page.goto('/catalogue?q=E2E%20Catalogue%20Navigation%20Study')
+    const ownedCatalogueRow = page.locator('.cmc-catalogue-track-card').filter({ hasText: 'E2E Catalogue Navigation Study' }).first()
+    await expect(ownedCatalogueRow.getByText('Owned')).toBeVisible()
+    await expect(ownedCatalogueRow.getByRole('link', { name: 'View in Library' })).toHaveCount(0)
+    await expect(ownedCatalogueRow.getByRole('link', { name: 'Details' })).toBeVisible()
+  })
+
+  test('seeded customers can create a request from a track detail page', async ({ page }) => {
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    await page.goto('/catalogue')
+    await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Details' }).first().click()
+    await expect(page).toHaveURL(/\/catalogue\/\d+$/)
+    await page.getByRole('tab', { name: /Requests/i }).click()
+
+    const requestTitle = `E2E Smoke Request ${Date.now()}`
+    await page.getByLabel('Request title').fill(requestTitle)
+    await page.getByLabel('Request notes').fill('Please add a practice version with a slower click.')
+    await page.getByRole('button', { name: 'Add Request' }).click()
+
+    await expect(page.getByRole('status')).toContainText('Your request has been added.')
+    const createdRequest = page.locator('.cmc-track-request').filter({ hasText: requestTitle }).first()
+    await expect(createdRequest).toBeVisible()
+    await expect(createdRequest.getByText('OPEN')).toBeVisible()
+    await expect(createdRequest.getByText(/\d{2}\/\d{2}\/\d{4}/)).toBeVisible()
   })
 
   test('seeded customers do not see uploader or admin navigation', async ({ page }) => {

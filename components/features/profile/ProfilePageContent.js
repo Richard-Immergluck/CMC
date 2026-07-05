@@ -1,11 +1,10 @@
 'use client'
 
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Download,
-  ExternalLink,
   Search,
   ShieldCheck,
   UploadCloud,
@@ -21,7 +20,31 @@ import {
 
 const normalize = value => String(value || '').toLowerCase()
 
-const getTrackHref = track => `/profile/${track.id}-${track.userId}`
+const trackReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
+const trackReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
+
+const getCatalogueTrackHref = track => `/catalogue/${track.id}`
+
+const storeProfileTrackReturn = trackId => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  sessionStorage.setItem(trackReturnTrackIdStorageKey, String(trackId))
+  sessionStorage.setItem(trackReturnUrlStorageKey, `${window.location.pathname}${window.location.search}`)
+}
+
+const formatPlaybackTime = seconds => {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return '0:00'
+  }
+
+  const roundedSeconds = Math.floor(seconds)
+  const minutes = Math.floor(roundedSeconds / 60)
+  const remainingSeconds = String(roundedSeconds % 60).padStart(2, '0')
+
+  return `${minutes}:${remainingSeconds}`
+}
 
 const uniqueSortedValues = (tracks, key) => {
   const values = tracks
@@ -60,12 +83,157 @@ const matchesSearch = (track, search) => {
   return haystack.includes(normalize(search))
 }
 
+const ProfileInlinePlayer = ({ active, onActivate, onDeactivate, track }) => {
+  const audioRef = useRef(null)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(Number.isFinite(track.durationSeconds) ? track.durationSeconds : 0)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [url, setUrl] = useState('')
+
+  useEffect(() => {
+    const audio = audioRef.current
+
+    if (!audio || !url) {
+      return undefined
+    }
+
+    if (!active) {
+      audio.pause()
+      return undefined
+    }
+
+    audio.play().catch(() => {
+      setError('Playback unavailable')
+      onDeactivate()
+    })
+
+    return undefined
+  }, [active, onDeactivate, url])
+
+  useEffect(() => () => {
+    audioRef.current?.pause()
+  }, [])
+
+  const fetchFullTrackUrl = async () => {
+    if (url) {
+      return url
+    }
+
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=full`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Playback unavailable')
+      }
+
+      setUrl(data.url)
+      return data.url
+    } catch (playbackError) {
+      setError(playbackError.message || 'Playback unavailable')
+      onDeactivate()
+      return ''
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const togglePlayback = async () => {
+    if (active) {
+      onDeactivate()
+      return
+    }
+
+    onActivate()
+    await fetchFullTrackUrl()
+  }
+
+  const handleLoadedMetadata = event => {
+    const loadedDuration = event.currentTarget.duration
+
+    if (Number.isFinite(loadedDuration)) {
+      setDuration(loadedDuration)
+    }
+  }
+
+  const handleTimeUpdate = event => {
+    setCurrentTime(event.currentTarget.currentTime)
+  }
+
+  const handleSeek = event => {
+    const nextTime = Number(event.target.value)
+    setCurrentTime(nextTime)
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = nextTime
+    }
+  }
+
+  const safeDuration = Math.max(0, Number.isFinite(duration) ? duration : 0)
+  const sliderMax = safeDuration || 1
+
+  return (
+    <div className='cmc-profile-inline-player'>
+      <Button
+        aria-label={active ? `Pause ${track.title}` : `Play ${track.title}`}
+        aria-pressed={active}
+        className={active ? 'cmc-profile-inline-play cmc-profile-inline-play--active' : 'cmc-profile-inline-play'}
+        disabled={loading}
+        onClick={togglePlayback}
+        size='sm'
+        type='button'
+        variant='secondary'
+      >
+        {active ? (
+          <span className='cmc-preview-pause-icon' aria-hidden='true'>
+            <span />
+            <span />
+          </span>
+        ) : (
+          <span className='cmc-profile-play-triangle' aria-hidden='true' />
+        )}
+      </Button>
+      <div className='cmc-profile-inline-timeline'>
+        <input
+          aria-label={`Playback position for ${track.title}`}
+          disabled={!url && !active}
+          max={sliderMax}
+          min='0'
+          onChange={handleSeek}
+          step='0.1'
+          type='range'
+          value={Math.min(currentTime, sliderMax)}
+        />
+        <span>{formatPlaybackTime(currentTime)} / {formatPlaybackTime(safeDuration)}</span>
+      </div>
+      {error && <small role='alert'>{error}</small>}
+      {url && (
+        <audio
+          ref={audioRef}
+          className='cmc-audio-preview-source'
+          onEnded={onDeactivate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={handleTimeUpdate}
+          preload='metadata'
+          src={url}
+        />
+      )}
+    </div>
+  )
+}
+
 const TrackTable = ({
   emptyAction,
   emptyText,
   emptyTitle,
   tracks
 }) => {
+  const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
+
   if (tracks.length === 0) {
     return (
       <div className='cmc-profile-empty'>
@@ -80,11 +248,12 @@ const TrackTable = ({
   return (
     <div className='cmc-profile-table' role='table' aria-label='Downloaded tracks'>
       <div className='cmc-profile-table-head' role='row'>
+        <span className='cmc-profile-column-index' aria-hidden='true' />
         <span role='columnheader'>Title</span>
         <span role='columnheader'>Composer</span>
         <span role='columnheader'>Key</span>
-        <span role='columnheader'>Instrumentation</span>
-        <span role='columnheader'>Actions</span>
+        <span className='cmc-profile-column-preview' aria-hidden='true' />
+        <span className='cmc-profile-column-download' aria-hidden='true' />
       </div>
       <ul className='cmc-profile-table-body'>
         {tracks.map((track, index) => (
@@ -93,16 +262,24 @@ const TrackTable = ({
               {String(index + 1).padStart(2, '0')}
             </span>
             <div className='cmc-profile-track-title' role='cell'>
-              <Link href={getTrackHref(track)}>
+              <Link href={getCatalogueTrackHref(track)} onClick={() => storeProfileTrackReturn(track.id)}>
                 {track.title}
               </Link>
               <span>{track.uploadedAt ? `Added ${track.uploadedAt}` : 'Purchased track'}</span>
             </div>
             <span role='cell'>{track.composer || 'Unknown composer'}</span>
             <span role='cell'>{track.key || 'Not set'}</span>
-            <span role='cell'>{track.instrumentation || 'Not specified'}</span>
+            <div className='cmc-profile-preview-cell' role='cell'>
+              <ProfileInlinePlayer
+                active={activePreviewTrackId === track.id}
+                onActivate={() => setActivePreviewTrackId(track.id)}
+                onDeactivate={() => setActivePreviewTrackId(null)}
+                track={track}
+              />
+            </div>
             <div className='cmc-profile-row-actions' role='cell'>
               <Button
+                aria-label={`Download ${track.title}`}
                 as='a'
                 href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
                 rel='noreferrer'
@@ -112,11 +289,6 @@ const TrackTable = ({
                 variant='ink'
               >
                 <Download aria-hidden='true' strokeWidth={1.8} />
-                Download
-              </Button>
-              <Button as={Link} href={getTrackHref(track)} size='sm' variant='paper'>
-                <ExternalLink aria-hidden='true' strokeWidth={1.8} />
-                Open
               </Button>
             </div>
           </li>
@@ -218,9 +390,10 @@ const ProfilePageContent = ({
         ? 'Track requests and followed requests will live here.'
         : 'Recent requests you have created or followed.',
       items: userTrackRequests.slice(0, 3).map(request => ({
-        href: null,
+        href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : null,
         meta: `${request.status.toLowerCase().replace('_', ' ')} · ${request.createdAt}`,
-        title: request.title.replace(/^E2E Request /, '')
+        title: request.title.replace(/^E2E Request /, ''),
+        trackId: request.trackId
       }))
     },
     {
@@ -230,9 +403,10 @@ const ProfilePageContent = ({
         ? 'Your contribution history will appear here as community features expand.'
         : 'Recent comments you have added to downloaded tracks.',
       items: userComments.slice(0, 3).map(comment => ({
-        href: `/profile/${comment.trackId}-${comment.trackUserId}`,
+        href: `/catalogue/${comment.trackId}?tab=comments&commentId=${comment.id}`,
         meta: comment.createdAt,
-        title: comment.trackTitle
+        title: comment.trackTitle,
+        trackId: comment.trackId
       }))
     }
   ]
@@ -271,8 +445,8 @@ const ProfilePageContent = ({
                   <dd>{userUploadedTracks.length}</dd>
                 </div>
                 <div>
-                  <dt>Role</dt>
-                  <dd>{currentUser.role?.toLowerCase() || 'member'}</dd>
+                  <dt>Comments</dt>
+                  <dd>{userComments.length}</dd>
                 </div>
               </dl>
             </aside>
@@ -363,7 +537,7 @@ const ProfilePageContent = ({
                     {panel.items.map(item => (
                       <li key={`${panel.label}-${item.title}-${item.meta}`}>
                         {item.href ? (
-                          <Link href={item.href}>{item.title}</Link>
+                          <Link href={item.href} onClick={() => item.trackId && storeProfileTrackReturn(item.trackId)}>{item.title}</Link>
                         ) : (
                           <strong>{item.title}</strong>
                         )}

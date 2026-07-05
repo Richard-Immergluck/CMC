@@ -29,6 +29,22 @@ const titlePrefixFilters = generatedTrackTitlePrefixes.map(prefix => ({
   }
 }))
 
+const generatedRequestTitlePrefixes = [
+  'E2E Request ',
+  'E2E Smoke Request '
+]
+
+const requestTitlePrefixFilters = generatedRequestTitlePrefixes.map(prefix => ({
+  title: {
+    startsWith: prefix
+  }
+}))
+
+const richardUploadEmails = [
+  'rimmergluck@googlemail.com',
+  'richard@immergluck.co.uk'
+]
+
 const cleanGeneratedE2EData = async () => {
   const generatedTracks = await prisma.track.findMany({
     where: {
@@ -61,9 +77,7 @@ const cleanGeneratedE2EData = async () => {
   await prisma.$transaction([
     prisma.trackRequest.deleteMany({
       where: {
-        title: {
-          startsWith: 'E2E Request '
-        }
+        OR: requestTitlePrefixFilters
       }
     }),
     prisma.paymentEvent.deleteMany({
@@ -232,6 +246,7 @@ const seed = async () => {
 
   const trackData = {
     fileName: 'e2e-fixtures/catalogue-navigation.wav',
+    previewFileName: 'e2e-fixtures/catalogue-navigation.wav',
     title: 'E2E Catalogue Navigation Study',
     composer: 'Synthetic Test Fixture',
     status: 'PUBLISHED',
@@ -295,6 +310,7 @@ const seed = async () => {
   const purchasedTracks = [track]
   const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
     fileName: `demo-fixtures/${demoTrack.slug}.wav`,
+    previewFileName: `demo-fixtures/${demoTrack.slug}.wav`,
     title: `E2E Catalogue ${demoTrack.title}`,
     composer: demoTrack.composer,
     status: 'PUBLISHED',
@@ -417,16 +433,21 @@ const seed = async () => {
   await prisma.trackRequest.deleteMany({
     where: {
       userId: customer.id,
-      title: {
-        startsWith: 'E2E Request '
-      }
+      OR: requestTitlePrefixFilters
     }
   })
 
   for (const [index, requestFixture] of requestFixtures.entries()) {
+    const requestTrack = purchasedTracks[index] || purchasedTracks[0]
+
     await prisma.trackRequest.create({
       data: {
         ...requestFixture,
+        track: {
+          connect: {
+            id: requestTrack.id
+          }
+        },
         requestedBy: {
           connect: {
             id: customer.id
@@ -441,6 +462,42 @@ const seed = async () => {
   console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
   console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
+
+  const richardPlaybackTrack = await prisma.track.findFirst({
+    where: {
+      status: 'PUBLISHED',
+      moderationStatus: 'APPROVED',
+      processingStatus: 'READY',
+      uploadedBy: {
+        email: {
+          in: richardUploadEmails
+        }
+      }
+    },
+    orderBy: {
+      uploadedAt: 'desc'
+    }
+  })
+
+  if (richardPlaybackTrack) {
+    await prisma.trackOwner.upsert({
+      where: {
+        trackId_userId: {
+          trackId: richardPlaybackTrack.id,
+          userId: customer.id
+        }
+      },
+      update: {},
+      create: {
+        trackId: richardPlaybackTrack.id,
+        userId: customer.id
+      }
+    })
+
+    console.log(`Linked ${customer.email} to Richard playback track ${richardPlaybackTrack.id}`)
+  } else {
+    console.log('Skipped Richard playback track ownership: no eligible published upload found')
+  }
 }
 
 try {

@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import CataloguePageContent from '../../components/features/catalogue/CataloguePageContent'
 import { getCatalogueContext } from '../../lib/catalogue-view.mjs'
+import { formatDisplayDate } from '../../lib/date-format.mjs'
 import { authOptions } from '../../lib/server/auth'
 import { getCurrentUser } from '../../lib/server/ownership'
 import prisma from '../../lib/server/prisma'
@@ -170,7 +171,7 @@ const buildCatalogueWhere = (query, { omit } = {}) => {
 
 const serializeTrack = track => ({
   ...track,
-  uploadedAt: track.uploadedAt.toLocaleDateString(),
+  uploadedAt: formatDisplayDate(track.uploadedAt),
   uploaderName: track.uploadedBy?.name || 'Unknown',
   uploadedBy: null
 })
