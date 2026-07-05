@@ -19,6 +19,7 @@ test('anonymous visitors get a public catalogue context', () => {
     isAuthenticated: false,
     role: null,
     userId: null,
+    userName: null,
     canAccessAdmin: false,
     canAccessSupport: false,
     canUpload: false,
@@ -34,6 +35,7 @@ test('customers get member catalogue actions without operations overlays', () =>
     isAuthenticated: true,
     role: 'CUSTOMER',
     userId: 'user-1',
+    userName: null,
     canAccessAdmin: false,
     canAccessSupport: false,
     canUpload: false,
@@ -70,4 +72,3 @@ test('support and admin users get operations overlays with distinct access', () 
   assert.equal(adminContext.showUploaderContext, true)
   assert.equal(adminContext.showOperationsOverlay, true)
 })
-

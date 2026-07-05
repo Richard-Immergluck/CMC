@@ -72,8 +72,25 @@ test('request origin posture allows configured deployment origins', () => {
       trusted: true,
       reason: 'same_origin',
       requestOrigin: 'http://127.0.0.1:3000',
-      allowedOrigins: ['http://127.0.0.1:3000', 'https://preview.example.com'],
+      allowedOrigins: ['http://127.0.0.1:3000', 'http://localhost:3000', 'https://preview.example.com'],
       suppliedOrigin: 'https://preview.example.com'
+    }
+  )
+})
+
+test('request origin posture allows localhost and loopback aliases in development', () => {
+  assert.deepEqual(
+    getRequestOriginPosture({
+      requestUrl: 'http://localhost:3000/api/track-requests',
+      originHeader: 'http://127.0.0.1:3000',
+      refererHeader: null
+    }),
+    {
+      trusted: true,
+      reason: 'same_origin',
+      requestOrigin: 'http://localhost:3000',
+      allowedOrigins: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+      suppliedOrigin: 'http://127.0.0.1:3000'
     }
   )
 })

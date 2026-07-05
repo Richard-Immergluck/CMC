@@ -29,6 +29,22 @@ const titlePrefixFilters = generatedTrackTitlePrefixes.map(prefix => ({
   }
 }))
 
+const generatedRequestTitlePrefixes = [
+  'E2E Request ',
+  'E2E Smoke Request '
+]
+
+const requestTitlePrefixFilters = generatedRequestTitlePrefixes.map(prefix => ({
+  title: {
+    startsWith: prefix
+  }
+}))
+
+const richardUploadEmails = [
+  'rimmergluck@googlemail.com',
+  'richard@immergluck.co.uk'
+]
+
 const cleanGeneratedE2EData = async () => {
   const generatedTracks = await prisma.track.findMany({
     where: {
@@ -59,6 +75,11 @@ const cleanGeneratedE2EData = async () => {
   const generatedOrderEntityIds = generatedOrderIds.map(id => `${id}`)
 
   await prisma.$transaction([
+    prisma.trackRequest.deleteMany({
+      where: {
+        OR: requestTitlePrefixFilters
+      }
+    }),
     prisma.paymentEvent.deleteMany({
       where: {
         orderId: {
@@ -225,6 +246,7 @@ const seed = async () => {
 
   const trackData = {
     fileName: 'e2e-fixtures/catalogue-navigation.wav',
+    previewFileName: 'e2e-fixtures/catalogue-navigation.wav',
     title: 'E2E Catalogue Navigation Study',
     composer: 'Synthetic Test Fixture',
     status: 'PUBLISHED',
@@ -285,8 +307,10 @@ const seed = async () => {
     }
   })
 
+  const purchasedTracks = [track]
   const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
     fileName: `demo-fixtures/${demoTrack.slug}.wav`,
+    previewFileName: `demo-fixtures/${demoTrack.slug}.wav`,
     title: `E2E Catalogue ${demoTrack.title}`,
     composer: demoTrack.composer,
     status: 'PUBLISHED',
@@ -314,7 +338,7 @@ const seed = async () => {
     additionalInfo: demoTrack.additionalInfo
   }))
 
-  for (const extraTrack of extraCatalogueTracks) {
+  for (const [index, extraTrack] of extraCatalogueTracks.entries()) {
     const existingExtraTrack = await prisma.track.findFirst({
       where: {
         title: extraTrack.title,
@@ -323,22 +347,157 @@ const seed = async () => {
       }
     })
 
-    if (existingExtraTrack) {
-      await prisma.track.update({
+    const savedTrack = existingExtraTrack
+      ? await prisma.track.update({
         where: {
           id: existingExtraTrack.id
         },
         data: extraTrack
       })
-    } else {
-      await prisma.track.create({
+      : await prisma.track.create({
         data: extraTrack
+      })
+
+    if (index < 5) {
+      purchasedTracks.push(savedTrack)
+      await prisma.trackOwner.upsert({
+        where: {
+          trackId_userId: {
+            trackId: savedTrack.id,
+            userId: customer.id
+          }
+        },
+        update: {
+          purchasedAt: new Date(`2026-07-${String(index + 1).padStart(2, '0')}T10:00:00.000Z`)
+        },
+        create: {
+          trackId: savedTrack.id,
+          userId: customer.id,
+          purchasedAt: new Date(`2026-07-${String(index + 1).padStart(2, '0')}T10:00:00.000Z`)
+        }
       })
     }
   }
 
+  const customerComments = [
+    'Useful balance for slow practice; the piano guide sits clearly in the texture.',
+    'This one is especially helpful for checking entries after the development section.',
+    'Good rehearsal tempo, and the harmonic cues are easy to follow.',
+    'I would like a slightly longer preview window on this style of track.',
+    'The accompaniment feels natural enough for daily practice.'
+  ]
+
+  for (const [index, purchasedTrack] of purchasedTracks.slice(0, 5).entries()) {
+    await prisma.comment.create({
+      data: {
+        content: customerComments[index],
+        postedBy: {
+          connect: {
+            id: customer.id
+          }
+        },
+        track: {
+          connect: {
+            id: purchasedTrack.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 2).padStart(2, '0')}T14:30:00.000Z`)
+      }
+    })
+  }
+
+  const requestFixtures = [
+    {
+      title: 'E2E Request Poulenc Oboe Sonata',
+      composer: 'Francis Poulenc',
+      instrumentation: 'Oboe and piano',
+      notes: 'Looking for a steady rehearsal track with clear piano cues.',
+      status: 'OPEN'
+    },
+    {
+      title: 'E2E Request Saint-Saens Allegro appassionato',
+      composer: 'Camille Saint-Saens',
+      instrumentation: 'Cello and piano',
+      notes: 'Useful if the accompaniment has a flexible but stable tempo.',
+      status: 'IN_PROGRESS'
+    },
+    {
+      title: 'E2E Request Mozart Clarinet Concerto Adagio',
+      composer: 'W. A. Mozart',
+      instrumentation: 'Clarinet and orchestra reduction',
+      notes: 'Request fulfilled by an existing catalogue upload for smoke coverage.',
+      status: 'FULFILLED'
+    }
+  ]
+
+  await prisma.trackRequest.deleteMany({
+    where: {
+      userId: customer.id,
+      OR: requestTitlePrefixFilters
+    }
+  })
+
+  for (const [index, requestFixture] of requestFixtures.entries()) {
+    const requestTrack = purchasedTracks[index] || purchasedTracks[0]
+
+    await prisma.trackRequest.create({
+      data: {
+        ...requestFixture,
+        track: {
+          connect: {
+            id: requestTrack.id
+          }
+        },
+        requestedBy: {
+          connect: {
+            id: customer.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 3).padStart(2, '0')}T09:15:00.000Z`)
+      }
+    })
+  }
+
   console.log(`Seeded ${extraCatalogueTracks.length + 1} E2E catalogue tracks for ${uploader.email}`)
-  console.log(`Seeded E2E customer ownership for ${customer.email}`)
+  console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
+  console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
+  console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
+
+  const richardPlaybackTrack = await prisma.track.findFirst({
+    where: {
+      status: 'PUBLISHED',
+      moderationStatus: 'APPROVED',
+      processingStatus: 'READY',
+      uploadedBy: {
+        email: {
+          in: richardUploadEmails
+        }
+      }
+    },
+    orderBy: {
+      uploadedAt: 'desc'
+    }
+  })
+
+  if (richardPlaybackTrack) {
+    await prisma.trackOwner.upsert({
+      where: {
+        trackId_userId: {
+          trackId: richardPlaybackTrack.id,
+          userId: customer.id
+        }
+      },
+      update: {},
+      create: {
+        trackId: richardPlaybackTrack.id,
+        userId: customer.id
+      }
+    })
+
+    console.log(`Linked ${customer.email} to Richard playback track ${richardPlaybackTrack.id}`)
+  } else {
+    console.log('Skipped Richard playback track ownership: no eligible published upload found')
+  }
 }
 
 try {

@@ -1,14 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
+import { formatDisplayDate } from '../../../lib/date-format.mjs'
+import { canUseFullTrackPlayback } from '../../../lib/track-audio-access.mjs'
 
-const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 const waveformBarCount = 180
@@ -114,18 +116,113 @@ const detailTabLabels = {
   requests: 'Requests'
 }
 
+const detailTabIds = Object.keys(detailTabLabels)
+
+const getInitialTab = searchParams => {
+  const requestedTab = searchParams.get('tab')
+
+  return detailTabIds.includes(requestedTab) ? requestedTab : 'preview'
+}
+
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
+  const searchParams = useSearchParams()
+  const canPlayFullTrack = canUseFullTrackPlayback(track)
+  const playbackMode = canPlayFullTrack ? 'full' : 'sample'
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
-  const [activeTab, setActiveTab] = useState('preview')
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(searchParams))
+  const [returnContext, setReturnContext] = useState({
+    label: 'Back to Catalogue',
+    url: '/catalogue'
+  })
+  const [commentList, setCommentList] = useState(comments)
+  const [commentDraft, setCommentDraft] = useState('')
+  const [commentError, setCommentError] = useState('')
+  const [commentStatus, setCommentStatus] = useState('')
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [requestList, setRequestList] = useState(requests)
+  const [requestTitle, setRequestTitle] = useState('')
+  const [requestNotes, setRequestNotes] = useState('')
+  const [requestError, setRequestError] = useState('')
+  const [requestStatus, setRequestStatus] = useState('')
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
   const [waveformDuration, setWaveformDuration] = useState(track.durationSeconds || track.previewEnd || 1)
-  const [previewCurrentTime, setPreviewCurrentTime] = useState(() => Number.isFinite(track.previewStart) ? track.previewStart : 0)
+  const [previewCurrentTime, setPreviewCurrentTime] = useState(0)
   const [previewSeekCommand, setPreviewSeekCommand] = useState(null)
   const [isScrubbingPreview, setIsScrubbingPreview] = useState(false)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
+  const focusedCommentId = Number(searchParams.get('commentId'))
+  const focusedRequestId = Number(searchParams.get('requestId'))
+
+  const getStoredReturnContext = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
+    const returnUrl = sessionStorage.getItem(catalogueReturnUrlStorageKey)
+
+    if (returnTrackId !== String(track.id)) {
+      return null
+    }
+
+    if (returnUrl?.startsWith('/profile')) {
+      return {
+        label: 'Back to Profile',
+        url: returnUrl
+      }
+    }
+
+    if (returnUrl?.startsWith('/catalogue')) {
+      return {
+        label: 'Back to Catalogue',
+        url: returnUrl
+      }
+    }
+
+    return null
+  }, [track.id])
+
+  useEffect(() => {
+    const nextReturnContext = getStoredReturnContext() || {
+      label: 'Back to Catalogue',
+      url: '/catalogue'
+    }
+    const frameId = window.requestAnimationFrame(() => {
+      setReturnContext(nextReturnContext)
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [getStoredReturnContext])
+
+  useEffect(() => {
+    if (!Number.isInteger(focusedCommentId) || activeTab !== 'comments') {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(`comment-${focusedCommentId}`)?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth'
+      })
+    })
+  }, [activeTab, focusedCommentId])
+
+  useEffect(() => {
+    if (!Number.isInteger(focusedRequestId) || activeTab !== 'requests') {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(`request-${focusedRequestId}`)?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth'
+      })
+    })
+  }, [activeTab, focusedRequestId])
 
   useEffect(() => {
     if (activeTab !== 'preview') {
@@ -154,11 +251,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       }
 
       try {
-        const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+        const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=${playbackMode}`)
         const signedUrlData = await signedUrlResponse.json()
 
         if (!signedUrlResponse.ok) {
-          throw new Error(signedUrlData.error || 'Preview waveform unavailable')
+          throw new Error(signedUrlData.message || signedUrlData.error || 'Preview waveform unavailable')
         }
 
         const audioResponse = await fetch(signedUrlData.url)
@@ -193,21 +290,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       cancelled = true
       window.clearTimeout(loadingTimer)
     }
-  }, [activeTab, track.durationSeconds, track.id, track.previewEnd])
-
-  const getCatalogueReturnUrl = () => {
-    const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
-    const returnUrl = sessionStorage.getItem(catalogueReturnUrlStorageKey)
-
-    if (returnTrackId === String(track.id) && returnUrl?.startsWith('/catalogue')) {
-      return returnUrl
-    }
-
-    return null
-  }
+  }, [activeTab, playbackMode, track.durationSeconds, track.id, track.previewEnd])
 
   const goBackToCatalogue = () => {
-    const returnUrl = getCatalogueReturnUrl()
+    const storedReturnContext = getStoredReturnContext()
+    const returnUrl = storedReturnContext?.url || returnContext.url
 
     if (returnUrl && window.history.length > 1) {
       window.history.back()
@@ -222,19 +309,130 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     setShowCartConfirmation(true)
   }
 
-  const commentCount = comments.length
+  const submitComment = async event => {
+    event.preventDefault()
+    setCommentError('')
+    setCommentStatus('')
+
+    const trimmedComment = commentDraft.trim()
+
+    if (!trimmedComment) {
+      setCommentError('Please add a comment before submitting.')
+      return
+    }
+
+    if (trimmedComment.length > 500) {
+      setCommentError('Comments must be 500 characters or fewer.')
+      return
+    }
+
+    setIsSubmittingComment(true)
+
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          trackId: track.id,
+          comment: trimmedComment
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to add comment')
+      }
+
+      setCommentList(currentComments => [
+        ...currentComments,
+        {
+          content: data.content,
+          createdAt: formatDisplayDate(data.createdAt),
+          id: data.id,
+          userId: data.userId,
+          userName: catalogueContext.userName || 'You'
+        }
+      ])
+      setCommentDraft('')
+      setCommentStatus('Your comment has been added.')
+    } catch (error) {
+      setCommentError(error.message || 'Unable to add comment')
+    } finally {
+      setIsSubmittingComment(false)
+    }
+  }
+
+  const submitRequest = async event => {
+    event.preventDefault()
+    setRequestError('')
+    setRequestStatus('')
+
+    const trimmedTitle = requestTitle.trim()
+    const trimmedNotes = requestNotes.trim()
+
+    if (!trimmedTitle) {
+      setRequestError('Please add a request title before submitting.')
+      return
+    }
+
+    setIsSubmittingRequest(true)
+
+    try {
+      const response = await fetch('/api/track-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          trackId: track.id,
+          title: trimmedTitle,
+          notes: trimmedNotes || undefined
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to add request')
+      }
+
+      setRequestList(currentRequests => [
+        {
+          createdAt: formatDisplayDate(data.createdAt),
+          description: data.notes || 'No additional request notes supplied.',
+          id: data.id,
+          requestedBy: catalogueContext.userName || 'You',
+          status: data.status,
+          title: data.title,
+          userId: data.userId
+        },
+        ...currentRequests
+      ])
+      setRequestTitle('')
+      setRequestNotes('')
+      setRequestStatus('Your request has been added.')
+    } catch (error) {
+      setRequestError(error.message || 'Unable to add request')
+    } finally {
+      setIsSubmittingRequest(false)
+    }
+  }
+
+  const commentCount = commentList.length
+  const requestCount = requestList.length
+  const canComment = catalogueContext.isAuthenticated && track.viewerState?.isOwned
   const showBasketAction = catalogueContext.isAuthenticated &&
     !track.viewerState?.isOwned &&
     !track.viewerState?.isUploadedByViewer &&
     !catalogueContext.showOperationsOverlay
   const showOwnedAction = track.viewerState?.isOwned
   const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
-  const showPurchaseDivider = showBasketAction || showOwnedAction || showOperationsAction
+  const showWishlistAction = !showOwnedAction
+  const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
-  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
-  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
-    ? track.previewEnd
-    : waveformDuration
+  const previewStart = 0
+  const previewEnd = waveformDuration
   const safeWaveformDuration = Math.max(0.01, waveformDuration)
   const previewWindowStart = clampPercentage((previewStart / safeWaveformDuration) * 100)
   const previewWindowEnd = clampPercentage((previewEnd / safeWaveformDuration) * 100)
@@ -339,7 +537,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       onClick={goBackToCatalogue}
     >
       <span className='cmc-button-icon' aria-hidden='true'>←</span>
-      Back to Catalogue
+      {returnContext.label}
     </Button>
   )
 
@@ -347,7 +545,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     const count = tabId === 'comments'
       ? commentCount
       : tabId === 'requests'
-        ? requests.length
+        ? requestCount
         : null
 
     return (
@@ -386,14 +584,14 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
             </div>
 
             <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
-              <strong>{formatTrackPrice(track)}</strong>
+              {!showOwnedAction && <strong>{formatTrackPrice(track)}</strong>}
               {showBasketAction && (
                 <Button variant='ink' size='md' onClick={addToCart}>
                   Add to Cart
                 </Button>
               )}
               {showOwnedAction && (
-                <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
+                <Button as={Link} href='/profile' variant='ink' size='md'>
                   View in Library
                 </Button>
               )}
@@ -413,10 +611,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                 </p>
               )}
               {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
-              <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
-                <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
-                <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
-              </Button>
+              {showWishlistAction && (
+                <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
+                  <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
+                  <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
+                </Button>
+              )}
             </aside>
           </header>
 
@@ -436,6 +636,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   <div className='cmc-track-preview-panel' id='track-preview' aria-label='Preview'>
                     <PlaySample
                       active={activePreviewTrackId === track.id}
+                      mode={playbackMode}
                       onActivate={() => setActivePreviewTrackId(track.id)}
                       onDeactivate={() => setActivePreviewTrackId(null)}
                       onProgress={setPreviewCurrentTime}
@@ -529,8 +730,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     <small>Sort: Newest</small>
                   </div>
                   <div className='cmc-track-comments'>
-                    {comments.map((comment, key) => (
-                      <div className='cmc-track-comment' key={comment.id}>
+                    {commentList.map((comment, key) => (
+                      <div
+                        className={comment.id === focusedCommentId ? 'cmc-track-comment cmc-track-comment--focused' : 'cmc-track-comment'}
+                        id={`comment-${comment.id}`}
+                        key={comment.id}
+                      >
                         <span className='cmc-track-comment-avatar'>{getInitials(comment.userName)}</span>
                         <div>
                           <header>
@@ -549,9 +754,44 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         </button>
                       </div>
                     ))}
-                    {comments.length === 0 && (
+                    {commentList.length === 0 && (
                       <p className='cmc-track-empty'>
                         No comments yet. After purchasing this track you will be able to leave comments about it.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className='cmc-track-comment-action'>
+                    {canComment ? (
+                      <form onSubmit={submitComment}>
+                        <label htmlFor='track-comment'>Add your comment</label>
+                        <textarea
+                          id='track-comment'
+                          maxLength='500'
+                          onChange={event => setCommentDraft(event.target.value)}
+                          placeholder='Share a useful note about balance, tempo, cuts, or rehearsal use.'
+                          rows='4'
+                          value={commentDraft}
+                        />
+                        <div>
+                          <small>{commentDraft.trim().length}/500</small>
+                          <Button disabled={isSubmittingComment} type='submit' variant='ink'>
+                            {isSubmittingComment ? 'Adding...' : 'Add Comment'}
+                          </Button>
+                        </div>
+                        {commentError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{commentError}</p>}
+                        {commentStatus && <p className='cmc-track-comment-message' role='status'>{commentStatus}</p>}
+                      </form>
+                    ) : catalogueContext.isAuthenticated ? (
+                      <p>
+                        Purchase this track to add your comment to the discussion.
+                      </p>
+                    ) : (
+                      <p aria-label='Sign in and purchase this track to add your comment'>
+                        You need to be logged in and have purchased this track to leave a comment.{' '}
+                        <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(`/catalogue/${track.id}?tab=comments`)}`}>
+                          Sign in
+                        </Link>
                       </p>
                     )}
                   </div>
@@ -561,12 +801,16 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               {activeTab === 'requests' && (
                 <section className='cmc-track-requests-section' id='track-requests'>
                   <div className='cmc-track-section-header'>
-                    <h2>Requests <span>({requests.length})</span></h2>
+                    <h2>Requests <span>({requestCount})</span></h2>
                     <small>Open community requests</small>
                   </div>
                   <div className='cmc-track-requests'>
-                    {requests.map(request => (
-                      <article className='cmc-track-request' key={request.id}>
+                    {requestList.map(request => (
+                      <article
+                        className={request.id === focusedRequestId ? 'cmc-track-request cmc-track-request--focused' : 'cmc-track-request'}
+                        id={`request-${request.id}`}
+                        key={request.id}
+                      >
                         <header>
                           <strong>{request.title}</strong>
                           <span>{request.status}</span>
@@ -578,9 +822,49 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         </footer>
                       </article>
                     ))}
-                    {requests.length === 0 && (
+                    {requestList.length === 0 && (
                       <p className='cmc-track-empty'>
                         No requests yet. Community requests for alternate cuts, keys, and parts will appear here.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className='cmc-track-request-action'>
+                    {catalogueContext.isAuthenticated ? (
+                      <form onSubmit={submitRequest}>
+                        <h3>Make a request</h3>
+                        <label htmlFor='track-request-title'>Request title</label>
+                        <input
+                          id='track-request-title'
+                          maxLength='255'
+                          onChange={event => setRequestTitle(event.target.value)}
+                          placeholder='e.g. Slower practice tempo'
+                          type='text'
+                          value={requestTitle}
+                        />
+                        <textarea
+                          aria-label='Request notes'
+                          maxLength='1000'
+                          onChange={event => setRequestNotes(event.target.value)}
+                          placeholder='Add useful context for the uploader, such as tempo, key, cut, or instrumentation.'
+                          rows='4'
+                          value={requestNotes}
+                        />
+                        <div>
+                          <small>{requestNotes.trim().length}/1000</small>
+                          <Button disabled={isSubmittingRequest} type='submit' variant='ink'>
+                            {isSubmittingRequest ? 'Adding...' : 'Add Request'}
+                          </Button>
+                        </div>
+                        {requestError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{requestError}</p>}
+                        {requestStatus && <p className='cmc-track-comment-message' role='status'>{requestStatus}</p>}
+                      </form>
+                    ) : (
+                      <p aria-label='Sign in to make a request'>
+                        <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(`/catalogue/${track.id}?tab=requests`)}`}>
+                          Sign in
+                        </Link>{' '}
+                        to make a request.
                       </p>
                     )}
                   </div>

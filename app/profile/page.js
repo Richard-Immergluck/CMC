@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import ProfilePageContent from '../../components/features/profile/ProfilePageContent'
+import { formatDisplayDate } from '../../lib/date-format.mjs'
 import { authOptions } from '../../lib/server/auth'
 import prisma from '../../lib/server/prisma'
 
@@ -30,7 +31,22 @@ const trackSelect = {
 
 const serializeTrack = track => ({
   ...track,
-  uploadedAt: track.uploadedAt.toLocaleDateString()
+  uploadedAt: formatDisplayDate(track.uploadedAt)
+})
+
+const serializeComment = comment => ({
+  id: comment.id,
+  content: comment.content,
+  createdAt: formatDisplayDate(comment.createdAt),
+  trackId: comment.trackId,
+  trackTitle: comment.track.title,
+  trackUserId: comment.track.userId
+})
+
+const serializeTrackRequest = request => ({
+  ...request,
+  createdAt: formatDisplayDate(request.createdAt),
+  updatedAt: formatDisplayDate(request.updatedAt)
 })
 
 const getProfileData = async email => {
@@ -53,7 +69,7 @@ const getProfileData = async email => {
     return null
   }
 
-  const [uploadedTracks, purchases] = await Promise.all([
+  const [uploadedTracks, purchases, comments, trackRequests] = await Promise.all([
     prisma.track.findMany({
       where: {
         userId: currentUser.id
@@ -75,12 +91,50 @@ const getProfileData = async email => {
       orderBy: {
         purchasedAt: 'desc'
       }
+    }),
+    prisma.comment.findMany({
+      where: {
+        userId: currentUser.id
+      },
+      include: {
+        track: {
+          select: {
+            id: true,
+            title: true,
+            userId: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 8
+    }),
+    prisma.trackRequest.findMany({
+      where: {
+        userId: currentUser.id
+      },
+      include: {
+        track: {
+          select: {
+            id: true,
+            title: true,
+            userId: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 8
     })
   ])
 
   return {
     currentUser,
+    userComments: comments.map(serializeComment),
     userPurchasedTracks: purchases.map(purchase => serializeTrack(purchase.track)),
+    userTrackRequests: trackRequests.map(serializeTrackRequest),
     userUploadedTracks: uploadedTracks.map(serializeTrack)
   }
 }
@@ -106,7 +160,9 @@ const ProfilePage = async ({ searchParams }) => {
       checkoutSessionId={query?.session_id || null}
       currentUser={profile.currentUser}
       purchase={query?.purchase || null}
+      userComments={profile.userComments}
       userPurchasedTracks={profile.userPurchasedTracks}
+      userTrackRequests={profile.userTrackRequests}
       userUploadedTracks={profile.userUploadedTracks}
     />
   )

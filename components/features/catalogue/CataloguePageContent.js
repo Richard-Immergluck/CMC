@@ -95,8 +95,6 @@ const FilterSelect = ({ label, name, options, value }) => (
   </Form.Group>
 )
 
-const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
-
 const catalogueScrollStoragePrefix = 'cmc.catalogue.scroll:'
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
@@ -144,10 +142,7 @@ const getPrimaryTrackAction = ({ catalogueContext, track }) => {
   }
 
   if (track.viewerState?.isOwned) {
-    return {
-      href: createTrackProfileHref(track),
-      label: 'View in Library'
-    }
+    return null
   }
 
   if (track.viewerState?.isUploadedByViewer) {

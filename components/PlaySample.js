@@ -4,22 +4,36 @@ import { Button } from './ui/primitives'
 const normalizeVolume = volume => Math.min(1, Math.max(0, Number.isFinite(volume) ? volume : 1))
 
 const PlaySample = props => {
-  const { active, onActivate, onDeactivate, onProgress, seekCommand, track, volume = 1 } = props
+  const {
+    active,
+    mode = 'sample',
+    onActivate,
+    onDeactivate,
+    onProgress,
+    seekCommand,
+    track,
+    volume = 1
+  } = props
   const audioRef = useRef(null)
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const isFullPlayback = mode === 'full'
   const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
   const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
     ? track.previewEnd
     : null
 
   const clampToPreviewRange = useCallback(audio => {
+    if (isFullPlayback) {
+      return
+    }
+
     if (audio.currentTime < previewStart || (previewEnd && audio.currentTime >= previewEnd)) {
       audio.currentTime = previewStart
     }
-  }, [previewEnd, previewStart])
+  }, [isFullPlayback, previewEnd, previewStart])
 
   useEffect(() => {
     if (audioRef.current) {
@@ -34,8 +48,10 @@ const PlaySample = props => {
       return
     }
 
-    audio.currentTime = Math.max(previewStart, previewEnd ? Math.min(previewEnd, seekCommand.time) : seekCommand.time)
-  }, [previewEnd, previewStart, seekCommand, url])
+    audio.currentTime = isFullPlayback
+      ? Math.max(0, seekCommand.time)
+      : Math.max(previewStart, previewEnd ? Math.min(previewEnd, seekCommand.time) : seekCommand.time)
+  }, [isFullPlayback, previewEnd, previewStart, seekCommand, url])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -72,11 +88,11 @@ const PlaySample = props => {
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=${isFullPlayback ? 'full' : 'sample'}`)
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Preview unavailable')
+        throw new Error(data.message || data.error || 'Preview unavailable')
       }
 
       setUrl(data.url)
@@ -101,7 +117,7 @@ const PlaySample = props => {
   }
 
   const handleLoadedMetadata = event => {
-    event.currentTarget.currentTime = seekCommand?.time ?? previewStart
+    event.currentTarget.currentTime = seekCommand?.time ?? (isFullPlayback ? 0 : previewStart)
     event.currentTarget.volume = normalizeVolume(volume)
     onProgress?.(event.currentTarget.currentTime)
   }
@@ -111,7 +127,7 @@ const PlaySample = props => {
   }
 
   const handleTimeUpdate = event => {
-    if (previewEnd && event.currentTarget.currentTime >= previewEnd) {
+    if (!isFullPlayback && previewEnd && event.currentTarget.currentTime >= previewEnd) {
       event.currentTarget.pause()
       event.currentTarget.currentTime = previewStart
       onProgress?.(previewStart)
@@ -122,12 +138,14 @@ const PlaySample = props => {
     onProgress?.(event.currentTarget.currentTime)
   }
 
-  const buttonLabel = loading ? 'Loading Preview' : error || 'Preview'
+  const buttonLabel = loading
+    ? isFullPlayback ? 'Loading Track' : 'Loading Preview'
+    : error || (isFullPlayback ? 'Play Track' : 'Preview')
 
   return (
     <>
       <Button
-        aria-label={active ? 'Pause Preview' : undefined}
+        aria-label={active ? (isFullPlayback ? 'Pause Track' : 'Pause Preview') : undefined}
         aria-pressed={active}
         className={active ? 'cmc-preview-action cmc-provider-action-button cmc-preview-action--active' : 'cmc-preview-action cmc-provider-action-button'}
         disabled={loading}
