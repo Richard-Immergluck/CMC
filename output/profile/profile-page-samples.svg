@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf7ed"/>
+      <stop offset="0.55" stop-color="#f7f0e3"/>
+      <stop offset="1" stop-color="#efe2cb"/>
+    </linearGradient>
+    <linearGradient id="parchment" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7dfbd"/>
+      <stop offset="0.46" stop-color="#e9bd7f"/>
+      <stop offset="1" stop-color="#d9a968"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#2a2419" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: url(#paper); }
+      .panel { fill: rgba(255,255,255,0.38); stroke: #d9cfbd; stroke-width: 1.4; }
+      .paper-card { fill: #fbf8ef; stroke: #d8cdb8; stroke-width: 1.35; }
+      .ink { fill: #172027; }
+      .green { fill: #064846; }
+      .red { fill: #8e3438; }
+      .gold { fill: #bd8318; }
+      .muted { fill: #625b50; }
+      .line { stroke: #cfc5b4; stroke-width: 1.2; }
+      .staff { stroke: #455355; stroke-width: 1; opacity: 0.78; }
+      .gold-line { stroke: #bd8318; stroke-width: 4; }
+      .teal-line { stroke: #064846; stroke-width: 4; }
+      .thin-teal { stroke: #064846; stroke-width: 2; }
+      .sans { font-family: Arial, Helvetica, sans-serif; }
+      .serif { font-family: Georgia, 'Times New Roman', serif; }
+      .title { font-family: Georgia, 'Times New Roman', serif; font-size: 42px; letter-spacing: 0; }
+      .h2 { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; letter-spacing: 0; }
+      .smallcaps { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 4px; }
+      .label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; fill: #8e3438; }
+      .body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; fill: #172027; }
+      .small { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #625b50; }
+      .tiny { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #625b50; }
+      .button { fill: #064846; stroke: #073b3a; stroke-width: 1.2; }
+      .button-light { fill: #fbf8ef; stroke: #aeb9b3; stroke-width: 1.4; }
+      .button-text { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; fill: #ffffff; }
+      .button-text-dark { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; fill: #064846; }
+      .pill { fill: #f2e6d0; stroke: #d8cdb8; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1800" height="1120"/>
+  <text x="56" y="60" class="smallcaps ink">PROFILE PAGE DIRECTIONS</text>
+  <text x="56" y="92" class="small muted">CMC profile concepts using the current archive palette, staff-line motif, parchment strips, gold punctuation and compact application layouts.</text>
+
+  <!-- Option headings -->
+  <text x="56" y="150" class="smallcaps red">OPTION 1  MEMBER LIBRARY DASHBOARD</text>
+  <text x="638" y="150" class="smallcaps red">OPTION 2  UPLOADER STOREFRONT</text>
+  <text x="1220" y="150" class="smallcaps red">OPTION 3  COMMUNITY PROFILE</text>
+
+  <!-- Shared panel shells -->
+  <rect x="56" y="178" width="524" height="850" class="panel" filter="url(#softShadow)"/>
+  <rect x="638" y="178" width="524" height="850" class="panel" filter="url(#softShadow)"/>
+  <rect x="1220" y="178" width="524" height="850" class="panel" filter="url(#softShadow)"/>
+
+  <!-- OPTION 1 -->
+  <g transform="translate(56 178)">
+    <rect x="0" y="0" width="524" height="58" fill="#fbf8ef" stroke="#d9cfbd"/>
+    <g transform="translate(22 15)">
+      <line x1="0" y1="4" x2="74" y2="4" class="staff"/><line x1="0" y1="10" x2="74" y2="10" class="staff"/><line x1="0" y1="16" x2="74" y2="16" class="staff"/><line x1="0" y1="22" x2="74" y2="22" class="staff"/><line x1="0" y1="28" x2="74" y2="28" class="staff"/>
+      <rect x="28" y="-2" width="15" height="34" fill="url(#parchment)" opacity="0.82"/>
+      <text x="90" y="28" class="serif ink" font-size="30">CMC</text>
+    </g>
+    <text x="284" y="36" class="small ink">Catalogue</text>
+    <text x="365" y="36" class="small ink">Requests</text>
+    <circle cx="478" cy="29" r="18" fill="#064846"/><text x="468" y="35" class="sans" font-size="14" font-weight="700" fill="#fff">RI</text>
+
+    <rect x="0" y="58" width="524" height="152" fill="#fbf8ef" opacity="0.7"/>
+    <rect x="28" y="82" width="18" height="100" fill="url(#parchment)"/>
+    <g transform="translate(30 88)">
+      <line x1="0" y1="10" x2="170" y2="10" class="staff"/><line x1="0" y1="17" x2="170" y2="17" class="staff"/><line x1="0" y1="24" x2="170" y2="24" class="staff"/><line x1="0" y1="31" x2="170" y2="31" class="staff"/><line x1="0" y1="38" x2="170" y2="38" class="staff"/>
+    </g>
+    <circle cx="92" cy="142" r="43" fill="#064846"/><text x="73" y="154" class="serif" font-size="34" fill="#fff">RI</text>
+    <text x="154" y="122" class="title ink">Richard I<span class="gold">.</span></text>
+    <circle cx="320" cy="113" r="5" class="gold"/>
+    <text x="156" y="150" class="body">Member since 2026</text>
+    <text x="156" y="176" class="small">Purchased tracks, saved music and profile comments</text>
+
+    <g transform="translate(28 236)">
+      <rect x="0" y="0" width="468" height="88" class="paper-card"/>
+      <g transform="translate(26 24)">
+        <text x="0" y="18" class="h2 ink">18</text><text x="0" y="46" class="small">Downloads</text>
+        <line x1="108" y1="0" x2="108" y2="48" class="line"/><circle cx="128" cy="22" r="5" class="gold"/>
+        <text x="156" y="18" class="h2 ink">7</text><text x="156" y="46" class="small">Wishlist</text>
+        <line x1="252" y1="0" x2="252" y2="48" class="line"/><circle cx="272" cy="22" r="5" class="green"/>
+        <text x="302" y="18" class="h2 ink">24</text><text x="302" y="46" class="small">Comments</text>
+      </g>
+    </g>
+
+    <g transform="translate(28 354)">
+      <text x="0" y="0" class="label">MY LIBRARY</text><line x1="0" y1="16" x2="468" y2="16" class="line"/>
+      <rect x="0" y="38" width="468" height="92" class="paper-card"/>
+      <text x="20" y="68" class="body">Piano Concerto No. 21 — II. Andante</text><text x="20" y="94" class="small">W. A. Mozart · C major · Clare R.</text>
+      <rect x="350" y="58" width="92" height="34" class="button"/><rect x="350" y="58" width="7" height="34" class="gold"/><text x="376" y="80" class="button-text">Download</text>
+      <rect x="0" y="144" width="468" height="92" class="paper-card"/>
+      <text x="20" y="174" class="body">Cello Sonata No. 1 — I. Allegro</text><text x="20" y="200" class="small">J. Brahms · E minor · P. Lang</text>
+      <rect x="350" y="164" width="92" height="34" class="button-light"/><rect x="350" y="164" width="7" height="34" class="gold"/><text x="376" y="186" class="button-text-dark">Details</text>
+    </g>
+
+    <g transform="translate(28 630)">
+      <text x="0" y="0" class="label">RECENT ACTIVITY</text><line x1="0" y1="16" x2="468" y2="16" class="line"/>
+      <circle cx="10" cy="58" r="6" class="green"/><text x="34" y="62" class="body">Downloaded Flute Quartet in A minor</text><text x="382" y="62" class="small">Today</text>
+      <line x1="0" y1="86" x2="468" y2="86" class="line"/>
+      <circle cx="10" cy="122" r="6" class="gold"/><text x="34" y="126" class="body">Commented on Bruch Violin Concerto</text><text x="382" y="126" class="small">3 Jul</text>
+      <line x1="0" y1="150" x2="468" y2="150" class="line"/>
+      <circle cx="10" cy="186" r="6" fill="#aeb9b3"/><text x="34" y="190" class="body">Saved Saint-Saens request</text><text x="382" y="190" class="small">1 Jul</text>
+    </g>
+  </g>
+
+  <!-- OPTION 2 -->
+  <g transform="translate(638 178)">
+    <rect x="0" y="0" width="524" height="58" fill="#fbf8ef" stroke="#d9cfbd"/>
+    <g transform="translate(22 15)">
+      <line x1="0" y1="4" x2="74" y2="4" class="staff"/><line x1="0" y1="10" x2="74" y2="10" class="staff"/><line x1="0" y1="16" x2="74" y2="16" class="staff"/><line x1="0" y1="22" x2="74" y2="22" class="staff"/><line x1="0" y1="28" x2="74" y2="28" class="staff"/>
+      <rect x="28" y="-2" width="15" height="34" fill="url(#parchment)" opacity="0.82"/>
+      <text x="90" y="28" class="serif ink" font-size="30">CMC</text>
+    </g>
+    <text x="282" y="36" class="small ink">Catalogue</text>
+    <text x="362" y="36" class="small ink">Upload</text>
+    <circle cx="478" cy="29" r="18" fill="#064846"/><text x="466" y="35" class="sans" font-size="14" font-weight="700" fill="#fff">CR</text>
+
+    <g transform="translate(28 90)">
+      <line x1="0" y1="8" x2="250" y2="8" class="staff"/><line x1="0" y1="16" x2="250" y2="16" class="staff"/><line x1="0" y1="24" x2="250" y2="24" class="staff"/><line x1="0" y1="32" x2="250" y2="32" class="staff"/><line x1="0" y1="40" x2="250" y2="40" class="staff"/>
+      <rect x="92" y="-18" width="28" height="94" fill="url(#parchment)" opacity="0.86"/>
+      <circle cx="160" cy="48" r="48" fill="#064846"/><text x="140" y="62" class="serif" font-size="36" fill="#fff">CR</text>
+      <text x="228" y="44" class="serif ink" font-size="36">Clare R<span class="gold">.</span></text>
+      <text x="230" y="74" class="small">Pianist, arranger and accompanist maker</text>
+      <rect x="360" y="16" width="108" height="38" class="button-light"/><rect x="360" y="16" width="7" height="38" class="gold"/><text x="389" y="40" class="button-text-dark">Edit profile</text>
+    </g>
+
+    <g transform="translate(28 238)">
+      <rect x="0" y="0" width="468" height="102" class="paper-card"/>
+      <text x="24" y="34" class="h2 ink">612</text><text x="24" y="64" class="small">Sales</text>
+      <line x1="130" y1="20" x2="130" y2="78" class="line"/><circle cx="150" cy="48" r="5" class="green"/>
+      <text x="178" y="34" class="h2 ink">48</text><text x="178" y="64" class="small">Published</text>
+      <line x1="284" y1="20" x2="284" y2="78" class="line"/><circle cx="304" cy="48" r="5" class="gold"/>
+      <text x="334" y="34" class="h2 ink">23</text><text x="334" y="64" class="small">Requests fulfilled</text>
+    </g>
+
+    <g transform="translate(28 376)">
+      <text x="0" y="0" class="label">UPLOADER CATALOGUE</text><line x1="0" y1="16" x2="468" y2="16" class="line"/>
+      <text x="0" y="48" class="tiny">TITLE</text><text x="216" y="48" class="tiny">DOWNLOADS</text><text x="316" y="48" class="tiny">COMMENTS</text><text x="410" y="48" class="tiny">PRICE</text>
+      <line x1="0" y1="64" x2="468" y2="64" class="line"/>
+      <text x="0" y="96" class="body">Piano Concerto No. 21</text><text x="238" y="96" class="body">42</text><text x="340" y="96" class="body">7</text><text x="410" y="96" class="body">£8.50</text>
+      <line x1="0" y1="122" x2="468" y2="122" class="line"/>
+      <text x="0" y="154" class="body">Saint-Saens Allegro</text><text x="238" y="154" class="body">31</text><text x="340" y="154" class="body">12</text><text x="410" y="154" class="body">£7.00</text>
+      <line x1="0" y1="180" x2="468" y2="180" class="line"/>
+      <text x="0" y="212" class="body">Brahms Cello Sonata No. 1</text><text x="238" y="212" class="body">28</text><text x="340" y="212" class="body">9</text><text x="410" y="212" class="body">£6.00</text>
+    </g>
+
+    <g transform="translate(28 642)">
+      <rect x="0" y="0" width="468" height="152" class="paper-card"/>
+      <rect x="0" y="0" width="7" height="152" class="gold"/>
+      <text x="24" y="34" class="label">REQUEST MATCHES</text>
+      <text x="24" y="66" class="body">3 open requests match your instrumentation.</text>
+      <text x="24" y="98" class="small">Highest demand: piano reductions, orchestral cues and slow-movement rehearsal tracks.</text>
+      <rect x="324" y="96" width="112" height="36" class="button"/><rect x="324" y="96" width="7" height="36" class="gold"/><text x="352" y="119" class="button-text">Review</text>
+    </g>
+  </g>
+
+  <!-- OPTION 3 -->
+  <g transform="translate(1220 178)">
+    <rect x="0" y="0" width="524" height="58" fill="#fbf8ef" stroke="#d9cfbd"/>
+    <g transform="translate(22 15)">
+      <line x1="0" y1="4" x2="74" y2="4" class="staff"/><line x1="0" y1="10" x2="74" y2="10" class="staff"/><line x1="0" y1="16" x2="74" y2="16" class="staff"/><line x1="0" y1="22" x2="74" y2="22" class="staff"/><line x1="0" y1="28" x2="74" y2="28" class="staff"/>
+      <rect x="28" y="-2" width="15" height="34" fill="url(#parchment)" opacity="0.82"/>
+      <text x="90" y="28" class="serif ink" font-size="30">CMC</text>
+    </g>
+    <text x="280" y="36" class="small ink">Community</text>
+    <text x="370" y="36" class="small ink">Requests</text>
+    <circle cx="478" cy="29" r="18" fill="#064846"/><text x="467" y="35" class="sans" font-size="14" font-weight="700" fill="#fff">ML</text>
+
+    <g transform="translate(28 86)">
+      <rect x="0" y="0" width="468" height="186" class="paper-card"/>
+      <rect x="0" y="0" width="8" height="186" fill="url(#parchment)"/>
+      <text x="28" y="44" class="title ink">Maria L<span class="gold">.</span></text>
+      <circle cx="183" cy="36" r="5" class="gold"/>
+      <text x="30" y="78" class="body">Oboist · Manchester · CMC contributor</text>
+      <text x="30" y="112" class="small">Follows request threads, comments on balance and phrasing,</text>
+      <text x="30" y="132" class="small">and curates rehearsal lists for chamber music.</text>
+      <rect x="310" y="126" width="130" height="38" class="button"/><rect x="310" y="126" width="7" height="38" class="gold"/><text x="342" y="150" class="button-text">Follow</text>
+    </g>
+
+    <g transform="translate(28 306)">
+      <rect x="0" y="0" width="468" height="88" class="paper-card"/>
+      <text x="26" y="34" class="h2 ink">31</text><text x="26" y="64" class="small">Comments</text>
+      <line x1="132" y1="20" x2="132" y2="72" class="line"/><circle cx="154" cy="46" r="5" class="green"/>
+      <text x="184" y="34" class="h2 ink">14</text><text x="184" y="64" class="small">Requests</text>
+      <line x1="292" y1="20" x2="292" y2="72" class="line"/><circle cx="314" cy="46" r="5" class="gold"/>
+      <text x="342" y="34" class="h2 ink">9</text><text x="342" y="64" class="small">Helpful marks</text>
+    </g>
+
+    <g transform="translate(28 430)">
+      <text x="0" y="0" class="label">COMMUNITY THREADS</text><line x1="0" y1="16" x2="468" y2="16" class="line"/>
+      <rect x="0" y="40" width="468" height="96" class="paper-card"/>
+      <circle cx="28" cy="70" r="7" class="gold"/><text x="52" y="72" class="body">Request: Poulenc Sonata backing track</text><text x="52" y="102" class="small">4 replies · 2 uploaders interested</text>
+      <rect x="0" y="150" width="468" height="96" class="paper-card"/>
+      <circle cx="28" cy="180" r="7" class="green"/><text x="52" y="182" class="body">Commented: Mozart Andante balance</text><text x="52" y="212" class="small">“Winds are clear without overpowering piano.”</text>
+    </g>
+
+    <g transform="translate(28 720)">
+      <text x="0" y="0" class="label">PUBLIC COLLECTIONS</text><line x1="0" y1="16" x2="468" y2="16" class="line"/>
+      <rect x="0" y="40" width="142" height="82" class="pill"/><text x="18" y="74" class="body">Oboe</text><text x="18" y="100" class="small">12 tracks</text>
+      <rect x="164" y="40" width="142" height="82" class="pill"/><text x="182" y="74" class="body">French</text><text x="182" y="100" class="small">8 tracks</text>
+      <rect x="326" y="40" width="142" height="82" class="pill"/><text x="344" y="74" class="body">Slow study</text><text x="344" y="100" class="small">17 tracks</text>
+    </g>
+  </g>
+
+  <text x="56" y="1070" class="small muted">Recommendation: Option 1 works best for ordinary signed-in members; Option 2 can be layered in when the same user is also an approved uploader; Option 3 is strongest once public profiles, comments and request-following become first-class social features.</text>
+</svg>

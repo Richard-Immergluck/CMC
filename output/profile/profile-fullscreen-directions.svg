@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="3180" viewBox="0 0 1600 3180">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf7ed"/>
+      <stop offset="0.55" stop-color="#f6efe1"/>
+      <stop offset="1" stop-color="#ead9bd"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2d4a8"/>
+      <stop offset="0.48" stop-color="#dfb273"/>
+      <stop offset="1" stop-color="#c89142"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#271f17" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .screen { fill: url(#paper); stroke: #d4c8b5; stroke-width: 1.2; }
+      .panel { fill: rgba(255,255,255,0.42); stroke: #d7cbb8; stroke-width: 1.2; }
+      .soft { fill: #fbf8ef; stroke: #d7cbb8; stroke-width: 1.2; }
+      .cream { fill: #f1e4cd; stroke: #d7cbb8; stroke-width: 1.1; }
+      .green { fill: #064846; }
+      .red { fill: #8e3438; }
+      .gold { fill: #bd8318; }
+      .ink { fill: #172027; }
+      .muted { fill: #625b50; }
+      .line { stroke: #d1c5b2; stroke-width: 1.1; }
+      .staff { stroke: #526062; stroke-width: 1; opacity: 0.76; }
+      .goldStroke { stroke: #bd8318; stroke-width: 4; }
+      .serif { font-family: Georgia, 'Times New Roman', serif; }
+      .sans { font-family: Arial, Helvetica, sans-serif; }
+      .label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 2.6px; fill: #8e3438; }
+      .smallcap { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 4px; fill: #172027; }
+      .h1 { font-family: Georgia, 'Times New Roman', serif; font-size: 56px; letter-spacing: 0; fill: #172027; }
+      .h2 { font-family: Georgia, 'Times New Roman', serif; font-size: 34px; letter-spacing: 0; fill: #172027; }
+      .body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; fill: #172027; }
+      .small { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #625b50; }
+      .tiny { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #625b50; }
+      .button { fill: #064846; stroke: #073b3a; stroke-width: 1.2; }
+      .buttonLight { fill: #fbf8ef; stroke: #aeb9b3; stroke-width: 1.4; }
+      .buttonText { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; fill: #fff; }
+      .buttonTextDark { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; fill: #064846; }
+      .tabActive { fill: #064846; }
+      .tableHead { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; fill: #8e3438; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="3180" fill="#eee2cf"/>
+  <text x="70" y="70" class="smallcap">CMC PROFILE PAGE - FULL SCREEN PRODUCT DIRECTIONS</text>
+  <text x="70" y="102" class="small muted">All three assume uploaders inherit the standard member library/search/download tools, then gain upload, performance and public-profile surfaces.</text>
+
+  <!-- Shared logo symbol -->
+  <symbol id="logo" viewBox="0 0 190 58">
+    <g transform="translate(0 12)">
+      <line x1="0" y1="4" x2="96" y2="4" class="staff"/>
+      <line x1="0" y1="12" x2="96" y2="12" class="staff"/>
+      <line x1="0" y1="20" x2="96" y2="20" class="staff"/>
+      <line x1="0" y1="28" x2="96" y2="28" class="staff"/>
+      <line x1="0" y1="36" x2="96" y2="36" class="staff"/>
+      <rect x="43" y="-5" width="18" height="52" fill="url(#bar)" opacity="0.88"/>
+    </g>
+    <text x="116" y="43" class="serif ink" font-size="38">CMC</text>
+  </symbol>
+
+  <!-- VERSION 1 -->
+  <g transform="translate(70 140)">
+    <text x="0" y="0" class="smallcap">VERSION 1 - LIBRARY FIRST PROFILE</text>
+    <rect x="0" y="28" width="1460" height="900" rx="0" class="screen" filter="url(#shadow)"/>
+    <rect x="0" y="28" width="1460" height="74" fill="#fbf8ef" stroke="#d7cbb8"/>
+    <use href="#logo" x="30" y="36" width="190" height="58"/>
+    <text x="880" y="75" class="body">Catalogue</text>
+    <text x="972" y="75" class="body">Requests</text>
+    <text x="1070" y="75" class="body">Community</text>
+    <text x="1182" y="75" class="body">Cart</text>
+    <circle cx="1392" cy="64" r="23" class="green"/><text x="1380" y="72" class="sans" font-size="15" font-weight="700" fill="#fff">RI</text>
+
+    <rect x="36" y="136" width="58" height="210" fill="url(#bar)" opacity="0.86"/>
+    <g transform="translate(36 146)">
+      <line x1="0" y1="18" x2="360" y2="18" class="staff"/><line x1="0" y1="30" x2="360" y2="30" class="staff"/><line x1="0" y1="42" x2="360" y2="42" class="staff"/><line x1="0" y1="54" x2="360" y2="54" class="staff"/><line x1="0" y1="66" x2="360" y2="66" class="staff"/>
+    </g>
+    <text x="132" y="190" class="label">YOUR MUSIC</text>
+    <line x1="132" y1="207" x2="314" y2="207" class="goldStroke"/>
+    <text x="132" y="270" class="h1">My profile<span class="gold">.</span></text>
+    <text x="132" y="308" class="body">Search, download and manage the tracks you own. Uploader and admin tools appear only when your role allows them.</text>
+
+    <rect x="1040" y="148" width="340" height="164" class="soft"/>
+    <text x="1072" y="194" class="h2">Richard I<span class="gold">.</span></text>
+    <text x="1072" y="224" class="small">Member since 2026 · customer</text>
+    <rect x="1072" y="252" width="130" height="38" class="button"/><rect x="1072" y="252" width="8" height="38" class="gold"/><text x="1109" y="276" class="buttonText">Edit profile</text>
+    <rect x="1218" y="252" width="130" height="38" class="buttonLight"/><rect x="1218" y="252" width="8" height="38" class="gold"/><text x="1245" y="276" class="buttonTextDark">Account</text>
+
+    <g transform="translate(74 390)">
+      <text x="0" y="0" class="label">DOWNLOAD LIBRARY</text>
+      <rect x="0" y="30" width="1312" height="58" class="soft"/>
+      <text x="26" y="66" class="small">Search owned tracks, composer, key, uploader...</text>
+      <rect x="930" y="42" width="146" height="34" class="cream"/><text x="952" y="64" class="small">Key: All</text>
+      <rect x="1090" y="42" width="146" height="34" class="cream"/><text x="1112" y="64" class="small">Composer: All</text>
+      <rect x="1250" y="42" width="38" height="34" class="buttonLight"/><text x="1262" y="64" class="buttonTextDark">X</text>
+
+      <rect x="0" y="116" width="1312" height="326" class="soft"/>
+      <text x="28" y="154" class="tableHead">TITLE</text><text x="420" y="154" class="tableHead">COMPOSER</text><text x="610" y="154" class="tableHead">KEY</text><text x="740" y="154" class="tableHead">UPLOADER</text><text x="900" y="154" class="tableHead">PURCHASED</text><text x="1080" y="154" class="tableHead">ACTIONS</text>
+      <line x1="28" y1="172" x2="1284" y2="172" class="line"/>
+      <text x="28" y="212" class="body">Piano Concerto No. 21 - II. Andante</text><text x="420" y="212" class="body">W. A. Mozart</text><text x="610" y="212" class="body">C major</text><text x="740" y="212" class="body">Clare R.</text><text x="900" y="212" class="body">4 Jul 2026</text>
+      <rect x="1080" y="190" width="116" height="36" class="button"/><rect x="1080" y="190" width="8" height="36" class="gold"/><text x="1110" y="213" class="buttonText">Download</text>
+      <rect x="1210" y="190" width="74" height="36" class="buttonLight"/><rect x="1210" y="190" width="8" height="36" class="gold"/><text x="1236" y="213" class="buttonTextDark">Open</text>
+      <line x1="28" y1="246" x2="1284" y2="246" class="line"/>
+      <text x="28" y="286" class="body">Cello Sonata No. 1 - I. Allegro</text><text x="420" y="286" class="body">J. Brahms</text><text x="610" y="286" class="body">E minor</text><text x="740" y="286" class="body">P. Lang</text><text x="900" y="286" class="body">2 Jul 2026</text>
+      <rect x="1080" y="264" width="116" height="36" class="button"/><rect x="1080" y="264" width="8" height="36" class="gold"/><text x="1110" y="287" class="buttonText">Download</text>
+      <rect x="1210" y="264" width="74" height="36" class="buttonLight"/><rect x="1210" y="264" width="8" height="36" class="gold"/><text x="1236" y="287" class="buttonTextDark">Open</text>
+      <line x1="28" y1="320" x2="1284" y2="320" class="line"/>
+      <text x="28" y="360" class="body">Violin Concerto in G - II. Adagio</text><text x="420" y="360" class="body">M. Bruch</text><text x="610" y="360" class="body">G major</text><text x="740" y="360" class="body">M. De Luca</text><text x="900" y="360" class="body">29 Jun 2026</text>
+      <rect x="1080" y="338" width="116" height="36" class="button"/><rect x="1080" y="338" width="8" height="36" class="gold"/><text x="1110" y="361" class="buttonText">Download</text>
+      <rect x="1210" y="338" width="74" height="36" class="buttonLight"/><rect x="1210" y="338" width="8" height="36" class="gold"/><text x="1236" y="361" class="buttonTextDark">Open</text>
+    </g>
+
+    <g transform="translate(74 842)">
+      <rect x="0" y="0" width="412" height="50" class="cream"/><text x="22" y="31" class="body">Wishlist 7</text>
+      <rect x="450" y="0" width="412" height="50" class="cream"/><text x="472" y="31" class="body">My requests 3</text>
+      <rect x="900" y="0" width="412" height="50" class="cream"/><text x="922" y="31" class="body">Recent comments 24</text>
+    </g>
+  </g>
+
+  <!-- VERSION 2 -->
+  <g transform="translate(70 1120)">
+    <text x="0" y="0" class="smallcap">VERSION 2 - ROLE WORKSPACE WITH MEMBER LIBRARY INCLUDED</text>
+    <rect x="0" y="28" width="1460" height="900" class="screen" filter="url(#shadow)"/>
+    <rect x="0" y="28" width="1460" height="74" fill="#fbf8ef" stroke="#d7cbb8"/>
+    <use href="#logo" x="30" y="36" width="190" height="58"/>
+    <text x="910" y="75" class="body">Catalogue</text><text x="1010" y="75" class="body">Upload</text><text x="1086" y="75" class="body">Admin</text>
+    <circle cx="1392" cy="64" r="23" class="green"/><text x="1378" y="72" class="sans" font-size="15" font-weight="700" fill="#fff">CR</text>
+
+    <rect x="36" y="134" width="270" height="720" class="soft"/>
+    <rect x="60" y="164" width="28" height="122" fill="url(#bar)"/>
+    <circle cx="150" cy="214" r="50" class="green"/><text x="129" y="230" class="serif" font-size="38" fill="#fff">CR</text>
+    <text x="60" y="330" class="h2">Clare R<span class="gold">.</span></text>
+    <text x="60" y="360" class="small">Uploader · member · London</text>
+    <line x1="60" y1="394" x2="282" y2="394" class="line"/>
+    <text x="60" y="436" class="body">Library</text><rect x="244" y="416" width="24" height="24" class="cream"/><text x="251" y="433" class="small">18</text>
+    <text x="60" y="482" class="body">Uploads</text><rect x="244" y="462" width="24" height="24" class="cream"/><text x="251" y="479" class="small">48</text>
+    <text x="60" y="528" class="body">Sales</text><rect x="244" y="508" width="24" height="24" class="cream"/><text x="251" y="525" class="small">612</text>
+    <text x="60" y="574" class="body">Requests</text><rect x="244" y="554" width="24" height="24" class="cream"/><text x="251" y="571" class="small">23</text>
+    <text x="60" y="620" class="body">Comments</text><rect x="244" y="600" width="24" height="24" class="cream"/><text x="251" y="617" class="small">156</text>
+    <rect x="60" y="690" width="190" height="40" class="button"/><rect x="60" y="690" width="8" height="40" class="gold"/><text x="102" y="715" class="buttonText">Upload track</text>
+
+    <g transform="translate(346 140)">
+      <text x="0" y="0" class="label">OVERVIEW</text>
+      <text x="0" y="60" class="h1">Profile workspace<span class="gold">.</span></text>
+      <text x="0" y="96" class="body">This direction treats the profile as a role-aware command centre. Member library remains first-class; uploader and admin panels are additive.</text>
+      <rect x="0" y="134" width="248" height="96" class="soft"/><text x="28" y="176" class="h2">18</text><text x="28" y="205" class="small">Purchased downloads</text>
+      <rect x="272" y="134" width="248" height="96" class="soft"/><text x="300" y="176" class="h2">48</text><text x="300" y="205" class="small">Published uploads</text>
+      <rect x="544" y="134" width="248" height="96" class="soft"/><text x="572" y="176" class="h2">£3,060</text><text x="572" y="205" class="small">Gross marketplace sales</text>
+      <rect x="816" y="134" width="248" height="96" class="soft"/><text x="844" y="176" class="h2">5</text><text x="844" y="205" class="small">Pending actions</text>
+
+      <rect x="0" y="274" width="646" height="414" class="soft"/>
+      <text x="28" y="316" class="label">DOWNLOAD LIBRARY</text>
+      <rect x="28" y="342" width="590" height="44" class="cream"/><text x="48" y="370" class="small">Search owned tracks...</text>
+      <line x1="28" y1="418" x2="618" y2="418" class="line"/>
+      <text x="28" y="452" class="body">Mozart - Piano Concerto No. 21</text><text x="472" y="452" class="body">Download</text>
+      <line x1="28" y1="486" x2="618" y2="486" class="line"/>
+      <text x="28" y="520" class="body">Brahms - Cello Sonata No. 1</text><text x="472" y="520" class="body">Download</text>
+      <line x1="28" y1="554" x2="618" y2="554" class="line"/>
+      <text x="28" y="588" class="body">Bruch - Violin Concerto in G</text><text x="472" y="588" class="body">Download</text>
+
+      <rect x="678" y="274" width="386" height="194" class="soft"/>
+      <rect x="678" y="274" width="8" height="194" class="gold"/>
+      <text x="708" y="316" class="label">UPLOADER TOOLS</text>
+      <text x="708" y="352" class="body">Track review state, upload performance, request matches and public profile preview.</text>
+      <rect x="708" y="398" width="132" height="38" class="button"/><rect x="708" y="398" width="8" height="38" class="gold"/><text x="744" y="422" class="buttonText">Manage</text>
+      <rect x="678" y="494" width="386" height="194" class="soft"/>
+      <rect x="678" y="494" width="8" height="194" fill="#aeb9b3"/>
+      <text x="708" y="536" class="label">ADMIN / SUPPORT</text>
+      <text x="708" y="572" class="body">Only appears for elevated roles: pending reviews, security dashboard and support-safe shortcuts.</text>
+      <rect x="708" y="618" width="132" height="38" class="buttonLight"/><rect x="708" y="618" width="8" height="38" class="gold"/><text x="734" y="642" class="buttonTextDark">Open admin</text>
+    </g>
+  </g>
+
+  <!-- VERSION 3 -->
+  <g transform="translate(70 2100)">
+    <text x="0" y="0" class="smallcap">VERSION 3 - ACCOUNT HUB WITH TABBED DATA TABLES</text>
+    <rect x="0" y="28" width="1460" height="900" class="screen" filter="url(#shadow)"/>
+    <rect x="0" y="28" width="1460" height="74" fill="#fbf8ef" stroke="#d7cbb8"/>
+    <use href="#logo" x="30" y="36" width="190" height="58"/>
+    <text x="930" y="75" class="body">Catalogue</text><text x="1030" y="75" class="body">Requests</text><text x="1128" y="75" class="body">Community</text>
+    <circle cx="1392" cy="64" r="23" class="green"/><text x="1380" y="72" class="sans" font-size="15" font-weight="700" fill="#fff">ML</text>
+
+    <g transform="translate(60 138)">
+      <line x1="0" y1="18" x2="520" y2="18" class="staff"/><line x1="0" y1="31" x2="520" y2="31" class="staff"/><line x1="0" y1="44" x2="520" y2="44" class="staff"/><line x1="0" y1="57" x2="520" y2="57" class="staff"/><line x1="0" y1="70" x2="520" y2="70" class="staff"/>
+      <rect x="44" y="-8" width="34" height="126" fill="url(#bar)" opacity="0.84"/>
+      <text x="120" y="90" class="h1">Maria L<span class="gold">.</span></text>
+      <text x="122" y="128" class="body">Member profile, downloads, requests and community participation.</text>
+    </g>
+
+    <g transform="translate(60 330)">
+      <rect x="0" y="0" width="1340" height="56" class="soft"/>
+      <rect x="20" y="12" width="110" height="32" class="green"/><text x="47" y="33" class="buttonText">Library</text>
+      <text x="170" y="33" class="body">Wishlist</text>
+      <text x="282" y="33" class="body">Requests</text>
+      <text x="408" y="33" class="body">Comments</text>
+      <text x="540" y="33" class="body">Uploads</text>
+      <text x="650" y="33" class="body">Account</text>
+    </g>
+
+    <g transform="translate(60 422)">
+      <rect x="0" y="0" width="880" height="482" class="soft"/>
+      <text x="28" y="42" class="label">SEARCHABLE DOWNLOAD TABLE</text>
+      <rect x="28" y="70" width="538" height="44" class="cream"/><text x="50" y="98" class="small">Search downloaded tracks...</text>
+      <rect x="590" y="70" width="120" height="44" class="cream"/><text x="612" y="98" class="small">All keys</text>
+      <rect x="724" y="70" width="120" height="44" class="cream"/><text x="746" y="98" class="small">All eras</text>
+      <text x="28" y="154" class="tableHead">TITLE</text><text x="350" y="154" class="tableHead">COMPOSER</text><text x="520" y="154" class="tableHead">PURCHASED</text><text x="690" y="154" class="tableHead">ACTION</text>
+      <line x1="28" y1="174" x2="852" y2="174" class="line"/>
+      <text x="28" y="216" class="body">Piano Concerto No. 21 - II. Andante</text><text x="350" y="216" class="body">Mozart</text><text x="520" y="216" class="body">4 Jul</text><text x="690" y="216" class="body">Download</text>
+      <line x1="28" y1="248" x2="852" y2="248" class="line"/>
+      <text x="28" y="290" class="body">Flute Quartet in A minor - III. Rondo</text><text x="350" y="290" class="body">Mozart</text><text x="520" y="290" class="body">2 Jul</text><text x="690" y="290" class="body">Download</text>
+      <line x1="28" y1="322" x2="852" y2="322" class="line"/>
+      <text x="28" y="364" class="body">Cello Sonata No. 1 - I. Allegro</text><text x="350" y="364" class="body">Brahms</text><text x="520" y="364" class="body">29 Jun</text><text x="690" y="364" class="body">Download</text>
+      <line x1="28" y1="396" x2="852" y2="396" class="line"/>
+      <text x="28" y="438" class="body">Violin Concerto in G - II. Adagio</text><text x="350" y="438" class="body">Bruch</text><text x="520" y="438" class="body">21 Jun</text><text x="690" y="438" class="body">Download</text>
+
+      <rect x="920" y="0" width="420" height="226" class="soft"/>
+      <rect x="920" y="0" width="8" height="226" fill="url(#bar)"/>
+      <text x="952" y="42" class="label">ROLE MODULES</text>
+      <text x="952" y="82" class="body">Standard member</text><text x="1170" y="82" class="small">Library, wishlist, requests</text>
+      <line x1="952" y1="108" x2="1308" y2="108" class="line"/>
+      <text x="952" y="146" class="body">Uploader</text><text x="1170" y="146" class="small">Uploads, sales, public profile</text>
+      <line x1="952" y1="172" x2="1308" y2="172" class="line"/>
+      <text x="952" y="208" class="body">Admin / support</text><text x="1170" y="208" class="small">Operational shortcuts</text>
+
+      <rect x="920" y="256" width="420" height="226" class="soft"/>
+      <text x="952" y="298" class="label">RECENT ACTIVITY</text>
+      <circle cx="960" cy="342" r="6" class="green"/><text x="984" y="347" class="body">Downloaded Mozart Andante</text><text x="1246" y="347" class="small">Today</text>
+      <line x1="952" y1="372" x2="1308" y2="372" class="line"/>
+      <circle cx="960" cy="410" r="6" class="gold"/><text x="984" y="415" class="body">Commented on Brahms Sonata</text><text x="1246" y="415" class="small">3 Jul</text>
+      <line x1="952" y1="440" x2="1308" y2="440" class="line"/>
+    </g>
+  </g>
+</svg>

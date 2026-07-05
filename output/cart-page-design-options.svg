@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1180" width="1800" height="1180">
+  <defs>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset="0.48" stop-color="#f7f1e5"/>
+      <stop offset="1" stop-color="#eef3ed"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#173f38" flood-opacity="0.08"/>
+    </filter>
+    <pattern id="grain" width="160" height="160" patternUnits="userSpaceOnUse">
+      <rect width="160" height="160" fill="transparent"/>
+      <circle cx="23" cy="31" r="0.8" fill="#8f7d5d" opacity="0.12"/>
+      <circle cx="92" cy="61" r="0.7" fill="#173f38" opacity="0.08"/>
+      <circle cx="131" cy="118" r="0.9" fill="#a87322" opacity="0.08"/>
+      <circle cx="57" cy="143" r="0.6" fill="#8f3d3d" opacity="0.07"/>
+    </pattern>
+    <style>
+      .bg { fill: url(#paper); }
+      .grain { fill: url(#grain); }
+      .panel { fill: rgba(255,253,248,0.7); stroke: rgba(23,63,56,0.18); stroke-width: 1.2; }
+      .panel-strong { fill: rgba(255,253,248,0.86); stroke: rgba(23,63,56,0.25); stroke-width: 1.4; filter: url(#softShadow); }
+      .ink { fill: #181f26; }
+      .muted { fill: #6b6255; }
+      .green { fill: #173f38; }
+      .teal { fill: #075f69; }
+      .rose { fill: #8f3d3d; }
+      .gold { fill: #a87322; }
+      .line { stroke: rgba(23,63,56,0.18); stroke-width: 1.2; }
+      .dark-line { stroke: rgba(23,63,56,0.44); stroke-width: 1.2; }
+      .staff { stroke: rgba(23,63,56,0.34); stroke-width: 1.2; }
+      .staff-dark { stroke: rgba(23,32,31,0.58); stroke-width: 1.2; }
+      .paperbar { fill: #f0d7ad; opacity: 0.75; }
+      .button { fill: #173f38; stroke: #173f38; stroke-width: 1; }
+      .button-light { fill: transparent; stroke: rgba(23,63,56,0.44); stroke-width: 1.2; }
+      .button-gold { fill: #a87322; }
+      .h1 { font-family: Georgia, 'Times New Roman', serif; font-size: 38px; font-weight: 500; letter-spacing: 0; }
+      .h2 { font-family: Georgia, 'Times New Roman', serif; font-size: 25px; font-weight: 500; letter-spacing: 0; }
+      .label { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 4px; }
+      .small-label { font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 2px; }
+      .body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; letter-spacing: 0; }
+      .body-sm { font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: 0; }
+      .body-xs { font-family: Arial, Helvetica, sans-serif; font-size: 10px; letter-spacing: 0; }
+      .price { font-family: Georgia, 'Times New Roman', serif; font-size: 29px; font-weight: 500; letter-spacing: 0; }
+      .mono { font-family: Arial, Helvetica, sans-serif; font-size: 11px; letter-spacing: 1px; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1800" height="1180"/>
+  <rect class="grain" width="1800" height="1180"/>
+
+  <text x="42" y="52" class="label ink">CMC CART PAGE DESIGN DIRECTIONS</text>
+  <text x="42" y="82" class="body muted">Three static approaches before implementation. All borrow the catalogue-board table lines, parchment motif, red/gold micro-type and compact checkout language.</text>
+
+  <!-- Option 1 -->
+  <g transform="translate(42 130)">
+    <text x="0" y="0" class="label ink">1. LEDGER CHECKOUT BOARD</text>
+    <rect x="0" y="26" width="540" height="900" class="panel-strong"/>
+    <g transform="translate(26 54)">
+      <line x1="0" y1="16" x2="488" y2="16" class="staff"/>
+      <line x1="0" y1="26" x2="488" y2="26" class="staff"/>
+      <line x1="0" y1="36" x2="488" y2="36" class="staff"/>
+      <line x1="0" y1="46" x2="488" y2="46" class="staff"/>
+      <line x1="0" y1="56" x2="488" y2="56" class="staff"/>
+      <rect x="22" y="0" width="18" height="76" class="paperbar"/>
+      <text x="0" y="126" class="h1 ink">Shopping cart</text>
+      <circle cx="225" cy="118" r="5" class="gold"/>
+      <text x="0" y="160" class="body muted">Check the tracks, licence and creator details before checkout.</text>
+    </g>
+
+    <g transform="translate(26 250)">
+      <text x="0" y="0" class="small-label rose">TRACK</text>
+      <text x="272" y="0" class="small-label rose">LICENCE</text>
+      <text x="410" y="0" class="small-label rose">PRICE</text>
+      <line x1="0" y1="22" x2="488" y2="22" class="dark-line"/>
+
+      <g transform="translate(0 58)">
+        <text x="0" y="0" class="body ink">Piano Concerto No. 21</text>
+        <text x="0" y="22" class="body-sm muted">II. Andante · W. A. Mozart</text>
+        <text x="272" y="8" class="body-sm ink">Standard</text>
+        <text x="410" y="8" class="body ink">£8.50</text>
+        <circle cx="470" cy="4" r="4" class="gold"/>
+        <line x1="0" y1="56" x2="488" y2="56" class="line"/>
+      </g>
+      <g transform="translate(0 138)">
+        <text x="0" y="0" class="body ink">Cello Sonata No. 1</text>
+        <text x="0" y="22" class="body-sm muted">I. Allegro · J. Brahms</text>
+        <text x="272" y="8" class="body-sm ink">Standard</text>
+        <text x="410" y="8" class="body ink">£6.00</text>
+        <circle cx="470" cy="4" r="4" class="teal"/>
+        <line x1="0" y1="56" x2="488" y2="56" class="line"/>
+      </g>
+      <g transform="translate(0 218)">
+        <text x="0" y="0" class="body ink">Violin Concerto in G</text>
+        <text x="0" y="22" class="body-sm muted">II. Adagio · M. Bruch</text>
+        <text x="272" y="8" class="body-sm ink">Standard</text>
+        <text x="410" y="8" class="body ink">£7.50</text>
+        <circle cx="470" cy="4" r="4" class="gold"/>
+        <line x1="0" y1="56" x2="488" y2="56" class="line"/>
+      </g>
+    </g>
+
+    <g transform="translate(26 610)">
+      <rect x="0" y="0" width="488" height="164" class="panel"/>
+      <rect x="0" y="0" width="5" height="164" class="gold"/>
+      <text x="28" y="38" class="small-label rose">ORDER SUMMARY</text>
+      <text x="28" y="76" class="body muted">3 tracks</text>
+      <text x="420" y="76" class="body ink">£22.00</text>
+      <text x="28" y="106" class="body muted">Platform fees</text>
+      <text x="430" y="106" class="body ink">£0.00</text>
+      <line x1="28" y1="126" x2="460" y2="126" class="line"/>
+      <text x="28" y="154" class="body ink">Total</text>
+      <text x="404" y="154" class="price ink">£22.00</text>
+    </g>
+
+    <g transform="translate(26 810)">
+      <rect x="0" y="0" width="238" height="48" class="button"/>
+      <rect x="0" y="0" width="7" height="48" class="button-gold"/>
+      <text x="78" y="31" class="body" fill="#fffdf8">Checkout</text>
+      <rect x="250" y="0" width="238" height="48" class="button-light"/>
+      <text x="300" y="31" class="body green">Continue browsing</text>
+    </g>
+  </g>
+
+  <!-- Option 2 -->
+  <g transform="translate(630 130)">
+    <text x="0" y="0" class="label ink">2. COMPACT SPLIT CHECKOUT</text>
+    <rect x="0" y="26" width="540" height="900" class="panel-strong"/>
+    <rect x="0" y="26" width="40" height="900" fill="#f0d7ad" opacity="0.38"/>
+    <g transform="translate(26 54)">
+      <text x="62" y="30" class="small-label teal">CLASSICAL MUSIC CATALOGUE</text>
+      <text x="62" y="88" class="h1 ink">Your basket</text>
+      <circle cx="250" cy="80" r="5" class="gold"/>
+      <text x="62" y="120" class="body muted">A faster checkout view with the order controls permanently visible.</text>
+    </g>
+
+    <g transform="translate(26 214)">
+      <rect x="0" y="0" width="310" height="360" class="panel"/>
+      <text x="20" y="34" class="small-label rose">SELECTED TRACKS</text>
+      <line x1="20" y1="54" x2="290" y2="54" class="dark-line"/>
+      <g transform="translate(20 92)">
+        <text x="0" y="0" class="body ink">II. Andante</text>
+        <text x="0" y="22" class="body-sm muted">Mozart · Piano, 2 Fl, 2 Ob...</text>
+        <text x="232" y="8" class="body ink">£8.50</text>
+        <line x1="0" y1="50" x2="270" y2="50" class="line"/>
+      </g>
+      <g transform="translate(20 166)">
+        <text x="0" y="0" class="body ink">Cello Sonata No. 1</text>
+        <text x="0" y="22" class="body-sm muted">Brahms · Cello, Piano</text>
+        <text x="236" y="8" class="body ink">£6.00</text>
+        <line x1="0" y1="50" x2="270" y2="50" class="line"/>
+      </g>
+      <g transform="translate(20 240)">
+        <text x="0" y="0" class="body ink">Violin Concerto in G</text>
+        <text x="0" y="22" class="body-sm muted">Bruch · Violin, Orch.</text>
+        <text x="236" y="8" class="body ink">£7.50</text>
+        <line x1="0" y1="50" x2="270" y2="50" class="line"/>
+      </g>
+      <text x="20" y="330" class="body-sm green">Remove selected items</text>
+    </g>
+
+    <g transform="translate(358 214)">
+      <rect x="0" y="0" width="156" height="360" class="panel"/>
+      <text x="20" y="34" class="small-label rose">TOTAL</text>
+      <text x="20" y="92" class="price ink">£22.00</text>
+      <line x1="20" y1="118" x2="136" y2="118" class="line"/>
+      <text x="20" y="150" class="body-sm muted">3 downloads</text>
+      <text x="20" y="176" class="body-sm muted">Standard licence</text>
+      <rect x="20" y="224" width="116" height="46" class="button"/>
+      <rect x="20" y="224" width="7" height="46" class="button-gold"/>
+      <text x="49" y="253" class="body-sm" fill="#fffdf8">Pay now</text>
+      <text x="20" y="306" class="body-xs muted">Secure checkout via Stripe</text>
+    </g>
+
+    <g transform="translate(26 628)">
+      <text x="0" y="0" class="small-label rose">AFTER PURCHASE</text>
+      <rect x="0" y="28" width="488" height="150" class="panel"/>
+      <circle cx="34" cy="72" r="6" class="teal"/>
+      <text x="58" y="76" class="body ink">Tracks appear in your downloads immediately.</text>
+      <circle cx="34" cy="116" r="6" class="gold"/>
+      <text x="58" y="120" class="body ink">Uploaders receive a purchase event.</text>
+      <circle cx="34" cy="160" r="6" fill="#a5aba9"/>
+      <text x="58" y="164" class="body ink">Receipts and licence records stay auditable.</text>
+    </g>
+  </g>
+
+  <!-- Option 3 -->
+  <g transform="translate(1218 130)">
+    <text x="0" y="0" class="label ink">3. PURCHASE REVIEW DESK</text>
+    <rect x="0" y="26" width="540" height="900" class="panel-strong"/>
+    <g transform="translate(26 54)">
+      <line x1="0" y1="16" x2="488" y2="16" class="staff-dark"/>
+      <line x1="0" y1="28" x2="488" y2="28" class="staff-dark"/>
+      <line x1="0" y1="40" x2="488" y2="40" class="staff-dark"/>
+      <line x1="0" y1="52" x2="488" y2="52" class="staff-dark"/>
+      <line x1="0" y1="64" x2="488" y2="64" class="staff-dark"/>
+      <rect x="44" y="0" width="18" height="82" class="paperbar"/>
+      <text x="0" y="134" class="h1 ink">Purchase desk</text>
+      <circle cx="252" cy="126" r="5" class="gold"/>
+      <text x="0" y="166" class="body muted">A more editorial cart, with user context and creator emphasis.</text>
+    </g>
+
+    <g transform="translate(26 250)">
+      <rect x="0" y="0" width="488" height="110" class="panel"/>
+      <circle cx="48" cy="55" r="27" class="green"/>
+      <text x="34" y="63" class="body" fill="#fffdf8">RI</text>
+      <text x="96" y="44" class="body ink">Signed in as Richard I.</text>
+      <text x="96" y="70" class="body-sm muted">Purchases will be added to Downloads and Library.</text>
+      <rect x="360" y="32" width="100" height="42" class="button-light"/>
+      <text x="386" y="58" class="body-sm green">Change</text>
+    </g>
+
+    <g transform="translate(26 396)">
+      <text x="0" y="0" class="small-label rose">REVIEW ITEMS</text>
+      <rect x="0" y="26" width="488" height="268" class="panel"/>
+      <g transform="translate(22 68)">
+        <text x="0" y="0" class="body ink">Piano Concerto No. 21 — II. Andante</text>
+        <text x="0" y="23" class="body-sm muted">Clare R. · Standard licence</text>
+        <text x="396" y="10" class="body ink">£8.50</text>
+        <line x1="0" y1="56" x2="444" y2="56" class="line"/>
+      </g>
+      <g transform="translate(22 144)">
+        <text x="0" y="0" class="body ink">Cello Sonata No. 1 — I. Allegro</text>
+        <text x="0" y="23" class="body-sm muted">P. Lang · Standard licence</text>
+        <text x="400" y="10" class="body ink">£6.00</text>
+        <line x1="0" y1="56" x2="444" y2="56" class="line"/>
+      </g>
+      <g transform="translate(22 220)">
+        <text x="0" y="0" class="body ink">Violin Concerto in G — II. Adagio</text>
+        <text x="0" y="23" class="body-sm muted">M. De Luca · Standard licence</text>
+        <text x="400" y="10" class="body ink">£7.50</text>
+      </g>
+    </g>
+
+    <g transform="translate(26 734)">
+      <rect x="0" y="0" width="488" height="118" class="panel"/>
+      <rect x="0" y="0" width="5" height="118" class="gold"/>
+      <text x="28" y="44" class="body muted">Total payable</text>
+      <text x="342" y="48" class="price ink">£22.00</text>
+      <rect x="28" y="70" width="204" height="42" class="button"/>
+      <rect x="28" y="70" width="7" height="42" class="button-gold"/>
+      <text x="85" y="96" class="body-sm" fill="#fffdf8">Proceed to payment</text>
+      <rect x="246" y="70" width="214" height="42" class="button-light"/>
+      <text x="298" y="96" class="body-sm green">Save for later</text>
+    </g>
+  </g>
+
+  <g transform="translate(42 1100)">
+    <text x="0" y="0" class="body-sm muted">Recommendation: Option 1 is the most enterprise-readable checkout. Option 2 is the most compact. Option 3 feels most brand/editorial and could suit a later richer purchase journey.</text>
+  </g>
+</svg>
