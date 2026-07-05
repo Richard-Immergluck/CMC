@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Bookmark, Volume2 } from 'lucide-react'
@@ -127,6 +127,10 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const searchParams = useSearchParams()
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [activeTab, setActiveTab] = useState(() => getInitialTab(searchParams))
+  const [returnContext, setReturnContext] = useState({
+    label: 'Back to Catalogue',
+    url: '/catalogue'
+  })
   const [commentList, setCommentList] = useState(comments)
   const [commentDraft, setCommentDraft] = useState('')
   const [commentError, setCommentError] = useState('')
@@ -149,6 +153,47 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const { addItem } = useCart()
   const focusedCommentId = Number(searchParams.get('commentId'))
   const focusedRequestId = Number(searchParams.get('requestId'))
+
+  const getStoredReturnContext = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
+    const returnUrl = sessionStorage.getItem(catalogueReturnUrlStorageKey)
+
+    if (returnTrackId !== String(track.id)) {
+      return null
+    }
+
+    if (returnUrl?.startsWith('/profile')) {
+      return {
+        label: 'Back to Profile',
+        url: returnUrl
+      }
+    }
+
+    if (returnUrl?.startsWith('/catalogue')) {
+      return {
+        label: 'Back to Catalogue',
+        url: returnUrl
+      }
+    }
+
+    return null
+  }, [track.id])
+
+  useEffect(() => {
+    const nextReturnContext = getStoredReturnContext() || {
+      label: 'Back to Catalogue',
+      url: '/catalogue'
+    }
+    const frameId = window.requestAnimationFrame(() => {
+      setReturnContext(nextReturnContext)
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [getStoredReturnContext])
 
   useEffect(() => {
     if (!Number.isInteger(focusedCommentId) || activeTab !== 'comments') {
@@ -244,19 +289,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     }
   }, [activeTab, track.durationSeconds, track.id, track.previewEnd])
 
-  const getCatalogueReturnUrl = () => {
-    const returnTrackId = sessionStorage.getItem(catalogueReturnTrackIdStorageKey)
-    const returnUrl = sessionStorage.getItem(catalogueReturnUrlStorageKey)
-
-    if (returnTrackId === String(track.id) && returnUrl?.startsWith('/catalogue')) {
-      return returnUrl
-    }
-
-    return null
-  }
-
   const goBackToCatalogue = () => {
-    const returnUrl = getCatalogueReturnUrl()
+    const storedReturnContext = getStoredReturnContext()
+    const returnUrl = storedReturnContext?.url || returnContext.url
 
     if (returnUrl && window.history.length > 1) {
       window.history.back()
@@ -501,7 +536,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       onClick={goBackToCatalogue}
     >
       <span className='cmc-button-icon' aria-hidden='true'>←</span>
-      Back to Catalogue
+      {returnContext.label}
     </Button>
   )
 

@@ -20,7 +20,19 @@ import {
 
 const normalize = value => String(value || '').toLowerCase()
 
+const trackReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
+const trackReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
+
 const getCatalogueTrackHref = track => `/catalogue/${track.id}`
+
+const storeProfileTrackReturn = trackId => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  sessionStorage.setItem(trackReturnTrackIdStorageKey, String(trackId))
+  sessionStorage.setItem(trackReturnUrlStorageKey, `${window.location.pathname}${window.location.search}`)
+}
 
 const formatPlaybackTime = seconds => {
   if (!Number.isFinite(seconds) || seconds < 0) {
@@ -250,7 +262,7 @@ const TrackTable = ({
               {String(index + 1).padStart(2, '0')}
             </span>
             <div className='cmc-profile-track-title' role='cell'>
-              <Link href={getCatalogueTrackHref(track)}>
+              <Link href={getCatalogueTrackHref(track)} onClick={() => storeProfileTrackReturn(track.id)}>
                 {track.title}
               </Link>
               <span>{track.uploadedAt ? `Added ${track.uploadedAt}` : 'Purchased track'}</span>
@@ -380,7 +392,8 @@ const ProfilePageContent = ({
       items: userTrackRequests.slice(0, 3).map(request => ({
         href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : null,
         meta: `${request.status.toLowerCase().replace('_', ' ')} · ${request.createdAt}`,
-        title: request.title.replace(/^E2E Request /, '')
+        title: request.title.replace(/^E2E Request /, ''),
+        trackId: request.trackId
       }))
     },
     {
@@ -392,7 +405,8 @@ const ProfilePageContent = ({
       items: userComments.slice(0, 3).map(comment => ({
         href: `/catalogue/${comment.trackId}?tab=comments&commentId=${comment.id}`,
         meta: comment.createdAt,
-        title: comment.trackTitle
+        title: comment.trackTitle,
+        trackId: comment.trackId
       }))
     }
   ]
@@ -523,7 +537,7 @@ const ProfilePageContent = ({
                     {panel.items.map(item => (
                       <li key={`${panel.label}-${item.title}-${item.meta}`}>
                         {item.href ? (
-                          <Link href={item.href}>{item.title}</Link>
+                          <Link href={item.href} onClick={() => item.trackId && storeProfileTrackReturn(item.trackId)}>{item.title}</Link>
                         ) : (
                           <strong>{item.title}</strong>
                         )}
