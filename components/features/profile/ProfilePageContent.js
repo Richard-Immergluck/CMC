@@ -431,8 +431,8 @@ const ProfilePageContent = ({
                   <dd>{userUploadedTracks.length}</dd>
                 </div>
                 <div>
-                  <dt>Role</dt>
-                  <dd>{currentUser.role?.toLowerCase() || 'member'}</dd>
+                  <dt>Comments</dt>
+                  <dd>{userComments.length}</dd>
                 </div>
               </dl>
             </aside>
