@@ -69,7 +69,7 @@ const getProfileData = async email => {
     return null
   }
 
-  const [uploadedTracks, purchases, comments, trackRequests] = await Promise.all([
+  const [uploadedTracks, purchases, comments, trackRequests, wishlistItems] = await Promise.all([
     prisma.track.findMany({
       where: {
         userId: currentUser.id
@@ -127,6 +127,20 @@ const getProfileData = async email => {
         createdAt: 'desc'
       },
       take: 8
+    }),
+    prisma.wishlistItem.findMany({
+      where: {
+        userId: currentUser.id
+      },
+      include: {
+        track: {
+          select: trackSelect
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 8
     })
   ])
 
@@ -135,6 +149,10 @@ const getProfileData = async email => {
     userComments: comments.map(serializeComment),
     userPurchasedTracks: purchases.map(purchase => serializeTrack(purchase.track)),
     userTrackRequests: trackRequests.map(serializeTrackRequest),
+    userWishlistedTracks: wishlistItems.map(item => ({
+      ...serializeTrack(item.track),
+      savedAt: formatDisplayDate(item.createdAt)
+    })),
     userUploadedTracks: uploadedTracks.map(serializeTrack)
   }
 }
@@ -164,6 +182,8 @@ const ProfilePage = async ({ searchParams }) => {
       userPurchasedTracks={profile.userPurchasedTracks}
       userTrackRequests={profile.userTrackRequests}
       userUploadedTracks={profile.userUploadedTracks}
+      userWishlistedTracks={profile.userWishlistedTracks}
+      wishlist={query?.wishlist || null}
     />
   )
 }

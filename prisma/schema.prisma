@@ -61,6 +61,7 @@ model User {
   orders         Order[]
   auditEvents    AuditEvent[]
   TrackRequests  TrackRequest[]
+  WishlistItems  WishlistItem[]
   accessChangeRequestsRequested UserAccessChangeRequest[] @relation("UserAccessChangeRequestedBy")
   accessChangeRequestsReviewed  UserAccessChangeRequest[] @relation("UserAccessChangeReviewedBy")
   accessChangeRequestsTargeted  UserAccessChangeRequest[] @relation("UserAccessChangeTarget")
@@ -112,6 +113,7 @@ model Track {
   TrackOwner          TrackOwner[]
   Comments            Comment[]
   TrackRequests       TrackRequest[]
+  WishlistItems       WishlistItem[]
   orderItems          OrderItem[]
 
   @@index([status])
@@ -165,6 +167,19 @@ model TrackRequest {
   @@index([userId, createdAt])
   @@index([trackId, createdAt])
   @@index([status, createdAt])
+}
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId   Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([trackId, userId])
+  @@index([userId, createdAt])
+  @@index([trackId])
 }
 
 model Order {

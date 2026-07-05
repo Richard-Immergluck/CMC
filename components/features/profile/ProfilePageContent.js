@@ -306,7 +306,9 @@ const ProfilePageContent = ({
   userComments,
   userUploadedTracks,
   userTrackRequests,
-  userPurchasedTracks
+  userPurchasedTracks,
+  userWishlistedTracks = [],
+  wishlist
 }) => {
   const [checkoutError, setCheckoutError] = useState('')
   const [composerFilter, setComposerFilter] = useState('all')
@@ -374,14 +376,25 @@ const ProfilePageContent = ({
   }), [composerFilter, keyFilter, search, userPurchasedTracks])
 
   const purchaseConfirmed = purchase === 'confirmed'
+  const wishlistAdded = wishlist === 'added'
+  const wishlistMissing = wishlist === 'missing'
+  const wishlistInvalid = wishlist === 'invalid'
   const displayName = getDisplayName(currentUser)
   const canUpload = canUploadTracks(currentUser)
   const canAccessOperations = canAccessSupportSurface(currentUser)
   const secondaryPanels = [
     {
       label: 'Wishlist',
-      value: '0',
-      text: 'Saved tracks will appear here once wishlist actions are fully wired.'
+      value: userWishlistedTracks.length,
+      text: userWishlistedTracks.length === 0
+        ? 'Saved tracks will appear here when you add them from a track detail page.'
+        : 'Tracks you have saved for later.',
+      items: userWishlistedTracks.slice(0, 3).map(track => ({
+        href: `/catalogue/${track.id}`,
+        meta: `Saved ${track.savedAt}`,
+        title: track.title,
+        trackId: track.id
+      }))
     },
     {
       label: 'My requests',
@@ -455,6 +468,18 @@ const ProfilePageContent = ({
           {purchaseConfirmed && (
             <div className='cmc-profile-notice cmc-profile-notice--success' role='status'>
               Purchase confirmed. Your track is now available in your downloads.
+            </div>
+          )}
+
+          {wishlistAdded && (
+            <div className='cmc-profile-notice cmc-profile-notice--success' role='status'>
+              Track added to your wishlist.
+            </div>
+          )}
+
+          {(wishlistMissing || wishlistInvalid) && (
+            <div className='cmc-profile-notice cmc-profile-notice--error' role='alert'>
+              We could not add that track to your wishlist. Please try again from the track detail page.
             </div>
           )}
 
