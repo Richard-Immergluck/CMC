@@ -74,7 +74,14 @@ test.describe('authenticated smoke', () => {
       has: page.getByRole('heading', { name: 'Recent comments' })
     })
     await expect(recentCommentsPanel).toBeVisible()
-    await expect(recentCommentsPanel.getByText('E2E Catalogue Mendelssohn Sonata Excerpt Op. 16')).toBeVisible()
+    const recentCommentLink = recentCommentsPanel.getByRole('link', { name: 'E2E Catalogue Mendelssohn Sonata Excerpt Op. 16' })
+    await expect(recentCommentLink).toBeVisible()
+    await recentCommentLink.click()
+
+    await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=comments&commentId=\d+/)
+    await expect(page.getByRole('tab', { name: /Comments/i })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('textbox', { name: 'Add your comment' })).toBeVisible()
+    await page.goto('/profile')
 
     await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
 

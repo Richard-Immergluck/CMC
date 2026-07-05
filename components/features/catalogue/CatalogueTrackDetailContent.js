@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
 import BrandDisplayText from '../../brand/BrandDisplayText'
@@ -114,9 +115,23 @@ const detailTabLabels = {
   requests: 'Requests'
 }
 
+const detailTabIds = Object.keys(detailTabLabels)
+
+const getInitialTab = searchParams => {
+  const requestedTab = searchParams.get('tab')
+
+  return detailTabIds.includes(requestedTab) ? requestedTab : 'preview'
+}
+
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
+  const searchParams = useSearchParams()
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
-  const [activeTab, setActiveTab] = useState('preview')
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(searchParams))
+  const [commentList, setCommentList] = useState(comments)
+  const [commentDraft, setCommentDraft] = useState('')
+  const [commentError, setCommentError] = useState('')
+  const [commentStatus, setCommentStatus] = useState('')
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
@@ -126,6 +141,20 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [isScrubbingPreview, setIsScrubbingPreview] = useState(false)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
   const { addItem } = useCart()
+  const focusedCommentId = Number(searchParams.get('commentId'))
+
+  useEffect(() => {
+    if (!Number.isInteger(focusedCommentId) || activeTab !== 'comments') {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(`comment-${focusedCommentId}`)?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth'
+      })
+    })
+  }, [activeTab, focusedCommentId])
 
   useEffect(() => {
     if (activeTab !== 'preview') {
@@ -222,7 +251,63 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     setShowCartConfirmation(true)
   }
 
-  const commentCount = comments.length
+  const submitComment = async event => {
+    event.preventDefault()
+    setCommentError('')
+    setCommentStatus('')
+
+    const trimmedComment = commentDraft.trim()
+
+    if (!trimmedComment) {
+      setCommentError('Please add a comment before submitting.')
+      return
+    }
+
+    if (trimmedComment.length > 500) {
+      setCommentError('Comments must be 500 characters or fewer.')
+      return
+    }
+
+    setIsSubmittingComment(true)
+
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          trackId: track.id,
+          comment: trimmedComment
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to add comment')
+      }
+
+      setCommentList(currentComments => [
+        ...currentComments,
+        {
+          content: data.content,
+          createdAt: new Date(data.createdAt).toLocaleDateString(),
+          id: data.id,
+          userId: data.userId,
+          userName: catalogueContext.userName || 'You'
+        }
+      ])
+      setCommentDraft('')
+      setCommentStatus('Your comment has been added.')
+    } catch (error) {
+      setCommentError(error.message || 'Unable to add comment')
+    } finally {
+      setIsSubmittingComment(false)
+    }
+  }
+
+  const commentCount = commentList.length
+  const canComment = catalogueContext.isAuthenticated && track.viewerState?.isOwned
   const showBasketAction = catalogueContext.isAuthenticated &&
     !track.viewerState?.isOwned &&
     !track.viewerState?.isUploadedByViewer &&
@@ -529,8 +614,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     <small>Sort: Newest</small>
                   </div>
                   <div className='cmc-track-comments'>
-                    {comments.map((comment, key) => (
-                      <div className='cmc-track-comment' key={comment.id}>
+                    {commentList.map((comment, key) => (
+                      <div
+                        className={comment.id === focusedCommentId ? 'cmc-track-comment cmc-track-comment--focused' : 'cmc-track-comment'}
+                        id={`comment-${comment.id}`}
+                        key={comment.id}
+                      >
                         <span className='cmc-track-comment-avatar'>{getInitials(comment.userName)}</span>
                         <div>
                           <header>
@@ -549,9 +638,44 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         </button>
                       </div>
                     ))}
-                    {comments.length === 0 && (
+                    {commentList.length === 0 && (
                       <p className='cmc-track-empty'>
                         No comments yet. After purchasing this track you will be able to leave comments about it.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className='cmc-track-comment-action'>
+                    {canComment ? (
+                      <form onSubmit={submitComment}>
+                        <label htmlFor='track-comment'>Add your comment</label>
+                        <textarea
+                          id='track-comment'
+                          maxLength='500'
+                          onChange={event => setCommentDraft(event.target.value)}
+                          placeholder='Share a useful note about balance, tempo, cuts, or rehearsal use.'
+                          rows='4'
+                          value={commentDraft}
+                        />
+                        <div>
+                          <small>{commentDraft.trim().length}/500</small>
+                          <Button disabled={isSubmittingComment} type='submit' variant='ink'>
+                            {isSubmittingComment ? 'Adding...' : 'Add Comment'}
+                          </Button>
+                        </div>
+                        {commentError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{commentError}</p>}
+                        {commentStatus && <p className='cmc-track-comment-message' role='status'>{commentStatus}</p>}
+                      </form>
+                    ) : catalogueContext.isAuthenticated ? (
+                      <p>
+                        Purchase this track to add your comment to the discussion.
+                      </p>
+                    ) : (
+                      <p aria-label='Sign in to add your comment'>
+                        <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(`/catalogue/${track.id}?tab=comments`)}`}>
+                          Sign in
+                        </Link>{' '}
+                        to add your comment.
                       </p>
                     )}
                   </div>

@@ -230,7 +230,7 @@ const ProfilePageContent = ({
         ? 'Your contribution history will appear here as community features expand.'
         : 'Recent comments you have added to downloaded tracks.',
       items: userComments.slice(0, 3).map(comment => ({
-        href: `/profile/${comment.trackId}-${comment.trackUserId}`,
+        href: `/catalogue/${comment.trackId}?tab=comments&commentId=${comment.id}`,
         meta: comment.createdAt,
         title: comment.trackTitle
       }))

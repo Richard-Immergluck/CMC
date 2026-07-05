@@ -58,6 +58,8 @@ test('anonymous visitor can open a catalogue track and return to the listing', a
   await expect(page).toHaveURL(/\/catalogue\/\d+$/)
   await expect(page.getByRole('heading', { name: firstTrackTitle })).toBeVisible()
   await expect(page.getByText(/Please .*login.* to add this track to your cart\./)).toBeVisible()
+  await page.getByRole('tab', { name: /Comments/i }).click()
+  await expect(page.getByLabel('Sign in to add your comment')).toBeVisible()
 
   await page.getByRole('button', { name: 'Back' }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
