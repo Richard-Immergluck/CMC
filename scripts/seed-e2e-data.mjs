@@ -29,6 +29,17 @@ const titlePrefixFilters = generatedTrackTitlePrefixes.map(prefix => ({
   }
 }))
 
+const generatedRequestTitlePrefixes = [
+  'E2E Request ',
+  'E2E Smoke Request '
+]
+
+const requestTitlePrefixFilters = generatedRequestTitlePrefixes.map(prefix => ({
+  title: {
+    startsWith: prefix
+  }
+}))
+
 const cleanGeneratedE2EData = async () => {
   const generatedTracks = await prisma.track.findMany({
     where: {
@@ -61,9 +72,7 @@ const cleanGeneratedE2EData = async () => {
   await prisma.$transaction([
     prisma.trackRequest.deleteMany({
       where: {
-        title: {
-          startsWith: 'E2E Request '
-        }
+        OR: requestTitlePrefixFilters
       }
     }),
     prisma.paymentEvent.deleteMany({
@@ -417,9 +426,7 @@ const seed = async () => {
   await prisma.trackRequest.deleteMany({
     where: {
       userId: customer.id,
-      title: {
-        startsWith: 'E2E Request '
-      }
+      OR: requestTitlePrefixFilters
     }
   })
 
