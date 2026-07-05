@@ -5,8 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Download,
-  Pause,
-  Play,
   Search,
   ShieldCheck,
   UploadCloud,
@@ -171,7 +169,7 @@ const ProfileInlinePlayer = ({ active, onActivate, onDeactivate, track }) => {
       <Button
         aria-label={active ? `Pause ${track.title}` : `Play ${track.title}`}
         aria-pressed={active}
-        className='cmc-profile-inline-play'
+        className={active ? 'cmc-profile-inline-play cmc-profile-inline-play--active' : 'cmc-profile-inline-play'}
         disabled={loading}
         onClick={togglePlayback}
         size='sm'
@@ -179,9 +177,12 @@ const ProfileInlinePlayer = ({ active, onActivate, onDeactivate, track }) => {
         variant='secondary'
       >
         {active ? (
-          <Pause aria-hidden='true' strokeWidth={1.9} />
+          <span className='cmc-preview-pause-icon' aria-hidden='true'>
+            <span />
+            <span />
+          </span>
         ) : (
-          <Play aria-hidden='true' strokeWidth={1.9} />
+          <span className='cmc-profile-play-triangle' aria-hidden='true' />
         )}
       </Button>
       <div className='cmc-profile-inline-timeline'>
@@ -235,6 +236,7 @@ const TrackTable = ({
   return (
     <div className='cmc-profile-table' role='table' aria-label='Downloaded tracks'>
       <div className='cmc-profile-table-head' role='row'>
+        <span className='cmc-profile-column-index' aria-hidden='true' />
         <span role='columnheader'>Title</span>
         <span role='columnheader'>Composer</span>
         <span role='columnheader'>Key</span>
