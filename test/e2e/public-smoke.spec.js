@@ -102,7 +102,8 @@ test('anonymous visitor can play an approved audio preview from the action butto
   await expect(page.locator('.cmc-preview-player')).toHaveCount(0)
 
   const audioPreview = page.locator('audio.cmc-audio-preview-source').first()
-  await expect(audioPreview).toHaveAttribute('src', /#t=\d+,\d+/)
+  await expect(audioPreview).toHaveAttribute('src', /\/demo-fixtures\/.+\.(mp3|wav)/)
+  await expect(audioPreview).not.toHaveAttribute('src', /\/uploads\//)
 })
 
 test('anonymous visitor can search catalogue tracks', async ({ page }) => {

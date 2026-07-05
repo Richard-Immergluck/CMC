@@ -93,7 +93,7 @@ test.describe('checkout browser flow', () => {
 
     await expect(page).toHaveURL(/\/profile\?checkout=success&session_id=cs_e2e_paid_/)
     const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
-    await expect(downloadsTable.getByRole('link', { name: track.title })).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: track.title, exact: true })).toBeVisible()
 
     const signedUrlResponse = await page.request.get(`/api/tracks/${track.id}/signed-url?mode=download`)
     const signedUrlBody = await signedUrlResponse.json()
