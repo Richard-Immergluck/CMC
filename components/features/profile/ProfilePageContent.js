@@ -21,7 +21,7 @@ import {
 
 const normalize = value => String(value || '').toLowerCase()
 
-const getTrackHref = track => `/profile/${track.id}-${track.userId}`
+const getCatalogueTrackHref = track => `/catalogue/${track.id}`
 
 const uniqueSortedValues = (tracks, key) => {
   const values = tracks
@@ -93,7 +93,7 @@ const TrackTable = ({
               {String(index + 1).padStart(2, '0')}
             </span>
             <div className='cmc-profile-track-title' role='cell'>
-              <Link href={getTrackHref(track)}>
+              <Link href={getCatalogueTrackHref(track)}>
                 {track.title}
               </Link>
               <span>{track.uploadedAt ? `Added ${track.uploadedAt}` : 'Purchased track'}</span>
@@ -114,7 +114,7 @@ const TrackTable = ({
                 <Download aria-hidden='true' strokeWidth={1.8} />
                 Download
               </Button>
-              <Button as={Link} href={getTrackHref(track)} size='sm' variant='paper'>
+              <Button as={Link} href={getCatalogueTrackHref(track)} size='sm' variant='paper'>
                 <ExternalLink aria-hidden='true' strokeWidth={1.8} />
                 Open
               </Button>

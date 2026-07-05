@@ -100,12 +100,12 @@ test.describe('authenticated smoke', () => {
 
     await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
 
-    await expect(page).toHaveURL(/\/profile\/\d+-/)
+    await expect(page).toHaveURL(/\/catalogue\/\d+$/)
     await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
     await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible()
-    await expect(page.getByRole('textbox', { name: 'Comment' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+    const libraryPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
+    await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
+    await expect(libraryPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
   })
 
   test('seeded customers can create a request from a track detail page', async ({ page }) => {
