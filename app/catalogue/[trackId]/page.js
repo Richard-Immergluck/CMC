@@ -149,19 +149,32 @@ const CatalogueTrackDetailPage = async ({ params }) => {
   if (!detail) {
     notFound()
   }
-  const ownership = currentUser
-    ? await prisma.trackOwner.findUnique({
-        where: {
-          trackId_userId: {
-            trackId,
-            userId: currentUser.id
+  const [ownership, wishlistItem] = currentUser
+    ? await Promise.all([
+        prisma.trackOwner.findUnique({
+          where: {
+            trackId_userId: {
+              trackId,
+              userId: currentUser.id
+            }
+          },
+          select: {
+            id: true
           }
-        },
-        select: {
-          id: true
-        }
-      })
-    : null
+        }),
+        prisma.wishlistItem.findUnique({
+          where: {
+            trackId_userId: {
+              trackId,
+              userId: currentUser.id
+            }
+          },
+          select: {
+            id: true
+          }
+        })
+      ])
+    : [null, null]
 
   return (
     <CatalogueTrackDetailContent
@@ -172,6 +185,7 @@ const CatalogueTrackDetailPage = async ({ params }) => {
         ...detail.track,
         viewerState: {
           isOwned: Boolean(ownership),
+          isWishlisted: Boolean(wishlistItem),
           isUploadedByViewer: Boolean(currentUser && detail.track.userId === currentUser.id)
         }
       }}

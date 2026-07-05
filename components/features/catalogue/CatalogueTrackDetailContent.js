@@ -430,6 +430,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
   const showWishlistAction = !showOwnedAction
   const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
+  const wishlistHref = `/wishlist/add?trackId=${track.id}`
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
   const previewStart = 0
   const previewEnd = waveformDuration
@@ -612,9 +613,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               )}
               {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
               {showWishlistAction && (
-                <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
+                <Button as={Link} href={wishlistHref} variant='paper' size='md' className='cmc-track-wishlist-button'>
                   <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
-                  <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
+                  <span className='cmc-track-wishlist-label'>
+                    {track.viewerState?.isWishlisted ? 'In Wishlist' : 'Add to Wishlist'}
+                  </span>
                 </Button>
               )}
             </aside>
