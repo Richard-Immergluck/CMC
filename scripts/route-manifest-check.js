@@ -12,7 +12,6 @@ const requiredRoutes = [
   '/catalogue',
   '/catalogue/[trackId]',
   '/profile',
-  '/profile/[trackId]',
   '/upload',
   '/api',
   '/api/admin/health',
