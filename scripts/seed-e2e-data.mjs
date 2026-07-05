@@ -40,6 +40,11 @@ const requestTitlePrefixFilters = generatedRequestTitlePrefixes.map(prefix => ({
   }
 }))
 
+const richardUploadEmails = [
+  'rimmergluck@googlemail.com',
+  'richard@immergluck.co.uk'
+]
+
 const cleanGeneratedE2EData = async () => {
   const generatedTracks = await prisma.track.findMany({
     where: {
@@ -455,6 +460,42 @@ const seed = async () => {
   console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
   console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
+
+  const richardPlaybackTrack = await prisma.track.findFirst({
+    where: {
+      status: 'PUBLISHED',
+      moderationStatus: 'APPROVED',
+      processingStatus: 'READY',
+      uploadedBy: {
+        email: {
+          in: richardUploadEmails
+        }
+      }
+    },
+    orderBy: {
+      uploadedAt: 'desc'
+    }
+  })
+
+  if (richardPlaybackTrack) {
+    await prisma.trackOwner.upsert({
+      where: {
+        trackId_userId: {
+          trackId: richardPlaybackTrack.id,
+          userId: customer.id
+        }
+      },
+      update: {},
+      create: {
+        trackId: richardPlaybackTrack.id,
+        userId: customer.id
+      }
+    })
+
+    console.log(`Linked ${customer.email} to Richard playback track ${richardPlaybackTrack.id}`)
+  } else {
+    console.log('Skipped Richard playback track ownership: no eligible published upload found')
+  }
 }
 
 try {
