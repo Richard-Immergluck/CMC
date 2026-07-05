@@ -97,6 +97,7 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('textbox', { name: 'Add your comment' })).toBeVisible()
     const ownedPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
     await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
+    await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toHaveAttribute('href', '/profile')
     await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
     await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Wishlist' })).toHaveCount(0)
     await expect(ownedPurchasePanel.getByText(/£/)).toHaveCount(0)
@@ -109,7 +110,14 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
     const libraryPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
     await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
+    await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toHaveAttribute('href', '/profile')
     await expect(libraryPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
+
+    await page.goto('/catalogue?q=E2E%20Catalogue%20Navigation%20Study')
+    const ownedCatalogueRow = page.locator('.cmc-catalogue-track-card').filter({ hasText: 'E2E Catalogue Navigation Study' }).first()
+    await expect(ownedCatalogueRow.getByText('Owned')).toBeVisible()
+    await expect(ownedCatalogueRow.getByRole('link', { name: 'View in Library' })).toHaveCount(0)
+    await expect(ownedCatalogueRow.getByRole('link', { name: 'Details' })).toBeVisible()
   })
 
   test('seeded customers can create a request from a track detail page', async ({ page }) => {

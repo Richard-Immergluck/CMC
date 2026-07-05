@@ -10,7 +10,6 @@ import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
 
-const createTrackProfileHref = track => `/profile/${track.id}-${track.userId}`
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 const waveformBarCount = 180
@@ -556,7 +555,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                 </Button>
               )}
               {showOwnedAction && (
-                <Button as={Link} href={createTrackProfileHref(track)} variant='ink' size='md'>
+                <Button as={Link} href='/profile' variant='ink' size='md'>
                   View in Library
                 </Button>
               )}
