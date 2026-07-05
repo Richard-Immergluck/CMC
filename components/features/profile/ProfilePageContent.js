@@ -419,9 +419,9 @@ const ProfilePageContent = ({
             <div className='cmc-profile-staff' aria-hidden='true' />
             <div className='cmc-profile-paper' aria-hidden='true' />
             <div className='cmc-profile-heading'>
-              <p className='cmc-profile-kicker'>Your music</p>
+              <p className='cmc-profile-kicker'>Your CMC</p>
               <h1 id='profile-heading'>
-                <BrandDisplayText text='My profile.' />
+                <BrandDisplayText text='Library & Activity.' />
               </h1>
               <p>
                 Search, download and manage the tracks you own. Uploader and operations tools appear here when your role allows them.
