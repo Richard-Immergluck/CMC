@@ -6,6 +6,8 @@ The hardening strategy is to preserve that product shape while moving authority 
 
 The delivery breakdown for this work lives in `ENTERPRISE_ROADMAP.md`. Use that roadmap to plan sprint scope and PR sequencing; use this document for the architectural hardening principles and phase intent.
 
+Track audio access, preview/full-download separation, purchase ownership, and signed URL controls are documented in `TRACK_ACCESS_SECURITY.md`.
+
 ## Target Architecture
 
 ```text

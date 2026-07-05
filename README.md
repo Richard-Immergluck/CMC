@@ -10,6 +10,7 @@ The Next.js app now lives at the repository root. Production/project hardening i
 - `OPERATIONS_RUNBOOKS.md`
 - `RELEASE_GATES.md`
 - `ENVIRONMENT_MATRIX.md`
+- `TRACK_ACCESS_SECURITY.md`
 - `UI_DEVELOPMENT.md`
 - `APP_ROUTER_MIGRATION_PLAN.md`
 - `TESTING.md`
