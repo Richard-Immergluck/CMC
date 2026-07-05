@@ -33,3 +33,14 @@ test('sample signed-url route does not sign the original full track object', () 
   assert.ok(sampleBranch.includes('getSampleAudioKey(track)'))
   assert.equal(sampleBranch.includes('key: track.fileName'), false)
 })
+
+test('track detail playback only requests full mode through the ownership helper', () => {
+  const detailSource = readFileSync(
+    new URL('../components/features/catalogue/CatalogueTrackDetailContent.js', import.meta.url),
+    'utf8'
+  )
+
+  assert.ok(detailSource.includes('canUseFullTrackPlayback(track)'))
+  assert.ok(detailSource.includes("const playbackMode = canPlayFullTrack ? 'full' : 'sample'"))
+  assert.ok(detailSource.includes('mode={playbackMode}'))
+})

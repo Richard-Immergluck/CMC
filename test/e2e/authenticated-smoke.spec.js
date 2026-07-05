@@ -13,6 +13,46 @@ const signInAs = async (request, email) => {
 }
 
 test.describe('authenticated smoke', () => {
+  test('signed-in customers cannot access full audio for unowned tracks', async ({ page }) => {
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    const [profileResponse, catalogueResponse] = await Promise.all([
+      page.request.get('/api/profile'),
+      page.request.get('/api/tracks/list')
+    ])
+    const profile = await profileResponse.json()
+    const catalogue = await catalogueResponse.json()
+    const ownedTrackIds = new Set(profile.map(ownership => ownership.trackId))
+    const unownedTrack = catalogue.find(track => !ownedTrackIds.has(track.id))
+
+    expect(profileResponse.status()).toBe(200)
+    expect(catalogueResponse.status()).toBe(200)
+    expect(unownedTrack).toEqual(expect.objectContaining({ id: expect.any(Number) }))
+
+    const fullResponse = await page.request.get(`/api/tracks/${unownedTrack.id}/signed-url?mode=full`)
+    const fullBody = await fullResponse.json()
+
+    expect(fullResponse.status()).toBe(403)
+    expect(fullBody.message).toBe('Track access denied')
+
+    const downloadResponse = await page.request.get(`/api/tracks/${unownedTrack.id}/signed-url?mode=download`)
+    const downloadBody = await downloadResponse.json()
+
+    expect(downloadResponse.status()).toBe(403)
+    expect(downloadBody.message).toBe('Track access denied')
+
+    const reviewResponse = await page.request.get(`/api/tracks/${unownedTrack.id}/signed-url?mode=review`)
+    const reviewBody = await reviewResponse.json()
+
+    expect(reviewResponse.status()).toBe(403)
+    expect(reviewBody.message).toBe('Review access denied')
+
+    await page.goto(`/catalogue/${unownedTrack.id}`)
+
+    await expect(page.getByRole('button', { name: 'Preview' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Play Track' })).toHaveCount(0)
+  })
+
   test('seeded customers can access protected ownership APIs', async ({ request }) => {
     const session = await signInAs(request, 'e2e-customer@example.com')
 
