@@ -424,9 +424,16 @@ const seed = async () => {
   })
 
   for (const [index, requestFixture] of requestFixtures.entries()) {
+    const requestTrack = purchasedTracks[index] || purchasedTracks[0]
+
     await prisma.trackRequest.create({
       data: {
         ...requestFixture,
+        track: {
+          connect: {
+            id: requestTrack.id
+          }
+        },
         requestedBy: {
           connect: {
             id: customer.id

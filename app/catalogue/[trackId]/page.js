@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { notFound } from 'next/navigation'
 import CatalogueTrackDetailContent from '../../../components/features/catalogue/CatalogueTrackDetailContent'
 import { getCatalogueContext } from '../../../lib/catalogue-view.mjs'
+import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import { authOptions } from '../../../lib/server/auth'
 import { getCurrentUser } from '../../../lib/server/ownership'
 import prisma from '../../../lib/server/prisma'
@@ -12,84 +13,6 @@ export const dynamic = 'force-dynamic'
 const parseTrackIdParam = value => {
   const trackId = Number(value)
   return Number.isInteger(trackId) && trackId > 0 ? trackId : null
-}
-
-const requestTemplates = [
-  {
-    description: track => `A slower rehearsal pass for ${track.title}, keeping the same key and cue structure.`,
-    id: 'slow-practice',
-    requestedBy: 'Community request',
-    status: 'Open',
-    title: 'Slower practice tempo'
-  },
-  {
-    description: track => `A reduced piano-only version for first rehearsals before moving to the full ${track.instrumentation || 'instrumentation'} backing.`,
-    id: 'piano-reduction',
-    requestedBy: 'Uploader follow-up',
-    status: 'Planned',
-    title: 'Piano reduction version'
-  },
-  {
-    description: track => `A version transposed away from ${track.key || 'the original key'} for singers or younger players preparing the same material.`,
-    id: 'alternate-key',
-    requestedBy: 'Singer request',
-    status: 'Open',
-    title: 'Alternative key'
-  },
-  {
-    description: track => `A shorter audition-length cut of ${track.title} with a clear opening cue and clean ending.`,
-    id: 'audition-cut',
-    requestedBy: 'Audition prep request',
-    status: 'In review',
-    title: 'Audition cut'
-  },
-  {
-    description: track => `A click-supported version for ensemble classes that need a firmer pulse through the ${track.instrumentation || 'texture'}.`,
-    id: 'click-track',
-    requestedBy: 'Teacher request',
-    status: 'Open',
-    title: 'Click-supported practice track'
-  },
-  {
-    description: track => `A no-click performance-feel version of ${track.title} for later-stage rehearsal.`,
-    id: 'performance-feel',
-    requestedBy: 'Performer request',
-    status: 'Planned',
-    title: 'Performance-feel version'
-  },
-  {
-    description: track => `A sectional loop focused on the transition into the final phrase of ${track.title}.`,
-    id: 'sectional-loop',
-    requestedBy: 'Practice group request',
-    status: 'Open',
-    title: 'Sectional loop'
-  },
-  {
-    description: track => `A simplified school rehearsal version preserving the harmonic outline of ${track.composer}.`,
-    id: 'student-version',
-    requestedBy: 'School ensemble request',
-    status: 'Open',
-    title: 'Student rehearsal version'
-  }
-]
-
-const createTrackRequests = track => {
-  const createdAt = track.uploadedAt.toLocaleDateString()
-  const requestCount = 2 + (track.id % 3)
-  const startIndex = track.id % requestTemplates.length
-
-  return Array.from({ length: requestCount }, (_, index) => {
-    const template = requestTemplates[(startIndex + index) % requestTemplates.length]
-
-    return {
-      createdAt,
-      description: template.description(track),
-      id: `${track.id}-${template.id}`,
-      requestedBy: template.requestedBy,
-      status: template.status,
-      title: template.title
-    }
-  })
 }
 
 const trackSelect = {
@@ -133,7 +56,7 @@ const getTrackDetail = async trackId => {
     return null
   }
 
-  const [uploader, comments] = await Promise.all([
+  const [uploader, comments, requests] = await Promise.all([
     prisma.user.findUnique({
       where: {
         id: track.userId
@@ -160,21 +83,51 @@ const getTrackDetail = async trackId => {
       orderBy: {
         createdAt: 'asc'
       }
+    }),
+    prisma.trackRequest.findMany({
+      where: {
+        trackId
+      },
+      select: {
+        id: true,
+        title: true,
+        notes: true,
+        status: true,
+        createdAt: true,
+        userId: true,
+        requestedBy: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     })
   ])
 
   return {
     comments: comments.map(comment => ({
       content: comment.content,
-      createdAt: comment.createdAt.toLocaleDateString(),
+      createdAt: formatDisplayDate(comment.createdAt),
       id: comment.id,
       userId: comment.userId,
       userName: comment.postedBy?.name || 'Unknown'
     })),
-    requests: createTrackRequests(track),
+    requests: requests.map(request => ({
+      createdAt: formatDisplayDate(request.createdAt),
+      description: request.notes || 'No additional request notes supplied.',
+      id: request.id,
+      requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
+      status: request.status,
+      title: request.title,
+      userId: request.userId
+    })),
     track: {
       ...track,
-      uploadedAt: track.uploadedAt.toLocaleDateString(),
+      uploadedAt: formatDisplayDate(track.uploadedAt),
       uploaderName: uploader?.name || 'Unknown'
     }
   }

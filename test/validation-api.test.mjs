@@ -13,6 +13,7 @@ import {
   reconcileCheckoutSessionBodySchema,
   simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
+  trackRequestBodySchema,
   trackIdParamSchema,
   uploadSignedUrlBodySchema,
   validateInput
@@ -168,6 +169,38 @@ test('profile comment body requires an owned track id and bounded comment', () =
     () => validateInput(profileCommentBodySchema, {
       trackId: '12',
       comment: ''
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('track request body requires a public track id and bounded request fields', () => {
+  assert.deepEqual(
+    validateInput(trackRequestBodySchema, {
+      trackId: '12',
+      title: ' Slower practice tempo ',
+      notes: ' Could this be available at crotchet = 72? ',
+      ignored: 'removed'
+    }),
+    {
+      trackId: 12,
+      title: 'Slower practice tempo',
+      notes: 'Could this be available at crotchet = 72?'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestBodySchema, {
+      trackId: 'abc',
+      title: 'Slower practice tempo'
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestBodySchema, {
+      trackId: '12',
+      title: ''
     }),
     error => error.statusCode === 400
   )

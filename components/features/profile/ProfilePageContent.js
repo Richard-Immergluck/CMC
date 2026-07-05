@@ -218,7 +218,7 @@ const ProfilePageContent = ({
         ? 'Track requests and followed requests will live here.'
         : 'Recent requests you have created or followed.',
       items: userTrackRequests.slice(0, 3).map(request => ({
-        href: null,
+        href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : null,
         meta: `${request.status.toLowerCase().replace('_', ' ')} · ${request.createdAt}`,
         title: request.title.replace(/^E2E Request /, '')
       }))

@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { notFound, redirect } from 'next/navigation'
 import ProfileTrackDetailContent from '../../../components/features/profile/ProfileTrackDetailContent'
+import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import { canAccessFullTrack, getCurrentUser } from '../../../lib/server/ownership'
 import prisma from '../../../lib/server/prisma'
 import { authOptions } from '../../../lib/server/auth'
@@ -79,13 +80,13 @@ const getTrackDetail = async trackId => {
   return {
     comments: comments.map(comment => ({
       content: comment.content,
-      createdAt: comment.createdAt.toLocaleDateString(),
+      createdAt: formatDisplayDate(comment.createdAt),
       id: comment.id,
       userName: comment.postedBy?.name || 'Unknown'
     })),
     track: {
       ...track,
-      uploadedAt: track.uploadedAt.toLocaleDateString(),
+      uploadedAt: formatDisplayDate(track.uploadedAt),
       uploaderName: uploader?.name || 'Unknown'
     }
   }

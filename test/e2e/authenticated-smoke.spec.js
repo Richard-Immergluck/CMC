@@ -70,6 +70,16 @@ test.describe('authenticated smoke', () => {
     await expect(downloadsTable.getByText('Synthetic Test Fixture')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'My requests' })).toBeVisible()
     await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
+    await expect(page.getByText(/open · \d{2}\/\d{2}\/\d{4}/i).first()).toBeVisible()
+    await page.getByRole('link', { name: 'Poulenc Oboe Sonata' }).click()
+
+    await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=requests&requestId=\d+/)
+    await expect(page.getByRole('tab', { name: /Requests/i })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
+    await expect(page.getByText('OPEN').first()).toBeVisible()
+    await expect(page.getByLabel('Request title')).toBeVisible()
+    await page.goto('/profile')
+
     const recentCommentsPanel = page.getByRole('article').filter({
       has: page.getByRole('heading', { name: 'Recent comments' })
     })
@@ -91,6 +101,28 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('link', { name: 'Download' })).toBeVisible()
     await expect(page.getByRole('textbox', { name: 'Comment' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+  })
+
+  test('seeded customers can create a request from a track detail page', async ({ page }) => {
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    await page.goto('/catalogue')
+    await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Details' }).first().click()
+    await expect(page).toHaveURL(/\/catalogue\/\d+$/)
+    await page.getByRole('tab', { name: /Requests/i }).click()
+
+    const requestTitle = `E2E Smoke Request ${Date.now()}`
+    await page.getByLabel('Request title').fill(requestTitle)
+    await page.getByLabel('Request notes').fill('Please add a practice version with a slower click.')
+    await page.getByRole('button', { name: 'Add Request' }).click()
+
+    await expect(page.getByRole('status')).toContainText('Your request has been added.')
+    const createdRequest = page.locator('.cmc-track-request').filter({ hasText: requestTitle }).first()
+    await expect(createdRequest).toBeVisible()
+    await expect(createdRequest.getByText('OPEN')).toBeVisible()
+    await expect(createdRequest.getByText(/\d{2}\/\d{2}\/\d{4}/)).toBeVisible()
   })
 
   test('seeded customers do not see uploader or admin navigation', async ({ page }) => {
