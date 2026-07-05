@@ -66,8 +66,12 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('searchbox', { name: 'Search downloaded tracks' })).toBeVisible()
 
     const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
-    await expect(downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study', exact: true })).toBeVisible()
     await expect(downloadsTable.getByText('Synthetic Test Fixture')).toBeVisible()
+    await expect(downloadsTable.getByRole('columnheader', { name: 'Instrumentation' })).toHaveCount(0)
+    await expect(downloadsTable.getByRole('button', { name: 'Preview' }).first()).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: 'Download E2E Catalogue Navigation Study' })).toBeVisible()
+    await expect(downloadsTable.getByRole('link', { name: 'Open' })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'My requests' })).toBeVisible()
     await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
     await expect(page.getByText(/open · \d{2}\/\d{2}\/\d{4}/i).first()).toBeVisible()
@@ -98,7 +102,7 @@ test.describe('authenticated smoke', () => {
     await expect(ownedPurchasePanel.getByText(/£/)).toHaveCount(0)
     await page.goto('/profile')
 
-    await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()
+    await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study', exact: true }).click()
 
     await expect(page).toHaveURL(/\/catalogue\/\d+$/)
     await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()

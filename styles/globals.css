@@ -3348,7 +3348,7 @@ a {
 .cmc-profile-table-head,
 .cmc-profile-table-row {
   display: grid;
-  grid-template-columns: minmax(0, 2.1fr) minmax(8rem, 0.9fr) minmax(6rem, 0.6fr) minmax(10rem, 1fr) minmax(12.5rem, auto);
+  grid-template-columns: minmax(0, 2.2fr) minmax(8rem, 0.95fr) minmax(5.5rem, 0.55fr) minmax(7rem, 0.7fr) minmax(3.25rem, auto);
   gap: var(--cmc-space-3);
   align-items: center;
 }
@@ -3410,14 +3410,26 @@ a {
   font-weight: 650;
 }
 
+.cmc-profile-preview-cell {
+  min-width: 0;
+}
+
+.cmc-profile-preview-cell .cmc-preview-action {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+}
+
 .cmc-profile-row-actions {
-  display: grid;
-  grid-template-columns: minmax(7.25rem, 1fr) minmax(5.4rem, 0.65fr);
-  gap: var(--cmc-space-2);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .cmc-profile-row-actions .cmc-button {
-  width: 100%;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  aspect-ratio: 1;
+  padding: 0;
   justify-content: center;
 }
 
@@ -3711,13 +3723,25 @@ a {
     content: 'Key';
   }
 
-  .cmc-profile-table-row > span:nth-of-type(4)::before {
-    content: 'Instrumentation';
+  .cmc-profile-preview-cell {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: var(--cmc-space-2);
+    align-items: center;
+  }
+
+  .cmc-profile-preview-cell::before {
+    color: var(--cmc-color-accent-rose);
+    content: 'Preview';
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
   .cmc-profile-row-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 24rem;
+    justify-content: flex-start;
+    max-width: 8rem;
   }
 
   .cmc-profile-secondary-grid {

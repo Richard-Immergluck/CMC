@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Download,
-  ExternalLink,
   Search,
   ShieldCheck,
   UploadCloud,
   X
 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
+import PlaySample from '../../PlaySample'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
@@ -66,6 +66,8 @@ const TrackTable = ({
   emptyTitle,
   tracks
 }) => {
+  const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
+
   if (tracks.length === 0) {
     return (
       <div className='cmc-profile-empty'>
@@ -83,8 +85,8 @@ const TrackTable = ({
         <span role='columnheader'>Title</span>
         <span role='columnheader'>Composer</span>
         <span role='columnheader'>Key</span>
-        <span role='columnheader'>Instrumentation</span>
-        <span role='columnheader'>Actions</span>
+        <span role='columnheader'>Preview</span>
+        <span role='columnheader'>Download</span>
       </div>
       <ul className='cmc-profile-table-body'>
         {tracks.map((track, index) => (
@@ -100,9 +102,17 @@ const TrackTable = ({
             </div>
             <span role='cell'>{track.composer || 'Unknown composer'}</span>
             <span role='cell'>{track.key || 'Not set'}</span>
-            <span role='cell'>{track.instrumentation || 'Not specified'}</span>
+            <div className='cmc-profile-preview-cell' role='cell'>
+              <PlaySample
+                active={activePreviewTrackId === track.id}
+                onActivate={() => setActivePreviewTrackId(track.id)}
+                onDeactivate={() => setActivePreviewTrackId(null)}
+                track={track}
+              />
+            </div>
             <div className='cmc-profile-row-actions' role='cell'>
               <Button
+                aria-label={`Download ${track.title}`}
                 as='a'
                 href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
                 rel='noreferrer'
@@ -112,11 +122,6 @@ const TrackTable = ({
                 variant='ink'
               >
                 <Download aria-hidden='true' strokeWidth={1.8} />
-                Download
-              </Button>
-              <Button as={Link} href={getCatalogueTrackHref(track)} size='sm' variant='paper'>
-                <ExternalLink aria-hidden='true' strokeWidth={1.8} />
-                Open
               </Button>
             </div>
           </li>
