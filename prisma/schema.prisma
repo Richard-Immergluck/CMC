@@ -93,6 +93,7 @@ model Track {
   reviewedAt          DateTime?
   uploadedBy          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              String
+  previewFileName     String?
   previewStart        Int?
   previewEnd          Int?
   durationSeconds     Int?

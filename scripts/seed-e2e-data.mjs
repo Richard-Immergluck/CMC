@@ -246,6 +246,7 @@ const seed = async () => {
 
   const trackData = {
     fileName: 'e2e-fixtures/catalogue-navigation.wav',
+    previewFileName: 'e2e-fixtures/catalogue-navigation.wav',
     title: 'E2E Catalogue Navigation Study',
     composer: 'Synthetic Test Fixture',
     status: 'PUBLISHED',
@@ -309,6 +310,7 @@ const seed = async () => {
   const purchasedTracks = [track]
   const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
     fileName: `demo-fixtures/${demoTrack.slug}.wav`,
+    previewFileName: `demo-fixtures/${demoTrack.slug}.wav`,
     title: `E2E Catalogue ${demoTrack.title}`,
     composer: demoTrack.composer,
     status: 'PUBLISHED',

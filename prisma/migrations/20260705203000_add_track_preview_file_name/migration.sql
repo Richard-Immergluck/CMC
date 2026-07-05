@@ -1,0 +1,1 @@
+ALTER TABLE "Track" ADD COLUMN IF NOT EXISTS "previewFileName" TEXT;

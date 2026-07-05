@@ -9,6 +9,7 @@ import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
+import { canUseFullTrackPlayback } from '../../../lib/track-audio-access.mjs'
 
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const catalogueReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
@@ -125,6 +126,8 @@ const getInitialTab = searchParams => {
 
 const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, requests = [] }) => {
   const searchParams = useSearchParams()
+  const canPlayFullTrack = canUseFullTrackPlayback(track)
+  const playbackMode = canPlayFullTrack ? 'full' : 'sample'
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const [activeTab, setActiveTab] = useState(() => getInitialTab(searchParams))
   const [returnContext, setReturnContext] = useState({
@@ -146,7 +149,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
   const [waveformDuration, setWaveformDuration] = useState(track.durationSeconds || track.previewEnd || 1)
-  const [previewCurrentTime, setPreviewCurrentTime] = useState(() => Number.isFinite(track.previewStart) ? track.previewStart : 0)
+  const [previewCurrentTime, setPreviewCurrentTime] = useState(0)
   const [previewSeekCommand, setPreviewSeekCommand] = useState(null)
   const [isScrubbingPreview, setIsScrubbingPreview] = useState(false)
   const [showCartConfirmation, setShowCartConfirmation] = useState(false)
@@ -248,11 +251,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       }
 
       try {
-        const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=sample`)
+        const signedUrlResponse = await fetch(`/api/tracks/${track.id}/signed-url?mode=${playbackMode}`)
         const signedUrlData = await signedUrlResponse.json()
 
         if (!signedUrlResponse.ok) {
-          throw new Error(signedUrlData.error || 'Preview waveform unavailable')
+          throw new Error(signedUrlData.message || signedUrlData.error || 'Preview waveform unavailable')
         }
 
         const audioResponse = await fetch(signedUrlData.url)
@@ -287,7 +290,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       cancelled = true
       window.clearTimeout(loadingTimer)
     }
-  }, [activeTab, track.durationSeconds, track.id, track.previewEnd])
+  }, [activeTab, playbackMode, track.durationSeconds, track.id, track.previewEnd])
 
   const goBackToCatalogue = () => {
     const storedReturnContext = getStoredReturnContext()
@@ -428,10 +431,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const showWishlistAction = !showOwnedAction
   const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
-  const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
-  const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
-    ? track.previewEnd
-    : waveformDuration
+  const previewStart = 0
+  const previewEnd = waveformDuration
   const safeWaveformDuration = Math.max(0.01, waveformDuration)
   const previewWindowStart = clampPercentage((previewStart / safeWaveformDuration) * 100)
   const previewWindowEnd = clampPercentage((previewEnd / safeWaveformDuration) * 100)
@@ -635,6 +636,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   <div className='cmc-track-preview-panel' id='track-preview' aria-label='Preview'>
                     <PlaySample
                       active={activePreviewTrackId === track.id}
+                      mode={playbackMode}
                       onActivate={() => setActivePreviewTrackId(track.id)}
                       onDeactivate={() => setActivePreviewTrackId(null)}
                       onProgress={setPreviewCurrentTime}

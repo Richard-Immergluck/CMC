@@ -22,6 +22,7 @@ const trackSelect = {
   composer: true,
   uploadedAt: true,
   userId: true,
+  previewFileName: true,
   previewStart: true,
   previewEnd: true,
   durationSeconds: true,
