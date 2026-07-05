@@ -91,6 +91,11 @@ test.describe('authenticated smoke', () => {
     await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=comments&commentId=\d+/)
     await expect(page.getByRole('tab', { name: /Comments/i })).toHaveAttribute('aria-selected', 'true')
     await expect(page.getByRole('textbox', { name: 'Add your comment' })).toBeVisible()
+    const ownedPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
+    await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
+    await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
+    await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Wishlist' })).toHaveCount(0)
+    await expect(ownedPurchasePanel.getByText(/£/)).toHaveCount(0)
     await page.goto('/profile')
 
     await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study' }).click()

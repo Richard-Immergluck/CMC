@@ -391,7 +391,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     !catalogueContext.showOperationsOverlay
   const showOwnedAction = track.viewerState?.isOwned
   const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
-  const showPurchaseDivider = showBasketAction || showOwnedAction || showOperationsAction
+  const showWishlistAction = !showOwnedAction
+  const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
   const previewStart = Number.isFinite(track.previewStart) ? track.previewStart : 0
   const previewEnd = Number.isFinite(track.previewEnd) && track.previewEnd > previewStart
@@ -548,7 +549,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
             </div>
 
             <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
-              <strong>{formatTrackPrice(track)}</strong>
+              {!showOwnedAction && <strong>{formatTrackPrice(track)}</strong>}
               {showBasketAction && (
                 <Button variant='ink' size='md' onClick={addToCart}>
                   Add to Cart
@@ -575,10 +576,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                 </p>
               )}
               {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
-              <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
-                <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
-                <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
-              </Button>
+              {showWishlistAction && (
+                <Button variant='paper' size='md' className='cmc-track-wishlist-button'>
+                  <Bookmark aria-hidden='true' className='cmc-track-wishlist-icon' strokeWidth={1.8} />
+                  <span className='cmc-track-wishlist-label'>Add to Wishlist</span>
+                </Button>
+              )}
             </aside>
           </header>
 
