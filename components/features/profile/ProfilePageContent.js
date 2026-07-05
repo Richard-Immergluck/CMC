@@ -1,17 +1,18 @@
 'use client'
 
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Download,
+  Pause,
+  Play,
   Search,
   ShieldCheck,
   UploadCloud,
   X
 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
-import PlaySample from '../../PlaySample'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
@@ -22,6 +23,18 @@ import {
 const normalize = value => String(value || '').toLowerCase()
 
 const getCatalogueTrackHref = track => `/catalogue/${track.id}`
+
+const formatPlaybackTime = seconds => {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return '0:00'
+  }
+
+  const roundedSeconds = Math.floor(seconds)
+  const minutes = Math.floor(roundedSeconds / 60)
+  const remainingSeconds = String(roundedSeconds % 60).padStart(2, '0')
+
+  return `${minutes}:${remainingSeconds}`
+}
 
 const uniqueSortedValues = (tracks, key) => {
   const values = tracks
@@ -58,6 +71,146 @@ const matchesSearch = (track, search) => {
   ].map(normalize).join(' ')
 
   return haystack.includes(normalize(search))
+}
+
+const ProfileInlinePlayer = ({ active, onActivate, onDeactivate, track }) => {
+  const audioRef = useRef(null)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(Number.isFinite(track.durationSeconds) ? track.durationSeconds : 0)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [url, setUrl] = useState('')
+
+  useEffect(() => {
+    const audio = audioRef.current
+
+    if (!audio || !url) {
+      return undefined
+    }
+
+    if (!active) {
+      audio.pause()
+      return undefined
+    }
+
+    audio.play().catch(() => {
+      setError('Playback unavailable')
+      onDeactivate()
+    })
+
+    return undefined
+  }, [active, onDeactivate, url])
+
+  useEffect(() => () => {
+    audioRef.current?.pause()
+  }, [])
+
+  const fetchFullTrackUrl = async () => {
+    if (url) {
+      return url
+    }
+
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/tracks/${track.id}/signed-url?mode=full`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Playback unavailable')
+      }
+
+      setUrl(data.url)
+      return data.url
+    } catch (playbackError) {
+      setError(playbackError.message || 'Playback unavailable')
+      onDeactivate()
+      return ''
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const togglePlayback = async () => {
+    if (active) {
+      onDeactivate()
+      return
+    }
+
+    onActivate()
+    await fetchFullTrackUrl()
+  }
+
+  const handleLoadedMetadata = event => {
+    const loadedDuration = event.currentTarget.duration
+
+    if (Number.isFinite(loadedDuration)) {
+      setDuration(loadedDuration)
+    }
+  }
+
+  const handleTimeUpdate = event => {
+    setCurrentTime(event.currentTarget.currentTime)
+  }
+
+  const handleSeek = event => {
+    const nextTime = Number(event.target.value)
+    setCurrentTime(nextTime)
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = nextTime
+    }
+  }
+
+  const safeDuration = Math.max(0, Number.isFinite(duration) ? duration : 0)
+  const sliderMax = safeDuration || 1
+
+  return (
+    <div className='cmc-profile-inline-player'>
+      <Button
+        aria-label={active ? `Pause ${track.title}` : `Play ${track.title}`}
+        aria-pressed={active}
+        className='cmc-profile-inline-play'
+        disabled={loading}
+        onClick={togglePlayback}
+        size='sm'
+        type='button'
+        variant='secondary'
+      >
+        {active ? (
+          <Pause aria-hidden='true' strokeWidth={1.9} />
+        ) : (
+          <Play aria-hidden='true' strokeWidth={1.9} />
+        )}
+      </Button>
+      <div className='cmc-profile-inline-timeline'>
+        <input
+          aria-label={`Playback position for ${track.title}`}
+          disabled={!url && !active}
+          max={sliderMax}
+          min='0'
+          onChange={handleSeek}
+          step='0.1'
+          type='range'
+          value={Math.min(currentTime, sliderMax)}
+        />
+        <span>{formatPlaybackTime(currentTime)} / {formatPlaybackTime(safeDuration)}</span>
+      </div>
+      {error && <small role='alert'>{error}</small>}
+      {url && (
+        <audio
+          ref={audioRef}
+          className='cmc-audio-preview-source'
+          onEnded={onDeactivate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={handleTimeUpdate}
+          preload='metadata'
+          src={url}
+        />
+      )}
+    </div>
+  )
 }
 
 const TrackTable = ({
@@ -103,7 +256,7 @@ const TrackTable = ({
             <span role='cell'>{track.composer || 'Unknown composer'}</span>
             <span role='cell'>{track.key || 'Not set'}</span>
             <div className='cmc-profile-preview-cell' role='cell'>
-              <PlaySample
+              <ProfileInlinePlayer
                 active={activePreviewTrackId === track.id}
                 onActivate={() => setActivePreviewTrackId(track.id)}
                 onDeactivate={() => setActivePreviewTrackId(null)}

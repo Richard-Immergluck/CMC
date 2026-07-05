@@ -3414,10 +3414,49 @@ a {
   min-width: 0;
 }
 
-.cmc-profile-preview-cell .cmc-preview-action {
-  width: 100%;
+.cmc-profile-inline-player {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: var(--cmc-space-2);
+  align-items: center;
   min-width: 0;
+}
+
+.cmc-profile-inline-play {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  aspect-ratio: 1;
+  padding: 0;
   justify-content: center;
+}
+
+.cmc-profile-inline-play svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.cmc-profile-inline-timeline {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.cmc-profile-inline-timeline input[type='range'] {
+  width: 100%;
+  min-width: 5rem;
+  accent-color: var(--cmc-color-forest);
+}
+
+.cmc-profile-inline-timeline span,
+.cmc-profile-inline-player small {
+  color: var(--cmc-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+}
+
+.cmc-profile-inline-player small {
+  grid-column: 1 / -1;
+  color: var(--cmc-color-accent-rose);
 }
 
 .cmc-profile-row-actions {
