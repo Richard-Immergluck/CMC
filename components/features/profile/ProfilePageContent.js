@@ -240,7 +240,7 @@ const TrackTable = ({
         <span role='columnheader'>Title</span>
         <span role='columnheader'>Composer</span>
         <span role='columnheader'>Key</span>
-        <span className='cmc-profile-column-preview' role='columnheader'>Preview</span>
+        <span className='cmc-profile-column-preview' aria-hidden='true' />
         <span className='cmc-profile-column-download' aria-hidden='true' />
       </div>
       <ul className='cmc-profile-table-body'>
