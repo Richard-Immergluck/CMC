@@ -19,6 +19,17 @@ yarn-error.log*
 playwright-report/
 test-results/
 
+# local design and generated review artifacts
+.DS_Store
+output/
+tmp/
+public/.DS_Store
+public/brand/.DS_Store
+public/brand/type/.DS_Store
+public/brand/cmc-staff-mark*.png
+scripts/generate-cmc-logo-pdfs.py
+scripts/generate-cmc-professional-logo-pdfs.py
+
 # env files
 .env
 .env.local
