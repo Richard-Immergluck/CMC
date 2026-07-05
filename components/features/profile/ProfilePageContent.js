@@ -240,8 +240,8 @@ const TrackTable = ({
         <span role='columnheader'>Title</span>
         <span role='columnheader'>Composer</span>
         <span role='columnheader'>Key</span>
-        <span role='columnheader'>Preview</span>
-        <span role='columnheader'>Download</span>
+        <span className='cmc-profile-column-preview' role='columnheader'>Preview</span>
+        <span className='cmc-profile-column-download' aria-hidden='true' />
       </div>
       <ul className='cmc-profile-table-body'>
         {tracks.map((track, index) => (

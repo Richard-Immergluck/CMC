@@ -3363,6 +3363,10 @@ a {
   text-transform: uppercase;
 }
 
+.cmc-profile-column-preview {
+  text-align: center;
+}
+
 .cmc-profile-table-body {
   padding: 0;
   margin: 0;
