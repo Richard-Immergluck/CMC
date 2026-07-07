@@ -114,6 +114,7 @@ const getTrackDetail = async trackId => {
     comments: comments.map(comment => ({
       content: comment.content,
       createdAt: formatDisplayDate(comment.createdAt),
+      createdAtTimestamp: comment.createdAt.toISOString(),
       id: comment.id,
       isTrackOwner: comment.userId === track.userId,
       userId: comment.userId,

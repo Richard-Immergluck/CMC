@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { BadgeCheck, Bookmark, Volume2 } from 'lucide-react'
@@ -141,6 +141,19 @@ const formatRequestStatus = status => {
   return requestStatusOptions.find(option => option.value === status)?.label || status
 }
 
+const sortCommentsByTimestamp = (comments, direction) => {
+  return [...comments].sort((firstComment, secondComment) => {
+    const firstTime = Date.parse(firstComment.createdAtTimestamp || '')
+    const secondTime = Date.parse(secondComment.createdAtTimestamp || '')
+    const safeFirstTime = Number.isFinite(firstTime) ? firstTime : 0
+    const safeSecondTime = Number.isFinite(secondTime) ? secondTime : 0
+
+    return direction === 'newest-first'
+      ? safeSecondTime - safeFirstTime
+      : safeFirstTime - safeSecondTime
+  })
+}
+
 const getInitialTab = searchParams => {
   const requestedTab = searchParams.get('tab')
 
@@ -161,6 +174,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [commentDraft, setCommentDraft] = useState('')
   const [commentError, setCommentError] = useState('')
   const [commentStatus, setCommentStatus] = useState('')
+  const [commentSort, setCommentSort] = useState('newest-last')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [requestList, setRequestList] = useState(requests)
   const [requestTitle, setRequestTitle] = useState('')
@@ -379,6 +393,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
         {
           content: data.content,
           createdAt: formatDisplayDate(data.createdAt),
+          createdAtTimestamp: data.createdAt,
           id: data.id,
           isTrackOwner,
           userId: data.userId,
@@ -493,6 +508,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   }
 
   const commentCount = commentList.length
+  const sortedComments = useMemo(() => (
+    sortCommentsByTimestamp(commentList, commentSort)
+  ), [commentList, commentSort])
   const requestCount = requestList.length
   const isTrackOwner = Boolean(track.viewerState?.isUploadedByViewer)
   const canComment = catalogueContext.isAuthenticated && (track.viewerState?.isOwned || isTrackOwner)
@@ -822,10 +840,20 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                 <section className='cmc-track-comments-section' id='track-comments'>
                   <div className='cmc-track-section-header'>
                     <h2>Comments <span>({commentCount})</span></h2>
-                    <small>Sort: Newest</small>
+                    <label className='cmc-track-comment-sort'>
+                      <span>Sort</span>
+                      <select
+                        aria-label='Sort comments'
+                        onChange={event => setCommentSort(event.target.value)}
+                        value={commentSort}
+                      >
+                        <option value='newest-last'>Newest at bottom</option>
+                        <option value='newest-first'>Newest at top</option>
+                      </select>
+                    </label>
                   </div>
                   <div className='cmc-track-comments'>
-                    {commentList.map((comment, key) => (
+                    {sortedComments.map((comment, key) => (
                       <div
                         className={[
                           'cmc-track-comment',

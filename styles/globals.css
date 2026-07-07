@@ -2331,6 +2331,32 @@ a {
   font-weight: 800;
 }
 
+.cmc-track-comment-sort {
+  display: inline-flex;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  color: var(--cmc-color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.cmc-track-comment-sort span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-track-comment-sort select {
+  min-height: 2rem;
+  padding: 0 var(--cmc-space-3) 0 var(--cmc-space-2);
+  color: var(--cmc-color-text);
+  background: #fffdf8;
+  border: 1px solid rgba(23, 63, 56, 0.2);
+  border-radius: 0;
+  font: inherit;
+}
+
 .cmc-track-comments {
   display: grid;
 }
