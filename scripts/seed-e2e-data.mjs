@@ -20,7 +20,8 @@ const generatedTrackTitlePrefixes = [
   'E2E Browser Upload ',
   'E2E Checkout Study ',
   'E2E Pending Review ',
-  'E2E Catalogue '
+  'E2E Catalogue ',
+  'E2E Peer Catalogue '
 ]
 
 const titlePrefixFilters = generatedTrackTitlePrefixes.map(prefix => ({
@@ -222,6 +223,25 @@ const seed = async () => {
     }
   })
 
+  const peerUploader = await prisma.user.upsert({
+    where: {
+      email: 'e2e-peer-uploader@example.com'
+    },
+    update: {
+      name: 'E2E Peer Uploader',
+      role: 'UPLOADER',
+      uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
+    },
+    create: {
+      email: 'e2e-peer-uploader@example.com',
+      name: 'E2E Peer Uploader',
+      role: 'UPLOADER',
+      uploaderStatus: 'APPROVED',
+      accountStatus: 'ACTIVE'
+    }
+  })
+
   await prisma.auditEvent.deleteMany({
     where: {
       action: 'auth.sign_in_denied',
@@ -379,6 +399,78 @@ const seed = async () => {
     }
   }
 
+  const uploaderPurchasedTracks = []
+  const peerCatalogueTracks = demoCatalogueTracks.slice(8, 13).map((demoTrack, index) => ({
+    fileName: `demo-fixtures/${demoTrack.slug}.wav`,
+    previewFileName: `demo-fixtures/${demoTrack.slug}.wav`,
+    title: `E2E Peer Catalogue ${demoTrack.title}`,
+    composer: demoTrack.composer,
+    status: 'PUBLISHED',
+    moderationStatus: 'APPROVED',
+    processingStatus: 'READY',
+    publishedAt: new Date(`2026-05-${String(10 + index).padStart(2, '0')}T12:00:00.000Z`),
+    reviewedAt: new Date(`2026-05-${String(10 + index).padStart(2, '0')}T12:00:00.000Z`),
+    uploadedBy: {
+      connect: {
+        id: peerUploader.id
+      }
+    },
+    previewStart: 0,
+    previewEnd: Math.min(10, demoTrack.seconds),
+    durationSeconds: demoTrack.durationSeconds,
+    sourceContentType: 'audio/wav',
+    price: demoTrack.pricePence / 100,
+    pricePence: demoTrack.pricePence,
+    currency: 'gbp',
+    formattedPrice: demoTrack.formattedPrice,
+    downloadName: `${demoTrack.slug}.wav`,
+    downloadCount: 0,
+    key: demoTrack.key,
+    instrumentation: demoTrack.instrumentation,
+    additionalInfo: `${demoTrack.additionalInfo} Seeded as a peer-uploader purchase fixture.`
+  }))
+
+  for (const [index, peerTrack] of peerCatalogueTracks.entries()) {
+    const existingPeerTrack = await prisma.track.findFirst({
+      where: {
+        title: peerTrack.title,
+        composer: peerTrack.composer,
+        userId: peerUploader.id
+      }
+    })
+
+    const savedPeerTrack = existingPeerTrack
+      ? await prisma.track.update({
+        where: {
+          id: existingPeerTrack.id
+        },
+        data: peerTrack
+      })
+      : await prisma.track.create({
+        data: peerTrack
+      })
+
+    if (index < 4) {
+      uploaderPurchasedTracks.push(savedPeerTrack)
+      await prisma.trackOwner.upsert({
+        where: {
+          trackId_userId: {
+            trackId: savedPeerTrack.id,
+            userId: uploader.id
+          }
+        },
+        update: {
+          purchasedAt: new Date(`2026-07-${String(index + 6).padStart(2, '0')}T11:00:00.000Z`)
+        },
+        create: {
+          trackId: savedPeerTrack.id,
+          userId: uploader.id,
+          purchasedAt: new Date(`2026-07-${String(index + 6).padStart(2, '0')}T11:00:00.000Z`)
+        }
+      })
+    }
+  }
+
   const customerComments = [
     'Useful balance for slow practice; the piano guide sits clearly in the texture.',
     'This one is especially helpful for checking entries after the development section.',
@@ -432,7 +524,9 @@ const seed = async () => {
 
   await prisma.trackRequest.deleteMany({
     where: {
-      userId: customer.id,
+      userId: {
+        in: [customer.id, uploader.id]
+      },
       OR: requestTitlePrefixFilters
     }
   })
@@ -458,10 +552,62 @@ const seed = async () => {
     })
   }
 
+  const uploaderRequestFixtures = [
+    {
+      title: 'E2E Request Uploader Schumann Lieder Cycle',
+      composer: 'Robert Schumann',
+      instrumentation: 'Voice and piano',
+      notes: 'Uploader testing request state visibility for a purchased peer track.',
+      status: 'OPEN'
+    },
+    {
+      title: 'E2E Request Uploader Debussy Syrinx Guide',
+      composer: 'Claude Debussy',
+      instrumentation: 'Flute practice guide',
+      notes: 'Uploader has asked for an alternate guide tempo on a track they own.',
+      status: 'IN_PROGRESS'
+    },
+    {
+      title: 'E2E Request Uploader Faure Elegie Reduction',
+      composer: 'Gabriel Faure',
+      instrumentation: 'Cello and piano',
+      notes: 'Uploader request fixture marked fulfilled for profile and detail review.',
+      status: 'FULFILLED'
+    }
+  ]
+
+  for (const [index, requestFixture] of uploaderRequestFixtures.entries()) {
+    const requestTrack = uploaderPurchasedTracks[index] || uploaderPurchasedTracks[0]
+
+    if (!requestTrack) {
+      continue
+    }
+
+    await prisma.trackRequest.create({
+      data: {
+        ...requestFixture,
+        track: {
+          connect: {
+            id: requestTrack.id
+          }
+        },
+        requestedBy: {
+          connect: {
+            id: uploader.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 8).padStart(2, '0')}T09:45:00.000Z`)
+      }
+    })
+  }
+
   console.log(`Seeded ${extraCatalogueTracks.length + 1} E2E catalogue tracks for ${uploader.email}`)
+  console.log(`Seeded ${peerCatalogueTracks.length} E2E peer catalogue tracks for ${peerUploader.email}`)
   console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
+  console.log(`Seeded ${uploaderPurchasedTracks.length} E2E uploader purchases for ${uploader.email}`)
   console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
+  console.log(`Seeded ${uploaderRequestFixtures.length} E2E uploader requests for ${uploader.email}`)
 
   const richardPlaybackTrack = await prisma.track.findFirst({
     where: {

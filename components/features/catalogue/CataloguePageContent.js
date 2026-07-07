@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Container, Form } from 'react-bootstrap'
-import { catalogueModes, getCatalogueModeLabel } from '../../../lib/catalogue-view.mjs'
+import { catalogueModes } from '../../../lib/catalogue-view.mjs'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
@@ -146,10 +146,7 @@ const getPrimaryTrackAction = ({ catalogueContext, track }) => {
   }
 
   if (track.viewerState?.isUploadedByViewer) {
-    return {
-      href: `/catalogue/${track.id}`,
-      label: 'Your Track'
-    }
+    return null
   }
 
   return null
@@ -269,6 +266,21 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
   const previousPage = Math.max(1, pagination.page - 1)
   const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
   const stopPreview = useCallback(() => setActivePreviewTrackId(null), [])
+  const renderPagination = ariaLabel => (
+    <div className='cmc-catalogue-pagination' aria-label={ariaLabel}>
+      {pagination.page > 1 ? (
+        <Link href={createPageHref({ page: previousPage, query })}>Previous</Link>
+      ) : (
+        <span aria-disabled='true'>Previous</span>
+      )}
+      <strong>Page {pagination.page} of {pagination.pageCount}</strong>
+      {pagination.page < pagination.pageCount ? (
+        <Link href={createPageHref({ page: nextPage, query })}>Next</Link>
+      ) : (
+        <span aria-disabled='true'>Next</span>
+      )}
+    </div>
+  )
   const rememberCatalogueScrollPosition = useCallback(trackId => {
     if (!resultListRef.current) {
       return
@@ -306,9 +318,6 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
               <h1 id='catalogue-heading'>
                 <BrandDisplayText text='Browse Archive' />
               </h1>
-              <p className='cmc-catalogue-mode-label'>
-                {getCatalogueModeLabel(catalogueContext.mode)}
-              </p>
             </div>
 
             <Form action='/catalogue' className='cmc-catalogue-query-form' method='get' role='search'>
@@ -396,19 +405,7 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
             <span>
               Showing {pagination.showingFrom}-{pagination.showingTo} of {pagination.total} tracks
             </span>
-            <div className='cmc-catalogue-pagination' aria-label='Catalogue pagination'>
-              {pagination.page > 1 ? (
-                <Link href={createPageHref({ page: previousPage, query })}>Previous</Link>
-              ) : (
-                <span aria-disabled='true'>Previous</span>
-              )}
-              <strong>Page {pagination.page} of {pagination.pageCount}</strong>
-              {pagination.page < pagination.pageCount ? (
-                <Link href={createPageHref({ page: nextPage, query })}>Next</Link>
-              ) : (
-                <span aria-disabled='true'>Next</span>
-              )}
-            </div>
+            {renderPagination('Catalogue pagination')}
           </div>
 
           <section className='cmc-catalogue-results-shell' aria-label='Catalogue results'>
@@ -445,6 +442,10 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
               )}
             </div>
           </section>
+
+          <div className='cmc-catalogue-bottom-pagination'>
+            {renderPagination('Catalogue pagination at end of results')}
+          </div>
         </section>
       </Container>
     </main>
