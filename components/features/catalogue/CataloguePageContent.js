@@ -266,6 +266,21 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
   const previousPage = Math.max(1, pagination.page - 1)
   const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
   const stopPreview = useCallback(() => setActivePreviewTrackId(null), [])
+  const renderPagination = ariaLabel => (
+    <div className='cmc-catalogue-pagination' aria-label={ariaLabel}>
+      {pagination.page > 1 ? (
+        <Link href={createPageHref({ page: previousPage, query })}>Previous</Link>
+      ) : (
+        <span aria-disabled='true'>Previous</span>
+      )}
+      <strong>Page {pagination.page} of {pagination.pageCount}</strong>
+      {pagination.page < pagination.pageCount ? (
+        <Link href={createPageHref({ page: nextPage, query })}>Next</Link>
+      ) : (
+        <span aria-disabled='true'>Next</span>
+      )}
+    </div>
+  )
   const rememberCatalogueScrollPosition = useCallback(trackId => {
     if (!resultListRef.current) {
       return
@@ -390,19 +405,7 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
             <span>
               Showing {pagination.showingFrom}-{pagination.showingTo} of {pagination.total} tracks
             </span>
-            <div className='cmc-catalogue-pagination' aria-label='Catalogue pagination'>
-              {pagination.page > 1 ? (
-                <Link href={createPageHref({ page: previousPage, query })}>Previous</Link>
-              ) : (
-                <span aria-disabled='true'>Previous</span>
-              )}
-              <strong>Page {pagination.page} of {pagination.pageCount}</strong>
-              {pagination.page < pagination.pageCount ? (
-                <Link href={createPageHref({ page: nextPage, query })}>Next</Link>
-              ) : (
-                <span aria-disabled='true'>Next</span>
-              )}
-            </div>
+            {renderPagination('Catalogue pagination')}
           </div>
 
           <section className='cmc-catalogue-results-shell' aria-label='Catalogue results'>
@@ -439,6 +442,10 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
               )}
             </div>
           </section>
+
+          <div className='cmc-catalogue-bottom-pagination'>
+            {renderPagination('Catalogue pagination at end of results')}
+          </div>
         </section>
       </Container>
     </main>
