@@ -2384,6 +2384,7 @@ a {
 }
 
 .cmc-track-comment-avatar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2394,6 +2395,29 @@ a {
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.cmc-track-comment--owner .cmc-track-comment-avatar {
+  color: var(--cmc-color-accent-strong);
+  background: #fffdf8;
+  border: 1px solid rgba(23, 63, 56, 0.32);
+  box-shadow:
+    0 0 0 0.18rem #fffdf8,
+    0 0 0 0.32rem rgba(185, 133, 34, 0.84),
+    0 0.55rem 1.1rem rgba(23, 63, 56, 0.14);
+}
+
+.cmc-track-comment--owner .cmc-track-comment-avatar::after {
+  position: absolute;
+  right: -0.12rem;
+  bottom: 0.08rem;
+  width: 0.58rem;
+  height: 0.58rem;
+  content: '';
+  background: var(--cmc-color-accent-gold);
+  border: 2px solid #fffdf8;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(23, 63, 56, 0.22);
 }
 
 .cmc-track-comment header {
