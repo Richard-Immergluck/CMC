@@ -39,7 +39,8 @@ const trackSelect = {
   _count: {
     select: {
       Comments: true,
-      TrackOwner: true
+      TrackOwner: true,
+      TrackRequests: true
     }
   }
 }
@@ -114,6 +115,7 @@ const getTrackDetail = async trackId => {
       content: comment.content,
       createdAt: formatDisplayDate(comment.createdAt),
       id: comment.id,
+      isTrackOwner: comment.userId === track.userId,
       userId: comment.userId,
       userName: comment.postedBy?.name || 'Unknown'
     })),

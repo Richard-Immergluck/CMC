@@ -498,6 +498,32 @@ const seed = async () => {
     })
   }
 
+  const uploaderOwnerComments = [
+    'Uploader note: this guide track is intentionally steady for first-pass rehearsal.',
+    'Uploader note: phrasing cues are slightly forward in the mix for entry practice.'
+  ]
+
+  for (const [index, ownerComment] of uploaderOwnerComments.entries()) {
+    const ownerCommentTrack = purchasedTracks[index] || purchasedTracks[0]
+
+    await prisma.comment.create({
+      data: {
+        content: ownerComment,
+        postedBy: {
+          connect: {
+            id: uploader.id
+          }
+        },
+        track: {
+          connect: {
+            id: ownerCommentTrack.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 7).padStart(2, '0')}T15:15:00.000Z`)
+      }
+    })
+  }
+
   const requestFixtures = [
     {
       title: 'E2E Request Poulenc Oboe Sonata',
@@ -606,6 +632,7 @@ const seed = async () => {
   console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
   console.log(`Seeded ${uploaderPurchasedTracks.length} E2E uploader purchases for ${uploader.email}`)
   console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
+  console.log(`Seeded ${uploaderOwnerComments.length} E2E uploader owner comments for ${uploader.email}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
   console.log(`Seeded ${uploaderRequestFixtures.length} E2E uploader requests for ${uploader.email}`)
 

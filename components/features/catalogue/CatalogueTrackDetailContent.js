@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Bookmark, Volume2 } from 'lucide-react'
+import { BadgeCheck, Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
@@ -118,6 +118,29 @@ const detailTabLabels = {
 
 const detailTabIds = Object.keys(detailTabLabels)
 
+const requestStatusOptions = [
+  {
+    label: 'Open',
+    value: 'OPEN'
+  },
+  {
+    label: 'In progress',
+    value: 'IN_PROGRESS'
+  },
+  {
+    label: 'Fulfilled',
+    value: 'FULFILLED'
+  },
+  {
+    label: 'Closed',
+    value: 'CLOSED'
+  }
+]
+
+const formatRequestStatus = status => {
+  return requestStatusOptions.find(option => option.value === status)?.label || status
+}
+
 const getInitialTab = searchParams => {
   const requestedTab = searchParams.get('tab')
 
@@ -145,6 +168,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [requestError, setRequestError] = useState('')
   const [requestStatus, setRequestStatus] = useState('')
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
+  const [requestStatusDrafts, setRequestStatusDrafts] = useState(() => {
+    return Object.fromEntries(requests.map(request => [request.id, request.status]))
+  })
+  const [requestUpdateError, setRequestUpdateError] = useState('')
+  const [requestUpdateStatus, setRequestUpdateStatus] = useState('')
+  const [updatingRequestId, setUpdatingRequestId] = useState(null)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
@@ -351,6 +380,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
           content: data.content,
           createdAt: formatDisplayDate(data.createdAt),
           id: data.id,
+          isTrackOwner,
           userId: data.userId,
           userName: catalogueContext.userName || 'You'
         }
@@ -419,16 +449,60 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     }
   }
 
+  const submitRequestStatus = async requestId => {
+    setRequestUpdateError('')
+    setRequestUpdateStatus('')
+    setUpdatingRequestId(requestId)
+
+    const nextStatus = String(requestStatusDrafts[requestId] || '')
+
+    try {
+      const response = await fetch(`/api/track-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: nextStatus
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to update request')
+      }
+
+      setRequestList(currentRequests => currentRequests.map(request => (
+        request.id === requestId
+          ? {
+              ...request,
+              status: data.status
+            }
+          : request
+      )))
+      setRequestStatusDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: data.status
+      }))
+      setRequestUpdateStatus('Request status updated.')
+    } catch (error) {
+      setRequestUpdateError(error.message || 'Unable to update request')
+    } finally {
+      setUpdatingRequestId(null)
+    }
+  }
+
   const commentCount = commentList.length
   const requestCount = requestList.length
-  const canComment = catalogueContext.isAuthenticated && track.viewerState?.isOwned
+  const isTrackOwner = Boolean(track.viewerState?.isUploadedByViewer)
+  const canComment = catalogueContext.isAuthenticated && (track.viewerState?.isOwned || isTrackOwner)
   const showBasketAction = catalogueContext.isAuthenticated &&
     !track.viewerState?.isOwned &&
-    !track.viewerState?.isUploadedByViewer &&
+    !isTrackOwner &&
     !catalogueContext.showOperationsOverlay
-  const showOwnedAction = track.viewerState?.isOwned
-  const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
-  const showWishlistAction = !showOwnedAction
+  const showOwnedAction = track.viewerState?.isOwned && !isTrackOwner
+  const showOperationsAction = catalogueContext.showOperationsOverlay && !isTrackOwner
+  const showWishlistAction = !showOwnedAction && !isTrackOwner
   const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
   const wishlistHref = `/wishlist/add?trackId=${track.id}`
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
@@ -584,8 +658,26 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               </p>
             </div>
 
-            <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
-              {!showOwnedAction && <strong>{formatTrackPrice(track)}</strong>}
+            <aside
+              className='cmc-track-purchase-panel'
+              aria-label={isTrackOwner ? 'Uploader track activity' : 'Purchase track'}
+            >
+              {isTrackOwner ? (
+                <dl className='cmc-track-owner-stats' aria-label='Uploader track activity'>
+                  <div>
+                    <dt>Downloads</dt>
+                    <dd>{track._count?.TrackOwner || 0}</dd>
+                  </div>
+                  <div>
+                    <dt>Comments</dt>
+                    <dd>{commentCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Requests</dt>
+                    <dd>{requestCount}</dd>
+                  </div>
+                </dl>
+              ) : !showOwnedAction && <strong>{formatTrackPrice(track)}</strong>}
               {showBasketAction && (
                 <Button variant='ink' size='md' onClick={addToCart}>
                   Add to Cart
@@ -735,7 +827,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   <div className='cmc-track-comments'>
                     {commentList.map((comment, key) => (
                       <div
-                        className={comment.id === focusedCommentId ? 'cmc-track-comment cmc-track-comment--focused' : 'cmc-track-comment'}
+                        className={[
+                          'cmc-track-comment',
+                          comment.id === focusedCommentId ? 'cmc-track-comment--focused' : '',
+                          comment.isTrackOwner ? 'cmc-track-comment--owner' : ''
+                        ].filter(Boolean).join(' ')}
                         id={`comment-${comment.id}`}
                         key={comment.id}
                       >
@@ -743,6 +839,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         <div>
                           <header>
                             <strong>{comment.userName}</strong>
+                            {comment.isTrackOwner && (
+                              <span className='cmc-track-owner-comment-badge'>
+                                <BadgeCheck aria-hidden='true' strokeWidth={1.8} />
+                                Track uploader
+                              </span>
+                            )}
                             <time>{comment.createdAt}</time>
                           </header>
                           <p>{comment.content}</p>
@@ -816,13 +918,44 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                       >
                         <header>
                           <strong>{request.title}</strong>
-                          <span>{request.status}</span>
+                          <span>{formatRequestStatus(request.status)}</span>
                         </header>
                         <p>{request.description}</p>
                         <footer>
                           <span>{request.requestedBy}</span>
                           <span>{request.createdAt}</span>
                         </footer>
+                        {isTrackOwner && (
+                          <div
+                            className='cmc-track-request-status-form'
+                          >
+                            <label htmlFor={`request-status-${request.id}`}>Request status</label>
+                            <select
+                              id={`request-status-${request.id}`}
+                              name='status'
+                              onChange={event => setRequestStatusDrafts(currentDrafts => ({
+                                ...currentDrafts,
+                                [request.id]: event.target.value
+                              }))}
+                              value={requestStatusDrafts[request.id] || request.status}
+                            >
+                              {requestStatusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            <Button
+                              disabled={updatingRequestId === request.id}
+                              onClick={() => submitRequestStatus(request.id)}
+                              size='sm'
+                              type='button'
+                              variant='paper'
+                            >
+                              {updatingRequestId === request.id ? 'Updating...' : 'Update'}
+                            </Button>
+                          </div>
+                        )}
                       </article>
                     ))}
                     {requestList.length === 0 && (
@@ -833,7 +966,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   </div>
 
                   <div className='cmc-track-request-action'>
-                    {catalogueContext.isAuthenticated ? (
+                    {isTrackOwner ? (
+                      <p>
+                        Manage request status from each request above. New requests are created by catalogue members.
+                      </p>
+                    ) : catalogueContext.isAuthenticated ? (
                       <form onSubmit={submitRequest}>
                         <h3>Make a request</h3>
                         <label htmlFor='track-request-title'>Request title</label>
@@ -870,6 +1007,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         to make a request.
                       </p>
                     )}
+                    {requestUpdateError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{requestUpdateError}</p>}
+                    {requestUpdateStatus && <p className='cmc-track-comment-message' role='status'>{requestUpdateStatus}</p>}
                   </div>
                 </section>
               )}

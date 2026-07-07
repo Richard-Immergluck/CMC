@@ -14,6 +14,7 @@ import {
   simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
   trackRequestBodySchema,
+  trackRequestStatusBodySchema,
   trackIdParamSchema,
   uploadSignedUrlBodySchema,
   validateInput
@@ -202,6 +203,28 @@ test('track request body requires a public track id and bounded request fields',
       trackId: '12',
       title: ''
     }),
+    error => error.statusCode === 400
+  )
+})
+
+test('track request status body accepts only supported workflow states', () => {
+  assert.deepEqual(
+    validateInput(trackRequestStatusBodySchema, {
+      status: 'IN_PROGRESS',
+      ignored: 'removed'
+    }),
+    {
+      status: 'IN_PROGRESS'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestStatusBodySchema, { status: 'DONE' }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestStatusBodySchema, {}),
     error => error.statusCode === 400
   )
 })
