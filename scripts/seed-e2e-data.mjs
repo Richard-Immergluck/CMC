@@ -328,6 +328,7 @@ const seed = async () => {
   })
 
   const purchasedTracks = [track]
+  const savedExtraCatalogueTracks = []
   const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
     fileName: `demo-fixtures/${demoTrack.slug}.wav`,
     previewFileName: `demo-fixtures/${demoTrack.slug}.wav`,
@@ -377,6 +378,8 @@ const seed = async () => {
       : await prisma.track.create({
         data: extraTrack
       })
+
+    savedExtraCatalogueTracks.push(savedTrack)
 
     if (index < 5) {
       purchasedTracks.push(savedTrack)
@@ -524,6 +527,78 @@ const seed = async () => {
     })
   }
 
+  const bachWarmupTrack = savedExtraCatalogueTracks.find(savedTrack => (
+    savedTrack.title === 'E2E Catalogue Bach Warmup Study Op. 92'
+  ))
+  const bachWarmupRequests = [
+    {
+      title: 'E2E Request Bach Warmup Slower Tempo',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Piano guide tone',
+      notes: 'Please add a slower preview-friendly version for early warmup work.',
+      status: 'OPEN',
+      userId: customer.id,
+      createdAt: new Date('2026-07-10T13:15:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Violin Cue',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Violin and piano',
+      notes: 'A version with a light violin entry cue would make this easier to use in lessons.',
+      status: 'IN_PROGRESS',
+      userId: support.id,
+      createdAt: new Date('2026-07-10T13:45:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Short Cut',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Piano guide tone',
+      notes: 'Could this be available as a short 45-second rehearsal cut?',
+      status: 'FULFILLED',
+      userId: customer.id,
+      createdAt: new Date('2026-07-10T14:10:00.000Z')
+    }
+  ]
+
+  if (bachWarmupTrack) {
+    const bachWarmupComments = [
+      {
+        content: 'The pulse is very steady here; useful for first-play warmups before moving to faster excerpts.',
+        createdAt: new Date('2026-07-10T10:20:00.000Z'),
+        userId: customer.id
+      },
+      {
+        content: 'Uploader note: this was designed as a clean harmonic guide rather than a performance-style accompaniment.',
+        createdAt: new Date('2026-07-10T11:05:00.000Z'),
+        userId: uploader.id
+      },
+      {
+        content: 'Could work well for sectional practice. The lower line is clear enough to tune against.',
+        createdAt: new Date('2026-07-10T12:40:00.000Z'),
+        userId: support.id
+      }
+    ]
+
+    for (const commentFixture of bachWarmupComments) {
+      await prisma.comment.create({
+        data: {
+          content: commentFixture.content,
+          createdAt: commentFixture.createdAt,
+          postedBy: {
+            connect: {
+              id: commentFixture.userId
+            }
+          },
+          track: {
+            connect: {
+              id: bachWarmupTrack.id
+            }
+          }
+        }
+      })
+    }
+  }
+
   const requestFixtures = [
     {
       title: 'E2E Request Poulenc Oboe Sonata',
@@ -551,11 +626,36 @@ const seed = async () => {
   await prisma.trackRequest.deleteMany({
     where: {
       userId: {
-        in: [customer.id, uploader.id]
+        in: [customer.id, uploader.id, support.id]
       },
       OR: requestTitlePrefixFilters
     }
   })
+
+  if (bachWarmupTrack) {
+    for (const requestFixture of bachWarmupRequests) {
+      await prisma.trackRequest.create({
+        data: {
+          composer: requestFixture.composer,
+          instrumentation: requestFixture.instrumentation,
+          notes: requestFixture.notes,
+          status: requestFixture.status,
+          title: requestFixture.title,
+          createdAt: requestFixture.createdAt,
+          requestedBy: {
+            connect: {
+              id: requestFixture.userId
+            }
+          },
+          track: {
+            connect: {
+              id: bachWarmupTrack.id
+            }
+          }
+        }
+      })
+    }
+  }
 
   for (const [index, requestFixture] of requestFixtures.entries()) {
     const requestTrack = purchasedTracks[index] || purchasedTracks[0]
@@ -633,6 +733,7 @@ const seed = async () => {
   console.log(`Seeded ${uploaderPurchasedTracks.length} E2E uploader purchases for ${uploader.email}`)
   console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
   console.log(`Seeded ${uploaderOwnerComments.length} E2E uploader owner comments for ${uploader.email}`)
+  console.log(`Seeded Bach Warmup detail fixtures for ${bachWarmupTrack?.title || 'missing target track'}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
   console.log(`Seeded ${uploaderRequestFixtures.length} E2E uploader requests for ${uploader.email}`)
 
