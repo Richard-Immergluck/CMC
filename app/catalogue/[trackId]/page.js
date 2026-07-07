@@ -102,6 +102,14 @@ const getTrackDetail = async trackId => {
             name: true,
             email: true
           }
+        },
+        fulfilledByTrack: {
+          select: {
+            id: true,
+            title: true,
+            moderationStatus: true,
+            status: true
+          }
         }
       },
       orderBy: {
@@ -127,7 +135,15 @@ const getTrackDetail = async trackId => {
       requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
       status: request.status,
       title: request.title,
-      userId: request.userId
+      userId: request.userId,
+      fulfilledByTrack: request.fulfilledByTrack
+        ? {
+            id: request.fulfilledByTrack.id,
+            title: request.fulfilledByTrack.title,
+            moderationStatus: request.fulfilledByTrack.moderationStatus,
+            status: request.fulfilledByTrack.status
+          }
+        : null
     })),
     track: {
       ...track,

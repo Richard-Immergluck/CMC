@@ -210,11 +210,20 @@ test('track request body requires a public track id and bounded request fields',
 test('track request status body accepts only supported workflow states', () => {
   assert.deepEqual(
     validateInput(trackRequestStatusBodySchema, {
-      status: 'IN_PROGRESS',
+      status: 'ACCEPTED',
       ignored: 'removed'
     }),
     {
-      status: 'IN_PROGRESS'
+      status: 'ACCEPTED'
+    }
+  )
+
+  assert.deepEqual(
+    validateInput(trackRequestStatusBodySchema, {
+      status: 'COMPLETED'
+    }),
+    {
+      status: 'COMPLETED'
     }
   )
 
@@ -362,7 +371,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       sourceContentType: ' audio/mpeg ',
       additionalInfo: 'Practice backing track',
       price: '2.99',
-      currency: 'GBP'
+      currency: 'GBP',
+      fulfilledRequestId: '42'
     }),
     {
       title: 'Bach Study',
@@ -377,6 +387,7 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       additionalInfo: 'Practice backing track',
       price: 2.99,
       currency: 'gbp',
+      fulfilledRequestId: 42,
       downloadCount: 0
     }
   )

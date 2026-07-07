@@ -8,7 +8,8 @@ import {
 } from '../../../../lib/server/route-handlers'
 import {
   createForbiddenError,
-  createNotFoundError
+  createNotFoundError,
+  createValidationError
 } from '../../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import prisma from '../../../../lib/server/prisma'
@@ -59,6 +60,10 @@ export async function PATCH(request, { params }) {
       body,
       'Invalid track request status'
     )
+
+    if (status === 'COMPLETED') {
+      throw createValidationError('Requests are completed by uploading a fulfilment track')
+    }
     const existingRequest = await prisma.trackRequest.findUnique({
       where: {
         id: requestId

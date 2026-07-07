@@ -117,13 +117,13 @@ test.describe('authenticated smoke', () => {
     await expect(downloadsTable.getByRole('link', { name: 'Open' })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'My requests' })).toBeVisible()
     await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
-    await expect(page.getByText(/open · \d{2}\/\d{2}\/\d{4}/i).first()).toBeVisible()
+    await expect(page.getByText(/New request · \d{2}\/\d{2}\/\d{4}/).first()).toBeVisible()
     await page.getByRole('link', { name: 'Poulenc Oboe Sonata' }).click()
 
     await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=requests&requestId=\d+/)
     await expect(page.getByRole('tab', { name: /Requests/i })).toHaveAttribute('aria-selected', 'true')
     await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
-    await expect(page.getByText('OPEN').first()).toBeVisible()
+    await expect(page.getByText('New request').first()).toBeVisible()
     await expect(page.getByLabel('Request title')).toBeVisible()
     await page.goto('/profile')
 
@@ -181,7 +181,7 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('status')).toContainText('Your request has been added.')
     const createdRequest = page.locator('.cmc-track-request').filter({ hasText: requestTitle }).first()
     await expect(createdRequest).toBeVisible()
-    await expect(createdRequest.getByText('OPEN')).toBeVisible()
+    await expect(createdRequest.getByText('New request')).toBeVisible()
     await expect(createdRequest.getByText(/\d{2}\/\d{2}\/\d{4}/)).toBeVisible()
   })
 

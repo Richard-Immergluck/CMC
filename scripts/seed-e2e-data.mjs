@@ -545,16 +545,34 @@ const seed = async () => {
       composer: 'Bach Style Synthetic Fixture',
       instrumentation: 'Violin and piano',
       notes: 'A version with a light violin entry cue would make this easier to use in lessons.',
-      status: 'IN_PROGRESS',
+      status: 'PENDING_DECISION',
       userId: support.id,
       createdAt: new Date('2026-07-10T13:45:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Accepted Cut',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Piano guide tone',
+      notes: 'Accepted request fixture for testing upload fulfilment from the details page.',
+      status: 'ACCEPTED',
+      userId: customer.id,
+      createdAt: new Date('2026-07-10T13:55:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Clarinet Version',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Clarinet and piano',
+      notes: 'A declined fixture so the rejected state can be reviewed by requesters and uploaders.',
+      status: 'REJECTED',
+      userId: support.id,
+      createdAt: new Date('2026-07-10T14:00:00.000Z')
     },
     {
       title: 'E2E Request Bach Warmup Short Cut',
       composer: 'Bach Style Synthetic Fixture',
       instrumentation: 'Piano guide tone',
       notes: 'Could this be available as a short 45-second rehearsal cut?',
-      status: 'FULFILLED',
+      status: 'COMPLETED',
       userId: customer.id,
       createdAt: new Date('2026-07-10T14:10:00.000Z')
     }
@@ -612,14 +630,14 @@ const seed = async () => {
       composer: 'Camille Saint-Saens',
       instrumentation: 'Cello and piano',
       notes: 'Useful if the accompaniment has a flexible but stable tempo.',
-      status: 'IN_PROGRESS'
+      status: 'PENDING_DECISION'
     },
     {
       title: 'E2E Request Mozart Clarinet Concerto Adagio',
       composer: 'W. A. Mozart',
       instrumentation: 'Clarinet and orchestra reduction',
       notes: 'Request fulfilled by an existing catalogue upload for smoke coverage.',
-      status: 'FULFILLED'
+      status: 'COMPLETED'
     }
   ]
 
@@ -691,14 +709,14 @@ const seed = async () => {
       composer: 'Claude Debussy',
       instrumentation: 'Flute practice guide',
       notes: 'Uploader has asked for an alternate guide tempo on a track they own.',
-      status: 'IN_PROGRESS'
+      status: 'ACCEPTED'
     },
     {
       title: 'E2E Request Uploader Faure Elegie Reduction',
       composer: 'Gabriel Faure',
       instrumentation: 'Cello and piano',
       notes: 'Uploader request fixture marked fulfilled for profile and detail review.',
-      status: 'FULFILLED'
+      status: 'COMPLETED'
     }
   ]
 

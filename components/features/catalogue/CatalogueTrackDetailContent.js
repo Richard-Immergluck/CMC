@@ -120,22 +120,28 @@ const detailTabIds = Object.keys(detailTabLabels)
 
 const requestStatusOptions = [
   {
-    label: 'Open',
+    label: 'New request',
     value: 'OPEN'
   },
   {
-    label: 'In progress',
-    value: 'IN_PROGRESS'
+    label: 'Pending decision',
+    value: 'PENDING_DECISION'
   },
   {
-    label: 'Fulfilled',
-    value: 'FULFILLED'
+    label: 'Accepted - preparing',
+    value: 'ACCEPTED'
   },
   {
-    label: 'Closed',
-    value: 'CLOSED'
+    label: 'Rejected',
+    value: 'REJECTED'
+  },
+  {
+    label: 'Completed',
+    value: 'COMPLETED'
   }
 ]
+
+const manageableRequestStatusOptions = requestStatusOptions.filter(option => option.value !== 'COMPLETED')
 
 const formatRequestStatus = status => {
   return requestStatusOptions.find(option => option.value === status)?.label || status
@@ -953,7 +959,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                           <span>{request.requestedBy}</span>
                           <span>{request.createdAt}</span>
                         </footer>
-                        {isTrackOwner && (
+                        {request.fulfilledByTrack && (
+                          <p className='cmc-track-request-fulfilment'>
+                            Fulfilment uploaded: <strong>{request.fulfilledByTrack.title}</strong>
+                            {request.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
+                          </p>
+                        )}
+                        {isTrackOwner && request.status !== 'COMPLETED' && (
                           <div
                             className='cmc-track-request-status-form'
                           >
@@ -967,7 +979,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                               }))}
                               value={requestStatusDrafts[request.id] || request.status}
                             >
-                              {requestStatusOptions.map(option => (
+                              {manageableRequestStatusOptions.map(option => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
                                 </option>
@@ -982,6 +994,16 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                             >
                               {updatingRequestId === request.id ? 'Updating...' : 'Update'}
                             </Button>
+                            {request.status === 'ACCEPTED' && (
+                              <Button
+                                as={Link}
+                                href={`/upload?fulfilledRequestId=${request.id}`}
+                                size='sm'
+                                variant='ink'
+                              >
+                                Upload Fulfilment
+                              </Button>
+                            )}
                           </div>
                         )}
                       </article>

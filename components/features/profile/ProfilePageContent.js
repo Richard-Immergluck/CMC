@@ -20,6 +20,16 @@ import {
 
 const normalize = value => String(value || '').toLowerCase()
 
+const requestStatusLabels = {
+  OPEN: 'New request',
+  PENDING_DECISION: 'Pending decision',
+  ACCEPTED: 'Accepted - preparing',
+  REJECTED: 'Rejected',
+  COMPLETED: 'Completed'
+}
+
+const formatRequestStatus = status => requestStatusLabels[status] || String(status || 'Request')
+
 const trackReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const trackReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 
@@ -404,7 +414,7 @@ const ProfilePageContent = ({
         : 'Recent requests you have created or followed.',
       items: userTrackRequests.slice(0, 3).map(request => ({
         href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : null,
-        meta: `${request.status.toLowerCase().replace('_', ' ')} · ${request.createdAt}`,
+        meta: `${formatRequestStatus(request.status)} · ${request.createdAt}`,
         title: request.title.replace(/^E2E Request /, ''),
         trackId: request.trackId
       }))

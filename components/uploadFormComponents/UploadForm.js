@@ -41,7 +41,8 @@ const uploadToDB = async (values, newFileName) => {
     priceString,
     key,
     instrumentation,
-    additionalInfo
+    additionalInfo,
+    fulfilledRequestId
   } = values
 
   // Dealing with various user inputs for the preview starting point input field
@@ -69,6 +70,10 @@ const uploadToDB = async (values, newFileName) => {
   var formattedPrice = `£${price.toFixed(2)}`
   var downloadName = `${title}_${composer}.mp3`
   var downloadCount = 0
+  const fallbackFulfilledRequestId = typeof window === 'undefined'
+    ? ''
+    : new URLSearchParams(window.location.search).get('fulfilledRequestId')
+  const resolvedFulfilledRequestId = fulfilledRequestId || fallbackFulfilledRequestId || undefined
 
   // Create submission object
   const submissionData = {
@@ -85,7 +90,8 @@ const uploadToDB = async (values, newFileName) => {
     currency,
     formattedPrice,
     downloadName,
-    downloadCount
+    downloadCount,
+    fulfilledRequestId: resolvedFulfilledRequestId
   }
 
   // Send the submission object to the api endpoint
@@ -142,7 +148,8 @@ const uploadToS3 = async selectedFile => {
   return signedUrlData.key
 }
 
-function UploadForm() {
+function UploadForm({ initialFulfilledRequestId = '' }) {
+  const fulfilledRequestId = initialFulfilledRequestId
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [uploadError, setUploadError] = useState('')
   const [showUploadComplete, setShowUploadComplete] = useState(false)
@@ -168,6 +175,7 @@ function UploadForm() {
     previewStartString: '',
     additionalInfo: '',
     priceString: '',
+    fulfilledRequestId,
     terms: false
   }
 
@@ -252,6 +260,7 @@ function UploadForm() {
             }
           }}
           initialValues={initialValues}
+          enableReinitialize
           validateOnChange={false} // should be set to true after first submission using validatedAfterSubmit and !isvalid in submit onclick - see below
           validateOnBlur={false}
         >
@@ -287,6 +296,11 @@ function UploadForm() {
 
                     <Panel className='cmc-upload-panel'>
                       {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
+                      {fulfilledRequestId && (
+                        <Alert variant='info'>
+                          This upload will be attached to request #{fulfilledRequestId} after submission.
+                        </Alert>
+                      )}
 
                       <div className='cmc-upload-fields'>
                         <Form.Group className='cmc-upload-field' controlId='upload-file'>
