@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Container, Form } from 'react-bootstrap'
-import { catalogueModes, getCatalogueModeLabel } from '../../../lib/catalogue-view.mjs'
+import { catalogueModes } from '../../../lib/catalogue-view.mjs'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
@@ -146,10 +146,7 @@ const getPrimaryTrackAction = ({ catalogueContext, track }) => {
   }
 
   if (track.viewerState?.isUploadedByViewer) {
-    return {
-      href: `/catalogue/${track.id}`,
-      label: 'Your Track'
-    }
+    return null
   }
 
   return null
@@ -306,9 +303,6 @@ const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, que
               <h1 id='catalogue-heading'>
                 <BrandDisplayText text='Browse Archive' />
               </h1>
-              <p className='cmc-catalogue-mode-label'>
-                {getCatalogueModeLabel(catalogueContext.mode)}
-              </p>
             </div>
 
             <Form action='/catalogue' className='cmc-catalogue-query-form' method='get' role='search'>
