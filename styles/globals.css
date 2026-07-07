@@ -2604,9 +2604,30 @@ a {
   border-left: 0.2rem solid var(--cmc-color-accent-gold);
 }
 
-.cmc-track-request-status-form {
+.cmc-track-request-rejection-note {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem;
+  margin-top: var(--cmc-space-3);
+  padding: var(--cmc-space-3);
+  color: var(--cmc-color-text-muted);
+  background: rgba(146, 57, 61, 0.06);
+  border-left: 0.2rem solid var(--cmc-color-accent-rose);
+}
+
+.cmc-track-request-rejection-note strong {
+  color: var(--cmc-color-accent-rose);
+  font-size: var(--cmc-font-size-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cmc-track-request-rejection-note span {
+  line-height: 1.5;
+}
+
+.cmc-track-request-status-form {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--cmc-space-2);
   align-items: end;
   margin-top: var(--cmc-space-3);
@@ -2614,8 +2635,19 @@ a {
   border-top: 1px solid rgba(23, 63, 56, 0.14);
 }
 
-.cmc-track-request-status-form label {
-  grid-column: 1 / -1;
+.cmc-track-request-status-field,
+.cmc-track-request-rejection-fields > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.cmc-track-request-status-field {
+  flex: 0 1 22rem;
+  max-width: min(100%, 22rem);
+}
+
+.cmc-track-request-status-form label,
+.cmc-track-request-rejection-fields label {
   color: var(--cmc-color-accent-rose);
   font-size: 0.72rem;
   font-weight: 850;
@@ -2623,7 +2655,9 @@ a {
   text-transform: uppercase;
 }
 
-.cmc-track-request-status-form select {
+.cmc-track-request-status-form select,
+.cmc-track-request-status-form textarea {
+  width: 100%;
   min-height: 2.35rem;
   padding: 0 var(--cmc-space-3);
   color: var(--cmc-color-text);
@@ -2633,12 +2667,41 @@ a {
   font: inherit;
 }
 
+.cmc-track-request-status-form textarea {
+  min-height: 5.25rem;
+  padding-top: var(--cmc-space-2);
+  padding-bottom: var(--cmc-space-2);
+  resize: vertical;
+}
+
+.cmc-track-request-rejection-fields {
+  display: grid;
+  grid-template-columns: minmax(12rem, 18rem) minmax(16rem, 1fr);
+  flex: 1 0 100%;
+  gap: var(--cmc-space-3);
+}
+
 .cmc-track-request-action {
   margin-top: var(--cmc-space-4);
   padding: var(--cmc-space-4);
   background: rgba(255, 253, 248, 0.56);
   border: 1px solid rgba(23, 63, 56, 0.16);
   border-left: 0.3rem solid var(--cmc-color-accent-gold);
+}
+
+@media (max-width: 720px) {
+  .cmc-track-request-status-form {
+    align-items: stretch;
+  }
+
+  .cmc-track-request-status-field,
+  .cmc-track-request-rejection-fields {
+    max-width: 100%;
+  }
+
+  .cmc-track-request-rejection-fields {
+    grid-template-columns: 1fr;
+  }
 }
 
 .cmc-track-request-action form {

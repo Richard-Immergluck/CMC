@@ -147,6 +147,41 @@ const formatRequestStatus = status => {
   return requestStatusOptions.find(option => option.value === status)?.label || status
 }
 
+const requestRejectionReasonOptions = [
+  {
+    label: 'No reason selected',
+    value: ''
+  },
+  {
+    label: 'Outside current catalogue plans',
+    value: 'outside_catalogue_plans'
+  },
+  {
+    label: 'Rights or permissions unclear',
+    value: 'rights_unclear'
+  },
+  {
+    label: 'Not enough demand right now',
+    value: 'not_enough_demand'
+  },
+  {
+    label: 'Already covered by another track',
+    value: 'already_covered'
+  },
+  {
+    label: 'Uploader not available',
+    value: 'uploader_unavailable'
+  },
+  {
+    label: 'Other',
+    value: 'other'
+  }
+]
+
+const formatRejectionReason = reason => {
+  return requestRejectionReasonOptions.find(option => option.value === reason)?.label || reason
+}
+
 const sortCommentsByTimestamp = (comments, direction) => {
   return [...comments].sort((firstComment, secondComment) => {
     const firstTime = Date.parse(firstComment.createdAtTimestamp || '')
@@ -190,6 +225,15 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
   const [requestStatusDrafts, setRequestStatusDrafts] = useState(() => {
     return Object.fromEntries(requests.map(request => [request.id, request.status]))
+  })
+  const [requestRejectionDrafts, setRequestRejectionDrafts] = useState(() => {
+    return Object.fromEntries(requests.map(request => [
+      request.id,
+      {
+        note: request.rejectionNote || '',
+        reason: request.rejectionReason || ''
+      }
+    ]))
   })
   const [requestUpdateError, setRequestUpdateError] = useState('')
   const [requestUpdateStatus, setRequestUpdateStatus] = useState('')
@@ -476,6 +520,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     setUpdatingRequestId(requestId)
 
     const nextStatus = String(requestStatusDrafts[requestId] || '')
+    const rejectionDraft = requestRejectionDrafts[requestId] || {}
 
     try {
       const response = await fetch(`/api/track-requests/${requestId}`, {
@@ -484,6 +529,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          rejectionNote: nextStatus === 'REJECTED' ? rejectionDraft.note || undefined : undefined,
+          rejectionReason: nextStatus === 'REJECTED' ? rejectionDraft.reason || undefined : undefined,
           status: nextStatus
         })
       })
@@ -497,6 +544,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
         request.id === requestId
           ? {
               ...request,
+              rejectionNote: data.rejectionNote,
+              rejectionReason: data.rejectionReason,
               status: data.status
             }
           : request
@@ -504,6 +553,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       setRequestStatusDrafts(currentDrafts => ({
         ...currentDrafts,
         [requestId]: data.status
+      }))
+      setRequestRejectionDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: {
+          note: data.rejectionNote || '',
+          reason: data.rejectionReason || ''
+        }
       }))
       setRequestUpdateStatus('Request status updated.')
     } catch (error) {
@@ -944,70 +1000,133 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     <small>Open community requests</small>
                   </div>
                   <div className='cmc-track-requests'>
-                    {requestList.map(request => (
-                      <article
-                        className={request.id === focusedRequestId ? 'cmc-track-request cmc-track-request--focused' : 'cmc-track-request'}
-                        id={`request-${request.id}`}
-                        key={request.id}
-                      >
-                        <header>
-                          <strong>{request.title}</strong>
-                          <span>{formatRequestStatus(request.status)}</span>
-                        </header>
-                        <p>{request.description}</p>
-                        <footer>
-                          <span>{request.requestedBy}</span>
-                          <span>{request.createdAt}</span>
-                        </footer>
-                        {request.fulfilledByTrack && (
-                          <p className='cmc-track-request-fulfilment'>
-                            Fulfilment uploaded: <strong>{request.fulfilledByTrack.title}</strong>
-                            {request.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
-                          </p>
-                        )}
-                        {isTrackOwner && request.status !== 'COMPLETED' && (
-                          <div
-                            className='cmc-track-request-status-form'
-                          >
-                            <label htmlFor={`request-status-${request.id}`}>Request status</label>
-                            <select
-                              id={`request-status-${request.id}`}
-                              name='status'
-                              onChange={event => setRequestStatusDrafts(currentDrafts => ({
-                                ...currentDrafts,
-                                [request.id]: event.target.value
-                              }))}
-                              value={requestStatusDrafts[request.id] || request.status}
+                    {requestList.map(request => {
+                      const draftStatus = requestStatusDrafts[request.id] || request.status
+                      const rejectionDraft = requestRejectionDrafts[request.id] || {
+                        note: '',
+                        reason: ''
+                      }
+
+                      return (
+                        <article
+                          className={request.id === focusedRequestId ? 'cmc-track-request cmc-track-request--focused' : 'cmc-track-request'}
+                          id={`request-${request.id}`}
+                          key={request.id}
+                        >
+                          <header>
+                            <strong>{request.title}</strong>
+                            <span>{formatRequestStatus(request.status)}</span>
+                          </header>
+                          <p>{request.description}</p>
+                          <footer>
+                            <span>{request.requestedBy}</span>
+                            <span>{request.createdAt}</span>
+                          </footer>
+                          {request.status === 'REJECTED' && (request.rejectionReason || request.rejectionNote) && (
+                            <div className='cmc-track-request-rejection-note'>
+                              {request.rejectionReason && (
+                                <strong>{formatRejectionReason(request.rejectionReason)}</strong>
+                              )}
+                              {request.rejectionNote && (
+                                <span>{request.rejectionNote}</span>
+                              )}
+                            </div>
+                          )}
+                          {request.fulfilledByTrack && (
+                            <p className='cmc-track-request-fulfilment'>
+                              Fulfilment uploaded: <strong>{request.fulfilledByTrack.title}</strong>
+                              {request.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
+                            </p>
+                          )}
+                          {isTrackOwner && request.status !== 'COMPLETED' && (
+                            <div
+                              className='cmc-track-request-status-form'
                             >
-                              {manageableRequestStatusOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                            <Button
-                              disabled={updatingRequestId === request.id}
-                              onClick={() => submitRequestStatus(request.id)}
-                              size='sm'
-                              type='button'
-                              variant='paper'
-                            >
-                              {updatingRequestId === request.id ? 'Updating...' : 'Update'}
-                            </Button>
-                            {request.status === 'ACCEPTED' && (
+                              <div className='cmc-track-request-status-field'>
+                                <label htmlFor={`request-status-${request.id}`}>Request status</label>
+                                <select
+                                  id={`request-status-${request.id}`}
+                                  name='status'
+                                  onChange={event => setRequestStatusDrafts(currentDrafts => ({
+                                    ...currentDrafts,
+                                    [request.id]: event.target.value
+                                  }))}
+                                  value={draftStatus}
+                                >
+                                  {manageableRequestStatusOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                               <Button
-                                as={Link}
-                                href={`/upload?fulfilledRequestId=${request.id}`}
+                                disabled={updatingRequestId === request.id}
+                                onClick={() => submitRequestStatus(request.id)}
                                 size='sm'
-                                variant='ink'
+                                type='button'
+                                variant='paper'
                               >
-                                Upload Fulfilment
+                                {updatingRequestId === request.id ? 'Updating...' : 'Update'}
                               </Button>
-                            )}
-                          </div>
-                        )}
-                      </article>
-                    ))}
+                              {request.status === 'ACCEPTED' && (
+                                <Button
+                                  as={Link}
+                                  href={`/upload?fulfilledRequestId=${request.id}`}
+                                  size='sm'
+                                  variant='ink'
+                                >
+                                  Upload Fulfilment
+                                </Button>
+                              )}
+                              {draftStatus === 'REJECTED' && (
+                                <div className='cmc-track-request-rejection-fields'>
+                                  <div>
+                                    <label htmlFor={`request-rejection-reason-${request.id}`}>Reason (optional)</label>
+                                    <select
+                                      id={`request-rejection-reason-${request.id}`}
+                                      name='rejectionReason'
+                                      onChange={event => setRequestRejectionDrafts(currentDrafts => ({
+                                        ...currentDrafts,
+                                        [request.id]: {
+                                          ...rejectionDraft,
+                                          reason: event.target.value
+                                        }
+                                      }))}
+                                      value={rejectionDraft.reason}
+                                    >
+                                      {requestRejectionReasonOptions.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label htmlFor={`request-rejection-note-${request.id}`}>Message (optional)</label>
+                                    <textarea
+                                      id={`request-rejection-note-${request.id}`}
+                                      maxLength={1000}
+                                      name='rejectionNote'
+                                      onChange={event => setRequestRejectionDrafts(currentDrafts => ({
+                                        ...currentDrafts,
+                                        [request.id]: {
+                                          ...rejectionDraft,
+                                          note: event.target.value
+                                        }
+                                      }))}
+                                      placeholder='Add a short note for the requester'
+                                      rows={3}
+                                      value={rejectionDraft.note}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </article>
+                      )
+                    })}
                     {requestList.length === 0 && (
                       <p className='cmc-track-empty'>
                         No requests yet. Community requests for alternate cuts, keys, and parts will appear here.

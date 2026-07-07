@@ -210,11 +210,15 @@ test('track request body requires a public track id and bounded request fields',
 test('track request status body accepts only supported workflow states', () => {
   assert.deepEqual(
     validateInput(trackRequestStatusBodySchema, {
-      status: 'ACCEPTED',
+      rejectionNote: 'Not in the current catalogue plan.',
+      rejectionReason: 'outside_catalogue_plans',
+      status: 'REJECTED',
       ignored: 'removed'
     }),
     {
-      status: 'ACCEPTED'
+      rejectionNote: 'Not in the current catalogue plan.',
+      rejectionReason: 'outside_catalogue_plans',
+      status: 'REJECTED'
     }
   )
 

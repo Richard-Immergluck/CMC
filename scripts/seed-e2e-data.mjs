@@ -563,6 +563,8 @@ const seed = async () => {
       composer: 'Bach Style Synthetic Fixture',
       instrumentation: 'Clarinet and piano',
       notes: 'A declined fixture so the rejected state can be reviewed by requesters and uploaders.',
+      rejectionNote: 'Clarinet cue versions are not part of this uploader’s current catalogue plan.',
+      rejectionReason: 'outside_catalogue_plans',
       status: 'REJECTED',
       userId: support.id,
       createdAt: new Date('2026-07-10T14:00:00.000Z')
@@ -657,6 +659,8 @@ const seed = async () => {
           composer: requestFixture.composer,
           instrumentation: requestFixture.instrumentation,
           notes: requestFixture.notes,
+          rejectionNote: requestFixture.rejectionNote,
+          rejectionReason: requestFixture.rejectionReason,
           status: requestFixture.status,
           title: requestFixture.title,
           createdAt: requestFixture.createdAt,

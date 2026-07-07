@@ -55,7 +55,7 @@ export async function PATCH(request, { params }) {
       'Invalid track request id'
     )
     const body = await parseRouteJson(request)
-    const { status } = validateInput(
+    const { rejectionNote, rejectionReason, status } = validateInput(
       trackRequestStatusBodySchema,
       body,
       'Invalid track request status'
@@ -91,6 +91,8 @@ export async function PATCH(request, { params }) {
         id: requestId
       },
       data: {
+        rejectionNote: status === 'REJECTED' && rejectionNote ? rejectionNote : null,
+        rejectionReason: status === 'REJECTED' && rejectionReason ? rejectionReason : null,
         status
       }
     })
@@ -100,6 +102,7 @@ export async function PATCH(request, { params }) {
       userId: user.id,
       trackId: existingRequest.track.id,
       requestId,
+      rejectionReason: status === 'REJECTED' && rejectionReason ? rejectionReason : undefined,
       status
     })
 

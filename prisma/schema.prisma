@@ -163,6 +163,8 @@ model TrackRequest {
   composer           String?
   instrumentation    String?
   notes              String?            @db.Text
+  rejectionReason    String?
+  rejectionNote      String?            @db.Text
   status             TrackRequestStatus @default(OPEN)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
