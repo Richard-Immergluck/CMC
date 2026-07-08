@@ -599,17 +599,6 @@ const ProfilePageContent = ({
             <div className='cmc-profile-library-tabs' role='tablist' aria-label='Profile track library'>
               <button
                 aria-controls='profile-library-table'
-                aria-selected={activeLibraryTab === 'downloads'}
-                id='profile-library-downloads-tab'
-                onClick={() => resetLibraryFilters('downloads')}
-                role='tab'
-                type='button'
-              >
-                Downloaded Tracks
-                <span>{userPurchasedTracks.length}</span>
-              </button>
-              <button
-                aria-controls='profile-library-table'
                 aria-selected={activeLibraryTab === 'uploads'}
                 id='profile-library-uploads-tab'
                 onClick={() => resetLibraryFilters('uploads')}
@@ -618,6 +607,17 @@ const ProfilePageContent = ({
               >
                 Uploaded Tracks
                 <span>{userUploadedTracks.length}</span>
+              </button>
+              <button
+                aria-controls='profile-library-table'
+                aria-selected={activeLibraryTab === 'downloads'}
+                id='profile-library-downloads-tab'
+                onClick={() => resetLibraryFilters('downloads')}
+                role='tab'
+                type='button'
+              >
+                Downloaded Tracks
+                <span>{userPurchasedTracks.length}</span>
               </button>
             </div>
 
