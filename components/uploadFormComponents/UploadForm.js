@@ -16,7 +16,7 @@ import {
 // Formik Imports
 import { Formik } from 'formik'
 import * as yup from 'yup'
-import { canUploadTracks } from '../../lib/access-control.mjs'
+import { canStartTrackUpload } from '../../lib/access-control.mjs'
 import { Button, Panel } from '../ui/primitives'
 
 // Function to convert the time input into seconds
@@ -244,7 +244,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
     </Popover>
   )
 
-  if (session && session.user && canUploadTracks(session.user)) {
+  if (session && session.user && canStartTrackUpload(session.user)) {
     return (
       <>
         <Formik
@@ -531,7 +531,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
           <Panel as='section' className='cmc-upload-auth-panel'>
             <p className='cmc-kicker'>Uploader workspace</p>
             <h1>Upload Form</h1>
-            <p>Approved uploader access is required before you can submit tracks.</p>
+            <p>Your account must be active before you can submit tracks.</p>
             <Button as={Link} href='/profile' variant='secondary'>
               Go to Profile
             </Button>

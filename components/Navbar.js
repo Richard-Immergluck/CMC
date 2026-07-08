@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { Nav, Navbar, Container } from 'react-bootstrap'
 import { useCart } from 'react-use-cart'
 import { BrandMark } from './brand'
-import { canAccessSupportSurface, canUploadTracks } from '../lib/access-control.mjs'
+import { canAccessSupportSurface, canStartTrackUpload } from '../lib/access-control.mjs'
 
 function MainNavbar() {
   const pathname = usePathname()
@@ -34,7 +34,7 @@ function MainNavbar() {
             >
               <Nav.Link className={navLinkClass('/catalogue')} href='/catalogue'>Catalogue</Nav.Link>
               {isAuthenticated && <Nav.Link className={navLinkClass('/profile')} href='/profile'>Profile</Nav.Link>}
-              {canUploadTracks(user) && <Nav.Link className={navLinkClass('/upload')} href='/upload'>Upload</Nav.Link>}
+              {canStartTrackUpload(user) && <Nav.Link className={navLinkClass('/upload')} href='/upload'>Upload</Nav.Link>}
               {canAccessSupportSurface(user) && <Nav.Link className={navLinkClass('/admin')} href='/admin'>Admin</Nav.Link>}
               {status === 'unauthenticated' && (
                 <Nav.Link

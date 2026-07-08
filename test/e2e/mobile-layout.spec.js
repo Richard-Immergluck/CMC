@@ -78,13 +78,12 @@ test.describe('mobile layout smoke', () => {
     await expectNoDocumentHorizontalOverflow(page)
   })
 
-  test('customer upload guard fits a mobile viewport', async ({ page }) => {
+  test('customer upload form fits a mobile viewport', async ({ page }) => {
     await signInPageAs(page, 'e2e-customer@example.com')
     await page.goto('/upload')
 
     await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
-    await expect(page.getByText('Approved uploader access is required before you can submit tracks.')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Go to Profile' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
     await expectNoDocumentHorizontalOverflow(page)
   })
 })

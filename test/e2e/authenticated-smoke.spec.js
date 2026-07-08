@@ -185,7 +185,7 @@ test.describe('authenticated smoke', () => {
     await expect(createdRequest.getByText(/\d{2}\/\d{2}\/\d{4}/)).toBeVisible()
   })
 
-  test('seeded customers do not see uploader or admin navigation', async ({ page }) => {
+  test('seeded customers can access upload navigation but not admin navigation', async ({ page }) => {
     await signInPageAs(page, 'e2e-customer@example.com')
 
     await page.goto('/')
@@ -197,15 +197,13 @@ test.describe('authenticated smoke', () => {
     await expect(primaryNav.getByRole('link', { name: /^Cart \(\d+\)$/ })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: 'Sign Out' })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: /Login \/ Sign up/i })).toHaveCount(0)
-    await expect(primaryNav.getByRole('link', { name: 'Upload' })).toHaveCount(0)
+    await expect(primaryNav.getByRole('link', { name: 'Upload' })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: 'Admin' })).toHaveCount(0)
 
     await page.goto('/upload')
 
     await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
-    await expect(page.getByText('Approved uploader access is required before you can submit tracks.')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Go to Profile' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
   })
 
   test('seeded support users can inspect operations without user management access', async ({ page }) => {

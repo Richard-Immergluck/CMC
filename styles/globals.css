@@ -3489,6 +3489,51 @@ a {
   font-weight: 750;
 }
 
+.cmc-profile-library-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  padding: var(--cmc-space-4) var(--cmc-space-4) 0;
+}
+
+.cmc-profile-library-tabs button {
+  display: inline-flex;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  min-height: 2.6rem;
+  padding: 0 var(--cmc-space-3);
+  color: var(--cmc-color-text-muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 0.16rem solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 820;
+}
+
+.cmc-profile-library-tabs button[aria-selected='true'] {
+  color: var(--cmc-color-accent-strong);
+  border-bottom-color: var(--cmc-color-accent-strong);
+}
+
+.cmc-profile-library-tabs button:focus-visible {
+  outline: 2px solid rgba(189, 131, 24, 0.36);
+  outline-offset: 3px;
+}
+
+.cmc-profile-library-tabs span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  color: var(--cmc-color-surface);
+  background: var(--cmc-color-accent-strong);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
 .cmc-profile-searchbar {
   display: grid;
   grid-template-columns: auto minmax(12rem, 1fr) auto minmax(10rem, 13rem) minmax(8rem, 11rem);
@@ -3577,6 +3622,11 @@ a {
   align-items: center;
 }
 
+.cmc-profile-table--uploads .cmc-profile-table-head,
+.cmc-profile-table--uploads .cmc-profile-table-row {
+  grid-template-columns: var(--cmc-profile-table-index-width) minmax(0, 2.1fr) minmax(8rem, 0.9fr) minmax(5.5rem, 0.5fr) minmax(6rem, 0.5fr) minmax(6rem, 0.5fr) minmax(6rem, 0.5fr);
+}
+
 .cmc-profile-table-head {
   padding: var(--cmc-space-3) var(--cmc-space-4);
   color: var(--cmc-color-accent-rose);
@@ -3595,6 +3645,11 @@ a {
 .cmc-profile-table-row {
   padding: var(--cmc-space-4);
   border-top: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-profile-table-row--focused {
+  background: rgba(185, 133, 34, 0.08);
+  box-shadow: inset 0.24rem 0 0 var(--cmc-color-accent-gold);
 }
 
 .cmc-profile-row-index {
@@ -3622,6 +3677,20 @@ a {
   text-decoration: underline;
   text-decoration-color: var(--cmc-color-accent-gold);
   text-underline-offset: 0.18em;
+}
+
+.cmc-profile-metric-link {
+  color: var(--cmc-color-accent-strong);
+  font-weight: 850;
+  text-decoration: underline;
+  text-decoration-color: rgba(185, 133, 34, 0.5);
+  text-underline-offset: 0.18em;
+}
+
+.cmc-profile-metric-link:hover,
+.cmc-profile-metric-link:focus-visible {
+  color: var(--cmc-color-accent-rose);
+  text-decoration-color: var(--cmc-color-accent-rose);
 }
 
 .cmc-profile-track-title span,
@@ -4017,6 +4086,18 @@ a {
 
   .cmc-profile-table-row > span:nth-of-type(3)::before {
     content: 'Key';
+  }
+
+  .cmc-profile-table--uploads .cmc-profile-table-row > span:nth-of-type(4)::before {
+    content: 'Downloads';
+  }
+
+  .cmc-profile-table--uploads .cmc-profile-table-row > span:nth-of-type(5)::before {
+    content: 'Comments';
+  }
+
+  .cmc-profile-table--uploads .cmc-profile-table-row > span:nth-of-type(6)::before {
+    content: 'Requests';
   }
 
   .cmc-profile-preview-cell {
