@@ -58,7 +58,7 @@ test.describe('visual QA snapshots', () => {
   test('protected upload and admin surfaces have review screenshots', async ({ page }, testInfo) => {
     await signInPageAs(page, 'e2e-customer@example.com')
     await page.goto('/upload')
-    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
     await capture({ name: 'upload-customer-form', page }, testInfo)
 

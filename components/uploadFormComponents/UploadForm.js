@@ -16,6 +16,7 @@ import {
 // Formik Imports
 import { Formik } from 'formik'
 import * as yup from 'yup'
+import BrandDisplayText from '../brand/BrandDisplayText'
 import { canStartTrackUpload } from '../../lib/access-control.mjs'
 import { Button, Panel } from '../ui/primitives'
 
@@ -148,6 +149,26 @@ const uploadToS3 = async selectedFile => {
   return signedUrlData.key
 }
 
+const UploadPageTitle = () => (
+  <div className='cmc-upload-title'>
+    <div className='cmc-home-section-label cmc-upload-title-marker'>
+      <div className='cmc-home-section-mark' aria-hidden='true'>
+        <span className='cmc-home-section-mark__bar cmc-home-section-mark__bar--archive' />
+        <span className='cmc-home-section-mark__bar cmc-home-section-mark__bar--catalogue' />
+        <span className='cmc-home-section-mark__bar cmc-home-section-mark__bar--community' />
+      </div>
+      <p className='cmc-kicker'>Uploader workspace</p>
+    </div>
+    <h1>
+      <BrandDisplayText text='Share a Track.' />
+    </h1>
+    <p className='cmc-upload-copy'>
+      Add a track to the catalogue for review. Once approved, it can be discovered,
+      purchased, requested and discussed by the community.
+    </p>
+  </div>
+)
+
 function UploadForm({ initialFulfilledRequestId = '' }) {
   const fulfilledRequestId = initialFulfilledRequestId
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
@@ -269,13 +290,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
               <main className='cmc-upload-page'>
                 <div className='container'>
                   <section className='cmc-upload-hero'>
-                    <div>
-                      <p className='cmc-kicker'>Uploader workspace</p>
-                      <h1>Upload Form</h1>
-                      <p className='cmc-upload-copy'>
-                        Submit an MP3 backing track for review. Approved tracks are published to the catalogue after moderation.
-                      </p>
-                    </div>
+                    <UploadPageTitle />
                     <Panel as='aside' className='cmc-upload-status-panel' aria-label='Upload review process'>
                       <span>Review process</span>
                       <strong>Draft to approval</strong>
@@ -529,8 +544,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
       <main className='cmc-upload-page'>
         <div className='container'>
           <Panel as='section' className='cmc-upload-auth-panel'>
-            <p className='cmc-kicker'>Uploader workspace</p>
-            <h1>Upload Form</h1>
+            <UploadPageTitle />
             <p>Your account must be active before you can submit tracks.</p>
             <Button as={Link} href='/profile' variant='secondary'>
               Go to Profile
@@ -544,8 +558,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
       <main className='cmc-upload-page'>
         <div className='container'>
           <Panel as='section' className='cmc-upload-auth-panel'>
-            <p className='cmc-kicker'>Uploader workspace</p>
-            <h1>Upload Form</h1>
+            <UploadPageTitle />
             <p>You must be logged in to upload a track.</p>
             <Button as={Link} href='/login'>
               Sign In

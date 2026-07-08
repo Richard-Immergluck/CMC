@@ -3142,10 +3142,20 @@ a {
 
 .cmc-upload-hero h1,
 .cmc-upload-auth-panel h1 {
-  margin: 0;
+  margin: var(--cmc-space-3) 0 0;
   color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
   font-size: 3rem;
+  font-weight: 500;
   line-height: 1.05;
+}
+
+.cmc-upload-title {
+  min-width: 0;
+}
+
+.cmc-upload-title-marker {
+  margin-bottom: var(--cmc-space-2);
 }
 
 .cmc-upload-copy {

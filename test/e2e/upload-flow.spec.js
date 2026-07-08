@@ -14,7 +14,7 @@ test.describe('upload browser flow', () => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload')
 
-    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Submit' }).click()
 
@@ -48,7 +48,7 @@ test.describe('upload browser flow', () => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload')
 
-    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
 
     await page.locator('input[type="file"]').setInputFiles({
       name: `browser-upload-${suffix}.mp3`,

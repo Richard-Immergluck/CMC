@@ -71,7 +71,7 @@ test.describe('mobile layout smoke', () => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload')
 
-    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
     await expect(page.getByLabel('Select a File')).toBeVisible()
     await expect(page.getByRole('textbox', { name: 'Title' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
@@ -82,7 +82,7 @@ test.describe('mobile layout smoke', () => {
     await signInPageAs(page, 'e2e-customer@example.com')
     await page.goto('/upload')
 
-    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
     await expectNoDocumentHorizontalOverflow(page)
   })
