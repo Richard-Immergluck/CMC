@@ -102,7 +102,8 @@ test.describe('authenticated smoke', () => {
     await page.goto('/profile')
 
     await expect(page.getByText('e2e-customer@example.com')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Downloaded tracks' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Downloaded Tracks' })).toBeVisible()
+    await expect(page.getByRole('tablist', { name: 'Profile track library' })).toHaveCount(0)
     await expect(page.getByRole('searchbox', { name: 'Search downloaded tracks' })).toBeVisible()
 
     const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
@@ -161,6 +162,23 @@ test.describe('authenticated smoke', () => {
     await expect(ownedCatalogueRow.getByText('Owned')).toBeVisible()
     await expect(ownedCatalogueRow.getByRole('link', { name: 'View in Library' })).toHaveCount(0)
     await expect(ownedCatalogueRow.getByRole('link', { name: 'Details' })).toBeVisible()
+  })
+
+  test('seeded uploaders see uploaded tracks as their default profile library tab', async ({ page }) => {
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    await page.goto('/profile')
+
+    await expect(page.locator('#profile-library-heading')).toHaveText('Uploaded Tracks')
+    const libraryTabs = page.getByRole('tablist', { name: 'Profile track library' })
+    await expect(libraryTabs).toBeVisible()
+    await expect(libraryTabs.getByRole('tab', { name: /Uploaded Tracks/i })).toHaveAttribute('aria-selected', 'true')
+    await expect(libraryTabs.getByRole('tab', { name: /Downloaded Tracks/i })).toHaveAttribute('aria-selected', 'false')
+
+    const uploadsTable = page.getByRole('table', { name: 'Uploaded tracks' })
+    await expect(uploadsTable.getByRole('columnheader', { name: 'Downloads' })).toBeVisible()
+    await expect(uploadsTable.getByRole('columnheader', { name: 'Comments' })).toBeVisible()
+    await expect(uploadsTable.getByRole('columnheader', { name: 'Requests' })).toBeVisible()
   })
 
   test('seeded customers can create a request from a track detail page', async ({ page }) => {

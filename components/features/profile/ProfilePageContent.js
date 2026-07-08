@@ -381,12 +381,14 @@ const ProfilePageContent = ({
   userWishlistedTracks = [],
   wishlist
 }) => {
+  const hasUploadedTrackLibrary = userUploadedTracks.length > 0
+  const defaultLibraryTab = hasUploadedTrackLibrary ? 'uploads' : 'downloads'
   const [checkoutError, setCheckoutError] = useState('')
   const [composerFilter, setComposerFilter] = useState('all')
   const [keyFilter, setKeyFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [activeLibraryTab, setActiveLibraryTab] = useState(() => (
-    initialLibraryTab || (userUploadedTracks.length > 0 ? 'uploads' : 'downloads')
+    hasUploadedTrackLibrary ? initialLibraryTab || defaultLibraryTab : 'downloads'
   ))
   const router = useRouter()
   const { emptyCart } = useCart()
@@ -448,7 +450,8 @@ const ProfilePageContent = ({
     reconcileCheckout()
   }, [checkout, checkoutSessionId, emptyCart, router])
 
-  const activeTrackSet = activeLibraryTab === 'uploads' ? userUploadedTracks : userPurchasedTracks
+  const safeActiveLibraryTab = hasUploadedTrackLibrary ? activeLibraryTab : 'downloads'
+  const activeTrackSet = safeActiveLibraryTab === 'uploads' ? userUploadedTracks : userPurchasedTracks
   const composerOptions = useMemo(() => uniqueSortedValues(activeTrackSet, 'composer'), [activeTrackSet])
   const keyOptions = useMemo(() => uniqueSortedValues(activeTrackSet, 'key'), [activeTrackSet])
   const filteredLibraryTracks = useMemo(() => activeTrackSet.filter(track => {
@@ -463,9 +466,13 @@ const ProfilePageContent = ({
     return matchesSearch(track, search)
   }), [activeTrackSet, composerFilter, keyFilter, search])
   const activeTrackTotal = activeTrackSet.length
-  const activeLibraryTitle = activeLibraryTab === 'uploads' ? 'Uploaded Tracks' : 'Downloaded Tracks'
-  const activeLibrarySearchLabel = activeLibraryTab === 'uploads' ? 'Search uploaded tracks' : 'Search downloaded tracks'
+  const activeLibraryTitle = safeActiveLibraryTab === 'uploads' ? 'Uploaded Tracks' : 'Downloaded Tracks'
+  const activeLibrarySearchLabel = safeActiveLibraryTab === 'uploads' ? 'Search uploaded tracks' : 'Search downloaded tracks'
   const resetLibraryFilters = nextTab => {
+    if (nextTab === 'uploads' && !hasUploadedTrackLibrary) {
+      return
+    }
+
     setActiveLibraryTab(nextTab)
     setComposerFilter('all')
     setKeyFilter('all')
@@ -596,30 +603,32 @@ const ProfilePageContent = ({
               </p>
             </div>
 
-            <div className='cmc-profile-library-tabs' role='tablist' aria-label='Profile track library'>
-              <button
-                aria-controls='profile-library-table'
-                aria-selected={activeLibraryTab === 'uploads'}
-                id='profile-library-uploads-tab'
-                onClick={() => resetLibraryFilters('uploads')}
-                role='tab'
-                type='button'
-              >
-                Uploaded Tracks
-                <span>{userUploadedTracks.length}</span>
-              </button>
-              <button
-                aria-controls='profile-library-table'
-                aria-selected={activeLibraryTab === 'downloads'}
-                id='profile-library-downloads-tab'
-                onClick={() => resetLibraryFilters('downloads')}
-                role='tab'
-                type='button'
-              >
-                Downloaded Tracks
-                <span>{userPurchasedTracks.length}</span>
-              </button>
-            </div>
+            {hasUploadedTrackLibrary && (
+              <div className='cmc-profile-library-tabs' role='tablist' aria-label='Profile track library'>
+                <button
+                  aria-controls='profile-library-table'
+                  aria-selected={safeActiveLibraryTab === 'uploads'}
+                  id='profile-library-uploads-tab'
+                  onClick={() => resetLibraryFilters('uploads')}
+                  role='tab'
+                  type='button'
+                >
+                  Uploaded Tracks
+                  <span>{userUploadedTracks.length}</span>
+                </button>
+                <button
+                  aria-controls='profile-library-table'
+                  aria-selected={safeActiveLibraryTab === 'downloads'}
+                  id='profile-library-downloads-tab'
+                  onClick={() => resetLibraryFilters('downloads')}
+                  role='tab'
+                  type='button'
+                >
+                  Downloaded Tracks
+                  <span>{userPurchasedTracks.length}</span>
+                </button>
+              </div>
+            )}
 
             <div className='cmc-profile-searchbar'>
               <label className='cmc-sr-only' htmlFor='profile-track-search'>{activeLibrarySearchLabel}</label>
@@ -661,9 +670,9 @@ const ProfilePageContent = ({
             </div>
 
             <TrackTable
-              activeLibraryTab={activeLibraryTab}
+              activeLibraryTab={safeActiveLibraryTab}
               emptyAction={(
-                activeLibraryTab === 'uploads'
+                safeActiveLibraryTab === 'uploads'
                   ? (
                       <Button as={Link} href='/upload' variant='paper'>
                         Upload Track
@@ -675,14 +684,14 @@ const ProfilePageContent = ({
                       </Button>
                     )
               )}
-              emptyText={activeLibraryTab === 'uploads'
+              emptyText={safeActiveLibraryTab === 'uploads'
                 ? 'Your uploaded tracks will appear here after submission.'
                 : 'Purchased tracks will appear here with secure download links after checkout.'}
               emptyTitle={activeTrackTotal === 0
-                ? (activeLibraryTab === 'uploads' ? 'No uploads yet' : 'No downloads yet')
-                : (activeLibraryTab === 'uploads' ? 'No matching uploads' : 'No matching downloads')}
+                ? (safeActiveLibraryTab === 'uploads' ? 'No uploads yet' : 'No downloads yet')
+                : (safeActiveLibraryTab === 'uploads' ? 'No matching uploads' : 'No matching downloads')}
               focusedTrackId={focusedTrackId}
-              mode={activeLibraryTab}
+              mode={safeActiveLibraryTab}
               tracks={filteredLibraryTracks}
             />
           </section>

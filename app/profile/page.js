@@ -12,6 +12,9 @@ const trackSelect = {
   fileName: true,
   title: true,
   composer: true,
+  status: true,
+  moderationStatus: true,
+  processingStatus: true,
   uploadedAt: true,
   userId: true,
   previewStart: true,
@@ -87,6 +90,9 @@ const getProfileData = async email => {
   const [uploadedTracks, purchases, comments, trackRequests, wishlistItems] = await Promise.all([
     prisma.track.findMany({
       where: {
+        moderationStatus: 'APPROVED',
+        processingStatus: 'READY',
+        status: 'PUBLISHED',
         userId: currentUser.id
       },
       orderBy: {
