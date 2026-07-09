@@ -403,6 +403,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [status, setStatus] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [title, setTitle] = useState('')
+  const [deletingCollectionId, setDeletingCollectionId] = useState(null)
 
   const pricingBand = getPricingBand(catalogueType)
   const needsPricingReview = pricePence > pricingBand.reviewThresholdPence
@@ -467,6 +468,32 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
       setError(createError.message || 'Unable to create Work or Collection')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const deleteCollection = async collection => {
+    setError('')
+    setStatus('')
+    setDeletingCollectionId(collection.id)
+
+    try {
+      const response = await fetch(`/api/works-collections/${collection.id}`, {
+        method: 'DELETE'
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to delete Work or Collection')
+      }
+
+      onCreated(null, {
+        deleteId: collection.id
+      })
+      setStatus('Work or Collection removed.')
+    } catch (deleteError) {
+      setError(deleteError.message || 'Unable to delete Work or Collection')
+    } finally {
+      setDeletingCollectionId(null)
     }
   }
 
@@ -594,9 +621,21 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
             <ul>
               {collections.map(collection => (
                 <li key={collection.id}>
-                  <strong>{collection.title}</strong>
-                  <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
-                  <small>{collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)}</small>
+                  <div>
+                    <strong>{collection.title}</strong>
+                    <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
+                    <small>{collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)}</small>
+                  </div>
+                  <Button
+                    aria-label={`Delete ${collection.title}`}
+                    disabled={deletingCollectionId === collection.id}
+                    onClick={() => deleteCollection(collection)}
+                    size='sm'
+                    type='button'
+                    variant='subtle'
+                  >
+                    {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -940,7 +979,13 @@ const ProfilePageContent = ({
             {hasUploadedTrackLibrary && safeActiveLibraryTab === 'uploads' && (
               <WorksCollectionsManager
                 collections={worksCollections}
-                onCreated={collection => setWorksCollections(currentCollections => [collection, ...currentCollections])}
+                onCreated={(collection, action = {}) => setWorksCollections(currentCollections => {
+                  if (action.deleteId) {
+                    return currentCollections.filter(currentCollection => currentCollection.id !== action.deleteId)
+                  }
+
+                  return [collection, ...currentCollections]
+                })}
                 tracks={userUploadedTracks}
               />
             )}

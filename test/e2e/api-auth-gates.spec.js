@@ -113,6 +113,13 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('works collection management requires authentication', async ({ request }) => {
+    const response = await request.delete('/api/works-collections/1')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('request pricing proposals require authentication', async ({ request }) => {
     const response = await request.post('/api/track-requests/1/pricing-proposals', {
       data: {

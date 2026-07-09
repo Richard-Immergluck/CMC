@@ -19,8 +19,10 @@ import {
   trackRequestPricingProposalBodySchema,
   trackRequestStatusBodySchema,
   trackIdParamSchema,
+  updateWorksCollectionBodySchema,
   uploadSignedUrlBodySchema,
-  validateInput
+  validateInput,
+  worksCollectionIdParamSchema
 } from '../lib/validation/api.mjs'
 
 test('track id params parse positive integer strings', () => {
@@ -48,6 +50,17 @@ test('positive integer params parse generic ids', () => {
 
   assert.throws(
     () => validateInput(positiveIntegerParamSchema, { id: '0' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('works collection id params parse positive integer strings', () => {
+  assert.deepEqual(validateInput(worksCollectionIdParamSchema, { collectionId: '42' }), {
+    collectionId: 42
+  })
+
+  assert.throws(
+    () => validateInput(worksCollectionIdParamSchema, { collectionId: 'nope' }),
     error => error.statusCode === 400
   )
 })
@@ -634,5 +647,24 @@ test('works collection body accepts guided grouped prices only', () => {
       trackIds: [11, 12]
     }),
     error => error.statusCode === 400
+  )
+
+  assert.deepEqual(
+    validateInput(updateWorksCollectionBodySchema, {
+      catalogueType: 'SONG_CYCLE',
+      currency: 'GBP',
+      pricePence: '1999',
+      saleFormat: 'BUNDLE',
+      title: 'Updated song cycle',
+      trackIds: ['12', '11']
+    }),
+    {
+      catalogueType: 'SONG_CYCLE',
+      currency: 'gbp',
+      pricePence: 1999,
+      saleFormat: 'BUNDLE',
+      title: 'Updated song cycle',
+      trackIds: [12, 11]
+    }
   )
 })

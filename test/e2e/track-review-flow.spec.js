@@ -279,6 +279,55 @@ test.describe('track review API flow', () => {
         })
       ])
     )
+
+    const updateResponse = await request.patch(`/api/works-collections/${collectionBody.collection.id}`, {
+      data: {
+        catalogueType: 'COLLECTION',
+        composer: 'Synthetic Review Fixture',
+        pricePence: 1999,
+        saleFormat: 'BOTH',
+        title: `E2E Updated Grouped Work ${suffix}`,
+        trackIds: [secondTrack.id, firstTrack.id]
+      }
+    })
+    const updateBody = await updateResponse.json()
+
+    expect(updateResponse.status()).toBe(200)
+    expect(updateBody.collection).toEqual(
+      expect.objectContaining({
+        id: collectionBody.collection.id,
+        formattedPrice: '£19.99',
+        title: `E2E Updated Grouped Work ${suffix}`
+      })
+    )
+    expect(updateBody.collection.tracks).toEqual([
+      expect.objectContaining({
+        position: 1,
+        trackId: secondTrack.id
+      }),
+      expect.objectContaining({
+        position: 2,
+        trackId: firstTrack.id
+      })
+    ])
+
+    const deleteResponse = await request.delete(`/api/works-collections/${collectionBody.collection.id}`)
+    const deleteBody = await deleteResponse.json()
+
+    expect(deleteResponse.status()).toBe(200)
+    expect(deleteBody.deleted).toBe(true)
+
+    const finalListResponse = await request.get('/api/works-collections')
+    const finalListBody = await finalListResponse.json()
+
+    expect(finalListResponse.status()).toBe(200)
+    expect(finalListBody.collections).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: collectionBody.collection.id
+        })
+      ])
+    )
   })
 
   test('uploaders can propose request fulfilment pricing from the track requests tab', async ({ page }) => {

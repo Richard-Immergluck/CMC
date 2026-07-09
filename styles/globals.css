@@ -4483,7 +4483,9 @@ a {
 
 .cmc-profile-works-list li {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.25rem;
+  align-items: center;
   padding-left: var(--cmc-space-3);
   border-left: 0.24rem solid var(--cmc-color-accent-gold);
 }
@@ -4498,6 +4500,7 @@ a {
 
 .cmc-profile-works-list span,
 .cmc-profile-works-list small {
+  display: block;
   color: var(--cmc-color-text-muted);
   font-size: 0.78rem;
   font-weight: 720;
