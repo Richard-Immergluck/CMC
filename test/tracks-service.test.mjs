@@ -74,7 +74,12 @@ test('toTrackCreateData maps upload input into Prisma create data', () => {
     price: 2.99,
     pricePence: 299,
     currency: 'gbp',
-    formattedPrice: 'GBP 2.99',
+    formattedPrice: '£2.99',
+    catalogueType: 'SINGLE_TRACK',
+    saleFormat: 'INDIVIDUAL',
+    pricingTier: undefined,
+    pricingReviewStatus: 'AUTO_APPROVED',
+    pricingJustification: undefined,
     downloadName: 'Bach Study_Synthetic Composer.mp3',
     downloadCount: 0
   })

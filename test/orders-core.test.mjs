@@ -54,7 +54,7 @@ test('ensureNotAlreadyOwned rejects existing purchases as conflict', () => {
 })
 
 test('toMinorUnits prefers integer database minor units', () => {
-  assert.equal(toMinorUnits({ pricePence: 350, price: 2.99 }), 350)
+  assert.equal(toMinorUnits({ pricePence: 399, price: 2.99 }), 399)
   assert.equal(toMinorUnits({ price: 2.99 }), 299)
 })
 
@@ -113,4 +113,3 @@ test('buildStripeLineItems preserves server-side price and product metadata', ()
     ]
   )
 })
-

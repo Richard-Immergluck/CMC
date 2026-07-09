@@ -73,8 +73,8 @@ test.describe('mobile layout smoke', () => {
 
     await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
     await expect(page.getByLabel('Select a File')).toBeVisible()
-    await expect(page.getByRole('textbox', { name: 'Title' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Title' })).toHaveCount(0)
     await expectNoDocumentHorizontalOverflow(page)
   })
 
@@ -83,7 +83,7 @@ test.describe('mobile layout smoke', () => {
     await page.goto('/upload')
 
     await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeVisible()
     await expectNoDocumentHorizontalOverflow(page)
   })
 })

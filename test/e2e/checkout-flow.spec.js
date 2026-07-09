@@ -12,10 +12,10 @@ const createTrackInput = suffix => ({
   durationSeconds: 30,
   sourceContentType: 'audio/mpeg',
   additionalInfo: 'Synthetic checkout track created by Playwright.',
-  price: 4.75,
-  pricePence: 475,
+  price: 4.99,
+  pricePence: 499,
   currency: 'gbp',
-  formattedPrice: 'GBP 4.75',
+  formattedPrice: '£4.99',
   downloadName: `checkout-${suffix}.mp3`,
   downloadCount: 0
 })
@@ -60,7 +60,7 @@ const addTrackToCart = async (page, track) => {
   await expect(page.getByText('Shopping Cart')).toBeVisible()
   const cartItems = page.getByLabel('Tracks in cart')
   await expect(cartItems.getByRole('link', { name: track.title })).toBeVisible()
-  await expect(cartItems.getByText('£4.75')).toBeVisible()
+  await expect(cartItems.getByText('£4.99')).toBeVisible()
 }
 
 const denyDownload = async (page, trackId) => {

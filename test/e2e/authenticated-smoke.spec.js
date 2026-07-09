@@ -221,7 +221,7 @@ test.describe('authenticated smoke', () => {
     await page.goto('/upload')
 
     await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeVisible()
   })
 
   test('seeded support users can inspect operations without user management access', async ({ page }) => {

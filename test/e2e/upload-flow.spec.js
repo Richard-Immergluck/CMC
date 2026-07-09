@@ -2,28 +2,47 @@ const { expect, test } = require('@playwright/test')
 const { signInPageAs } = require('./helpers/e2e-session')
 
 const createTinyMp3 = () => {
-  return Buffer.from([
-    0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x0f, 0x54, 0x49, 0x54, 0x32, 0x00, 0x00,
-    0x00, 0x05, 0x00, 0x00, 0x03, 0x45, 0x32, 0x45
-  ])
+  const durationSeconds = 18
+  const sampleRate = 44100
+  const numSamples = durationSeconds * sampleRate
+  const dataSize = numSamples * 2
+  const buffer = Buffer.alloc(44 + dataSize)
+
+  buffer.write('RIFF', 0)
+  buffer.writeUInt32LE(36 + dataSize, 4)
+  buffer.write('WAVE', 8)
+  buffer.write('fmt ', 12)
+  buffer.writeUInt32LE(16, 16)
+  buffer.writeUInt16LE(1, 20)
+  buffer.writeUInt16LE(1, 22)
+  buffer.writeUInt32LE(sampleRate, 24)
+  buffer.writeUInt32LE(sampleRate * 2, 28)
+  buffer.writeUInt16LE(2, 32)
+  buffer.writeUInt16LE(16, 34)
+  buffer.write('data', 36)
+  buffer.writeUInt32LE(dataSize, 40)
+
+  for (let index = 0; index < numSamples; index += 1) {
+    const time = index / sampleRate
+    const sample = Math.round(Math.sin(2 * Math.PI * 220 * time) * 0.55 * 32767)
+    buffer.writeInt16LE(sample, 44 + index * 2)
+  }
+
+  return buffer
 }
 
 test.describe('upload browser flow', () => {
-  test('approved uploaders see validation feedback for empty submissions', async ({ page }) => {
+  test('approved uploaders start with an audio-only upload stage', async ({ page }) => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload')
 
     await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
-
-    await page.getByRole('button', { name: 'Submit' }).click()
-
-    await expect(page.getByText('Please select a file to upload')).toBeVisible()
-    await expect(page.getByText('Please enter a title')).toBeVisible()
-    await expect(page.getByText('Please enter the composer')).toBeVisible()
-    await expect(page.getByText('Please enter a key signature')).toBeVisible()
-    await expect(page.getByText('Price is required')).toBeVisible()
-    await expect(page.getByText('Terms and Conditions must be accepted to submit a track')).toBeVisible()
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByLabel('Select a File')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeEnabled()
+    await expect(page.getByRole('heading', { name: 'Choose the buyer preview' })).toHaveCount(0)
+    await expect(page.getByRole('textbox', { name: 'Title' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Submit' })).toHaveCount(0)
     await expect(page.getByRole('dialog', { name: 'Track submitted for review' })).toHaveCount(0)
   })
 
@@ -49,20 +68,25 @@ test.describe('upload browser flow', () => {
     await page.goto('/upload')
 
     await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
+    await page.waitForLoadState('networkidle')
 
     await page.locator('input[type="file"]').setInputFiles({
       name: `browser-upload-${suffix}.mp3`,
       mimeType: 'audio/mpeg',
       buffer: createTinyMp3()
     })
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeEnabled()
+    await page.getByRole('button', { name: 'Upload audio' }).click()
+    await page.getByRole('button', { name: 'Confirm preview' }).click()
     await page.getByRole('textbox', { name: 'Title' }).fill(title)
     await page.getByRole('textbox', { name: 'Composer' }).fill('Synthetic Upload Fixture')
     await page.getByRole('textbox', { name: 'Key' }).fill('E minor')
     await page.getByRole('textbox', { name: 'Instrumentation' }).fill('Piano')
-    await page.getByRole('textbox', { name: 'Preview Starting Point' }).fill('0')
     await page.getByRole('textbox', { name: 'Additional Information' }).fill('Synthetic browser upload test.')
-    await page.getByRole('textbox', { name: 'Price' }).fill('4.25')
-    await page.getByLabel('Agree to terms and conditions').check()
+    await page.getByRole('button', { name: 'Confirm details' }).click()
+    await page.getByLabel('£3.99').check()
+    await page.getByRole('button', { name: 'Confirm price' }).click()
+    await page.getByLabel('I have read and agree to the upload rights confirmation').check()
 
     await page.getByRole('button', { name: 'Submit' }).click()
 

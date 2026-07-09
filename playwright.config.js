@@ -1,7 +1,7 @@
 const { defineConfig, devices } = require('@playwright/test')
 
 const port = process.env.PORT || 3000
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${port}`
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
 
 module.exports = defineConfig({
   testDir: './test/e2e',
@@ -15,7 +15,7 @@ module.exports = defineConfig({
     trace: 'on-first-retry'
   },
   webServer: {
-    command: `yarn next start --hostname 127.0.0.1 --port ${port}`,
+    command: `node ./node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port ${port}`,
     env: {
       ...process.env,
       ALLOW_SIMULATED_PURCHASES: process.env.ALLOW_SIMULATED_PURCHASES || 'false',

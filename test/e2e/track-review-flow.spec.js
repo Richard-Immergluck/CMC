@@ -23,10 +23,10 @@ const createTrackInput = suffix => ({
   durationSeconds: 30,
   sourceContentType: 'audio/mpeg',
   additionalInfo: 'Synthetic pending review track created by Playwright.',
-  price: 3.5,
-  pricePence: 350,
+  price: 3.99,
+  pricePence: 399,
   currency: 'gbp',
-  formattedPrice: 'GBP 3.50',
+  formattedPrice: '£3.99',
   downloadName: `pending-review-${suffix}.mp3`,
   downloadCount: 0
 })
@@ -99,6 +99,93 @@ test.describe('track review API flow', () => {
         id: createdTrack.id,
         title: createdTrack.title,
         composer: 'Synthetic Review Fixture'
+      })
+    )
+  })
+
+  test('request fulfilment pricing is proposed by the track uploader using guided bands', async ({ request }) => {
+    const suffix = `request-pricing-${Date.now()}`
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const createResponse = await request.post('/api/tracks', {
+      data: createTrackInput(suffix)
+    })
+    const createdTrack = await createResponse.json()
+
+    expect(createResponse.status()).toBe(200)
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    const approvalResponse = await request.patch(`/api/admin/tracks/${createdTrack.id}`, {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved for request pricing E2E.'
+      }
+    })
+
+    expect(approvalResponse.status()).toBe(200)
+
+    await signInAs(request, 'e2e-customer@example.com')
+
+    const trackRequestResponse = await request.post('/api/track-requests', {
+      data: {
+        trackId: createdTrack.id,
+        title: 'Could you prepare a longer cut?',
+        notes: 'A specialist rehearsal cut would be useful.'
+      }
+    })
+    const trackRequest = await trackRequestResponse.json()
+
+    expect(trackRequestResponse.status()).toBe(200)
+
+    const forbiddenProposalResponse = await request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+      data: {
+        catalogueType: 'OPERA_EXCERPT',
+        saleFormat: 'INDIVIDUAL',
+        pricePence: 899,
+        justification: 'Customer should not be able to price their own request.'
+      }
+    })
+
+    expect(forbiddenProposalResponse.status()).toBe(403)
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const invalidPriceResponse = await request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+      data: {
+        catalogueType: 'SINGLE_TRACK',
+        saleFormat: 'INDIVIDUAL',
+        pricePence: 999,
+        justification: 'This should be rejected by the guided pricing band.'
+      }
+    })
+
+    expect(invalidPriceResponse.status()).toBe(400)
+
+    const proposalResponse = await request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+      data: {
+        catalogueType: 'OPERA_EXCERPT',
+        saleFormat: 'INDIVIDUAL',
+        pricePence: 899,
+        justification: 'Prepared to order with specialist cuts.'
+      }
+    })
+    const proposal = await proposalResponse.json()
+
+    expect(proposalResponse.status()).toBe(200)
+    expect(proposal).toEqual(
+      expect.objectContaining({
+        id: expect.any(Number),
+        requestId: trackRequest.id,
+        proposedById: expect.any(String),
+        pricePence: 899,
+        currency: 'gbp',
+        catalogueType: 'OPERA_EXCERPT',
+        saleFormat: 'INDIVIDUAL',
+        reviewStatus: 'NEEDS_REVIEW',
+        requesterDecision: 'PENDING',
+        justification: 'Prepared to order with specialist cuts.'
       })
     )
   })

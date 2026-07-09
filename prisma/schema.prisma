@@ -62,6 +62,8 @@ model User {
   auditEvents                   AuditEvent[]
   TrackRequests                 TrackRequest[]
   WishlistItems                 WishlistItem[]
+  CatalogueReleases             CatalogueRelease[]
+  RequestPricingProposals       RequestPricingProposal[]
   accessChangeRequestsRequested UserAccessChangeRequest[] @relation("UserAccessChangeRequestedBy")
   accessChangeRequestsReviewed  UserAccessChangeRequest[] @relation("UserAccessChangeReviewedBy")
   accessChangeRequestsTargeted  UserAccessChangeRequest[] @relation("UserAccessChangeTarget")
@@ -103,6 +105,11 @@ model Track {
   pricePence             Int?
   currency               String                @default("gbp")
   formattedPrice         String?
+  catalogueType          CatalogueType         @default(SINGLE_TRACK)
+  saleFormat             SaleFormat            @default(INDIVIDUAL)
+  pricingTier            String?
+  pricingReviewStatus    PricingReviewStatus   @default(AUTO_APPROVED)
+  pricingJustification   String?               @db.Text
   downloadName           String?
   downloadCount          Int?
   key                    String?
@@ -116,12 +123,53 @@ model Track {
   FulfilledTrackRequests TrackRequest[]        @relation("TrackRequestFulfilment")
   WishlistItems          WishlistItem[]
   orderItems             OrderItem[]
+  releaseItems           CatalogueReleaseTrack[]
 
   @@index([status])
   @@index([userId])
+  @@index([catalogueType])
+  @@index([pricingReviewStatus])
   @@index([status, moderationStatus, processingStatus])
   @@index([status, uploadedAt])
   @@index([userId, status])
+}
+
+model CatalogueRelease {
+  id                    Int                     @id @default(autoincrement())
+  title                 String
+  composer              String?
+  catalogueType         CatalogueType
+  saleFormat            SaleFormat              @default(BUNDLE)
+  pricePence            Int?
+  currency              String                  @default("gbp")
+  formattedPrice        String?
+  pricingReviewStatus   PricingReviewStatus     @default(AUTO_APPROVED)
+  pricingJustification  String?                 @db.Text
+  uploadedBy            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  tracks                CatalogueReleaseTrack[]
+
+  @@index([catalogueType])
+  @@index([saleFormat])
+  @@index([userId, createdAt])
+  @@index([pricingReviewStatus])
+}
+
+model CatalogueReleaseTrack {
+  id          Int              @id @default(autoincrement())
+  release     CatalogueRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  releaseId   Int
+  track       Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId     Int
+  position    Int              @default(0)
+  movementNo  String?
+  titleInWork String?
+
+  @@unique([releaseId, trackId])
+  @@index([releaseId, position])
+  @@index([trackId])
 }
 
 model TrackOwner {
@@ -168,11 +216,36 @@ model TrackRequest {
   status             TrackRequestStatus @default(OPEN)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+  pricingProposals   RequestPricingProposal[]
 
   @@index([userId, createdAt])
   @@index([trackId, createdAt])
   @@index([fulfilledByTrackId])
   @@index([status, createdAt])
+}
+
+model RequestPricingProposal {
+  id                    Int                          @id @default(autoincrement())
+  request               TrackRequest                 @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId             Int
+  proposedBy            User                         @relation(fields: [proposedById], references: [id], onDelete: Cascade)
+  proposedById          String
+  pricePence            Int
+  currency              String                       @default("gbp")
+  catalogueType         CatalogueType                @default(SINGLE_TRACK)
+  saleFormat            SaleFormat                   @default(INDIVIDUAL)
+  reviewStatus          PricingReviewStatus          @default(AUTO_APPROVED)
+  requesterDecision     RequestPricingDecisionStatus @default(PENDING)
+  justification         String?                      @db.Text
+  requesterNote         String?                      @db.Text
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  requesterRespondedAt  DateTime?
+
+  @@index([requestId, createdAt])
+  @@index([proposedById, createdAt])
+  @@index([reviewStatus, createdAt])
+  @@index([requesterDecision, createdAt])
 }
 
 model WishlistItem {
@@ -294,6 +367,36 @@ enum TrackRequestStatus {
   ACCEPTED
   REJECTED
   COMPLETED
+}
+
+enum CatalogueType {
+  SINGLE_TRACK
+  MOVEMENT
+  SONG_CYCLE
+  COLLECTION
+  LEARNING_PACK
+  OPERA_EXCERPT
+  COMPLETE_WORK
+}
+
+enum SaleFormat {
+  INDIVIDUAL
+  BUNDLE
+  BOTH
+}
+
+enum PricingReviewStatus {
+  AUTO_APPROVED
+  NEEDS_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum RequestPricingDecisionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  SUPERSEDED
 }
 
 enum UserRole {

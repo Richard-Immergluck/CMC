@@ -3132,10 +3132,7 @@ a {
 }
 
 .cmc-upload-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
-  gap: var(--cmc-space-5);
-  align-items: end;
+  display: block;
   padding: 0 0 var(--cmc-space-5);
   border-bottom: 1px solid var(--cmc-color-border);
 }
@@ -3232,6 +3229,367 @@ a {
 .cmc-upload-fields {
   display: grid;
   gap: var(--cmc-space-4);
+}
+
+.cmc-upload-dropzone {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--cmc-space-4);
+  align-items: center;
+  min-height: 12rem;
+  padding: var(--cmc-space-5);
+  color: var(--cmc-color-text);
+  background: rgba(255, 250, 240, 0.62);
+  border: 1px solid var(--cmc-component-panel-border);
+  box-shadow: inset 0.28rem 0 0 var(--cmc-color-accent-gold);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.cmc-upload-dropzone:hover,
+.cmc-upload-dropzone:focus-within {
+  background: rgba(255, 250, 240, 0.82);
+  border-color: rgba(7, 98, 107, 0.42);
+  box-shadow:
+    inset 0.28rem 0 0 var(--cmc-color-accent-gold),
+    0 1rem 2.2rem rgba(24, 32, 37, 0.08);
+  transform: translateY(-1px);
+}
+
+.cmc-upload-dropzone--selected {
+  background:
+    linear-gradient(90deg, rgba(7, 98, 107, 0.08), rgba(255, 250, 240, 0.78) 42%),
+    rgba(255, 250, 240, 0.72);
+  border-color: rgba(7, 98, 107, 0.52);
+  box-shadow:
+    inset 0.28rem 0 0 var(--cmc-color-accent-teal),
+    inset 0 0 0 1px rgba(185, 133, 34, 0.18);
+}
+
+.cmc-upload-dropzone--selected:hover,
+.cmc-upload-dropzone--selected:focus-within {
+  background:
+    linear-gradient(90deg, rgba(7, 98, 107, 0.12), rgba(255, 250, 240, 0.84) 42%),
+    rgba(255, 250, 240, 0.78);
+  border-color: rgba(7, 98, 107, 0.58);
+  box-shadow:
+    inset 0.28rem 0 0 var(--cmc-color-accent-teal),
+    inset 0 0 0 1px rgba(185, 133, 34, 0.22),
+    0 1rem 2.2rem rgba(24, 32, 37, 0.08);
+}
+
+.cmc-upload-dropzone--selected .cmc-upload-dropzone__content span {
+  color: var(--cmc-color-accent-red);
+}
+
+.cmc-upload-dropzone__motif {
+  display: grid;
+  gap: 0.28rem;
+  width: 7rem;
+}
+
+.cmc-upload-dropzone__motif span {
+  display: block;
+  height: 1px;
+  background: rgba(89, 103, 101, 0.58);
+}
+
+.cmc-upload-dropzone__motif span:nth-child(3) {
+  position: relative;
+}
+
+.cmc-upload-dropzone__motif span:nth-child(3)::after {
+  position: absolute;
+  top: -1.95rem;
+  left: 50%;
+  width: 1.05rem;
+  height: 4.2rem;
+  content: '';
+  background: var(--cmc-paper-strip-image), linear-gradient(180deg, #f0d8b3, #d79e48);
+  background-size: cover;
+  transform: translateX(-50%);
+  opacity: 0.78;
+}
+
+.cmc-upload-dropzone__content {
+  display: grid;
+  gap: var(--cmc-space-1);
+}
+
+.cmc-upload-dropzone__content strong {
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.65rem;
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.cmc-upload-dropzone__content span {
+  color: var(--cmc-color-accent-strong);
+  font-weight: 760;
+}
+
+.cmc-upload-dropzone__content small {
+  max-width: 34rem;
+  color: var(--cmc-color-text-muted);
+  font-size: var(--cmc-font-size-small);
+}
+
+.cmc-upload-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cmc-upload-step-section {
+  display: grid;
+  gap: var(--cmc-space-4);
+  margin-top: var(--cmc-space-3);
+  padding-top: var(--cmc-space-5);
+  border-top: 1px solid var(--cmc-color-border);
+}
+
+.cmc-upload-step-heading {
+  max-width: 42rem;
+}
+
+.cmc-upload-step-heading span {
+  display: inline-block;
+  margin-bottom: var(--cmc-space-1);
+  color: var(--cmc-color-accent-red);
+  font-size: var(--cmc-font-size-small);
+  font-weight: 840;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-step-heading h2,
+.cmc-upload-preview-toolbar h3 {
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.9rem;
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.cmc-upload-step-heading p,
+.cmc-upload-preview-toolbar p {
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-step-actions {
+  display: flex;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+}
+
+.cmc-upload-step-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cmc-space-3);
+  padding: var(--cmc-space-3) var(--cmc-space-4);
+  color: var(--cmc-color-text);
+  background: rgba(185, 133, 34, 0.08);
+  border-left: 0.26rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-step-summary strong {
+  color: var(--cmc-color-accent-strong);
+}
+
+.cmc-upload-step-summary > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.cmc-upload-step-summary span {
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-step-summary--working {
+  background: rgba(7, 98, 107, 0.08);
+  border-left-color: var(--cmc-color-accent-teal);
+}
+
+.cmc-upload-step-summary--working strong::after {
+  display: inline-block;
+  width: 1.4em;
+  margin-left: 0.1em;
+  content: '...';
+  animation: cmc-upload-working-dots 1.1s steps(4, end) infinite;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+@keyframes cmc-upload-working-dots {
+  0% {
+    width: 0;
+  }
+
+  100% {
+    width: 1.4em;
+  }
+}
+
+.cmc-upload-preview-selector {
+  display: grid;
+  gap: var(--cmc-space-4);
+  margin-top: var(--cmc-space-3);
+  padding-top: var(--cmc-space-5);
+  border-top: 1px solid var(--cmc-color-border);
+}
+
+.cmc-upload-preview-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--cmc-space-4);
+}
+
+.cmc-upload-preview-toolbar > span {
+  color: var(--cmc-color-accent-strong);
+  font-size: var(--cmc-font-size-small);
+  font-weight: 840;
+  white-space: nowrap;
+}
+
+.cmc-upload-preview-board {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: var(--cmc-space-4);
+  align-items: center;
+  padding: var(--cmc-space-4);
+  background: rgba(255, 250, 240, 0.48);
+  border: 1px solid var(--cmc-color-border);
+}
+
+.cmc-upload-preview-play {
+  min-width: 4rem;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.cmc-upload-waveform {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(180, minmax(1px, 1fr));
+  gap: 0.16rem;
+  align-items: center;
+  min-height: 8.4rem;
+  padding: var(--cmc-space-3) 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.cmc-upload-waveform:active {
+  cursor: grabbing;
+}
+
+.cmc-upload-waveform:focus-visible {
+  outline: 2px solid var(--cmc-color-accent-teal);
+  outline-offset: 0.35rem;
+}
+
+.cmc-upload-waveform > span:not(.cmc-upload-preview-window) {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: var(--cmc-upload-waveform-bar-height);
+  min-height: 0.45rem;
+  background: var(--cmc-color-accent-strong);
+  border-radius: 999px;
+  opacity: 0.72;
+}
+
+.cmc-upload-preview-window {
+  position: absolute;
+  z-index: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  background: rgba(185, 133, 34, 0.18);
+  border: 2px solid rgba(185, 133, 34, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 240, 0.58);
+  pointer-events: none;
+}
+
+.cmc-upload-waveform--loading > span:not(.cmc-upload-preview-window) {
+  animation: cmc-waveform-loading-travel 0.95s ease-in-out infinite;
+  animation-delay: var(--cmc-wave-delay);
+  background: rgba(7, 98, 107, 0.52);
+  opacity: 0.82;
+  will-change: height;
+}
+
+.cmc-upload-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cmc-space-4);
+}
+
+.cmc-upload-price-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cmc-space-2);
+}
+
+.cmc-upload-price-options .form-check {
+  min-height: var(--cmc-component-control-height-md);
+  margin: 0;
+  padding: var(--cmc-space-2) var(--cmc-space-3);
+  color: var(--cmc-color-accent-strong);
+  background: rgba(255, 250, 240, 0.62);
+  border: 1px solid var(--cmc-color-border);
+}
+
+.cmc-upload-price-options .form-check-input {
+  margin-top: 0.25rem;
+  border-color: var(--cmc-color-accent-strong);
+}
+
+.cmc-upload-price-options .form-check-input:checked {
+  background-color: var(--cmc-color-accent-strong);
+  border-color: var(--cmc-color-accent-strong);
+}
+
+.cmc-upload-price-options .form-check:has(.form-check-input:checked) {
+  background: rgba(7, 98, 107, 0.1);
+  border-color: var(--cmc-color-accent-strong);
+  box-shadow: inset 0.28rem 0 0 var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-pricing-note {
+  padding: var(--cmc-space-3) var(--cmc-space-4);
+  color: var(--cmc-color-text-muted);
+  background: rgba(7, 98, 107, 0.07);
+  border-left: 0.22rem solid var(--cmc-color-accent-teal);
+}
+
+.cmc-upload-pricing-note--review {
+  color: var(--cmc-color-accent-strong);
+  background: rgba(185, 133, 34, 0.1);
+  border-left-color: var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-terms-scroll {
+  max-height: 15rem;
+  overflow: auto;
+  padding: var(--cmc-space-4);
+  color: var(--cmc-color-text-muted);
+  background: rgba(255, 250, 240, 0.5);
+  border: 1px solid var(--cmc-color-border);
+}
+
+.cmc-upload-terms-scroll p:last-child {
+  margin-bottom: 0;
 }
 
 .cmc-upload-field-grid {
@@ -4449,6 +4807,11 @@ a {
     padding-top: var(--cmc-space-4);
   }
 
+  .cmc-upload-pricing-grid,
+  .cmc-upload-price-options {
+    grid-template-columns: 1fr;
+  }
+
   .cmc-catalogue-board,
   .cmc-catalogue-results-shell,
   .cmc-catalogue-result-list,
@@ -4477,6 +4840,34 @@ a {
 
   .cmc-upload-field-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-dropzone {
+    grid-template-columns: 1fr;
+    min-height: 13rem;
+    padding: var(--cmc-space-4);
+  }
+
+  .cmc-upload-dropzone__motif {
+    width: 6rem;
+  }
+
+  .cmc-upload-preview-toolbar,
+  .cmc-upload-step-summary {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .cmc-upload-step-summary span {
+    text-align: left;
+  }
+
+  .cmc-upload-preview-board {
+    grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-preview-play {
+    width: 4rem;
   }
 
   .cmc-upload-submit {

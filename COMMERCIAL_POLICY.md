@@ -24,19 +24,66 @@ These references suggest that CMC should not treat GBP 8.50 as the normal defaul
 
 Uploaders should be able to choose their track price, but only from guided price tiers. This gives uploaders agency without making the marketplace feel inconsistent or chaotic.
 
-Recommended launch tiers:
+Recommended launch bands:
 
-- Free
-- GBP 1.99
-- GBP 2.99 standard default
-- GBP 4.99 premium
-- GBP 6.99 specialist or rare
+- Short or simple single track: GBP 1.99-2.99.
+- Standard single track: GBP 2.99-3.99.
+- Higher-value single track or substantial movement: GBP 3.99-6.99.
+- Opera excerpt or specialist cut: GBP 3.99-8.99.
+- Learning pack, multiple tempi, multiple versions, or practice set: GBP 7.99-14.99.
+- Song cycle or collection: GBP 9.99-29.99.
+- Complete work, full opera material, or unusually large reduction: admin-reviewed pricing, usually GBP 19.99+.
 
-The default upload price should be GBP 2.99, with guidance that GBP 4.99 is appropriate for higher-quality, rare, or more carefully produced recordings. GBP 6.99 should be reserved for genuinely specialist material during the early marketplace phase.
+The default upload price for a normal single track should be GBP 2.99. CMC should avoid treating GBP 5.99 as the normal baseline for a five-minute aria, because many uploads will be useful community recordings rather than professional studio products.
 
 Possible uploader guidance:
 
-> Most CMC tracks are expected to sit between GBP 2.99 and GBP 4.99. Choose GBP 6.99 only for rare repertoire, high-production recordings, or specialist material that would be difficult for players to find elsewhere.
+> Most CMC single tracks are expected to sit between GBP 1.99 and GBP 3.99. Choose higher prices only for longer, rarer, more complete, or more carefully produced material.
+
+## Catalogue Types and Packs
+
+CMC should distinguish the atomic audio file from the larger musical product.
+
+- A track is the individual uploaded audio file.
+- A release is a higher-level catalogue item that can contain one or more tracks.
+- A release may represent a song cycle, collection, learning pack, opera excerpt, complete work, or other grouped product.
+
+This keeps a single Schubert lied, a concerto movement, a warm-up set, and a complete opera reduction from being forced into the same pricing and metadata shape.
+
+Recommended catalogue types:
+
+- Single track.
+- Movement or substantial excerpt.
+- Opera excerpt.
+- Learning pack.
+- Song cycle.
+- Collection.
+- Complete work.
+
+The upload flow should initially support choosing the catalogue type and guided price. A later release-builder flow should allow uploaders or admins to group multiple tracks into one purchasable bundle.
+
+## Request Fulfilment Pricing
+
+Request fulfilment needs extra protection because a requester may have a specific musical need. CMC should not allow an uploader to accept a request and then exploit that need by setting an excessive price.
+
+Principles:
+
+- A request can justify a fair premium for bespoke work.
+- A request should not justify opportunistic pricing.
+- The requester should see and accept the proposed price before work is treated as fully accepted.
+- Any price above the normal catalogue band should require admin review.
+- Pricing proposals should be auditable.
+
+Recommended request flow:
+
+1. User creates a request.
+2. Uploader marks the request as under consideration or accepted in principle.
+3. Uploader proposes a fulfilment price using the same guided catalogue bands.
+4. If the proposed price exceeds the normal range, the proposal is flagged for admin review.
+5. Requester accepts or declines the proposed price before the uploader proceeds.
+6. If the uploader fulfils the request, the resulting uploaded track is attached back to the original request.
+
+This keeps request fulfilment community-led while still recognising that bespoke preparation may require more labour than uploading an existing file.
 
 ## Revenue Split
 

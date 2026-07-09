@@ -14,6 +14,7 @@ import {
   simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
   trackRequestBodySchema,
+  trackRequestPricingProposalBodySchema,
   trackRequestStatusBodySchema,
   trackIdParamSchema,
   uploadSignedUrlBodySchema,
@@ -242,6 +243,44 @@ test('track request status body accepts only supported workflow states', () => {
   )
 })
 
+test('track request pricing proposal body accepts guided catalogue prices only', () => {
+  assert.deepEqual(
+    validateInput(trackRequestPricingProposalBodySchema, {
+      catalogueType: 'OPERA_EXCERPT',
+      saleFormat: 'INDIVIDUAL',
+      pricePence: '699',
+      currency: 'GBP',
+      justification: ' Prepared to order with specialist cuts. ',
+      ignored: 'removed'
+    }),
+    {
+      catalogueType: 'OPERA_EXCERPT',
+      saleFormat: 'INDIVIDUAL',
+      pricePence: 699,
+      currency: 'gbp',
+      justification: 'Prepared to order with specialist cuts.'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestPricingProposalBodySchema, {
+      catalogueType: 'SINGLE_TRACK',
+      saleFormat: 'INDIVIDUAL',
+      pricePence: 999
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestPricingProposalBodySchema, {
+      catalogueType: 'MADE_UP_TYPE',
+      saleFormat: 'INDIVIDUAL',
+      pricePence: 299
+    }),
+    error => error.statusCode === 400
+  )
+})
+
 test('admin user update body accepts only role and status fields', () => {
   assert.deepEqual(
     validateInput(adminUserUpdateBodySchema, {
@@ -376,6 +415,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       additionalInfo: 'Practice backing track',
       price: '2.99',
       currency: 'GBP',
+      catalogueType: 'SINGLE_TRACK',
+      saleFormat: 'INDIVIDUAL',
       fulfilledRequestId: '42'
     }),
     {
@@ -391,9 +432,69 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       additionalInfo: 'Practice backing track',
       price: 2.99,
       currency: 'gbp',
+      catalogueType: 'SINGLE_TRACK',
+      saleFormat: 'INDIVIDUAL',
       fulfilledRequestId: 42,
       downloadCount: 0
     }
+  )
+
+  assert.deepEqual(
+    validateInput(createTrackBodySchema, {
+      title: ' Opera Scene ',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      newFileName: 'development/opera-scene.mp3',
+      previewStart: '0',
+      previewEnd: '15',
+      durationSeconds: '420',
+      sourceContentType: 'audio/mpeg',
+      additionalInfo: 'Specialist opera excerpt',
+      price: '8.99',
+      pricePence: '899',
+      currency: 'GBP',
+      catalogueType: 'OPERA_EXCERPT',
+      saleFormat: 'INDIVIDUAL',
+      pricingJustification: 'Long specialist excerpt'
+    }),
+    {
+      title: 'Opera Scene',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      newFileName: 'development/opera-scene.mp3',
+      previewStart: 0,
+      previewEnd: 15,
+      durationSeconds: 420,
+      sourceContentType: 'audio/mpeg',
+      additionalInfo: 'Specialist opera excerpt',
+      price: 8.99,
+      pricePence: 899,
+      currency: 'gbp',
+      catalogueType: 'OPERA_EXCERPT',
+      saleFormat: 'INDIVIDUAL',
+      pricingJustification: 'Long specialist excerpt',
+      downloadCount: 0
+    }
+  )
+
+  assert.throws(
+    () => validateInput(createTrackBodySchema, {
+      title: 'Bach Study',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      newFileName: 'development/upload-id.mp3',
+      previewStart: '10',
+      previewEnd: '25',
+      additionalInfo: 'Practice backing track',
+      price: '5.99',
+      pricePence: '599',
+      catalogueType: 'SINGLE_TRACK',
+      saleFormat: 'INDIVIDUAL'
+    }),
+    error => error.statusCode === 400
   )
 
   assert.throws(
