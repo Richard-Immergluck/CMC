@@ -16,24 +16,20 @@ import * as yup from 'yup'
 import BrandDisplayText from '../brand/BrandDisplayText'
 import { canStartTrackUpload } from '../../lib/access-control.mjs'
 import {
+  atomicTrackCatalogueTypes,
   catalogueTypes,
   formatPricePence,
   getPricingBand,
   getPricingReviewStatus,
   isAllowedPriceForCatalogueType,
   pricingReviewStatuses,
-  saleFormats
+  saleFormats,
+  trackTypeLabels
 } from '../../lib/pricing-policy.mjs'
 import { Button, Panel } from '../ui/primitives'
 
 const PREVIEW_LENGTH_SECONDS = 15
 const WAVEFORM_BAR_COUNT = 180
-
-const saleFormatLabels = {
-  [saleFormats.individual]: 'Individual download',
-  [saleFormats.bundle]: 'Bundle only',
-  [saleFormats.both]: 'Individual and bundle'
-}
 
 const formatSeconds = seconds => {
   if (!Number.isFinite(seconds)) {
@@ -459,8 +455,8 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
     durationSeconds: yup.number().integer().min(1).required(),
     sourceContentType: yup.string().required(),
     additionalInfo: yup.string().required('Please enter additional info'),
-    catalogueType: yup.string().oneOf(Object.values(catalogueTypes)).required(),
-    saleFormat: yup.string().oneOf(Object.values(saleFormats)).required(),
+    catalogueType: yup.string().oneOf(atomicTrackCatalogueTypes).required(),
+    saleFormat: yup.string().oneOf([saleFormats.individual]).required(),
     pricingTier: yup.string(),
     pricingJustification: yup.string().max(2000),
     priceString: yup
@@ -973,60 +969,39 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                           <section className='cmc-upload-step-section'>
                             <div className='cmc-upload-step-heading'>
                               <span>Pricing</span>
-                              <h2>Set a fair catalogue price</h2>
-                              <p>Choose the upload type first, then select a platform-approved buyer price.</p>
+                              <h2>Set a fair track price</h2>
+                              <p>Price this individual uploaded track. Works & Collections can be created later by grouping approved tracks together.</p>
                             </div>
 
-                            <div className='cmc-upload-pricing-grid'>
-                              <Form.Group className='cmc-upload-field' controlId='upload-catalogue-type'>
-                                <Form.Label>Upload type</Form.Label>
-                                <Form.Select
-                                  name='catalogueType'
-                                  value={values.catalogueType}
-                                  onChange={event => {
-                                    const nextBand = getPricingBand(event.target.value)
+                            <Form.Group className='cmc-upload-field' controlId='upload-catalogue-type'>
+                              <Form.Label>Track type</Form.Label>
+                              <Form.Select
+                                name='catalogueType'
+                                value={values.catalogueType}
+                                onChange={event => {
+                                  const nextBand = getPricingBand(event.target.value)
 
-                                    setPricingConfirmed(false)
-                                    setFieldValue('catalogueType', event.target.value)
-                                    setFieldValue('priceString', (nextBand.defaultPricePence / 100).toFixed(2))
-                                    setFieldValue('pricingTier', nextBand.label)
-                                    setFieldValue('pricingJustification', '')
-                                  }}
-                                  isInvalid={!!errors.catalogueType}
-                                >
-                                  {Object.entries(catalogueTypes).map(([, type]) => {
-                                    const band = getPricingBand(type)
+                                  setPricingConfirmed(false)
+                                  setFieldValue('catalogueType', event.target.value)
+                                  setFieldValue('saleFormat', saleFormats.individual)
+                                  setFieldValue('priceString', (nextBand.defaultPricePence / 100).toFixed(2))
+                                  setFieldValue('pricingTier', nextBand.label)
+                                  setFieldValue('pricingJustification', '')
+                                }}
+                                isInvalid={!!errors.catalogueType}
+                              >
+                                {atomicTrackCatalogueTypes.map(type => {
+                                  const band = getPricingBand(type)
 
-                                    return (
-                                      <option key={type} value={type}>
-                                        {band.label}
-                                      </option>
-                                    )
-                                  })}
-                                </Form.Select>
-                                <Form.Text>{pricingBand.description}</Form.Text>
-                              </Form.Group>
-
-                              <Form.Group className='cmc-upload-field' controlId='upload-sale-format'>
-                                <Form.Label>Sale format</Form.Label>
-                                <Form.Select
-                                  name='saleFormat'
-                                  value={values.saleFormat}
-                                  onChange={event => {
-                                    setPricingConfirmed(false)
-                                    setFieldValue('saleFormat', event.target.value)
-                                  }}
-                                  isInvalid={!!errors.saleFormat}
-                                >
-                                  {Object.values(saleFormats).map(format => (
-                                    <option key={format} value={format}>
-                                      {saleFormatLabels[format]}
+                                  return (
+                                    <option key={type} value={type}>
+                                      {trackTypeLabels[type] || band.label}
                                     </option>
-                                  ))}
-                                </Form.Select>
-                                <Form.Text>Bundles and collections can be connected to multiple tracks after review.</Form.Text>
-                              </Form.Group>
-                            </div>
+                                  )
+                                })}
+                              </Form.Select>
+                              <Form.Text>{pricingBand.description}</Form.Text>
+                            </Form.Group>
 
                             <Form.Group className='cmc-upload-field' controlId='upload-price'>
                               <Form.Label>Buyer price</Form.Label>
@@ -1059,7 +1034,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                             <div className={needsPricingReview ? 'cmc-upload-pricing-note cmc-upload-pricing-note--review' : 'cmc-upload-pricing-note'}>
                               {needsPricingReview
                                 ? 'This price is allowed, but it will be highlighted for admin review before publication.'
-                                : 'This price sits inside the standard community pricing band for this upload type.'}
+                                : 'This price sits inside the standard community pricing band for this track type.'}
                             </div>
 
                             {needsPricingReview && (

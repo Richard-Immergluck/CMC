@@ -280,6 +280,15 @@ test('track request pricing proposal body accepts guided catalogue prices only',
     }),
     error => error.statusCode === 400
   )
+
+  assert.throws(
+    () => validateInput(trackRequestPricingProposalBodySchema, {
+      catalogueType: 'SONG_CYCLE',
+      saleFormat: 'INDIVIDUAL',
+      pricePence: 1499
+    }),
+    error => error.statusCode === 400
+  )
 })
 
 test('admin user update body accepts only role and status fields', () => {
@@ -529,6 +538,24 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       price: '5.99',
       pricePence: '599',
       catalogueType: 'SINGLE_TRACK',
+      saleFormat: 'INDIVIDUAL'
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(createTrackBodySchema, {
+      title: 'Grouped Schubert Songs',
+      composer: 'Synthetic Composer',
+      key: 'Mixed',
+      instrumentation: 'Piano',
+      newFileName: 'development/grouped-schubert.mp3',
+      previewStart: '10',
+      previewEnd: '25',
+      additionalInfo: 'This must be assembled later as a Work or Collection.',
+      price: '14.99',
+      pricePence: '1499',
+      catalogueType: 'SONG_CYCLE',
       saleFormat: 'INDIVIDUAL'
     }),
     error => error.statusCode === 400

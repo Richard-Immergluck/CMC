@@ -2762,6 +2762,10 @@ a {
   gap: var(--cmc-space-3);
 }
 
+.cmc-track-request-pricing-grid--single {
+  grid-template-columns: minmax(16rem, 26rem);
+}
+
 .cmc-track-request-pricing-form > div,
 .cmc-track-request-pricing-grid > div {
   display: grid;

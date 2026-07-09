@@ -40,27 +40,38 @@ Possible uploader guidance:
 
 > Most CMC single tracks are expected to sit between GBP 1.99 and GBP 3.99. Choose higher prices only for longer, rarer, more complete, or more carefully produced material.
 
-## Catalogue Types and Packs
+## Tracks, Works, and Collections
 
 CMC should distinguish the atomic audio file from the larger musical product.
 
 - A track is the individual uploaded audio file.
-- A release is a higher-level catalogue item that can contain one or more tracks.
-- A release may represent a song cycle, collection, learning pack, opera excerpt, complete work, or other grouped product.
+- Works & Collections are higher-level catalogue items that can contain one or more approved tracks.
+- A Work or Collection may represent a song cycle, curated set, learning pack, complete work, opera group, or other grouped product.
 
-This keeps a single Schubert lied, a concerto movement, a warm-up set, and a complete opera reduction from being forced into the same pricing and metadata shape.
+This keeps a single Schubert lied, a concerto movement, a warm-up track, and a complete opera reduction from being forced into the same pricing and metadata shape.
 
-Recommended catalogue types:
+Recommended single-track pricing types:
 
-- Single track.
+- Song, aria, study, or warmup.
 - Movement or substantial excerpt.
-- Opera excerpt.
+- Opera number or specialist cut.
+
+Recommended Works & Collections types for the later grouping flow:
+
 - Learning pack.
 - Song cycle.
 - Collection.
 - Complete work.
 
-The upload flow should initially support choosing the catalogue type and guided price. A later release-builder flow should allow uploaders or admins to group multiple tracks into one purchasable bundle.
+The single-track upload flow should only price the individual audio file being uploaded. It should not ask uploaders to price a song cycle, collection, or complete work when they have uploaded one MP3. A later Works & Collections manager should allow uploaders or admins to group existing approved tracks into one purchasable item, set track order, maintain individual-track purchase options, and choose a fair grouped price.
+
+Bulk upload should be treated as a separate operational workflow:
+
+- Uploaders may select or drop many MP3 files at once.
+- Each file becomes an individual draft track.
+- The uploader can apply shared metadata such as composer, instrumentation, and default price across the batch.
+- The uploader can then edit per-track titles, keys, durations, preview positions, notes, and prices before submission.
+- After moderation, those approved tracks can be attached to Works & Collections.
 
 ## Request Fulfilment Pricing
 
