@@ -98,6 +98,21 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('works collections require authentication', async ({ request }) => {
+    const response = await request.post('/api/works-collections', {
+      data: {
+        catalogueType: 'COLLECTION',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        title: 'Anonymous collection attempt',
+        trackIds: [1, 2]
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('request pricing proposals require authentication', async ({ request }) => {
     const response = await request.post('/api/track-requests/1/pricing-proposals', {
       data: {

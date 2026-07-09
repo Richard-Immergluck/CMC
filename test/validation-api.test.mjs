@@ -9,6 +9,7 @@ import {
   adminPricingReviewBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
+  createWorksCollectionBodySchema,
   profileCommentBodySchema,
   positiveIntegerParamSchema,
   reconcileCheckoutSessionBodySchema,
@@ -572,6 +573,65 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       previewEnd: '10',
       additionalInfo: 'Practice backing track',
       price: '2.99'
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('works collection body accepts guided grouped prices only', () => {
+  assert.deepEqual(
+    validateInput(createWorksCollectionBodySchema, {
+      catalogueType: 'COLLECTION',
+      composer: ' Synthetic Composer ',
+      currency: 'GBP',
+      pricePence: '1499',
+      pricingJustification: ' Curated rehearsal set. ',
+      saleFormat: 'BOTH',
+      title: ' Grouped Rehearsal Set ',
+      trackIds: ['11', '12'],
+      ignored: 'removed'
+    }),
+    {
+      catalogueType: 'COLLECTION',
+      composer: 'Synthetic Composer',
+      currency: 'gbp',
+      pricePence: 1499,
+      pricingJustification: 'Curated rehearsal set.',
+      saleFormat: 'BOTH',
+      title: 'Grouped Rehearsal Set',
+      trackIds: [11, 12]
+    }
+  )
+
+  assert.throws(
+    () => validateInput(createWorksCollectionBodySchema, {
+      catalogueType: 'SINGLE_TRACK',
+      pricePence: 299,
+      saleFormat: 'BOTH',
+      title: 'Invalid grouped single',
+      trackIds: [11, 12]
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(createWorksCollectionBodySchema, {
+      catalogueType: 'COLLECTION',
+      pricePence: 1499,
+      saleFormat: 'BOTH',
+      title: 'One track is not a collection',
+      trackIds: [11]
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(createWorksCollectionBodySchema, {
+      catalogueType: 'COLLECTION',
+      pricePence: 5999,
+      saleFormat: 'BOTH',
+      title: 'Unguided price',
+      trackIds: [11, 12]
     }),
     error => error.statusCode === 400
   )

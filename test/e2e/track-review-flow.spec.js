@@ -190,6 +190,97 @@ test.describe('track review API flow', () => {
     )
   })
 
+  test('uploaders can group approved tracks into a Work or Collection', async ({ request }) => {
+    const suffix = `works-collection-${Date.now()}`
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const firstCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-one`)
+    })
+    const firstTrack = await firstCreateResponse.json()
+    const secondCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-two`)
+    })
+    const secondTrack = await secondCreateResponse.json()
+
+    expect(firstCreateResponse.status()).toBe(200)
+    expect(secondCreateResponse.status()).toBe(200)
+
+    const prematureCollectionResponse = await request.post('/api/works-collections', {
+      data: {
+        catalogueType: 'COLLECTION',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        title: `E2E Grouped Work ${suffix}`,
+        trackIds: [firstTrack.id, secondTrack.id]
+      }
+    })
+
+    expect(prematureCollectionResponse.status()).toBe(403)
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    for (const track of [firstTrack, secondTrack]) {
+      const approvalResponse = await request.patch(`/api/admin/tracks/${track.id}`, {
+        data: {
+          decision: 'approve',
+          moderationNotes: 'Approved for Works & Collections E2E.'
+        }
+      })
+
+      expect(approvalResponse.status()).toBe(200)
+    }
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const collectionResponse = await request.post('/api/works-collections', {
+      data: {
+        catalogueType: 'COLLECTION',
+        composer: 'Synthetic Review Fixture',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        title: `E2E Grouped Work ${suffix}`,
+        trackIds: [firstTrack.id, secondTrack.id]
+      }
+    })
+    const collectionBody = await collectionResponse.json()
+
+    expect(collectionResponse.status()).toBe(200)
+    expect(collectionBody.collection).toEqual(
+      expect.objectContaining({
+        catalogueType: 'COLLECTION',
+        formattedPrice: '£14.99',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        title: `E2E Grouped Work ${suffix}`
+      })
+    )
+    expect(collectionBody.collection.tracks).toEqual([
+      expect.objectContaining({
+        position: 1,
+        trackId: firstTrack.id
+      }),
+      expect.objectContaining({
+        position: 2,
+        trackId: secondTrack.id
+      })
+    ])
+
+    const listResponse = await request.get('/api/works-collections')
+    const listBody = await listResponse.json()
+
+    expect(listResponse.status()).toBe(200)
+    expect(listBody.collections).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: collectionBody.collection.id,
+          title: `E2E Grouped Work ${suffix}`
+        })
+      ])
+    )
+  })
+
   test('uploaders can propose request fulfilment pricing from the track requests tab', async ({ page }) => {
     const suffix = `request-pricing-ui-${Date.now()}`
 
