@@ -190,6 +190,58 @@ test.describe('track review API flow', () => {
     )
   })
 
+  test('uploaders can propose request fulfilment pricing from the track requests tab', async ({ page }) => {
+    const suffix = `request-pricing-ui-${Date.now()}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const createResponse = await page.request.post('/api/tracks', {
+      data: createTrackInput(suffix)
+    })
+    const createdTrack = await createResponse.json()
+
+    expect(createResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+
+    const approvalResponse = await page.request.patch(`/api/admin/tracks/${createdTrack.id}`, {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved for request pricing UI E2E.'
+      }
+    })
+
+    expect(approvalResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    const trackRequestResponse = await page.request.post('/api/track-requests', {
+      data: {
+        trackId: createdTrack.id,
+        title: 'UI request pricing fixture',
+        notes: 'Please prepare a specialist opera cut.'
+      }
+    })
+    const trackRequest = await trackRequestResponse.json()
+
+    expect(trackRequestResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto(`/catalogue/${createdTrack.id}?tab=requests&requestId=${trackRequest.id}`)
+
+    const requestCard = page.locator(`#request-${trackRequest.id}`)
+
+    await expect(requestCard.getByText('Request fulfilment price')).toBeVisible()
+    await requestCard.getByLabel('Type').selectOption('OPERA_EXCERPT')
+    await requestCard.getByLabel('Request price for UI request pricing fixture').getByLabel('£8.99').check()
+    await requestCard.getByLabel('Pricing note (optional)').fill('Specialist preparation for a requested cut.')
+    await requestCard.getByRole('button', { name: 'Propose Price' }).click()
+
+    await expect(page.getByRole('status').filter({ hasText: 'Request price proposal sent.' })).toBeVisible()
+    await expect(requestCard.locator('.cmc-track-request-pricing-summary strong')).toHaveText('£8.99')
+    await expect(requestCard.getByText('Admin review needed')).toBeVisible()
+  })
+
   test('admins can review, listen to, and approve pending tracks in the browser', async ({ page }) => {
     const suffix = `ui-${Date.now()}`
 

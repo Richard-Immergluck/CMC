@@ -112,6 +112,23 @@ const getTrackDetail = async trackId => {
             moderationStatus: true,
             status: true
           }
+        },
+        pricingProposals: {
+          select: {
+            id: true,
+            pricePence: true,
+            currency: true,
+            catalogueType: true,
+            saleFormat: true,
+            reviewStatus: true,
+            requesterDecision: true,
+            justification: true,
+            createdAt: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 3
         }
       },
       orderBy: {
@@ -147,7 +164,18 @@ const getTrackDetail = async trackId => {
             moderationStatus: request.fulfilledByTrack.moderationStatus,
             status: request.fulfilledByTrack.status
           }
-        : null
+        : null,
+      pricingProposals: request.pricingProposals.map(proposal => ({
+        catalogueType: proposal.catalogueType,
+        createdAt: formatDisplayDate(proposal.createdAt),
+        currency: proposal.currency,
+        id: proposal.id,
+        justification: proposal.justification,
+        pricePence: proposal.pricePence,
+        requesterDecision: proposal.requesterDecision,
+        reviewStatus: proposal.reviewStatus,
+        saleFormat: proposal.saleFormat
+      }))
     })),
     track: {
       ...track,

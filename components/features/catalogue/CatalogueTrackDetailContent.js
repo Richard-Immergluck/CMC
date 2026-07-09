@@ -9,6 +9,12 @@ import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
+import {
+  catalogueTypes,
+  formatPricePence,
+  getPricingBand,
+  saleFormats
+} from '../../../lib/pricing-policy.mjs'
 import { canUseFullTrackPlayback } from '../../../lib/track-audio-access.mjs'
 
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
@@ -143,6 +149,12 @@ const requestStatusOptions = [
 
 const manageableRequestStatusOptions = requestStatusOptions.filter(option => option.value !== 'COMPLETED')
 
+const saleFormatLabels = {
+  [saleFormats.individual]: 'Individual download',
+  [saleFormats.bundle]: 'Bundle only',
+  [saleFormats.both]: 'Individual and collection'
+}
+
 const formatRequestStatus = status => {
   return requestStatusOptions.find(option => option.value === status)?.label || status
 }
@@ -238,6 +250,24 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [requestUpdateError, setRequestUpdateError] = useState('')
   const [requestUpdateStatus, setRequestUpdateStatus] = useState('')
   const [updatingRequestId, setUpdatingRequestId] = useState(null)
+  const [requestPricingDrafts, setRequestPricingDrafts] = useState(() => {
+    return Object.fromEntries(requests.map(request => {
+      const initialType = request.pricingProposals?.[0]?.catalogueType || catalogueTypes.singleTrack
+      const initialBand = getPricingBand(initialType)
+      const initialPricePence = request.pricingProposals?.[0]?.pricePence || initialBand.defaultPricePence
+
+      return [
+        request.id,
+        {
+          catalogueType: initialType,
+          justification: request.pricingProposals?.[0]?.justification || '',
+          pricePence: initialPricePence,
+          saleFormat: request.pricingProposals?.[0]?.saleFormat || saleFormats.individual
+        }
+      ]
+    }))
+  })
+  const [pricingProposalRequestId, setPricingProposalRequestId] = useState(null)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
@@ -566,6 +596,103 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       setRequestUpdateError(error.message || 'Unable to update request')
     } finally {
       setUpdatingRequestId(null)
+    }
+  }
+
+  const updateRequestPricingDraft = (requestId, patch) => {
+    setRequestPricingDrafts(currentDrafts => {
+      const currentDraft = currentDrafts[requestId] || {
+        catalogueType: catalogueTypes.singleTrack,
+        justification: '',
+        pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
+        saleFormat: saleFormats.individual
+      }
+      const nextDraft = {
+        ...currentDraft,
+        ...patch
+      }
+
+      if (patch.catalogueType) {
+        nextDraft.pricePence = getPricingBand(patch.catalogueType).defaultPricePence
+        nextDraft.justification = ''
+      }
+
+      return {
+        ...currentDrafts,
+        [requestId]: nextDraft
+      }
+    })
+  }
+
+  const submitRequestPricingProposal = async requestId => {
+    setRequestUpdateError('')
+    setRequestUpdateStatus('')
+    setPricingProposalRequestId(requestId)
+
+    const draft = requestPricingDrafts[requestId] || {
+      catalogueType: catalogueTypes.singleTrack,
+      justification: '',
+      pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
+      saleFormat: saleFormats.individual
+    }
+
+    try {
+      const response = await fetch(`/api/track-requests/${requestId}/pricing-proposals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          catalogueType: draft.catalogueType,
+          justification: draft.justification.trim() || undefined,
+          pricePence: Number(draft.pricePence),
+          saleFormat: draft.saleFormat
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to propose request price')
+      }
+
+      const nextProposal = {
+        catalogueType: data.catalogueType,
+        createdAt: formatDisplayDate(data.createdAt),
+        currency: data.currency,
+        id: data.id,
+        justification: data.justification,
+        pricePence: data.pricePence,
+        requesterDecision: data.requesterDecision,
+        reviewStatus: data.reviewStatus,
+        saleFormat: data.saleFormat
+      }
+
+      setRequestList(currentRequests => currentRequests.map(request => (
+        request.id === requestId
+          ? {
+              ...request,
+              pricingProposals: [
+                nextProposal,
+                ...(request.pricingProposals || [])
+              ].slice(0, 3),
+              status: request.status === 'OPEN' ? 'PENDING_DECISION' : request.status
+            }
+          : request
+      )))
+      setRequestPricingDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: {
+          catalogueType: data.catalogueType,
+          justification: data.justification || '',
+          pricePence: data.pricePence,
+          saleFormat: data.saleFormat
+        }
+      }))
+      setRequestUpdateStatus('Request price proposal sent.')
+    } catch (error) {
+      setRequestUpdateError(error.message || 'Unable to propose request price')
+    } finally {
+      setPricingProposalRequestId(null)
     }
   }
 
@@ -1006,6 +1133,14 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         note: '',
                         reason: ''
                       }
+                      const pricingDraft = requestPricingDrafts[request.id] || {
+                        catalogueType: catalogueTypes.singleTrack,
+                        justification: '',
+                        pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
+                        saleFormat: saleFormats.individual
+                      }
+                      const pricingBand = getPricingBand(pricingDraft.catalogueType)
+                      const latestProposal = request.pricingProposals?.[0]
 
                       return (
                         <article
@@ -1037,6 +1172,27 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                               Fulfilment uploaded: <strong>{request.fulfilledByTrack.title}</strong>
                               {request.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
                             </p>
+                          )}
+                          {latestProposal && (
+                            <div className='cmc-track-request-pricing-summary'>
+                              <div>
+                                <strong>{formatPricePence(latestProposal.pricePence)}</strong>
+                                <span>{getPricingBand(latestProposal.catalogueType).label} · {saleFormatLabels[latestProposal.saleFormat] || latestProposal.saleFormat}</span>
+                              </div>
+                              <dl>
+                                <div>
+                                  <dt>Review</dt>
+                                  <dd>{latestProposal.reviewStatus === 'NEEDS_REVIEW' ? 'Admin review needed' : 'Within band'}</dd>
+                                </div>
+                                <div>
+                                  <dt>Requester</dt>
+                                  <dd>{latestProposal.requesterDecision.toLowerCase()}</dd>
+                                </div>
+                              </dl>
+                              {latestProposal.justification && (
+                                <p>{latestProposal.justification}</p>
+                              )}
+                            </div>
                           )}
                           {isTrackOwner && request.status !== 'COMPLETED' && (
                             <div
@@ -1122,6 +1278,87 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                                   </div>
                                 </div>
                               )}
+                              <div className='cmc-track-request-pricing-form'>
+                                <div className='cmc-track-request-pricing-heading'>
+                                  <strong>Request fulfilment price</strong>
+                                  <span>Use CMC guided bands before preparing bespoke work.</span>
+                                </div>
+                                <div className='cmc-track-request-pricing-grid'>
+                                  <div>
+                                    <label htmlFor={`request-pricing-type-${request.id}`}>Type</label>
+                                    <select
+                                      id={`request-pricing-type-${request.id}`}
+                                      onChange={event => updateRequestPricingDraft(request.id, {
+                                        catalogueType: event.target.value
+                                      })}
+                                      value={pricingDraft.catalogueType}
+                                    >
+                                      {Object.values(catalogueTypes).map(type => (
+                                        <option key={type} value={type}>
+                                          {getPricingBand(type).label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label htmlFor={`request-pricing-sale-format-${request.id}`}>Sale format</label>
+                                    <select
+                                      id={`request-pricing-sale-format-${request.id}`}
+                                      onChange={event => updateRequestPricingDraft(request.id, {
+                                        saleFormat: event.target.value
+                                      })}
+                                      value={pricingDraft.saleFormat}
+                                    >
+                                      {Object.values(saleFormats).map(format => (
+                                        <option key={format} value={format}>
+                                          {saleFormatLabels[format]}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className='cmc-track-request-price-options' role='radiogroup' aria-label={`Request price for ${request.title}`}>
+                                  {pricingBand.options.map(pricePence => (
+                                    <label
+                                      className={Number(pricingDraft.pricePence) === pricePence ? 'cmc-track-request-price-option cmc-track-request-price-option--selected' : 'cmc-track-request-price-option'}
+                                      key={pricePence}
+                                    >
+                                      <input
+                                        checked={Number(pricingDraft.pricePence) === pricePence}
+                                        name={`request-price-${request.id}`}
+                                        onChange={() => updateRequestPricingDraft(request.id, {
+                                          pricePence
+                                        })}
+                                        type='radio'
+                                        value={pricePence}
+                                      />
+                                      <span>{formatPricePence(pricePence)}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                                <div>
+                                  <label htmlFor={`request-pricing-justification-${request.id}`}>Pricing note (optional)</label>
+                                  <textarea
+                                    id={`request-pricing-justification-${request.id}`}
+                                    maxLength={2000}
+                                    onChange={event => updateRequestPricingDraft(request.id, {
+                                      justification: event.target.value
+                                    })}
+                                    placeholder='Explain specialist preparation, cuts, length, or other context.'
+                                    rows={3}
+                                    value={pricingDraft.justification}
+                                  />
+                                </div>
+                                <Button
+                                  disabled={pricingProposalRequestId === request.id}
+                                  onClick={() => submitRequestPricingProposal(request.id)}
+                                  size='sm'
+                                  type='button'
+                                  variant='ink'
+                                >
+                                  {pricingProposalRequestId === request.id ? 'Sending...' : 'Propose Price'}
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </article>
