@@ -242,6 +242,73 @@ test.describe('track review API flow', () => {
     await expect(requestCard.getByText('Admin review needed')).toBeVisible()
   })
 
+  test('admins can approve pending request pricing reviews', async ({ page }) => {
+    const suffix = `admin-pricing-review-${Date.now()}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const createResponse = await page.request.post('/api/tracks', {
+      data: createTrackInput(suffix)
+    })
+    const createdTrack = await createResponse.json()
+
+    expect(createResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+
+    const approvalResponse = await page.request.patch(`/api/admin/tracks/${createdTrack.id}`, {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved for admin pricing review E2E.'
+      }
+    })
+
+    expect(approvalResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    const requestTitle = `Admin pricing review fixture ${suffix}`
+    const trackRequestResponse = await page.request.post('/api/track-requests', {
+      data: {
+        trackId: createdTrack.id,
+        title: requestTitle,
+        notes: 'Please prepare an admin-reviewed specialist cut.'
+      }
+    })
+    const trackRequest = await trackRequestResponse.json()
+
+    expect(trackRequestResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const proposalResponse = await page.request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+      data: {
+        catalogueType: 'OPERA_EXCERPT',
+        saleFormat: 'INDIVIDUAL',
+        pricePence: 899,
+        justification: 'Specialist preparation for admin review.'
+      }
+    })
+    const proposal = await proposalResponse.json()
+
+    expect(proposalResponse.status()).toBe(200)
+    expect(proposal.reviewStatus).toBe('NEEDS_REVIEW')
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+    await page.goto('/admin')
+
+    await page.getByRole('tab', { name: /Pricing/i }).click()
+
+    const proposalRow = page.getByRole('row').filter({
+      hasText: requestTitle
+    })
+
+    await expect(proposalRow).toBeVisible()
+    await expect(proposalRow.getByText('£8.99')).toBeVisible()
+    await proposalRow.getByRole('button', { name: 'Approve' }).click()
+    await expect(proposalRow).toHaveCount(0)
+  })
+
   test('admins can review, listen to, and approve pending tracks in the browser', async ({ page }) => {
     const suffix = `ui-${Date.now()}`
 

@@ -6,6 +6,7 @@ import {
   adminUserAccessReviewBodySchema,
   adminUserUpdateBodySchema,
   adminTrackModerationBodySchema,
+  adminPricingReviewBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
   profileCommentBodySchema,
@@ -341,6 +342,42 @@ test('admin track moderation body accepts supported decisions', () => {
 
   assert.throws(
     () => validateInput(adminTrackModerationBodySchema, { decision: 'publish' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin pricing review body accepts only supported targets and decisions', () => {
+  assert.deepEqual(
+    validateInput(adminPricingReviewBodySchema, {
+      decision: 'approve',
+      note: ' Fair specialist price ',
+      targetId: '42',
+      targetType: 'requestProposal',
+      ignored: 'removed'
+    }),
+    {
+      decision: 'approve',
+      note: 'Fair specialist price',
+      targetId: 42,
+      targetType: 'requestProposal'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(adminPricingReviewBodySchema, {
+      decision: 'archive',
+      targetId: 42,
+      targetType: 'track'
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(adminPricingReviewBodySchema, {
+      decision: 'approve',
+      targetId: 42,
+      targetType: 'release'
+    }),
     error => error.statusCode === 400
   )
 })

@@ -72,6 +72,13 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('admin pricing reviews require authentication', async ({ request }) => {
+    const response = await request.get('/api/admin/pricing-reviews')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('profile ownership data requires authentication', async ({ request }) => {
     const response = await request.get('/api/profile')
 
