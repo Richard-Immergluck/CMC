@@ -66,8 +66,27 @@ const buildWaveformPeaks = audioBuffer => {
   })
 }
 
+const createUploadBatch = async ({ label }) => {
+  const response = await fetch('/api/upload-batches', {
+    method: 'POST',
+    body: JSON.stringify({
+      label
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Unable to create upload batch')
+  }
+
+  return data.batch
+}
+
 // DBUpload function
-const uploadToDB = async (values, newFileName) => {
+const uploadToDB = async (values, newFileName, { uploadBatchId } = {}) => {
   const {
     title,
     composer,
@@ -120,7 +139,8 @@ const uploadToDB = async (values, newFileName) => {
     pricingJustification,
     downloadName,
     downloadCount,
-    fulfilledRequestId: resolvedFulfilledRequestId
+    fulfilledRequestId: resolvedFulfilledRequestId,
+    uploadBatchId
   }
 
   // Send the submission object to the api endpoint
@@ -389,6 +409,9 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
   const [uploadError, setUploadError] = useState('')
   const [uploadingAudio, setUploadingAudio] = useState(false)
   const [showUploadComplete, setShowUploadComplete] = useState(false)
+  const [uploadMode, setUploadMode] = useState('single')
+  const [batchLabel, setBatchLabel] = useState('')
+  const [activeUploadBatch, setActiveUploadBatch] = useState(null)
 
   // Get the session
   const { data: session } = useSession()
@@ -483,7 +506,18 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
     }
 
     setUploadError('')
-    await uploadToDB(values, uploadedFileName)
+    let uploadBatch = activeUploadBatch
+
+    if (uploadMode === 'batch' && !uploadBatch) {
+      uploadBatch = await createUploadBatch({
+        label: batchLabel.trim() || `${values.composer || 'CMC'} upload batch`
+      })
+      setActiveUploadBatch(uploadBatch)
+    }
+
+    await uploadToDB(values, uploadedFileName, {
+      uploadBatchId: uploadBatch?.id
+    })
     setShowUploadComplete(true)
     fileReset()
     setSelectedFile(null)
@@ -550,6 +584,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
               pricePence: selectedPricePence
             })
             const needsPricingReview = pricingReviewStatus === pricingReviewStatuses.needsReview
+            const isBatchMode = uploadMode === 'batch'
 
             const resetUploadProgress = () => {
               setUploadedFileName('')
@@ -712,6 +747,21 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
               setFieldValue('terms', false)
             }
 
+            const chooseSingleMode = () => {
+              setUploadMode('single')
+              setActiveUploadBatch(null)
+            }
+
+            const chooseBatchMode = () => {
+              setUploadMode('batch')
+            }
+
+            const startNewBatch = () => {
+              setActiveUploadBatch(null)
+              setBatchLabel('')
+              setShowUploadComplete(false)
+            }
+
             return (
               <Form noValidate onSubmit={handleSubmit} className='cmc-upload-form'>
               <main className='cmc-upload-page'>
@@ -740,6 +790,64 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                       )}
 
                       <div className='cmc-upload-fields'>
+                        <section className='cmc-upload-mode-panel' aria-labelledby='upload-mode-heading'>
+                          <div className='cmc-upload-step-heading'>
+                            <span>Upload mode</span>
+                            <h2 id='upload-mode-heading'>Choose how this upload should be organised</h2>
+                            <p>Use a batch when several tracks belong to the same first import, song cycle, scene, or teaching collection.</p>
+                          </div>
+                          <div className='cmc-upload-mode-options' role='radiogroup' aria-label='Upload mode'>
+                            <button
+                              aria-checked={!isBatchMode}
+                              className={!isBatchMode ? 'cmc-upload-mode-option cmc-upload-mode-option--active' : 'cmc-upload-mode-option'}
+                              onClick={chooseSingleMode}
+                              role='radio'
+                              type='button'
+                            >
+                              <strong>Single track</strong>
+                              <span>Submit one track for review.</span>
+                            </button>
+                            <button
+                              aria-checked={isBatchMode}
+                              className={isBatchMode ? 'cmc-upload-mode-option cmc-upload-mode-option--active' : 'cmc-upload-mode-option'}
+                              onClick={chooseBatchMode}
+                              role='radio'
+                              type='button'
+                            >
+                              <strong>Batch upload</strong>
+                              <span>Keep adding tracks to the same upload batch.</span>
+                            </button>
+                          </div>
+
+                          {isBatchMode && (
+                            <div className='cmc-upload-batch-fields'>
+                              <label htmlFor='upload-batch-label'>
+                                <span>Batch label</span>
+                                <input
+                                  id='upload-batch-label'
+                                  maxLength={255}
+                                  onChange={event => setBatchLabel(event.target.value)}
+                                  placeholder='e.g. Mozart opera scenes import'
+                                  type='text'
+                                  value={activeUploadBatch?.label || batchLabel}
+                                  disabled={Boolean(activeUploadBatch)}
+                                />
+                              </label>
+                              {activeUploadBatch ? (
+                                <div className='cmc-upload-batch-status' role='status'>
+                                  <strong>{activeUploadBatch.label || `Upload batch #${activeUploadBatch.id}`}</strong>
+                                  <span>New tracks will be attached to this batch.</span>
+                                  <Button type='button' variant='subtle' onClick={startNewBatch}>
+                                    Start new batch
+                                  </Button>
+                                </div>
+                              ) : (
+                                <p>The batch will be created when the first track is submitted.</p>
+                              )}
+                            </div>
+                          )}
+                        </section>
+
                         {canShowUploadStep && (
                           <>
                             <Form.Group className='cmc-upload-field' controlId='upload-file'>
@@ -1168,20 +1276,39 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                   />
                 </div>
                 <div className='modal-body'>
-                  <p>
-                    Your track has been uploaded as a draft and is now waiting
-                    for review. It will not appear in the public catalogue until
-                    it has been checked and approved.
-                  </p>
-                  <p className='mb-0'>
-                    You can upload another track now, return to the catalogue,
-                    or open the admin console to review pending submissions.
-                  </p>
+                  {activeUploadBatch ? (
+                    <>
+                      <p>
+                        Your track has been uploaded as a draft and attached to
+                        {` ${activeUploadBatch.label || `upload batch #${activeUploadBatch.id}`}`}.
+                      </p>
+                      <p className='mb-0'>
+                        You can add another related track to this batch now, or move to upload management to review the batch.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Your track has been uploaded as a draft and is now waiting
+                        for review. It will not appear in the public catalogue until
+                        it has been checked and approved.
+                      </p>
+                      <p className='mb-0'>
+                        You can upload another track now, return to the catalogue,
+                        or open the admin console to review pending submissions.
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className='modal-footer'>
                   <Button variant='subtle' onClick={uploadAnotherTrack}>
-                    Upload Another
+                    {activeUploadBatch ? 'Add Another to Batch' : 'Upload Another'}
                   </Button>
+                  {activeUploadBatch && (
+                    <Button as={Link} href='/upload/manage' variant='secondary'>
+                      Manage Uploads
+                    </Button>
+                  )}
                   <Button as={Link} href='/catalogue' variant='secondary'>
                     Catalogue
                   </Button>

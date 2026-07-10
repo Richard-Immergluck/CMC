@@ -497,7 +497,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       currency: 'GBP',
       catalogueType: 'SINGLE_TRACK',
       saleFormat: 'INDIVIDUAL',
-      fulfilledRequestId: '42'
+      fulfilledRequestId: '42',
+      uploadBatchId: '24'
     }),
     {
       title: 'Bach Study',
@@ -515,6 +516,7 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       catalogueType: 'SINGLE_TRACK',
       saleFormat: 'INDIVIDUAL',
       fulfilledRequestId: 42,
+      uploadBatchId: 24,
       downloadCount: 0
     }
   )

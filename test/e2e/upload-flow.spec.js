@@ -38,6 +38,8 @@ test.describe('upload browser flow', () => {
 
     await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
     await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('radio', { name: /Single track/i })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'false')
     await expect(page.getByLabel('Select a File')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Upload audio' })).toBeEnabled()
     await expect(page.getByRole('heading', { name: 'Choose the buyer preview' })).toHaveCount(0)
@@ -119,6 +121,80 @@ test.describe('upload browser flow', () => {
           title,
           composer: 'Synthetic Upload Fixture',
           moderationStatus: 'PENDING'
+        })
+      ])
+    )
+  })
+
+  test('approved uploaders can attach a submitted track to an upload batch', async ({ page }) => {
+    const suffix = Date.now()
+    const title = `E2E Batch Upload ${suffix}`
+    const batchLabel = `E2E Batch ${suffix}`
+
+    await page.route(/https:\/\/.*amazonaws\.com\/.*/, async route => {
+      if (route.request().method() === 'PUT') {
+        await route.fulfill({
+          status: 200,
+          body: ''
+        })
+        return
+      }
+
+      await route.continue()
+    })
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload')
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('radio', { name: /Batch upload/i }).click()
+    await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'true')
+    await page.getByLabel('Batch label').fill(batchLabel)
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: `batch-upload-${suffix}.mp3`,
+      mimeType: 'audio/mpeg',
+      buffer: createTinyMp3()
+    })
+    await page.getByRole('button', { name: 'Upload audio' }).click()
+    await page.getByRole('button', { name: 'Confirm preview' }).click()
+    await page.getByRole('textbox', { name: 'Title' }).fill(title)
+    await page.getByRole('textbox', { name: 'Composer' }).fill('Synthetic Batch Fixture')
+    await page.getByRole('textbox', { name: 'Key' }).fill('F major')
+    await page.getByRole('textbox', { name: 'Instrumentation' }).fill('Piano')
+    await page.getByRole('textbox', { name: 'Additional Information' }).fill('Synthetic browser batch upload test.')
+    await page.getByRole('button', { name: 'Confirm details' }).click()
+    await page.getByLabel('£3.99').check()
+    await page.getByRole('button', { name: 'Confirm price' }).click()
+    await page.getByLabel('I have read and agree to the upload rights confirmation').check()
+    await page.getByRole('button', { name: 'Submit' }).click()
+
+    const reviewDialog = page.getByRole('dialog', {
+      name: 'Track submitted for review'
+    })
+
+    await expect(reviewDialog).toBeVisible()
+    await expect(reviewDialog.getByText(batchLabel)).toBeVisible()
+    await expect(reviewDialog.getByRole('button', { name: 'Add Another to Batch' })).toBeVisible()
+    await expect(reviewDialog.getByRole('link', { name: 'Manage Uploads' })).toHaveAttribute('href', '/upload/manage')
+
+    const batchResponse = await page.request.get('/api/upload-batches')
+    const batchBody = await batchResponse.json()
+
+    expect(batchResponse.status()).toBe(200)
+    expect(batchBody.batches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: batchLabel,
+          summary: expect.objectContaining({
+            totalTracks: 1
+          }),
+          tracks: expect.arrayContaining([
+            expect.objectContaining({
+              title,
+              composer: 'Synthetic Batch Fixture'
+            })
+          ])
         })
       ])
     )

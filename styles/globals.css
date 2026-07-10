@@ -3600,6 +3600,89 @@ a {
   gap: var(--cmc-space-4);
 }
 
+.cmc-upload-mode-panel {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cmc-space-3);
+}
+
+.cmc-upload-mode-option {
+  display: grid;
+  gap: var(--cmc-space-1);
+  min-height: 6rem;
+  padding: var(--cmc-space-3);
+  text-align: left;
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid rgba(23, 63, 56, 0.18);
+}
+
+.cmc-upload-mode-option--active {
+  background: rgba(23, 63, 56, 0.08);
+  border-color: var(--cmc-color-accent-strong);
+  box-shadow: inset 0.28rem 0 0 var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-mode-option strong,
+.cmc-upload-batch-status strong {
+  color: var(--cmc-color-text);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.cmc-upload-mode-option span,
+.cmc-upload-batch-fields p,
+.cmc-upload-batch-status span {
+  color: var(--cmc-color-text-muted);
+  line-height: 1.45;
+}
+
+.cmc-upload-batch-fields {
+  display: grid;
+  gap: var(--cmc-space-3);
+}
+
+.cmc-upload-batch-fields label {
+  display: grid;
+  gap: var(--cmc-space-1);
+}
+
+.cmc-upload-batch-fields label > span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-batch-fields input {
+  width: 100%;
+  padding: 0.82rem 0.9rem;
+  color: var(--cmc-color-text);
+  background: #fffdf8;
+  border: 1px solid rgba(23, 63, 56, 0.24);
+}
+
+.cmc-upload-batch-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cmc-space-3);
+  border: 1px solid rgba(23, 63, 56, 0.14);
+}
+
 .cmc-upload-dropzone {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -5101,6 +5184,10 @@ a {
 
   .cmc-upload-guidance {
     position: static;
+  }
+
+  .cmc-upload-mode-options {
+    grid-template-columns: 1fr;
   }
 
   .cmc-profile-header,
