@@ -33,6 +33,28 @@ const worksSaleFormatLabels = {
 
 const getDisplayName = user => user.name || user.email || 'CMC member'
 
+const batchStatusLabels = {
+  DRAFT: 'Draft',
+  UPLOADING: 'Uploading',
+  READY_FOR_REVIEW: 'Ready for review',
+  SUBMITTED: 'Submitted',
+  PARTIALLY_FAILED: 'Needs attention',
+  COMPLETED: 'Completed',
+  ARCHIVED: 'Archived'
+}
+
+const formatBatchDate = value => {
+  if (!value) {
+    return 'Not submitted'
+  }
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date(value))
+}
+
 const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [catalogueType, setCatalogueType] = useState(catalogueTypes.collection)
   const [composer, setComposer] = useState('')
@@ -291,6 +313,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
 const UploadManagementPageContent = ({
   currentUser,
+  userUploadBatches = [],
   userUploadedTracks,
   userWorksCollections = []
 }) => {
@@ -361,6 +384,54 @@ const UploadManagementPageContent = ({
             })}
             tracks={userUploadedTracks}
           />
+
+          <section className='cmc-upload-management-batches' aria-labelledby='upload-management-batches-heading'>
+            <div className='cmc-profile-section-heading'>
+              <div>
+                <p className='cmc-profile-kicker'>Bulk upload</p>
+                <h2 id='upload-management-batches-heading'>Upload Batches</h2>
+              </div>
+              <p>{userUploadBatches.length} batches</p>
+            </div>
+
+            {userUploadBatches.length === 0 ? (
+              <div className='cmc-upload-management-empty'>
+                <h3>No batch uploads yet</h3>
+                <p>
+                  Future multi-file uploads will appear here with their review progress, failed files, and the tracks created from each import.
+                </p>
+              </div>
+            ) : (
+              <ul className='cmc-upload-management-batch-list'>
+                {userUploadBatches.map(batch => (
+                  <li key={batch.id}>
+                    <div>
+                      <strong>{batch.label || `Upload batch #${batch.id}`}</strong>
+                      <span>{batchStatusLabels[batch.status] || batch.status} · Created {formatBatchDate(batch.createdAt)}</span>
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Tracks</dt>
+                        <dd>{batch.summary.totalTracks}</dd>
+                      </div>
+                      <div>
+                        <dt>Ready</dt>
+                        <dd>{batch.summary.readyTracks}</dd>
+                      </div>
+                      <div>
+                        <dt>Review</dt>
+                        <dd>{batch.summary.pendingReviewTracks}</dd>
+                      </div>
+                      <div>
+                        <dt>Failed</dt>
+                        <dd>{batch.summary.failedTracks}</dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </section>
       </div>
     </main>

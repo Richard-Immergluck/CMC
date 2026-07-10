@@ -6,6 +6,10 @@ import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import { authOptions } from '../../../lib/server/auth'
 import prisma from '../../../lib/server/prisma'
 import {
+  listUserUploadBatches,
+  serializeUploadBatch
+} from '../../../lib/server/upload-batches.mjs'
+import {
   listUserWorksCollections,
   serializeWorksCollection
 } from '../../../lib/server/works-collections.mjs'
@@ -72,7 +76,7 @@ const getUploadManagementData = async email => {
     return null
   }
 
-  const [uploadedTracks, worksCollections] = await Promise.all([
+  const [uploadedTracks, worksCollections, uploadBatches] = await Promise.all([
     prisma.track.findMany({
       where: {
         moderationStatus: 'APPROVED',
@@ -87,11 +91,15 @@ const getUploadManagementData = async email => {
     }),
     listUserWorksCollections({
       userId: currentUser.id
+    }),
+    listUserUploadBatches({
+      userId: currentUser.id
     })
   ])
 
   return {
     currentUser,
+    userUploadBatches: uploadBatches.map(serializeUploadBatch),
     userUploadedTracks: uploadedTracks.map(serializeTrack),
     userWorksCollections: worksCollections.map(serializeUploadManagementWorksCollection)
   }
@@ -113,6 +121,7 @@ const UploadManagementPage = async () => {
   return (
     <UploadManagementPageContent
       currentUser={uploadManagement.currentUser}
+      userUploadBatches={uploadManagement.userUploadBatches}
       userUploadedTracks={uploadManagement.userUploadedTracks}
       userWorksCollections={uploadManagement.userWorksCollections}
     />
