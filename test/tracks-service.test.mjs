@@ -68,6 +68,7 @@ test('toTrackCreateData maps upload input into Prisma create data', () => {
         id: 'user-1'
       }
     },
+    uploadBatch: undefined,
     previewStart: 10,
     previewEnd: 25,
     additionalInfo: 'Practice backing track',
