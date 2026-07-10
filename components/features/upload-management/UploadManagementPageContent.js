@@ -473,8 +473,12 @@ const UploadManagementPageContent = ({
                         <dd>{batch.summary.failedTracks}</dd>
                       </div>
                     </dl>
-                    {resumableBatchStatuses.has(batch.status) && (
-                      <div className='cmc-upload-management-batch-actions'>
+                    <div className='cmc-upload-management-batch-actions'>
+                      <Button as={Link} href={`/upload/manage/${batch.id}`} variant='subtle'>
+                        View batch
+                      </Button>
+                      {resumableBatchStatuses.has(batch.status) && (
+                        <>
                         <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
                           Continue batch
                         </Button>
@@ -486,8 +490,9 @@ const UploadManagementPageContent = ({
                         >
                           {submittingBatchId === batch.id ? 'Submitting...' : 'Submit batch'}
                         </Button>
-                      </div>
-                    )}
+                        </>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
