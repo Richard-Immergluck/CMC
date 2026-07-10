@@ -394,7 +394,7 @@ const UploadPreviewSelector = ({
   )
 }
 
-function UploadForm({ initialFulfilledRequestId = '' }) {
+function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null }) {
   const fulfilledRequestId = initialFulfilledRequestId
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [selectedFiles, setSelectedFiles] = useState([])
@@ -410,9 +410,9 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
   const [uploadError, setUploadError] = useState('')
   const [uploadingAudio, setUploadingAudio] = useState(false)
   const [showUploadComplete, setShowUploadComplete] = useState(false)
-  const [uploadMode, setUploadMode] = useState('single')
-  const [batchLabel, setBatchLabel] = useState('')
-  const [activeUploadBatch, setActiveUploadBatch] = useState(null)
+  const [uploadMode, setUploadMode] = useState(initialUploadBatch ? 'batch' : 'single')
+  const [batchLabel, setBatchLabel] = useState(initialUploadBatch?.label || '')
+  const [activeUploadBatch, setActiveUploadBatch] = useState(initialUploadBatch)
 
   // Get the session
   const { data: session } = useSession()

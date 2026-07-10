@@ -43,6 +43,13 @@ const batchStatusLabels = {
   ARCHIVED: 'Archived'
 }
 
+const resumableBatchStatuses = new Set([
+  'DRAFT',
+  'UPLOADING',
+  'READY_FOR_REVIEW',
+  'PARTIALLY_FAILED'
+])
+
 const formatBatchDate = value => {
   if (!value) {
     return 'Not submitted'
@@ -427,6 +434,11 @@ const UploadManagementPageContent = ({
                         <dd>{batch.summary.failedTracks}</dd>
                       </div>
                     </dl>
+                    {resumableBatchStatuses.has(batch.status) && (
+                      <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
+                        Continue batch
+                      </Button>
+                    )}
                   </li>
                 ))}
               </ul>

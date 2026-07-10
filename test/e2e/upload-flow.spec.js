@@ -216,4 +216,26 @@ test.describe('upload browser flow', () => {
       ])
     )
   })
+
+  test('approved uploaders can resume an existing upload batch', async ({ page }) => {
+    const suffix = Date.now()
+    const batchLabel = `E2E Resumable Batch ${suffix}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    const createResponse = await page.request.post('/api/upload-batches', {
+      data: {
+        label: batchLabel
+      }
+    })
+    const createBody = await createResponse.json()
+
+    expect(createResponse.status()).toBe(200)
+
+    await page.goto(`/upload?batchId=${createBody.batch.id}`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.getByLabel('Batch label')).toHaveValue(batchLabel)
+    await expect(page.getByText('New tracks will be attached to this batch.')).toBeVisible()
+  })
 })
