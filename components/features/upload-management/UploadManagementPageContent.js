@@ -6,6 +6,7 @@ import { Layers3, UploadCloud } from 'lucide-react'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
+  atomicTrackCatalogueTypes,
   catalogueTypes,
   formatPricePence,
   getPricingBand,
@@ -49,6 +50,10 @@ const resumableBatchStatuses = new Set([
   'READY_FOR_REVIEW',
   'PARTIALLY_FAILED'
 ])
+
+const batchDefaultPriceOptions = Array.from(new Set(
+  atomicTrackCatalogueTypes.flatMap(type => getPricingBand(type).options)
+)).sort((firstPrice, secondPrice) => firstPrice - secondPrice)
 
 const formatBatchDate = value => {
   if (!value) {
@@ -328,7 +333,70 @@ const UploadManagementPageContent = ({
   const [worksCollections, setWorksCollections] = useState(userWorksCollections)
   const [batchStatusMessage, setBatchStatusMessage] = useState('')
   const [batchError, setBatchError] = useState('')
+  const [defaultsDraft, setDefaultsDraft] = useState(null)
+  const [editingDefaultsBatchId, setEditingDefaultsBatchId] = useState(null)
+  const [savingDefaultsBatchId, setSavingDefaultsBatchId] = useState(null)
   const [submittingBatchId, setSubmittingBatchId] = useState(null)
+
+  const startEditingDefaults = batch => {
+    setBatchError('')
+    setBatchStatusMessage('')
+    setEditingDefaultsBatchId(batch.id)
+    setDefaultsDraft({
+      defaultComposer: batch.defaultComposer || '',
+      defaultInstrumentation: batch.defaultInstrumentation || '',
+      defaultPricePence: batch.defaultPricePence ? String(batch.defaultPricePence) : '',
+      label: batch.label || ''
+    })
+  }
+
+  const updateDefaultsDraft = (field, value) => {
+    setDefaultsDraft(currentDraft => ({
+      ...(currentDraft || {}),
+      [field]: value
+    }))
+  }
+
+  const cancelEditingDefaults = () => {
+    setEditingDefaultsBatchId(null)
+    setDefaultsDraft(null)
+  }
+
+  const saveBatchDefaults = async batch => {
+    setBatchError('')
+    setBatchStatusMessage('')
+    setSavingDefaultsBatchId(batch.id)
+
+    try {
+      const response = await fetch(`/api/upload-batches/${batch.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          defaultComposer: defaultsDraft?.defaultComposer || '',
+          defaultInstrumentation: defaultsDraft?.defaultInstrumentation || '',
+          defaultPricePence: defaultsDraft?.defaultPricePence || '',
+          label: defaultsDraft?.label?.trim() || batch.label || `Upload batch #${batch.id}`
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to update upload batch defaults')
+      }
+
+      setUploadBatches(currentBatches => currentBatches.map(currentBatch => (
+        currentBatch.id === batch.id ? data.batch : currentBatch
+      )))
+      setBatchStatusMessage('Upload batch defaults updated.')
+      cancelEditingDefaults()
+    } catch (error) {
+      setBatchError(error.message || 'Unable to update upload batch defaults')
+    } finally {
+      setSavingDefaultsBatchId(null)
+    }
+  }
 
   const submitBatch = async batch => {
     setBatchError('')
@@ -473,12 +541,77 @@ const UploadManagementPageContent = ({
                         <dd>{batch.summary.failedTracks}</dd>
                       </div>
                     </dl>
+                    {editingDefaultsBatchId === batch.id && defaultsDraft && (
+                      <form
+                        className='cmc-upload-management-defaults-form'
+                        onSubmit={event => {
+                          event.preventDefault()
+                          saveBatchDefaults(batch)
+                        }}
+                      >
+                        <label>
+                          <span>Batch label</span>
+                          <input
+                            maxLength={255}
+                            onChange={event => updateDefaultsDraft('label', event.target.value)}
+                            placeholder='e.g. Mozart opera scenes import'
+                            type='text'
+                            value={defaultsDraft.label}
+                          />
+                        </label>
+                        <label>
+                          <span>Default composer</span>
+                          <input
+                            maxLength={255}
+                            onChange={event => updateDefaultsDraft('defaultComposer', event.target.value)}
+                            placeholder='Optional'
+                            type='text'
+                            value={defaultsDraft.defaultComposer}
+                          />
+                        </label>
+                        <label>
+                          <span>Default instrumentation</span>
+                          <input
+                            maxLength={255}
+                            onChange={event => updateDefaultsDraft('defaultInstrumentation', event.target.value)}
+                            placeholder='Optional'
+                            type='text'
+                            value={defaultsDraft.defaultInstrumentation}
+                          />
+                        </label>
+                        <label>
+                          <span>Default price</span>
+                          <select
+                            onChange={event => updateDefaultsDraft('defaultPricePence', event.target.value)}
+                            value={defaultsDraft.defaultPricePence}
+                          >
+                            <option value=''>No default price</option>
+                            {batchDefaultPriceOptions.map(pricePence => (
+                              <option key={pricePence} value={pricePence}>
+                                {formatPricePence(pricePence)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div className='cmc-upload-management-defaults-actions'>
+                          <Button disabled={savingDefaultsBatchId === batch.id} size='sm' type='submit' variant='ink'>
+                            {savingDefaultsBatchId === batch.id ? 'Saving...' : 'Save defaults'}
+                          </Button>
+                          <Button disabled={savingDefaultsBatchId === batch.id} size='sm' type='button' variant='subtle' onClick={cancelEditingDefaults}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    )}
                     <div className='cmc-upload-management-batch-actions'>
                       <Button as={Link} href={`/upload/manage/${batch.id}`} variant='subtle'>
                         View batch
                       </Button>
                       {resumableBatchStatuses.has(batch.status) && (
                         <>
+                        <Button type='button' variant='subtle' onClick={() => startEditingDefaults(batch)}>
+                          Edit defaults
+                        </Button>
                         <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
                           Continue batch
                         </Button>

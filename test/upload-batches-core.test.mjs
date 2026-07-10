@@ -23,6 +23,18 @@ test('upload batch defaults trim optional metadata and normalize prices', () => 
       defaultPricePence: 599
     }
   )
+
+  assert.deepEqual(
+    normalizeUploadBatchDefaults({
+      defaultPricePence: null
+    }),
+    {
+      label: null,
+      defaultComposer: null,
+      defaultInstrumentation: null,
+      defaultPricePence: null
+    }
+  )
 })
 
 test('upload batch editability protects submitted and terminal batches', () => {

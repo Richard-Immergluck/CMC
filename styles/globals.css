@@ -4837,6 +4837,46 @@ a {
   justify-content: flex-end;
 }
 
+.cmc-upload-management-defaults-form {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cmc-space-3);
+  padding-top: var(--cmc-space-3);
+  border-top: 1px solid rgba(23, 63, 56, 0.12);
+}
+
+.cmc-upload-management-defaults-form label {
+  display: grid;
+  gap: var(--cmc-space-1);
+}
+
+.cmc-upload-management-defaults-form label > span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-management-defaults-form input,
+.cmc-upload-management-defaults-form select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--cmc-color-text);
+  background: rgba(255, 253, 248, 0.82);
+  border: 1px solid rgba(23, 63, 56, 0.22);
+}
+
+.cmc-upload-management-defaults-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+}
+
 .cmc-upload-batch-detail-page .cmc-profile-board {
   padding-bottom: var(--cmc-space-6);
 }
@@ -5450,6 +5490,7 @@ a {
 
   .cmc-upload-management-batch-list li,
   .cmc-upload-management-batch-list dl,
+  .cmc-upload-management-defaults-form,
   .cmc-upload-batch-defaults dl,
   .cmc-upload-batch-track-list li,
   .cmc-upload-batch-track-list dl {
