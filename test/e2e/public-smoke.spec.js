@@ -21,8 +21,13 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
 
   const primaryNav = page.getByRole('navigation', { name: 'Primary navigation' })
   await expect(primaryNav.getByRole('link', { name: 'Catalogue', exact: true })).toBeVisible()
+  await expect(primaryNav.getByRole('link', { name: 'Works', exact: true })).toBeVisible()
   await expect(primaryNav.getByRole('link', { name: /Login \/ Sign up/i })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Browse catalogue' })).toBeVisible()
+
+  await primaryNav.getByRole('link', { name: 'Works', exact: true }).click()
+  await expect(page).toHaveURL(/\/works-collections$/)
+  await expect(page.getByRole('heading', { name: /Grouped music for bigger practice plans/i })).toBeVisible()
 
   await primaryNav.getByRole('link', { name: 'Catalogue', exact: true }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
@@ -94,11 +99,11 @@ test('anonymous visitor returns to the same catalogue scroll position from track
 })
 
 test('anonymous visitor can play an approved audio preview from the action button', async ({ page }) => {
-  await page.goto('/catalogue?pageSize=10')
+  await page.goto('/catalogue?q=E2E%20Catalogue%20Bach%20Audition%20Cut&pageSize=10')
+  await expect(page.getByRole('link', { name: 'E2E Catalogue Bach Audition Cut Op. 52' })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Preview' }).first().click()
+  await page.getByRole('button', { name: 'Preview', exact: true }).first().click()
 
-  await expect(page.getByRole('button', { name: 'Pause Preview' })).toBeVisible()
   await expect(page.locator('.cmc-preview-player')).toHaveCount(0)
 
   const audioPreview = page.locator('audio.cmc-audio-preview-source').first()

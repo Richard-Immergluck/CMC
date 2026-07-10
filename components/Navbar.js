@@ -33,6 +33,7 @@ function MainNavbar() {
               navbarScroll
             >
               <Nav.Link className={navLinkClass('/catalogue')} href='/catalogue'>Catalogue</Nav.Link>
+              <Nav.Link className={navLinkClass('/works-collections')} href='/works-collections'>Works</Nav.Link>
               {isAuthenticated && <Nav.Link className={navLinkClass('/profile')} href='/profile'>Profile</Nav.Link>}
               {canStartTrackUpload(user) && <Nav.Link className={navLinkClass('/upload')} href='/upload'>Upload</Nav.Link>}
               {canAccessSupportSurface(user) && <Nav.Link className={navLinkClass('/admin')} href='/admin'>Admin</Nav.Link>}
