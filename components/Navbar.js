@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { Nav, Navbar, Container } from 'react-bootstrap'
@@ -10,9 +10,18 @@ function MainNavbar() {
   const pathname = usePathname()
   const { emptyCart, items } = useCart()
   const { data: session, status } = useSession()
+  const [cartMounted, setCartMounted] = useState(false)
   const user = session?.user
-  const cartItems = items.length
+  const cartItems = cartMounted ? items.length : 0
   const isAuthenticated = status === 'authenticated'
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setCartMounted(true)
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [])
 
   const navLinkClass = (href, className = '') => [
     pathname === href || pathname?.startsWith(`${href}/`) ? 'cmc-navbar-link--active' : '',

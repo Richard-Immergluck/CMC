@@ -107,9 +107,15 @@ test('upload signing body accepts only mp3 file metadata', () => {
   )
 })
 
-test('checkout body requires a bounded list of positive track ids', () => {
+test('checkout body requires a bounded list of positive track or release ids', () => {
   assert.deepEqual(validateInput(checkoutSessionBodySchema, { trackIds: ['1', 2] }), {
+    releaseIds: [],
     trackIds: [1, 2]
+  })
+
+  assert.deepEqual(validateInput(checkoutSessionBodySchema, { releaseIds: ['3'] }), {
+    releaseIds: [3],
+    trackIds: []
   })
 
   assert.throws(

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import BrandDisplayText from '../../../components/brand/BrandDisplayText'
+import WorksCollectionCartButton from '../../../components/features/works-collections/WorksCollectionCartButton'
 import { Button } from '../../../components/ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import {
@@ -83,9 +84,7 @@ const WorksCollectionDetailPage = async ({ params }) => {
             <aside className='cmc-works-purchase-panel' aria-label='Collection purchase'>
               <strong>{collection.formattedPrice}</strong>
               <p>{collection.trackCount} tracks in this Work or Collection</p>
-              <Button as={Link} href='/cart' variant='ink'>
-                Collection Checkout Coming Next
-              </Button>
+              <WorksCollectionCartButton collection={collection} />
               <Button as={Link} href='/works-collections' variant='paper'>
                 Back to Works
               </Button>

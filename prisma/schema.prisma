@@ -150,6 +150,7 @@ model CatalogueRelease {
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   tracks                CatalogueReleaseTrack[]
+  orderItems            OrderItem[]
 
   @@index([catalogueType])
   @@index([saleFormat])
@@ -280,18 +281,22 @@ model Order {
 }
 
 model OrderItem {
-  id         Int    @id @default(autoincrement())
-  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId    Int
-  track      Track  @relation(fields: [trackId], references: [id], onDelete: Restrict)
-  trackId    Int
-  title      String
-  composer   String
-  unitAmount Int
-  currency   String @default("gbp")
+  id                 Int               @id @default(autoincrement())
+  order              Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId            Int
+  track              Track             @relation(fields: [trackId], references: [id], onDelete: Restrict)
+  trackId            Int
+  sourceRelease      CatalogueRelease? @relation(fields: [sourceReleaseId], references: [id], onDelete: SetNull)
+  sourceReleaseId    Int?
+  sourceReleaseTitle String?
+  title              String
+  composer           String
+  unitAmount         Int
+  currency           String            @default("gbp")
 
   @@unique([orderId, trackId])
   @@index([trackId])
+  @@index([sourceReleaseId])
 }
 
 model PaymentEvent {
