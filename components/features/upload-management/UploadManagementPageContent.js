@@ -51,6 +51,12 @@ const resumableBatchStatuses = new Set([
   'PARTIALLY_FAILED'
 ])
 
+const canSubmitUploadBatch = batch => (
+  batch.summary.totalTracks > 0 &&
+  batch.summary.failedTracks === 0 &&
+  batch.summary.readyTracks === batch.summary.totalTracks
+)
+
 const batchDefaultPriceOptions = Array.from(new Set(
   atomicTrackCatalogueTypes.flatMap(type => getPricingBand(type).options)
 )).sort((firstPrice, secondPrice) => firstPrice - secondPrice)
@@ -616,10 +622,11 @@ const UploadManagementPageContent = ({
                           Continue batch
                         </Button>
                         <Button
-                          disabled={submittingBatchId === batch.id}
+                          disabled={submittingBatchId === batch.id || !canSubmitUploadBatch(batch)}
                           onClick={() => submitBatch(batch)}
                           type='button'
                           variant='ink'
+                          title={canSubmitUploadBatch(batch) ? undefined : 'Add at least one successfully processed track before submitting this batch'}
                         >
                           {submittingBatchId === batch.id ? 'Submitting...' : 'Submit batch'}
                         </Button>

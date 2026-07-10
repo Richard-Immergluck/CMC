@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   canEditUploadBatch,
+  canSubmitUploadBatch,
   isTerminalUploadBatch,
   normalizeUploadBatchDefaults,
   summarizeUploadBatch,
@@ -44,6 +45,43 @@ test('upload batch editability protects submitted and terminal batches', () => {
   assert.equal(canEditUploadBatch({ status: uploadBatchStatuses.completed }), false)
   assert.equal(isTerminalUploadBatch({ status: uploadBatchStatuses.completed }), true)
   assert.equal(isTerminalUploadBatch({ status: uploadBatchStatuses.archived }), true)
+})
+
+test('upload batch submission requires successful processed tracks', () => {
+  assert.equal(canSubmitUploadBatch({ tracks: [] }), false)
+  assert.equal(
+    canSubmitUploadBatch({
+      tracks: [
+        {
+          processingStatus: 'READY'
+        }
+      ]
+    }),
+    true
+  )
+  assert.equal(
+    canSubmitUploadBatch({
+      tracks: [
+        {
+          processingStatus: 'READY'
+        },
+        {
+          processingStatus: 'FAILED'
+        }
+      ]
+    }),
+    false
+  )
+  assert.equal(
+    canSubmitUploadBatch({
+      tracks: [
+        {
+          processingStatus: 'PROCESSING'
+        }
+      ]
+    }),
+    false
+  )
 })
 
 test('upload batch summaries count processing and moderation states', () => {
