@@ -324,7 +324,43 @@ const UploadManagementPageContent = ({
   userUploadedTracks,
   userWorksCollections = []
 }) => {
+  const [uploadBatches, setUploadBatches] = useState(userUploadBatches)
   const [worksCollections, setWorksCollections] = useState(userWorksCollections)
+  const [batchStatusMessage, setBatchStatusMessage] = useState('')
+  const [batchError, setBatchError] = useState('')
+  const [submittingBatchId, setSubmittingBatchId] = useState(null)
+
+  const submitBatch = async batch => {
+    setBatchError('')
+    setBatchStatusMessage('')
+    setSubmittingBatchId(batch.id)
+
+    try {
+      const response = await fetch(`/api/upload-batches/${batch.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: 'SUBMITTED'
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to submit upload batch')
+      }
+
+      setUploadBatches(currentBatches => currentBatches.map(currentBatch => (
+        currentBatch.id === batch.id ? data.batch : currentBatch
+      )))
+      setBatchStatusMessage('Upload batch submitted.')
+    } catch (error) {
+      setBatchError(error.message || 'Unable to submit upload batch')
+    } finally {
+      setSubmittingBatchId(null)
+    }
+  }
 
   return (
     <main className='cmc-profile-page cmc-upload-management-page'>
@@ -398,10 +434,13 @@ const UploadManagementPageContent = ({
                 <p className='cmc-profile-kicker'>Bulk upload</p>
                 <h2 id='upload-management-batches-heading'>Upload Batches</h2>
               </div>
-              <p>{userUploadBatches.length} batches</p>
+              <p>{uploadBatches.length} batches</p>
             </div>
 
-            {userUploadBatches.length === 0 ? (
+            {batchError && <div className='cmc-profile-notice cmc-profile-notice--error' role='alert'>{batchError}</div>}
+            {batchStatusMessage && <div className='cmc-profile-notice cmc-profile-notice--success' role='status'>{batchStatusMessage}</div>}
+
+            {uploadBatches.length === 0 ? (
               <div className='cmc-upload-management-empty'>
                 <h3>No batch uploads yet</h3>
                 <p>
@@ -410,7 +449,7 @@ const UploadManagementPageContent = ({
               </div>
             ) : (
               <ul className='cmc-upload-management-batch-list'>
-                {userUploadBatches.map(batch => (
+                {uploadBatches.map(batch => (
                   <li key={batch.id}>
                     <div>
                       <strong>{batch.label || `Upload batch #${batch.id}`}</strong>
@@ -435,9 +474,19 @@ const UploadManagementPageContent = ({
                       </div>
                     </dl>
                     {resumableBatchStatuses.has(batch.status) && (
-                      <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
-                        Continue batch
-                      </Button>
+                      <div className='cmc-upload-management-batch-actions'>
+                        <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
+                          Continue batch
+                        </Button>
+                        <Button
+                          disabled={submittingBatchId === batch.id}
+                          onClick={() => submitBatch(batch)}
+                          type='button'
+                          variant='ink'
+                        >
+                          {submittingBatchId === batch.id ? 'Submitting...' : 'Submit batch'}
+                        </Button>
+                      </div>
                     )}
                   </li>
                 ))}

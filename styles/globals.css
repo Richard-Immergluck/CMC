@@ -4830,6 +4830,13 @@ a {
   font-weight: 850;
 }
 
+.cmc-upload-management-batch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+}
+
 .cmc-profile-works-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.8fr);
