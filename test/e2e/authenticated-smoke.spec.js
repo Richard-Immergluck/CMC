@@ -181,6 +181,12 @@ test.describe('authenticated smoke', () => {
     await expect(uploadsTable.getByRole('columnheader', { name: 'Downloads' })).toBeVisible()
     await expect(uploadsTable.getByRole('columnheader', { name: 'Comments' })).toBeVisible()
     await expect(uploadsTable.getByRole('columnheader', { name: 'Requests' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Manage uploads' }).first()).toHaveAttribute('href', '/upload/manage')
+
+    await page.goto('/upload/manage')
+    await expect(page.getByRole('heading', { name: 'Manage Uploads.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Group Approved Tracks' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'View upload reporting' })).toHaveAttribute('href', '/profile?library=uploads')
   })
 
   test('seeded customers can create a request from a track detail page', async ({ page }) => {

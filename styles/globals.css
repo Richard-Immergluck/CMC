@@ -4569,6 +4569,56 @@ a {
   border-top: 1px solid rgba(23, 63, 56, 0.16);
 }
 
+.cmc-profile-management-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--cmc-space-4);
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-profile-management-link h3 {
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+
+.cmc-profile-management-link p:not(.cmc-profile-kicker) {
+  max-width: 42rem;
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-text-muted);
+  line-height: 1.5;
+}
+
+.cmc-upload-management-page .cmc-profile-board {
+  padding-bottom: var(--cmc-space-6);
+}
+
+.cmc-upload-management-summary > svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--cmc-color-accent-strong);
+}
+
+.cmc-upload-management-summary dl {
+  grid-column: 1 / -1;
+}
+
+.cmc-upload-management-intro {
+  margin-top: var(--cmc-space-4);
+}
+
+.cmc-upload-management-works {
+  margin-top: var(--cmc-space-4);
+}
+
 .cmc-profile-works-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.8fr);

@@ -4,10 +4,6 @@ import ProfilePageContent from '../../components/features/profile/ProfilePageCon
 import { formatDisplayDate } from '../../lib/date-format.mjs'
 import { authOptions } from '../../lib/server/auth'
 import prisma from '../../lib/server/prisma'
-import {
-  listUserWorksCollections,
-  serializeWorksCollection
-} from '../../lib/server/works-collections.mjs'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,11 +67,6 @@ const serializeTrackRequest = request => ({
   updatedAt: formatDisplayDate(request.updatedAt)
 })
 
-const serializeProfileWorksCollection = collection => ({
-  ...serializeWorksCollection(collection),
-  createdAt: formatDisplayDate(collection.createdAt)
-})
-
 const getProfileData = async email => {
   const currentUser = await prisma.user.findUnique({
     where: {
@@ -96,7 +87,7 @@ const getProfileData = async email => {
     return null
   }
 
-  const [uploadedTracks, purchases, comments, trackRequests, wishlistItems, worksCollections] = await Promise.all([
+  const [uploadedTracks, purchases, comments, trackRequests, wishlistItems] = await Promise.all([
     prisma.track.findMany({
       where: {
         moderationStatus: 'APPROVED',
@@ -171,9 +162,6 @@ const getProfileData = async email => {
         createdAt: 'desc'
       },
       take: 8
-    }),
-    listUserWorksCollections({
-      userId: currentUser.id
     })
   ])
 
@@ -186,7 +174,6 @@ const getProfileData = async email => {
       ...serializeTrack(item.track),
       savedAt: formatDisplayDate(item.createdAt)
     })),
-    userWorksCollections: worksCollections.map(serializeProfileWorksCollection),
     userUploadedTracks: uploadedTracks.map(serializeTrack)
   }
 }
@@ -221,7 +208,6 @@ const ProfilePage = async ({ searchParams }) => {
       userTrackRequests={profile.userTrackRequests}
       userUploadedTracks={profile.userUploadedTracks}
       userWishlistedTracks={profile.userWishlistedTracks}
-      userWorksCollections={profile.userWorksCollections}
       wishlist={query?.wishlist || null}
     />
   )

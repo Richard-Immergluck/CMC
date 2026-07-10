@@ -16,6 +16,7 @@ test('app router shell and first public routes are present', () => {
   const appSignInPage = fs.readFileSync(path.join(root, 'app/auth/signin/page.js'), 'utf8')
   const signInPageContent = fs.readFileSync(path.join(root, 'components/features/auth/SignInPageContent.js'), 'utf8')
   const appUploadPage = fs.readFileSync(path.join(root, 'app/upload/page.js'), 'utf8')
+  const appUploadManagePage = fs.readFileSync(path.join(root, 'app/upload/manage/page.js'), 'utf8')
   const providers = fs.readFileSync(path.join(root, 'components/providers/AppProviders.js'), 'utf8')
 
   assert.match(appAdminPage, /getServerSession/)
@@ -40,6 +41,9 @@ test('app router shell and first public routes are present', () => {
   assert.match(signInPageContent, /Development sign in options/)
   assert.match(signInPageContent, /\/api\/e2e\/session/)
   assert.match(appUploadPage, /UploadForm/)
+  assert.match(appUploadManagePage, /getServerSession/)
+  assert.match(appUploadManagePage, /UploadManagementPageContent/)
+  assert.match(appUploadManagePage, /force-dynamic/)
   assert.match(providers, /SessionProvider/)
   assert.match(providers, /CartProvider/)
   assert.match(providers, /Navbar/)
