@@ -349,6 +349,14 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                   </div>
                   <div className='cmc-profile-works-list-actions'>
                     <Button
+                      as={Link}
+                      href={`/upload/manage/works/${collection.id}`}
+                      size='sm'
+                      variant='subtle'
+                    >
+                      View
+                    </Button>
+                    <Button
                       aria-label={`Edit ${collection.title}`}
                       disabled={deletingCollectionId === collection.id}
                       onClick={() => startEditingCollection(collection)}
