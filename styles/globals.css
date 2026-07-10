@@ -3683,6 +3683,66 @@ a {
   border: 1px solid rgba(23, 63, 56, 0.14);
 }
 
+.cmc-upload-queue {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: var(--cmc-space-3);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-upload-queue > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.cmc-upload-queue > div strong {
+  color: var(--cmc-color-text);
+  font-weight: 850;
+}
+
+.cmc-upload-queue > div span {
+  color: var(--cmc-color-text-muted);
+  line-height: 1.45;
+}
+
+.cmc-upload-queue ol {
+  display: grid;
+  gap: var(--cmc-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-upload-queue-item {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: var(--cmc-space-2);
+  align-items: center;
+  padding: var(--cmc-space-2);
+  border-left: 0.22rem solid rgba(23, 63, 56, 0.18);
+}
+
+.cmc-upload-queue-item--active {
+  background: rgba(23, 63, 56, 0.06);
+  border-left-color: var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-queue-item span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.cmc-upload-queue-item strong {
+  overflow: hidden;
+  color: var(--cmc-color-text);
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cmc-upload-dropzone {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
