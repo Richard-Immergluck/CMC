@@ -63,6 +63,7 @@ model User {
   TrackRequests                 TrackRequest[]
   WishlistItems                 WishlistItem[]
   CatalogueReleases             CatalogueRelease[]
+  UploadBatches                 UploadBatch[]
   RequestPricingProposals       RequestPricingProposal[]
   accessChangeRequestsRequested UserAccessChangeRequest[] @relation("UserAccessChangeRequestedBy")
   accessChangeRequestsReviewed  UserAccessChangeRequest[] @relation("UserAccessChangeReviewedBy")
@@ -96,6 +97,8 @@ model Track {
   reviewedAt             DateTime?
   uploadedBy             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                 String
+  uploadBatch            UploadBatch?          @relation(fields: [uploadBatchId], references: [id], onDelete: SetNull)
+  uploadBatchId          Int?
   previewFileName        String?
   previewStart           Int?
   previewEnd             Int?
@@ -127,11 +130,31 @@ model Track {
 
   @@index([status])
   @@index([userId])
+  @@index([uploadBatchId])
   @@index([catalogueType])
   @@index([pricingReviewStatus])
   @@index([status, moderationStatus, processingStatus])
   @@index([status, uploadedAt])
   @@index([userId, status])
+}
+
+model UploadBatch {
+  id                     Int               @id @default(autoincrement())
+  uploadedBy             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String
+  label                  String?
+  defaultComposer        String?
+  defaultInstrumentation String?
+  defaultPricePence      Int?
+  status                 UploadBatchStatus @default(DRAFT)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  submittedAt            DateTime?
+  completedAt            DateTime?
+  tracks                 Track[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }
 
 model CatalogueRelease {
@@ -435,6 +458,16 @@ enum TrackProcessingStatus {
   PROCESSING
   READY
   FAILED
+}
+
+enum UploadBatchStatus {
+  DRAFT
+  UPLOADING
+  READY_FOR_REVIEW
+  SUBMITTED
+  PARTIALLY_FAILED
+  COMPLETED
+  ARCHIVED
 }
 
 enum UserAccessChangeRequestStatus {

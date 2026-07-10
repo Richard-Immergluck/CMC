@@ -18,6 +18,7 @@ const requiredTables = [
   'CatalogueRelease',
   'CatalogueReleaseTrack',
   'RequestPricingProposal',
+  'UploadBatch',
   'AuditEvent',
   'UserAccessChangeRequest',
   '_prisma_migrations'
