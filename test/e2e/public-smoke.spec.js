@@ -120,7 +120,7 @@ test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   await search.press('Enter')
 
   await expect(page.getByRole('link', { name: /Mendelssohn/i }).first()).toBeVisible()
-  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(5)
+  await expect(page.locator('.cmc-catalogue-track-card')).toHaveCount(10)
   await expect(page.locator('.cmc-catalogue-track-card').filter({ hasText: /Bach/i })).toHaveCount(0)
   await expect(page.getByLabel('Composer').locator('option')).toHaveText([
     'All',
