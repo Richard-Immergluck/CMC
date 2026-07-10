@@ -4340,6 +4340,12 @@ a {
   border-left: 0.34rem solid var(--cmc-color-danger);
 }
 
+.cmc-profile-notice--info {
+  color: var(--cmc-theme-heading);
+  background: rgba(255, 253, 248, 0.62);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
 .cmc-profile-library {
   min-width: 0;
 }
@@ -5163,6 +5169,13 @@ a {
   color: var(--cmc-color-text-muted);
   font-size: 0.78rem;
   font-weight: 720;
+}
+
+.cmc-profile-works-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
 }
 
 .cmc-profile-secondary-grid,
