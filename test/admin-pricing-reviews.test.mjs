@@ -62,7 +62,7 @@ test('admin pricing review serializers expose stable review context', () => {
       pricePence: 2999,
       pricingReviewStatus: 'NEEDS_REVIEW',
       pricingJustification: 'Large collection',
-      status: 'PUBLISHED',
+      status: 'SUBMITTED',
       tracks: [
         {
           movementNo: 'I',
@@ -103,7 +103,7 @@ test('admin pricing review serializers expose stable review context', () => {
       formattedPrice: '£29.99',
       pricingReviewStatus: 'NEEDS_REVIEW',
       pricingJustification: 'Large collection',
-      status: 'PUBLISHED',
+      status: 'SUBMITTED',
       suggestedBand: 'Collection',
       tracks: [
         {

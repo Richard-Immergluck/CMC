@@ -15,6 +15,7 @@ import { getAdminPricingReviews } from '../../../../lib/server/admin-pricing-rev
 import { requireRouteCurrentUser, requireSensitiveRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { requireAdminPermission, requireSupportPermission } from '../../../../lib/server/permissions.mjs'
 import prisma from '../../../../lib/server/prisma'
+import { getWorksCollectionStatusAfterPricingDecision } from '../../../../lib/server/works-collections-core.mjs'
 import { createRouteTelemetry } from '../../../../lib/server/route-telemetry'
 import {
   adminPricingReviewBodySchema,
@@ -131,7 +132,8 @@ export async function PATCH(request) {
           id: input.targetId
         },
         data: {
-          pricingReviewStatus: nextStatus
+          pricingReviewStatus: nextStatus,
+          status: getWorksCollectionStatusAfterPricingDecision(input.decision)
         }
       })
 
@@ -145,7 +147,9 @@ export async function PATCH(request) {
           after: updatedRelease.pricingReviewStatus,
           decision: input.decision,
           noteProvided: Boolean(input.note),
-          pricePence: release.pricePence
+          pricePence: release.pricePence,
+          statusAfter: updatedRelease.status,
+          statusBefore: release.status
         }
       })
 
@@ -159,6 +163,7 @@ export async function PATCH(request) {
 
       return jsonResponse(200, {
         pricingReviewStatus: updatedRelease.pricingReviewStatus,
+        status: updatedRelease.status,
         targetId: updatedRelease.id,
         targetType: input.targetType
       })
