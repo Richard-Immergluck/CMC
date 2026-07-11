@@ -67,7 +67,9 @@ const clearAccessReviewBadge = {
 }
 
 const pricingReviewBadge = pricingReviews => {
-  const count = (pricingReviews?.tracks?.length || 0) + (pricingReviews?.requestProposals?.length || 0)
+  const count = (pricingReviews?.tracks?.length || 0) +
+    (pricingReviews?.requestProposals?.length || 0) +
+    (pricingReviews?.releases?.length || 0)
 
   return {
     label: count > 0 ? `${count} pending` : 'clear',
@@ -693,8 +695,9 @@ const PricingReviewsTable = ({
   reviewingPricingTarget
 }) => {
   const tracks = pricingReviews?.tracks || []
+  const releases = pricingReviews?.releases || []
   const proposals = pricingReviews?.requestProposals || []
-  const hasReviews = tracks.length > 0 || proposals.length > 0
+  const hasReviews = tracks.length > 0 || releases.length > 0 || proposals.length > 0
 
   return (
     <div className='d-grid gap-4'>
@@ -761,6 +764,78 @@ const PricingReviewsTable = ({
               {tracks.length === 0 && (
                 <tr>
                   <td colSpan='6' className='text-center text-muted'>No track prices need review.</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
+
+      <Card>
+        <Card.Body>
+          <Card.Title>Works & Collections Price Reviews</Card.Title>
+          <Table bordered hover responsive size='sm'>
+            <thead>
+              <tr>
+                <th>Release</th>
+                <th>Uploader</th>
+                <th>Price</th>
+                <th>Band</th>
+                <th>Justification</th>
+                <th className='text-end'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {releases.map(release => {
+                const targetKey = `release-${release.id}`
+
+                return (
+                  <tr key={targetKey}>
+                    <td>
+                      <strong>{release.title}</strong>
+                      <div className='text-muted small'>
+                        {release.composer || 'Mixed composers'} · {release.trackCount} tracks
+                      </div>
+                    </td>
+                    <td>
+                      {release.uploader?.name || 'Unknown'}
+                      <div className='text-muted small'>{release.uploader?.email}</div>
+                    </td>
+                    <td>{formatPricePence(release.pricePence, release.currency)}</td>
+                    <td>{release.suggestedBand}</td>
+                    <td>{release.pricingJustification || 'No note supplied.'}</td>
+                    <td className='text-end'>
+                      <Button
+                        className='me-2'
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: release.id,
+                          targetType: 'release',
+                          decision: 'approve'
+                        })}
+                        size='sm'
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: release.id,
+                          targetType: 'release',
+                          decision: 'reject'
+                        })}
+                        size='sm'
+                        variant='danger'
+                      >
+                        Reject
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+              {releases.length === 0 && (
+                <tr>
+                  <td colSpan='6' className='text-center text-muted'>No Works or Collections prices need review.</td>
                 </tr>
               )}
             </tbody>
