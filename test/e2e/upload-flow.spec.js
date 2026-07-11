@@ -214,6 +214,38 @@ test.describe('upload browser flow', () => {
         })
       ])
     )
+
+    const adminSessionResponse = await page.request.post('/api/e2e/session', {
+      data: {
+        email: 'e2e-admin@example.com'
+      }
+    })
+
+    expect(adminSessionResponse.status()).toBe(200)
+
+    const adminTracksResponse = await page.request.get('/api/admin/tracks')
+    const adminTracksBody = await adminTracksResponse.json()
+
+    expect(adminTracksResponse.status()).toBe(200)
+    expect(adminTracksBody.tracks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title,
+          uploadBatch: expect.objectContaining({
+            label: batchLabel,
+            trackCount: 1
+          })
+        })
+      ])
+    )
+
+    await page.goto('/admin')
+    await page.getByRole('tab', { name: /Track Review/i }).click()
+    const adminTrackRow = page.getByRole('row').filter({
+      hasText: title
+    })
+
+    await expect(adminTrackRow.getByText(`Import batch: ${batchLabel}`)).toBeVisible()
   })
 
   test('batch upload selection is capped at 50 files', async ({ page }) => {
