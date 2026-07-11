@@ -253,6 +253,13 @@ test.describe('upload browser flow', () => {
 
     expect(createResponse.status()).toBe(200)
 
+    await page.goto('/upload/manage')
+    const batchRow = page.getByRole('listitem').filter({
+      hasText: batchLabel
+    })
+    await expect(batchRow.getByText('0/50 tracks')).toBeVisible()
+    await expect(batchRow.getByText('50 slots remaining')).toBeVisible()
+
     await page.goto(`/upload/manage/${createBody.batch.id}`)
     await page.waitForLoadState('networkidle')
 

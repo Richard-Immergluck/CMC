@@ -294,6 +294,7 @@ test.describe('track review API flow', () => {
 
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload/manage')
+    await expect(page.getByText(`Part of E2E Grouped Work ${suffix}`).first()).toBeVisible()
     const collectionRow = page.getByRole('listitem').filter({
       hasText: `E2E Grouped Work ${suffix}`
     })
