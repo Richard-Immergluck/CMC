@@ -11,6 +11,11 @@ import {
 import { authOptions } from '../../../../../lib/server/auth'
 import prisma from '../../../../../lib/server/prisma'
 import {
+  catalogueReleaseStatusDescriptions,
+  catalogueReleaseStatusLabels,
+  isPublicWorksCollectionStatus
+} from '../../../../../lib/server/works-collections-core.mjs'
+import {
   getUserWorksCollection,
   serializeWorksCollection
 } from '../../../../../lib/server/works-collections.mjs'
@@ -29,8 +34,6 @@ const saleFormatLabels = {
   BOTH: 'Collection and individual tracks',
   INDIVIDUAL: 'Individual tracks'
 }
-
-const publicPricingReviewStatuses = new Set(['AUTO_APPROVED', 'APPROVED'])
 
 const getCollectionForSession = async ({ collectionId, email }) => {
   const user = await prisma.user.findUnique({
@@ -97,7 +100,7 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
             <aside className='cmc-profile-identity cmc-upload-management-summary' aria-label='Work or Collection summary'>
               <div>
                 <h2>{collection.formattedPrice || formatPricePence(collection.pricePence)}</h2>
-                <p>{pricingReviewLabels[collection.pricingReviewStatus] || collection.pricingReviewStatus}</p>
+                <p>{catalogueReleaseStatusLabels[collection.status] || collection.status}</p>
               </div>
               <dl>
                 <div>
@@ -116,11 +119,22 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
             </aside>
           </header>
 
+          {catalogueReleaseStatusDescriptions[collection.status] && (
+            <section className='cmc-profile-role-panel cmc-profile-role-panel--uploader' aria-label='Release lifecycle status'>
+              <div>
+                <p className='cmc-profile-kicker'>Release status</p>
+                <h2>{catalogueReleaseStatusLabels[collection.status] || collection.status}</h2>
+                <p>{catalogueReleaseStatusDescriptions[collection.status]}</p>
+                <p>Pricing review: {pricingReviewLabels[collection.pricingReviewStatus] || collection.pricingReviewStatus}</p>
+              </div>
+            </section>
+          )}
+
           <section className='cmc-upload-batch-actions' aria-label='Work or Collection actions'>
             <Button as={Link} href='/upload/manage' variant='paper'>
               Back to management
             </Button>
-            {publicPricingReviewStatuses.has(collection.pricingReviewStatus) && (
+            {isPublicWorksCollectionStatus(collection.status) && (
               <Button as={Link} href={`/works-collections/${collection.id}`} variant='subtle'>
                 Public page
               </Button>

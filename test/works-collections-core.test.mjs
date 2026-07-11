@@ -3,6 +3,8 @@ import test from 'node:test'
 import {
   canEditWorksCollection,
   catalogueReleaseStatuses,
+  catalogueReleaseStatusDescriptions,
+  catalogueReleaseStatusLabels,
   getInitialWorksCollectionStatus,
   getWorksCollectionStatusAfterPricingDecision,
   getWorksCollectionDeleteResolution,
@@ -26,6 +28,8 @@ test('works collection lifecycle statuses describe editing and public visibility
   assert.equal(getInitialWorksCollectionStatus({ pricingReviewStatus: 'AUTO_APPROVED' }), catalogueReleaseStatuses.published)
   assert.equal(getWorksCollectionStatusAfterPricingDecision('approve'), catalogueReleaseStatuses.published)
   assert.equal(getWorksCollectionStatusAfterPricingDecision('reject'), catalogueReleaseStatuses.needsChanges)
+  assert.equal(catalogueReleaseStatusLabels[catalogueReleaseStatuses.submitted], 'Submitted for review')
+  assert.match(catalogueReleaseStatusDescriptions[catalogueReleaseStatuses.needsChanges], /Edit and resubmit/)
 })
 
 test('normalizeTrackItems sorts positions and rejects duplicate tracks', () => {
