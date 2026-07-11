@@ -699,11 +699,13 @@ test('works collection body accepts guided grouped prices only', () => {
       title: 'Ordered rehearsal set',
       trackItems: [
         {
+          movementNo: ' No. 2 ',
           position: '2',
           titleInWork: ' II. Andante ',
           trackId: '12'
         },
         {
+          movementNo: ' No. 1 ',
           position: '1',
           titleInWork: ' I. Allegro ',
           trackId: '11',
@@ -719,11 +721,13 @@ test('works collection body accepts guided grouped prices only', () => {
       title: 'Ordered rehearsal set',
       trackItems: [
         {
+          movementNo: 'No. 2',
           position: 2,
           titleInWork: 'II. Andante',
           trackId: 12
         },
         {
+          movementNo: 'No. 1',
           position: 1,
           titleInWork: 'I. Allegro',
           trackId: 11

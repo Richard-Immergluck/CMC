@@ -114,7 +114,10 @@ const WorksCollectionDetailPage = async ({ params }) => {
                       <Link href={`/catalogue/${track.trackId}`}>
                         {track.title}
                       </Link>
-                      <small>{track.composer || collection.composer || 'Unknown composer'}</small>
+                      <small>
+                        {track.movementNo ? `${track.movementNo} · ` : ''}
+                        {track.composer || collection.composer || 'Unknown composer'}
+                      </small>
                     </div>
                     <span role='cell'>{track.key || 'Not set'}</span>
                     <span role='cell'>{track.instrumentation || 'Not set'}</span>
