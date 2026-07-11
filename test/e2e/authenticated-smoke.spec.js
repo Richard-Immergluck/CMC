@@ -186,6 +186,7 @@ test.describe('authenticated smoke', () => {
     await page.goto('/upload/manage')
     await expect(page.getByRole('heading', { name: 'Manage Uploads.' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Group Approved Tracks' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Upload Batches' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'View upload reporting' })).toHaveAttribute('href', '/profile?library=uploads')
   })
 

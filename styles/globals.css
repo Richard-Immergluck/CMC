@@ -3600,6 +3600,149 @@ a {
   gap: var(--cmc-space-4);
 }
 
+.cmc-upload-mode-panel {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cmc-space-3);
+}
+
+.cmc-upload-mode-option {
+  display: grid;
+  gap: var(--cmc-space-1);
+  min-height: 6rem;
+  padding: var(--cmc-space-3);
+  text-align: left;
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid rgba(23, 63, 56, 0.18);
+}
+
+.cmc-upload-mode-option--active {
+  background: rgba(23, 63, 56, 0.08);
+  border-color: var(--cmc-color-accent-strong);
+  box-shadow: inset 0.28rem 0 0 var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-mode-option strong,
+.cmc-upload-batch-status strong {
+  color: var(--cmc-color-text);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.cmc-upload-mode-option span,
+.cmc-upload-batch-fields p,
+.cmc-upload-batch-status span {
+  color: var(--cmc-color-text-muted);
+  line-height: 1.45;
+}
+
+.cmc-upload-batch-fields {
+  display: grid;
+  gap: var(--cmc-space-3);
+}
+
+.cmc-upload-batch-fields label {
+  display: grid;
+  gap: var(--cmc-space-1);
+}
+
+.cmc-upload-batch-fields label > span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-batch-fields input {
+  width: 100%;
+  padding: 0.82rem 0.9rem;
+  color: var(--cmc-color-text);
+  background: #fffdf8;
+  border: 1px solid rgba(23, 63, 56, 0.24);
+}
+
+.cmc-upload-batch-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cmc-space-3);
+  border: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-upload-queue {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: var(--cmc-space-3);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-upload-queue > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.cmc-upload-queue > div strong {
+  color: var(--cmc-color-text);
+  font-weight: 850;
+}
+
+.cmc-upload-queue > div span {
+  color: var(--cmc-color-text-muted);
+  line-height: 1.45;
+}
+
+.cmc-upload-queue ol {
+  display: grid;
+  gap: var(--cmc-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-upload-queue-item {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: var(--cmc-space-2);
+  align-items: center;
+  padding: var(--cmc-space-2);
+  border-left: 0.22rem solid rgba(23, 63, 56, 0.18);
+}
+
+.cmc-upload-queue-item--active {
+  background: rgba(23, 63, 56, 0.06);
+  border-left-color: var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-queue-item span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.cmc-upload-queue-item strong {
+  overflow: hidden;
+  color: var(--cmc-color-text);
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cmc-upload-dropzone {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -4197,6 +4340,12 @@ a {
   border-left: 0.34rem solid var(--cmc-color-danger);
 }
 
+.cmc-profile-notice--info {
+  color: var(--cmc-theme-heading);
+  background: rgba(255, 253, 248, 0.62);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
 .cmc-profile-library {
   min-width: 0;
 }
@@ -4619,6 +4768,221 @@ a {
   margin-top: var(--cmc-space-4);
 }
 
+.cmc-upload-management-batches {
+  display: grid;
+  gap: var(--cmc-space-3);
+  margin-top: var(--cmc-space-5);
+  padding-top: var(--cmc-space-5);
+  border-top: 1px solid rgba(23, 63, 56, 0.16);
+}
+
+.cmc-upload-management-empty,
+.cmc-upload-management-batch-list li {
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-management-empty h3,
+.cmc-upload-management-batch-list strong {
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.cmc-upload-management-empty p,
+.cmc-upload-management-batch-list span {
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-text-muted);
+  line-height: 1.5;
+}
+
+.cmc-upload-management-batch-list {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-upload-management-batch-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.8fr) auto;
+  gap: var(--cmc-space-4);
+  align-items: center;
+}
+
+.cmc-upload-management-batch-list dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cmc-space-2);
+  margin: 0;
+}
+
+.cmc-upload-management-batch-list dt {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-management-batch-list dd {
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-text);
+  font-weight: 850;
+}
+
+.cmc-upload-management-batch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+}
+
+.cmc-upload-management-defaults-form {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cmc-space-3);
+  padding-top: var(--cmc-space-3);
+  border-top: 1px solid rgba(23, 63, 56, 0.12);
+}
+
+.cmc-upload-management-defaults-form label {
+  display: grid;
+  gap: var(--cmc-space-1);
+}
+
+.cmc-upload-management-defaults-form label > span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-management-defaults-form input,
+.cmc-upload-management-defaults-form select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--cmc-color-text);
+  background: rgba(255, 253, 248, 0.82);
+  border: 1px solid rgba(23, 63, 56, 0.22);
+}
+
+.cmc-upload-management-defaults-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+}
+
+.cmc-upload-batch-detail-page .cmc-profile-board {
+  padding-bottom: var(--cmc-space-6);
+}
+
+.cmc-upload-batch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+  margin-top: var(--cmc-space-4);
+}
+
+.cmc-upload-batch-defaults,
+.cmc-upload-batch-tracks {
+  display: grid;
+  gap: var(--cmc-space-3);
+  margin-top: var(--cmc-space-5);
+  padding-top: var(--cmc-space-5);
+  border-top: 1px solid rgba(23, 63, 56, 0.16);
+}
+
+.cmc-upload-batch-defaults dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--cmc-space-2);
+  margin: 0;
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-batch-defaults dt,
+.cmc-upload-batch-track-list dt {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-batch-defaults dd,
+.cmc-upload-batch-track-list dd {
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-text);
+  font-weight: 850;
+}
+
+.cmc-upload-batch-track-list {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-upload-batch-track-list li {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) minmax(18rem, 0.9fr);
+  gap: var(--cmc-space-3);
+  align-items: center;
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.54);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid var(--cmc-color-accent-gold);
+}
+
+.cmc-upload-batch-track-list li > span {
+  color: var(--cmc-color-text-muted);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.35rem;
+}
+
+.cmc-upload-batch-track-list a {
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.2em;
+}
+
+.cmc-upload-batch-track-list a:hover,
+.cmc-upload-batch-track-list a:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.cmc-upload-batch-track-list small {
+  display: block;
+  margin-top: var(--cmc-space-1);
+  color: var(--cmc-color-text-muted);
+}
+
+.cmc-upload-batch-track-list dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cmc-space-2);
+  margin: 0;
+}
+
 .cmc-profile-works-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.8fr);
@@ -4805,6 +5169,13 @@ a {
   color: var(--cmc-color-text-muted);
   font-size: 0.78rem;
   font-weight: 720;
+}
+
+.cmc-profile-works-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
 }
 
 .cmc-profile-secondary-grid,
@@ -5035,6 +5406,10 @@ a {
     position: static;
   }
 
+  .cmc-upload-mode-options {
+    grid-template-columns: 1fr;
+  }
+
   .cmc-profile-header,
   .cmc-profile-role-grid {
     grid-template-columns: 1fr;
@@ -5123,6 +5498,15 @@ a {
 
   .cmc-profile-works-grid,
   .cmc-profile-works-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-management-batch-list li,
+  .cmc-upload-management-batch-list dl,
+  .cmc-upload-management-defaults-form,
+  .cmc-upload-batch-defaults dl,
+  .cmc-upload-batch-track-list li,
+  .cmc-upload-batch-track-list dl {
     grid-template-columns: 1fr;
   }
 
