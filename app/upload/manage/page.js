@@ -29,6 +29,24 @@ const trackSelect = {
   formattedPrice: true,
   key: true,
   instrumentation: true,
+  releaseItems: {
+    orderBy: {
+      position: 'asc'
+    },
+    select: {
+      movementNo: true,
+      position: true,
+      release: {
+        select: {
+          catalogueType: true,
+          id: true,
+          status: true,
+          title: true
+        }
+      },
+      titleInWork: true
+    }
+  },
   _count: {
     select: {
       Comments: true,
@@ -40,11 +58,21 @@ const trackSelect = {
 const serializeTrack = track => {
   const {
     _count: count,
+    releaseItems,
     ...trackFields
   } = track
 
   return {
     ...trackFields,
+    collectionMemberships: (releaseItems || []).map(item => ({
+      collectionId: item.release.id,
+      collectionTitle: item.release.title,
+      collectionType: item.release.catalogueType,
+      movementNo: item.movementNo,
+      position: item.position,
+      status: item.release.status,
+      titleInWork: item.titleInWork
+    })),
     commentCount: count?.Comments || 0,
     requestCount: count?.TrackRequests || 0,
     uploadedAt: formatDisplayDate(track.uploadedAt)

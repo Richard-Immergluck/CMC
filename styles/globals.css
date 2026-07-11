@@ -4855,6 +4855,50 @@ a {
   align-items: center;
 }
 
+.cmc-upload-management-batch-capacity {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  padding-bottom: var(--cmc-space-2);
+  border-bottom: 1px solid rgba(23, 63, 56, 0.1);
+}
+
+.cmc-upload-management-batch-capacity span {
+  margin: 0;
+  color: var(--cmc-color-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.cmc-upload-management-batch-capacity span + span {
+  justify-self: end;
+  color: var(--cmc-color-text-muted);
+  font-weight: 700;
+}
+
+.cmc-upload-management-batch-capacity div {
+  grid-column: 1 / -1;
+  height: 0.42rem;
+  overflow: hidden;
+  background: rgba(23, 63, 56, 0.1);
+}
+
+.cmc-upload-management-batch-capacity div span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--cmc-color-accent-gold), var(--cmc-color-accent-strong));
+}
+
+.cmc-upload-management-membership {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--cmc-color-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .cmc-upload-management-batch-list dl {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

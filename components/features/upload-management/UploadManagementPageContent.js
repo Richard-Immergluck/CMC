@@ -14,6 +14,7 @@ import {
   worksAndCollectionsCatalogueTypes,
   worksAndCollectionsTypeLabels
 } from '../../../lib/pricing-policy.mjs'
+import { maxUploadBatchTracks } from '../../../lib/upload-batch-policy.mjs'
 
 const formatCollectionDate = value => {
   if (!value || !String(value).includes('T')) {
@@ -61,6 +62,21 @@ const canSubmitUploadBatch = batch => (
   batch.summary.failedTracks === 0 &&
   batch.summary.readyTracks === batch.summary.totalTracks
 )
+
+const getTrackMembershipSummary = track => {
+  const memberships = track.collectionMemberships || []
+
+  if (memberships.length === 0) {
+    return ''
+  }
+
+  const firstMembership = memberships[0]
+  const extraCount = memberships.length - 1
+
+  return extraCount > 0
+    ? `${firstMembership.collectionTitle} + ${extraCount} more`
+    : firstMembership.collectionTitle
+}
 
 const batchDefaultPriceOptions = Array.from(new Set(
   atomicTrackCatalogueTypes.flatMap(type => getPricingBand(type).options)
@@ -339,18 +355,31 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
             <legend>Choose tracks</legend>
             {tracks.length === 0 ? (
               <p>Approved uploaded tracks will appear here after review.</p>
-            ) : tracks.map(track => (
-              <label key={track.id}>
-                <input
-                  checked={selectedTrackIds.includes(track.id)}
-                  onChange={() => toggleTrack(track.id)}
-                  type='checkbox'
-                  value={track.id}
-                />
-                <span>{track.title}</span>
-                <small>{track.composer || 'Unknown composer'}</small>
-              </label>
-            ))}
+            ) : tracks.map(track => {
+              const membershipSummary = getTrackMembershipSummary(track)
+
+              return (
+                <label key={track.id}>
+                  <input
+                    checked={selectedTrackIds.includes(track.id)}
+                    onChange={() => toggleTrack(track.id)}
+                    type='checkbox'
+                    value={track.id}
+                  />
+                  <span>
+                    {track.title}
+                    {membershipSummary && (
+                      <small className='cmc-upload-management-membership'>
+                        Part of {membershipSummary}
+                      </small>
+                    )}
+                  </span>
+                  <small>
+                    {track.composer || 'Unknown composer'} · {track.formattedPrice || formatPricePence(track.pricePence || 0)}
+                  </small>
+                </label>
+              )
+            })}
           </fieldset>
 
           {selectedTrackItems.length > 0 && (
@@ -669,7 +698,7 @@ const UploadManagementPageContent = ({
               <p className='cmc-profile-kicker'>Catalogue operations</p>
               <h2>Build releases from approved tracks</h2>
               <p>
-                Upload single tracks first, then group related approved tracks into buyer-facing Works and Collections here. Bulk upload and batch review will extend this workspace next.
+                Upload single tracks first, then group related approved tracks into buyer-facing Works and Collections here. Each track remains individually visible in the catalogue, with collection membership shown as supporting context.
               </p>
               <div className='cmc-profile-role-actions'>
                 <Button as={Link} href='/upload' variant='ink'>
@@ -723,6 +752,24 @@ const UploadManagementPageContent = ({
               <ul className='cmc-upload-management-batch-list'>
                 {uploadBatches.map(batch => (
                   <li key={batch.id}>
+                    {(() => {
+                      const capacity = batch.capacity || {
+                        canAddTracks: batch.summary.totalTracks < maxUploadBatchTracks,
+                        maxTracks: maxUploadBatchTracks,
+                        remainingTracks: Math.max(0, maxUploadBatchTracks - batch.summary.totalTracks)
+                      }
+                      const usedPercent = Math.min(100, Math.round((batch.summary.totalTracks / capacity.maxTracks) * 100))
+
+                      return (
+                        <div className='cmc-upload-management-batch-capacity' aria-label={`${batch.summary.totalTracks} of ${capacity.maxTracks} upload batch slots used`}>
+                          <span>{batch.summary.totalTracks}/{capacity.maxTracks} tracks</span>
+                          <span>{capacity.remainingTracks} slots remaining</span>
+                          <div aria-hidden='true'>
+                            <span style={{ width: `${usedPercent}%` }} />
+                          </div>
+                        </div>
+                      )
+                    })()}
                     <div>
                       <strong>{batch.label || `Upload batch #${batch.id}`}</strong>
                       <span>{batchStatusLabels[batch.status] || batch.status} · Created {formatBatchDate(batch.createdAt)}</span>
@@ -816,9 +863,15 @@ const UploadManagementPageContent = ({
                         <Button type='button' variant='subtle' onClick={() => startEditingDefaults(batch)}>
                           Edit defaults
                         </Button>
-                        <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
-                          Continue batch
-                        </Button>
+                        {batch.capacity?.canAddTracks === false ? (
+                          <Button disabled type='button' variant='paper'>
+                            Batch full
+                          </Button>
+                        ) : (
+                          <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
+                            Continue batch
+                          </Button>
+                        )}
                         <Button
                           disabled={submittingBatchId === batch.id || !canSubmitUploadBatch(batch)}
                           onClick={() => submitBatch(batch)}
