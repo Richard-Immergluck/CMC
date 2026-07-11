@@ -23,6 +23,18 @@ export async function GET(request) {
         moderationStatus: 'PENDING'
       },
       include: {
+        uploadBatch: {
+          select: {
+            id: true,
+            label: true,
+            status: true,
+            _count: {
+              select: {
+                tracks: true
+              }
+            }
+          }
+        },
         uploadedBy: true
       },
       orderBy: [

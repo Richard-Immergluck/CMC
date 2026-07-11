@@ -61,12 +61,53 @@ test('track review items expose moderation context and uploader identity only', 
       status: 'DRAFT',
       moderationStatus: 'PENDING',
       processingStatus: 'READY',
+      uploadBatch: null,
       uploadedAt: new Date('2026-06-25T12:00:00.000Z'),
       uploader: {
         id: 'user-1',
         name: 'Uploader',
         email: 'uploader@example.com'
       }
+    }
+  )
+})
+
+test('track review items expose limited upload batch context', () => {
+  assert.deepEqual(
+    toTrackReviewItem({
+      id: 2,
+      title: 'Batched Track',
+      composer: 'Composer',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING',
+      processingStatus: 'READY',
+      uploadedAt: new Date('2026-06-25T12:00:00.000Z'),
+      uploadedBy: null,
+      uploadBatch: {
+        id: 12,
+        label: 'Opera scenes import',
+        status: 'UPLOADING',
+        defaultComposer: 'should-not-leak',
+        _count: {
+          tracks: 7
+        }
+      }
+    }),
+    {
+      id: 2,
+      title: 'Batched Track',
+      composer: 'Composer',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING',
+      processingStatus: 'READY',
+      uploadedAt: new Date('2026-06-25T12:00:00.000Z'),
+      uploadBatch: {
+        id: 12,
+        label: 'Opera scenes import',
+        status: 'UPLOADING',
+        trackCount: 7
+      },
+      uploader: null
     }
   )
 })

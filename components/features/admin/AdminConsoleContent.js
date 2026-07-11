@@ -640,6 +640,11 @@ const TrackReviewRow = ({ track, onModerate }) => {
       <td>
         <strong>{track.title}</strong>
         <div className='text-muted small'>{track.composer}</div>
+        {track.uploadBatch && (
+          <div className='text-muted small mt-1'>
+            Import batch: {track.uploadBatch.label || `Batch #${track.uploadBatch.id}`} · {track.uploadBatch.status} · {track.uploadBatch.trackCount} tracks
+          </div>
+        )}
         <div className='mt-2'>
           {reviewUrl ? (
             <audio controls src={reviewUrl} className='w-100'>
