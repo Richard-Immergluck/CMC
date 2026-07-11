@@ -362,6 +362,112 @@ test.describe('track review API flow', () => {
     )
   })
 
+  test('admins can review Works and Collections pricing with release contents visible', async ({ page, request }) => {
+    const suffix = `release-pricing-review-${Date.now()}`
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const firstCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-one`)
+    })
+    const firstTrack = await firstCreateResponse.json()
+    const secondCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-two`)
+    })
+    const secondTrack = await secondCreateResponse.json()
+
+    expect(firstCreateResponse.status()).toBe(200)
+    expect(secondCreateResponse.status()).toBe(200)
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    for (const track of [firstTrack, secondTrack]) {
+      const approvalResponse = await request.patch(`/api/admin/tracks/${track.id}`, {
+        data: {
+          decision: 'approve',
+          moderationNotes: 'Approved for release pricing review E2E.'
+        }
+      })
+
+      expect(approvalResponse.status()).toBe(200)
+    }
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const releaseTitle = `E2E Release Pricing Review ${suffix}`
+    const collectionResponse = await request.post('/api/works-collections', {
+      data: {
+        catalogueType: 'COLLECTION',
+        composer: 'Synthetic Review Fixture',
+        pricePence: 2999,
+        pricingJustification: 'Large specialist release for admin review.',
+        saleFormat: 'BOTH',
+        title: releaseTitle,
+        trackItems: [
+          {
+            movementNo: 'I',
+            position: 1,
+            titleInWork: 'Opening rehearsal cut',
+            trackId: firstTrack.id
+          },
+          {
+            movementNo: 'II',
+            position: 2,
+            titleInWork: 'Second rehearsal cut',
+            trackId: secondTrack.id
+          }
+        ]
+      }
+    })
+    const collectionBody = await collectionResponse.json()
+
+    expect(collectionResponse.status()).toBe(200)
+    expect(collectionBody.collection.pricingReviewStatus).toBe('NEEDS_REVIEW')
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    const pricingReviewResponse = await request.get('/api/admin/pricing-reviews')
+    const pricingReviewBody = await pricingReviewResponse.json()
+
+    expect(pricingReviewResponse.status()).toBe(200)
+    expect(pricingReviewBody.releases).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: collectionBody.collection.id,
+          title: releaseTitle,
+          tracks: [
+            expect.objectContaining({
+              movementNo: 'I',
+              position: 1,
+              title: 'Opening rehearsal cut',
+              trackId: firstTrack.id
+            }),
+            expect.objectContaining({
+              movementNo: 'II',
+              position: 2,
+              title: 'Second rehearsal cut',
+              trackId: secondTrack.id
+            })
+          ]
+        })
+      ])
+    )
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+    await page.goto('/admin')
+    await page.getByRole('tab', { name: /Pricing/i }).click()
+
+    const releaseRow = page.getByRole('row').filter({
+      hasText: releaseTitle
+    })
+
+    await expect(releaseRow.getByText('1. I · Opening rehearsal cut')).toBeVisible()
+    await expect(releaseRow.getByText('2. II · Second rehearsal cut')).toBeVisible()
+    await expect(releaseRow.getByText('£29.99')).toBeVisible()
+    await releaseRow.getByRole('button', { name: 'Approve' }).click()
+    await expect(releaseRow).toHaveCount(0)
+  })
+
   test('uploaders can propose request fulfilment pricing from the track requests tab', async ({ page }) => {
     const suffix = `request-pricing-ui-${Date.now()}`
 
