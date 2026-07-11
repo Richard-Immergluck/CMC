@@ -151,11 +151,23 @@ test.describe('upload browser flow', () => {
     await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'true')
     await page.getByLabel('Batch label').fill(batchLabel)
 
-    await page.locator('input[type="file"]').setInputFiles({
-      name: `batch-upload-${suffix}.mp3`,
-      mimeType: 'audio/mpeg',
-      buffer: createTinyMp3()
-    })
+    await page.locator('input[type="file"]').setInputFiles([
+      {
+        name: `batch-upload-${suffix}-one.mp3`,
+        mimeType: 'audio/mpeg',
+        buffer: createTinyMp3()
+      },
+      {
+        name: `batch-upload-${suffix}-two.mp3`,
+        mimeType: 'audio/mpeg',
+        buffer: createTinyMp3()
+      }
+    ])
+    const selectedBatchFiles = page.getByLabel('Selected batch files')
+
+    await expect(selectedBatchFiles).toContainText('2 files selected')
+    await expect(selectedBatchFiles.getByText(`batch-upload-${suffix}-one.mp3`)).toBeVisible()
+    await expect(selectedBatchFiles.getByText(`batch-upload-${suffix}-two.mp3`)).toBeVisible()
     await page.getByRole('button', { name: 'Upload audio' }).click()
     await page.getByRole('button', { name: 'Confirm preview' }).click()
     await page.getByRole('textbox', { name: 'Title' }).fill(title)
@@ -175,8 +187,13 @@ test.describe('upload browser flow', () => {
 
     await expect(reviewDialog).toBeVisible()
     await expect(reviewDialog.getByText(batchLabel)).toBeVisible()
+    await expect(reviewDialog.getByText(/next queued file/i)).toBeVisible()
     await expect(reviewDialog.getByRole('button', { name: 'Add Another to Batch' })).toBeVisible()
     await expect(reviewDialog.getByRole('link', { name: 'Manage Uploads' })).toHaveAttribute('href', '/upload/manage')
+    await reviewDialog.getByRole('button', { name: 'Add Another to Batch' }).click()
+    await expect(page.getByRole('dialog', { name: 'Track submitted for review' })).toHaveCount(0)
+    await expect(selectedBatchFiles.getByText(`batch-upload-${suffix}-two.mp3`)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeEnabled()
 
     const batchResponse = await page.request.get('/api/upload-batches')
     const batchBody = await batchResponse.json()
@@ -198,5 +215,34 @@ test.describe('upload browser flow', () => {
         })
       ])
     )
+  })
+
+  test('approved uploaders can resume an existing upload batch', async ({ page }) => {
+    const suffix = Date.now()
+    const batchLabel = `E2E Resumable Batch ${suffix}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    const createResponse = await page.request.post('/api/upload-batches', {
+      data: {
+        label: batchLabel
+      }
+    })
+    const createBody = await createResponse.json()
+
+    expect(createResponse.status()).toBe(200)
+
+    await page.goto(`/upload/manage/${createBody.batch.id}`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('heading', { name: `${batchLabel}.` })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Back to management' })).toHaveAttribute('href', '/upload/manage')
+    await expect(page.getByRole('link', { name: 'Continue batch' })).toHaveAttribute('href', `/upload?batchId=${createBody.batch.id}`)
+
+    await page.goto(`/upload?batchId=${createBody.batch.id}`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.getByLabel('Batch label')).toHaveValue(batchLabel)
+    await expect(page.getByText('New tracks will be attached to this batch.')).toBeVisible()
   })
 })
