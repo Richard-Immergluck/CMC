@@ -264,6 +264,8 @@ test.describe('upload browser flow', () => {
     await page.waitForLoadState('networkidle')
 
     await expect(page.getByRole('heading', { name: `${batchLabel}.` })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '0/50 tracks used' })).toBeVisible()
+    await expect(page.getByText('50 upload slots remaining in this batch.')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Back to management' })).toHaveAttribute('href', '/upload/manage')
     await expect(page.getByRole('link', { name: 'Continue batch' })).toHaveAttribute('href', `/upload?batchId=${createBody.batch.id}`)
 
