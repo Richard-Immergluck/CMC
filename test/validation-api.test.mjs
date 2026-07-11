@@ -497,7 +497,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       currency: 'GBP',
       catalogueType: 'SINGLE_TRACK',
       saleFormat: 'INDIVIDUAL',
-      fulfilledRequestId: '42'
+      fulfilledRequestId: '42',
+      uploadBatchId: '24'
     }),
     {
       title: 'Bach Study',
@@ -515,6 +516,7 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       catalogueType: 'SINGLE_TRACK',
       saleFormat: 'INDIVIDUAL',
       fulfilledRequestId: 42,
+      uploadBatchId: 24,
       downloadCount: 0
     }
   )
@@ -708,10 +710,16 @@ test('upload batch body accepts optional catalogue defaults', () => {
 
   assert.deepEqual(
     validateInput(updateUploadBatchBodySchema, {
+      defaultComposer: '',
+      defaultInstrumentation: '',
+      defaultPricePence: '',
       label: ' Updated batch ',
       status: 'READY_FOR_REVIEW'
     }),
     {
+      defaultComposer: '',
+      defaultInstrumentation: '',
+      defaultPricePence: null,
       label: 'Updated batch',
       status: 'READY_FOR_REVIEW'
     }
