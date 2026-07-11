@@ -68,6 +68,7 @@ test('toTrackCreateData maps upload input into Prisma create data', () => {
         id: 'user-1'
       }
     },
+    uploadBatch: undefined,
     previewStart: 10,
     previewEnd: 25,
     additionalInfo: 'Practice backing track',
@@ -83,6 +84,23 @@ test('toTrackCreateData maps upload input into Prisma create data', () => {
     downloadName: 'Bach Study_Synthetic Composer.mp3',
     downloadCount: 0
   })
+})
+
+test('toTrackCreateData connects tracks to an upload batch when supplied', () => {
+  assert.deepEqual(
+    toTrackCreateData({
+      input: {
+        ...input,
+        uploadBatchId: 42
+      },
+      user
+    }).uploadBatch,
+    {
+      connect: {
+        id: 42
+      }
+    }
+  )
 })
 
 test('publicTrackWhere exposes only published approved ready tracks', () => {

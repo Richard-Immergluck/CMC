@@ -63,7 +63,7 @@ export async function POST(request) {
       }
     })
     const body = await parseRouteJson(request)
-    const { trackIds } = validateInput(
+    const { releaseIds, trackIds } = validateInput(
       checkoutSessionBodySchema,
       body,
       'Invalid checkout request'
@@ -72,6 +72,7 @@ export async function POST(request) {
     const checkoutSession = await createCheckoutSessionForTracks({
       user,
       trackIds,
+      releaseIds,
       applicationUrl: getApplicationBaseUrl(toLegacyRequestHeaders(request)),
       e2eCheckoutMode: getE2ECheckoutMode(request)
     })
@@ -82,6 +83,7 @@ export async function POST(request) {
       requestId,
       metadata: {
         userId: user.id,
+        releaseCount: releaseIds.length,
         trackCount: trackIds.length,
         stripeCheckoutSession: checkoutSession.id
       }
@@ -90,6 +92,7 @@ export async function POST(request) {
     telemetry.complete({
       statusCode: 200,
       userId: user.id,
+      releaseCount: releaseIds.length,
       trackCount: trackIds.length,
       stripeCheckoutSession: checkoutSession.id
     })

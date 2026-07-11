@@ -17,7 +17,7 @@ const RootLayout = async ({ children }) => {
   const session = await getServerSession(authOptions)
 
   return (
-    <html lang='en'>
+    <html lang='en' data-scroll-behavior='smooth'>
       <body>
         <AppProviders session={session}>{children}</AppProviders>
         <CookieConsentBanner />
