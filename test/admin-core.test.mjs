@@ -12,6 +12,7 @@ import {
   toOrderAdminItem,
   toPaymentEventAdminItem,
   toTrackReviewItem,
+  toUploadBatchAdminItem,
   toUserAccessChangeRequestAdminItem,
   toUserAdminItem
 } from '../lib/server/admin-core.mjs'
@@ -114,6 +115,93 @@ test('track review items expose limited upload batch context', () => {
         trackCount: 7
       },
       uploader: null
+    }
+  )
+})
+
+test('upload batch admin items expose operational context only', () => {
+  const uploadedAt = new Date('2026-07-11T12:00:00.000Z')
+  const createdAt = new Date('2026-07-11T11:00:00.000Z')
+  const submittedAt = new Date('2026-07-11T13:00:00.000Z')
+
+  assert.deepEqual(
+    toUploadBatchAdminItem({
+      id: 22,
+      label: 'First opera import',
+      status: 'SUBMITTED',
+      createdAt,
+      submittedAt,
+      completedAt: null,
+      defaultComposer: 'should-not-leak',
+      defaultInstrumentation: 'should-not-leak',
+      defaultPricePence: 999,
+      _count: {
+        tracks: 2
+      },
+      uploadedBy: {
+        id: 'user-2',
+        name: 'Uploader',
+        email: 'uploader@example.com',
+        access_token: 'should-not-leak'
+      },
+      tracks: [
+        {
+          id: 10,
+          title: 'Ready upload',
+          status: 'DRAFT',
+          moderationStatus: 'PENDING',
+          processingStatus: 'READY',
+          uploadedAt,
+          fileName: 'should-not-leak.mp3'
+        },
+        {
+          id: 11,
+          title: 'Failed upload',
+          status: 'DRAFT',
+          moderationStatus: 'REJECTED',
+          processingStatus: 'FAILED',
+          uploadedAt,
+          s3Key: 'should-not-leak'
+        }
+      ]
+    }),
+    {
+      id: 22,
+      label: 'First opera import',
+      status: 'SUBMITTED',
+      createdAt,
+      submittedAt,
+      completedAt: null,
+      summary: {
+        approvedTracks: 0,
+        failedTracks: 1,
+        pendingReviewTracks: 1,
+        readyTracks: 1,
+        totalTracks: 2
+      },
+      uploader: {
+        id: 'user-2',
+        name: 'Uploader',
+        email: 'uploader@example.com'
+      },
+      tracks: [
+        {
+          id: 10,
+          title: 'Ready upload',
+          status: 'DRAFT',
+          moderationStatus: 'PENDING',
+          processingStatus: 'READY',
+          uploadedAt
+        },
+        {
+          id: 11,
+          title: 'Failed upload',
+          status: 'DRAFT',
+          moderationStatus: 'REJECTED',
+          processingStatus: 'FAILED',
+          uploadedAt
+        }
+      ]
     }
   )
 })
