@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  canAddTrackToUploadBatch,
   canEditUploadBatch,
   canSubmitUploadBatch,
   isTerminalUploadBatch,
+  maxUploadBatchTracks,
   normalizeUploadBatchDefaults,
   summarizeUploadBatch,
+  uploadBatchLimitMessage,
   uploadBatchStatuses
 } from '../lib/server/upload-batches-core.mjs'
 
@@ -79,6 +82,43 @@ test('upload batch submission requires successful processed tracks', () => {
           processingStatus: 'PROCESSING'
         }
       ]
+    }),
+    false
+  )
+})
+
+test('upload batch additions are capped at the platform maximum', () => {
+  assert.equal(maxUploadBatchTracks, 50)
+  assert.match(uploadBatchLimitMessage, /50 tracks/)
+  assert.equal(
+    canAddTrackToUploadBatch({
+      status: uploadBatchStatuses.readyForReview,
+      tracks: Array.from({ length: maxUploadBatchTracks - 1 })
+    }),
+    true
+  )
+  assert.equal(
+    canAddTrackToUploadBatch({
+      status: uploadBatchStatuses.readyForReview,
+      tracks: Array.from({ length: maxUploadBatchTracks })
+    }),
+    false
+  )
+  assert.equal(
+    canAddTrackToUploadBatch({
+      _count: {
+        tracks: maxUploadBatchTracks
+      },
+      status: uploadBatchStatuses.readyForReview
+    }),
+    false
+  )
+  assert.equal(
+    canAddTrackToUploadBatch({
+      _count: {
+        tracks: 1
+      },
+      status: uploadBatchStatuses.submitted
     }),
     false
   )
