@@ -8,6 +8,7 @@ import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
 import { toAdminSummary } from '../../../../lib/server/admin-core.mjs'
 import { requireSupportPermission } from '../../../../lib/server/permissions.mjs'
 import prisma from '../../../../lib/server/prisma'
+import { uploadBatchStatuses } from '../../../../lib/server/upload-batches-core.mjs'
 
 const methodNotAllowed = createMethodNotAllowedHandler(['GET'])
 
@@ -24,7 +25,10 @@ export async function GET(request) {
       pendingTrackCount,
       orderCount,
       paymentEventCount,
-      auditEventCount
+      auditEventCount,
+      uploadBatchCount,
+      submittedUploadBatchCount,
+      uploadBatchesNeedingAttentionCount
     ] = await Promise.all([
       prisma.user.count(),
       prisma.track.count(),
@@ -35,7 +39,18 @@ export async function GET(request) {
       }),
       prisma.order.count(),
       prisma.paymentEvent.count(),
-      prisma.auditEvent.count()
+      prisma.auditEvent.count(),
+      prisma.uploadBatch.count(),
+      prisma.uploadBatch.count({
+        where: {
+          status: uploadBatchStatuses.submitted
+        }
+      }),
+      prisma.uploadBatch.count({
+        where: {
+          status: uploadBatchStatuses.partiallyFailed
+        }
+      })
     ])
 
     return jsonResponse(200, toAdminSummary({
@@ -44,7 +59,10 @@ export async function GET(request) {
       pendingTrackCount,
       orderCount,
       paymentEventCount,
-      auditEventCount
+      auditEventCount,
+      uploadBatchCount,
+      submittedUploadBatchCount,
+      uploadBatchesNeedingAttentionCount
     }))
   } catch (error) {
     return handleRouteError(error, request)
