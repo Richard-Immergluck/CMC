@@ -16,6 +16,10 @@ import * as yup from 'yup'
 import BrandDisplayText from '../brand/BrandDisplayText'
 import { canStartTrackUpload } from '../../lib/access-control.mjs'
 import {
+  maxUploadBatchTracks,
+  uploadBatchLimitMessage
+} from '../../lib/upload-batch-policy.mjs'
+import {
   atomicTrackCatalogueTypes,
   catalogueTypes,
   formatPricePence,
@@ -672,14 +676,17 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
 
             const handleFileChange = event => {
               const nextFiles = Array.from(event.target.files || [])
-              const filesForMode = isBatchMode ? nextFiles : nextFiles.slice(0, 1)
+              const batchFiles = nextFiles.slice(0, maxUploadBatchTracks)
+              const filesForMode = isBatchMode ? batchFiles : nextFiles.slice(0, 1)
               const file = filesForMode[0]
 
               if (audioUrl) {
                 URL.revokeObjectURL(audioUrl)
               }
 
-              setUploadError('')
+              setUploadError(isBatchMode && nextFiles.length > maxUploadBatchTracks
+                ? uploadBatchLimitMessage
+                : '')
               setSelectedFile(file || null)
               setSelectedFiles(filesForMode)
               setFieldValue('file', file?.name || '')
@@ -887,7 +894,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                                   </Button>
                                 </div>
                               ) : (
-                                <p>The batch will be created when the first track is submitted.</p>
+                                <p>The batch will be created when the first track is submitted. Add up to {maxUploadBatchTracks} tracks per batch.</p>
                               )}
                             </div>
                           )}
@@ -915,7 +922,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                                   <span>{selectedFile ? 'Click to choose different files' : 'or click anywhere in this box to browse'}</span>
                                   <small>
                                     {isBatchMode
-                                      ? 'MP3 files only. Each file will still be reviewed with its own preview, details and price.'
+                                      ? `MP3 files only. Up to ${maxUploadBatchTracks} files per batch; each track keeps its own preview, details and price.`
                                       : 'MP3 files only. The full track remains private while it is reviewed.'}
                                   </small>
                                 </span>
@@ -940,7 +947,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                               <div className='cmc-upload-queue' aria-label='Selected batch files'>
                                 <div>
                                   <strong>{selectedFiles.length} files selected</strong>
-                                  <span>Submit each track in turn. The next file will load after this one is submitted.</span>
+                                  <span>Submit each track in turn. The next file will load after this one is submitted. Maximum {maxUploadBatchTracks} per batch.</span>
                                 </div>
                                 <ol>
                                   {selectedFiles.map((file, index) => (

@@ -1,8 +1,7 @@
 const { expect, test } = require('@playwright/test')
 const { signInPageAs } = require('./helpers/e2e-session')
 
-const createTinyMp3 = () => {
-  const durationSeconds = 18
+const createTinyMp3 = (durationSeconds = 18) => {
   const sampleRate = 44100
   const numSamples = durationSeconds * sampleRate
   const dataSize = numSamples * 2
@@ -215,6 +214,29 @@ test.describe('upload browser flow', () => {
         })
       ])
     )
+  })
+
+  test('batch upload selection is capped at 50 files', async ({ page }) => {
+    const suffix = Date.now()
+    const files = Array.from({ length: 51 }, (_, index) => ({
+      name: `batch-limit-${suffix}-${String(index + 1).padStart(2, '0')}.mp3`,
+      mimeType: 'audio/mpeg',
+      buffer: createTinyMp3(1)
+    }))
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload')
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('radio', { name: /Batch upload/i }).click()
+    await page.locator('input[type="file"]').setInputFiles(files)
+
+    const selectedBatchFiles = page.getByLabel('Selected batch files')
+
+    await expect(selectedBatchFiles).toContainText('50 files selected')
+    await expect(selectedBatchFiles).toContainText('Maximum 50 per batch')
+    await expect(selectedBatchFiles.getByText(`batch-limit-${suffix}-50.mp3`)).toBeVisible()
+    await expect(selectedBatchFiles.getByText(`batch-limit-${suffix}-51.mp3`)).toHaveCount(0)
   })
 
   test('approved uploaders can resume an existing upload batch', async ({ page }) => {

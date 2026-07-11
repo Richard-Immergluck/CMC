@@ -1698,6 +1698,23 @@ a {
   content: '';
 }
 
+.cmc-catalogue-track-membership {
+  display: flex;
+  margin-top: 0.5rem;
+}
+
+.cmc-catalogue-track-membership span {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding-left: 0.55rem;
+  color: var(--cmc-color-deep-green);
+  border-left: 0.18rem solid var(--cmc-color-accent-gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
 .cmc-catalogue-track-heading p {
   margin: 0.35rem 0 0;
   color: #4d473d;

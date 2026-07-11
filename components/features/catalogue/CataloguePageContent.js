@@ -115,6 +115,21 @@ const getTrackActivity = track => {
   ]
 }
 
+const getCollectionMembershipLabel = track => {
+  const memberships = track.collectionMemberships || []
+
+  if (memberships.length === 0) {
+    return null
+  }
+
+  const [firstMembership] = memberships
+  const extraCount = memberships.length - 1
+
+  return extraCount > 0
+    ? `Part of ${firstMembership.collectionTitle} + ${extraCount} more`
+    : `Part of ${firstMembership.collectionTitle}`
+}
+
 const getTrackBadges = ({ catalogueContext, track }) => {
   const badges = []
 
@@ -174,6 +189,7 @@ const CatalogueTrackRow = ({
   track
 }) => {
   const badges = getTrackBadges({ catalogueContext, track })
+  const collectionMembershipLabel = getCollectionMembershipLabel(track)
   const primaryAction = getPrimaryTrackAction({ catalogueContext, track })
   const operationsAction = getSecondaryOperationsAction(catalogueContext)
 
@@ -204,6 +220,11 @@ const CatalogueTrackRow = ({
                 <span key={item}>{item}</span>
               ))}
             </div>
+            {collectionMembershipLabel && (
+              <div className='cmc-catalogue-track-membership' aria-label={`Collection membership for ${track.title}`}>
+                <span>{collectionMembershipLabel}</span>
+              </div>
+            )}
           </div>
 
           <span className='cmc-catalogue-row-meta'>Published {track.uploadedAt}</span>

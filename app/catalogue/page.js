@@ -171,6 +171,15 @@ const buildCatalogueWhere = (query, { omit } = {}) => {
 
 const serializeTrack = track => ({
   ...track,
+  collectionMemberships: (track.releaseItems || []).map(releaseItem => ({
+    collectionId: releaseItem.release.id,
+    collectionTitle: releaseItem.release.title,
+    collectionType: releaseItem.release.catalogueType,
+    movementNo: releaseItem.movementNo,
+    position: releaseItem.position,
+    titleInWork: releaseItem.titleInWork
+  })),
+  releaseItems: null,
   uploadedAt: formatDisplayDate(track.uploadedAt),
   uploaderName: track.uploadedBy?.name || 'Unknown',
   uploadedBy: null
@@ -194,6 +203,38 @@ const trackListSelect = {
       Comments: true,
       TrackOwner: true
     }
+  },
+  releaseItems: {
+    where: {
+      release: {
+        is: {
+          status: 'PUBLISHED'
+        }
+      }
+    },
+    orderBy: [
+      {
+        release: {
+          title: 'asc'
+        }
+      },
+      {
+        position: 'asc'
+      }
+    ],
+    select: {
+      movementNo: true,
+      position: true,
+      titleInWork: true,
+      release: {
+        select: {
+          catalogueType: true,
+          id: true,
+          title: true
+        }
+      }
+    },
+    take: 3
   },
   uploadedBy: {
     select: {
