@@ -24,12 +24,18 @@ test('admin summary uses stable count names', () => {
       pendingTrackCount: 1,
       orderCount: 4,
       paymentEventCount: 5,
-      auditEventCount: 6
+      auditEventCount: 6,
+      uploadBatchCount: 7,
+      submittedUploadBatchCount: 8,
+      uploadBatchesNeedingAttentionCount: 9
     }),
     {
       users: 2,
       tracks: 3,
       pendingTracks: 1,
+      uploadBatches: 7,
+      submittedUploadBatches: 8,
+      uploadBatchesNeedingAttention: 9,
       orders: 4,
       paymentEvents: 5,
       auditEvents: 6

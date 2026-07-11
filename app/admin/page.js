@@ -8,6 +8,7 @@ import {
 } from '../../lib/server/admin-core.mjs'
 import { getAdminOperationsData } from '../../lib/server/admin-operations'
 import { getAdminPricingReviews } from '../../lib/server/admin-pricing-reviews.mjs'
+import { uploadBatchStatuses } from '../../lib/server/upload-batches-core.mjs'
 import {
   canAccessAdminSurface,
   canAccessSupportSurface
@@ -38,6 +39,9 @@ const getAdminInitialData = async currentUser => {
     orderCount,
     paymentEventCount,
     auditEventCount,
+    uploadBatchCount,
+    submittedUploadBatchCount,
+    uploadBatchesNeedingAttentionCount,
     tracks,
     users,
     pricingReviews,
@@ -53,6 +57,17 @@ const getAdminInitialData = async currentUser => {
     prisma.order.count(),
     prisma.paymentEvent.count(),
     prisma.auditEvent.count(),
+    prisma.uploadBatch.count(),
+    prisma.uploadBatch.count({
+      where: {
+        status: uploadBatchStatuses.submitted
+      }
+    }),
+    prisma.uploadBatch.count({
+      where: {
+        status: uploadBatchStatuses.partiallyFailed
+      }
+    }),
     prisma.track.findMany({
       where: {
         moderationStatus: 'PENDING'
@@ -103,7 +118,10 @@ const getAdminInitialData = async currentUser => {
       pendingTrackCount,
       orderCount,
       paymentEventCount,
-      auditEventCount
+      auditEventCount,
+      uploadBatchCount,
+      submittedUploadBatchCount,
+      uploadBatchesNeedingAttentionCount
     }),
     initialTracks: tracks.map(track => ({
       ...toTrackReviewItem(track),
