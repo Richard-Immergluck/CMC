@@ -32,6 +32,11 @@ const worksSaleFormatLabels = {
   [saleFormats.both]: 'Collection and individual tracks'
 }
 
+const worksStatusLabels = {
+  ARCHIVED: 'Archived',
+  PUBLISHED: 'Published'
+}
+
 const getDisplayName = user => user.name || user.email || 'CMC member'
 
 const batchStatusLabels = {
@@ -251,10 +256,17 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
         throw new Error(data.message || 'Unable to delete Work or Collection')
       }
 
-      onCreated(null, {
-        deleteId: collection.id
-      })
-      setStatus('Work or Collection removed.')
+      if (data.archived && data.collection) {
+        onCreated(data.collection, {
+          replaceId: collection.id
+        })
+        setStatus('Work or Collection archived. Existing buyer library access is preserved.')
+      } else {
+        onCreated(null, {
+          deleteId: collection.id
+        })
+        setStatus('Work or Collection removed.')
+      }
     } catch (deleteError) {
       setError(deleteError.message || 'Unable to delete Work or Collection')
     } finally {
@@ -465,7 +477,9 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                   <div>
                     <strong>{collection.title}</strong>
                     <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
-                    <small>{collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)}</small>
+                    <small>
+                      {collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)} · {worksStatusLabels[collection.status] || collection.status}
+                    </small>
                   </div>
                   <div className='cmc-profile-works-list-actions'>
                     <Button
@@ -478,7 +492,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     </Button>
                     <Button
                       aria-label={`Edit ${collection.title}`}
-                      disabled={deletingCollectionId === collection.id}
+                      disabled={deletingCollectionId === collection.id || collection.status === 'ARCHIVED'}
                       onClick={() => startEditingCollection(collection)}
                       size='sm'
                       type='button'
@@ -488,7 +502,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     </Button>
                     <Button
                       aria-label={`Delete ${collection.title}`}
-                      disabled={deletingCollectionId === collection.id}
+                      disabled={deletingCollectionId === collection.id || collection.status === 'ARCHIVED'}
                       onClick={() => deleteCollection(collection)}
                       size='sm'
                       type='button'

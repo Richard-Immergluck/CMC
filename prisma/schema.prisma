@@ -161,6 +161,7 @@ model CatalogueRelease {
   id                    Int                     @id @default(autoincrement())
   title                 String
   composer              String?
+  status                CatalogueReleaseStatus  @default(PUBLISHED)
   catalogueType         CatalogueType
   saleFormat            SaleFormat              @default(BUNDLE)
   pricePence            Int?
@@ -178,8 +179,10 @@ model CatalogueRelease {
 
   @@index([catalogueType])
   @@index([saleFormat])
+  @@index([status])
   @@index([userId, createdAt])
   @@index([pricingReviewStatus])
+  @@index([status, pricingReviewStatus])
 }
 
 model CatalogueReleaseTrack {
@@ -416,6 +419,11 @@ enum SaleFormat {
   INDIVIDUAL
   BUNDLE
   BOTH
+}
+
+enum CatalogueReleaseStatus {
+  PUBLISHED
+  ARCHIVED
 }
 
 enum PricingReviewStatus {
