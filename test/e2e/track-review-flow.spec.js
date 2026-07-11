@@ -190,7 +190,7 @@ test.describe('track review API flow', () => {
     )
   })
 
-  test('uploaders can group approved tracks into a Work or Collection', async ({ request }) => {
+  test('uploaders can group approved tracks into a Work or Collection', async ({ page, request }) => {
     const suffix = `works-collection-${Date.now()}`
 
     await signInAs(request, 'e2e-uploader@example.com')
@@ -267,6 +267,18 @@ test.describe('track review API flow', () => {
       })
     ])
 
+    await page.goto('/works-collections')
+    await expect(page.getByRole('heading', { name: /Grouped music for bigger practice plans/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: `E2E Grouped Work ${suffix}` })).toBeVisible()
+    await expect(page.getByText('Synthetic Review Fixture').first()).toBeVisible()
+
+    await page.getByRole('link', { name: `E2E Grouped Work ${suffix}` }).click()
+    await expect(page).toHaveURL(new RegExp(`/works-collections/${collectionBody.collection.id}$`))
+    await expect(page.getByRole('heading', { name: `E2E Grouped Work ${suffix}.` })).toBeVisible()
+    await expect(page.getByText(`${collectionBody.collection.tracks.length} tracks in this Work or Collection`)).toBeVisible()
+    await expect(page.getByRole('link', { name: `E2E Pending Review ${suffix}-one` })).toBeVisible()
+    await expect(page.getByRole('link', { name: `E2E Pending Review ${suffix}-two` })).toBeVisible()
+
     const listResponse = await request.get('/api/works-collections')
     const listBody = await listResponse.json()
 
@@ -279,6 +291,25 @@ test.describe('track review API flow', () => {
         })
       ])
     )
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload/manage')
+    const collectionRow = page.getByRole('listitem').filter({
+      hasText: `E2E Grouped Work ${suffix}`
+    })
+
+    await expect(collectionRow.getByRole('link', { name: 'View' })).toHaveAttribute('href', `/upload/manage/works/${collectionBody.collection.id}`)
+    await collectionRow.getByRole('link', { name: 'View' }).click()
+    await expect(page).toHaveURL(new RegExp(`/upload/manage/works/${collectionBody.collection.id}$`))
+    await expect(page.getByRole('heading', { name: `E2E Grouped Work ${suffix}.` })).toBeVisible()
+    await page.getByRole('link', { name: 'Back to management' }).click()
+
+    await collectionRow.getByRole('button', { name: `Edit E2E Grouped Work ${suffix}` }).click()
+    await expect(page.getByText('Editing an existing Work or Collection.')).toBeVisible()
+    await page.getByLabel('Title').fill(`E2E UI Edited Grouped Work ${suffix}`)
+    await page.getByRole('button', { name: 'Save Work or Collection' }).click()
+    await expect(page.getByText('Work or Collection updated.')).toBeVisible()
+    await expect(page.getByText(`E2E UI Edited Grouped Work ${suffix}`)).toBeVisible()
 
     const updateResponse = await request.patch(`/api/works-collections/${collectionBody.collection.id}`, {
       data: {

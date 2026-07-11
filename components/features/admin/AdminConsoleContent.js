@@ -506,7 +506,22 @@ const OperationsTables = ({
               </td>
               <td><StatusBadge value={order.status} /></td>
               <td>{formatMoney(order)}</td>
-              <td>{order.items.map(item => item.title).join(', ') || 'No items'}</td>
+              <td>
+                {order.items.length > 0 ? (
+                  <ul className='list-unstyled mb-0'>
+                    {order.items.map(item => (
+                      <li key={item.id}>
+                        {item.title}
+                        {item.sourceReleaseTitle && (
+                          <div className='text-muted small'>
+                            Part of {item.sourceReleaseTitle}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : 'No items'}
+              </td>
               <td>{formatDate(order.createdAt)}</td>
             </tr>
           ))}
