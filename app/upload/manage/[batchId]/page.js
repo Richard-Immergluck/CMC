@@ -102,6 +102,8 @@ const UploadBatchDetailPage = async ({ params }) => {
     notFound()
   }
 
+  const capacityUsedPercent = Math.min(100, Math.round((batch.summary.totalTracks / batch.capacity.maxTracks) * 100))
+
   return (
     <main className='cmc-profile-page cmc-upload-batch-detail-page'>
       <div className='container'>
@@ -136,6 +138,10 @@ const UploadBatchDetailPage = async ({ params }) => {
                   <dt>Review</dt>
                   <dd>{batch.summary.pendingReviewTracks}</dd>
                 </div>
+                <div>
+                  <dt>Remaining</dt>
+                  <dd>{batch.capacity.remainingTracks}</dd>
+                </div>
               </dl>
             </aside>
           </header>
@@ -144,11 +150,31 @@ const UploadBatchDetailPage = async ({ params }) => {
             <Button as={Link} href='/upload/manage' variant='paper'>
               Back to management
             </Button>
-            {resumableBatchStatuses.has(batch.status) && (
+            {resumableBatchStatuses.has(batch.status) && batch.capacity.canAddTracks && (
               <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='ink'>
                 Continue batch
               </Button>
             )}
+            {resumableBatchStatuses.has(batch.status) && !batch.capacity.canAddTracks && (
+              <Button disabled type='button' variant='ink'>
+                Batch full
+              </Button>
+            )}
+          </section>
+
+          <section className='cmc-upload-batch-capacity-panel' aria-labelledby='upload-batch-capacity-heading'>
+            <div>
+              <p className='cmc-profile-kicker'>Batch capacity</p>
+              <h2 id='upload-batch-capacity-heading'>{batch.summary.totalTracks}/{batch.capacity.maxTracks} tracks used</h2>
+              <p>{batch.capacity.remainingTracks} upload slots remaining in this batch.</p>
+            </div>
+            <div className='cmc-upload-management-batch-capacity' aria-label={`${batch.summary.totalTracks} of ${batch.capacity.maxTracks} upload batch slots used`}>
+              <span>{batch.summary.totalTracks}/{batch.capacity.maxTracks} tracks</span>
+              <span>{batch.capacity.remainingTracks} slots remaining</span>
+              <div aria-hidden='true'>
+                <span style={{ width: `${capacityUsedPercent}%` }} />
+              </div>
+            </div>
           </section>
 
           <section className='cmc-upload-batch-defaults' aria-labelledby='upload-batch-defaults-heading'>
