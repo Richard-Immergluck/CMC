@@ -165,6 +165,8 @@ test('order admin items expose commerce context without provider user data', () 
         {
           id: 1,
           trackId: 3,
+          sourceReleaseId: 9,
+          sourceReleaseTitle: 'Bach Learning Pack',
           title: 'Study',
           composer: 'Composer',
           unitAmount: 475,
@@ -191,6 +193,8 @@ test('order admin items expose commerce context without provider user data', () 
         {
           id: 1,
           trackId: 3,
+          sourceReleaseId: 9,
+          sourceReleaseTitle: 'Bach Learning Pack',
           title: 'Study',
           composer: 'Composer',
           unitAmount: 475,

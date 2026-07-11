@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Music2, ShieldCheck, Trash2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -28,14 +28,40 @@ const formatItemPrice = item => {
   return '£0.00'
 }
 
+const getCartItemHref = item => {
+  if (item.itemType === 'release' && item.releaseId) {
+    return `/works-collections/${item.releaseId}`
+  }
+
+  return `/catalogue/${item.trackId || item.id}`
+}
+
+const getCartItemTypeLabel = item => {
+  if (item.itemType === 'release') {
+    return item.trackCount === 1 ? '1 track collection' : `${item.trackCount || 0} track collection`
+  }
+
+  return 'Individual track'
+}
+
 const CartPageContent = () => {
   const [checkoutError, setCheckoutError] = useState('')
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [cartMounted, setCartMounted] = useState(false)
   const searchParams = useSearchParams()
   const checkoutCanceled = searchParams.get('checkout') === 'canceled'
   const { data: session } = useSession()
   const { removeItem, cartTotal, items } = useCart()
-  const total = formatter.format(cartTotal)
+  const visibleItems = cartMounted ? items : []
+  const total = formatter.format(cartMounted ? cartTotal : 0)
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setCartMounted(true)
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [])
 
   const checkout = async () => {
     setCheckoutError('')
@@ -48,7 +74,12 @@ const CartPageContent = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          trackIds: items.map(item => item.id)
+          releaseIds: items
+            .filter(item => item.itemType === 'release')
+            .map(item => item.releaseId),
+          trackIds: items
+            .filter(item => item.itemType !== 'release')
+            .map(item => item.trackId || item.id)
         })
       })
 
@@ -84,7 +115,7 @@ const CartPageContent = () => {
     )
   }
 
-  const hasItems = items.length > 0
+  const hasItems = visibleItems.length > 0
 
   return (
     <main className='cmc-cart-page'>
@@ -121,16 +152,16 @@ const CartPageContent = () => {
 
               {hasItems ? (
                 <ul className='cmc-cart-list'>
-                  {items.map((item, index) => (
+                  {visibleItems.map((item, index) => (
                     <li className='cmc-cart-item' key={item.id}>
                       <span className='cmc-cart-item-index'>{String(index + 1).padStart(2, '0')}</span>
                       <div className='cmc-cart-item-track'>
-                        <Link href={`/catalogue/${item.id}`}>
+                        <Link href={getCartItemHref(item)}>
                           {item.title}
                         </Link>
                         <span>{item.composer || 'Unknown composer'}</span>
                       </div>
-                      <span className='cmc-cart-item-licence'>Standard</span>
+                      <span className='cmc-cart-item-licence'>{getCartItemTypeLabel(item)}</span>
                       <span className='cmc-cart-item-price'>{formatItemPrice(item)}</span>
                       <button
                         aria-label={`Remove ${item.title} from cart`}
@@ -159,7 +190,7 @@ const CartPageContent = () => {
               <p className='cmc-cart-kicker'>Order summary</p>
               <dl>
                 <div>
-                  <dt>{items.length === 1 ? '1 track' : `${items.length} tracks`}</dt>
+                  <dt>{visibleItems.length === 1 ? '1 track' : `${visibleItems.length} tracks`}</dt>
                   <dd>{total}</dd>
                 </div>
                 <div>

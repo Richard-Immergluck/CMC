@@ -52,11 +52,27 @@ const formatMoney = ({ amountTotal, currency }) => {
   }).format((amountTotal || 0) / 100)
 }
 
+const formatPricePence = (pricePence, currency = 'gbp') => {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: currency.toUpperCase()
+  }).format((pricePence || 0) / 100)
+}
+
 const pastTenseDecision = decision => decision === 'approve' ? 'approved' : 'rejected'
 
 const clearAccessReviewBadge = {
   label: 'clear',
   variant: 'success'
+}
+
+const pricingReviewBadge = pricingReviews => {
+  const count = (pricingReviews?.tracks?.length || 0) + (pricingReviews?.requestProposals?.length || 0)
+
+  return {
+    label: count > 0 ? `${count} pending` : 'clear',
+    variant: count > 0 ? 'warning' : 'success'
+  }
 }
 
 const TabTitleWithBadge = ({ label, badge }) => (
@@ -490,7 +506,22 @@ const OperationsTables = ({
               </td>
               <td><StatusBadge value={order.status} /></td>
               <td>{formatMoney(order)}</td>
-              <td>{order.items.map(item => item.title).join(', ') || 'No items'}</td>
+              <td>
+                {order.items.length > 0 ? (
+                  <ul className='list-unstyled mb-0'>
+                    {order.items.map(item => (
+                      <li key={item.id}>
+                        {item.title}
+                        {item.sourceReleaseTitle && (
+                          <div className='text-muted small'>
+                            Part of {item.sourceReleaseTitle}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : 'No items'}
+              </td>
               <td>{formatDate(order.createdAt)}</td>
             </tr>
           ))}
@@ -655,6 +686,172 @@ const TrackReviewRow = ({ track, onModerate }) => {
   )
 }
 
+const PricingReviewsTable = ({
+  canReviewPricing,
+  onReviewPricing,
+  pricingReviews,
+  reviewingPricingTarget
+}) => {
+  const tracks = pricingReviews?.tracks || []
+  const proposals = pricingReviews?.requestProposals || []
+  const hasReviews = tracks.length > 0 || proposals.length > 0
+
+  return (
+    <div className='d-grid gap-4'>
+      <Card>
+        <Card.Body>
+          <Card.Title>Track Price Reviews</Card.Title>
+          <Table bordered hover responsive size='sm'>
+            <thead>
+              <tr>
+                <th>Track</th>
+                <th>Uploader</th>
+                <th>Price</th>
+                <th>Band</th>
+                <th>Justification</th>
+                <th className='text-end'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tracks.map(track => {
+                const targetKey = `track-${track.id}`
+
+                return (
+                  <tr key={targetKey}>
+                    <td>
+                      <strong>{track.title}</strong>
+                      <div className='text-muted small'>{track.composer}</div>
+                    </td>
+                    <td>
+                      {track.uploader?.name || 'Unknown'}
+                      <div className='text-muted small'>{track.uploader?.email}</div>
+                    </td>
+                    <td>{formatPricePence(track.pricePence, track.currency)}</td>
+                    <td>{track.suggestedBand}</td>
+                    <td>{track.pricingJustification || 'No note supplied.'}</td>
+                    <td className='text-end'>
+                      <Button
+                        className='me-2'
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: track.id,
+                          targetType: 'track',
+                          decision: 'approve'
+                        })}
+                        size='sm'
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: track.id,
+                          targetType: 'track',
+                          decision: 'reject'
+                        })}
+                        size='sm'
+                        variant='danger'
+                      >
+                        Reject
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+              {tracks.length === 0 && (
+                <tr>
+                  <td colSpan='6' className='text-center text-muted'>No track prices need review.</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
+
+      <Card>
+        <Card.Body>
+          <Card.Title>Request Price Reviews</Card.Title>
+          <Table bordered hover responsive size='sm'>
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Track</th>
+                <th>Proposed By</th>
+                <th>Price</th>
+                <th>Justification</th>
+                <th className='text-end'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {proposals.map(proposal => {
+                const targetKey = `requestProposal-${proposal.id}`
+
+                return (
+                  <tr key={targetKey}>
+                    <td>
+                      <strong>{proposal.request?.title || `Request #${proposal.requestId}`}</strong>
+                      <div className='text-muted small'>Requester: {proposal.request?.requestedBy?.email || 'Unknown'}</div>
+                    </td>
+                    <td>
+                      {proposal.request?.track?.title || 'Unknown track'}
+                      <div className='text-muted small'>{proposal.request?.track?.composer}</div>
+                    </td>
+                    <td>
+                      {proposal.proposedBy?.name || 'Unknown'}
+                      <div className='text-muted small'>{proposal.proposedBy?.email}</div>
+                    </td>
+                    <td>
+                      {formatPricePence(proposal.pricePence, proposal.currency)}
+                      <div className='text-muted small'>{proposal.suggestedBand}</div>
+                    </td>
+                    <td>{proposal.justification || 'No note supplied.'}</td>
+                    <td className='text-end'>
+                      <Button
+                        className='me-2'
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: proposal.id,
+                          targetType: 'requestProposal',
+                          decision: 'approve'
+                        })}
+                        size='sm'
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: proposal.id,
+                          targetType: 'requestProposal',
+                          decision: 'reject'
+                        })}
+                        size='sm'
+                        variant='danger'
+                      >
+                        Reject
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+              {proposals.length === 0 && (
+                <tr>
+                  <td colSpan='6' className='text-center text-muted'>No request prices need review.</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+          {!canReviewPricing && hasReviews && (
+            <Alert className='mb-0' variant='warning'>
+              Admin access is required to approve or reject pricing reviews.
+            </Alert>
+          )}
+        </Card.Body>
+      </Card>
+    </div>
+  )
+}
+
 const AdminConsoleContent = ({
   currentUser,
   canManageUsers = false,
@@ -662,18 +859,23 @@ const AdminConsoleContent = ({
   initialSummary = null,
   initialTracks = [],
   initialUsers = [],
-  initialOperations = null
+  initialOperations = null,
+  initialPricingReviews = null
 }) => {
   const [summary, setSummary] = useState(initialSummary)
   const [tracks, setTracks] = useState(initialTracks)
   const [users, setUsers] = useState(initialUsers)
   const [operations, setOperations] = useState(initialOperations)
+  const [pricingReviews, setPricingReviews] = useState(initialPricingReviews)
   const [operationsAuditCategory, setOperationsAuditCategory] = useState('')
+  const [activeAdminTab, setActiveAdminTab] = useState('overview')
   const [loading, setLoading] = useState(false)
   const [reviewingAccessRequestId, setReviewingAccessRequestId] = useState(null)
+  const [reviewingPricingTarget, setReviewingPricingTarget] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const accessReviewBadge = operations?.securityDashboard?.accessReviewBadge || clearAccessReviewBadge
+  const pendingPricingBadge = pricingReviewBadge(pricingReviews)
   const overdueReviews = operations?.securityDashboard?.accessReviewMetrics?.overduePending || 0
 
   const loadAdminData = async ({ auditCategory = operationsAuditCategory } = {}) => {
@@ -688,17 +890,19 @@ const AdminConsoleContent = ({
       const operationsQuery = auditCategory
         ? `?${new URLSearchParams({ auditCategory }).toString()}`
         : ''
-      const [summaryData, trackData, userData, operationsData] = await Promise.all([
+      const [summaryData, trackData, userData, operationsData, pricingReviewData] = await Promise.all([
         fetchJson('/api/admin/summary'),
         fetchJson('/api/admin/tracks'),
         canManageUsers ? fetchJson('/api/admin/users') : Promise.resolve({ users: [] }),
-        fetchJson(`/api/admin/operations${operationsQuery}`)
+        fetchJson(`/api/admin/operations${operationsQuery}`),
+        fetchJson('/api/admin/pricing-reviews')
       ])
 
       setSummary(summaryData)
       setTracks(trackData.tracks)
       setUsers(userData.users)
       setOperations(operationsData)
+      setPricingReviews(pricingReviewData)
     } catch (loadError) {
       setError(loadError.message)
     } finally {
@@ -761,6 +965,34 @@ const AdminConsoleContent = ({
     }
   }
 
+  const reviewPricing = async ({ targetId, targetType, decision }) => {
+    const targetKey = `${targetType}-${targetId}`
+
+    setNotice('')
+    setError('')
+    setReviewingPricingTarget(targetKey)
+
+    try {
+      await fetchJson('/api/admin/pricing-reviews', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          decision,
+          targetId,
+          targetType
+        })
+      })
+      setNotice(`Pricing review ${pastTenseDecision(decision)}.`)
+      loadAdminData()
+    } catch (reviewError) {
+      setError(reviewError.message)
+    } finally {
+      setReviewingPricingTarget(null)
+    }
+  }
+
   if (forbidden) {
     return (
       <Container className='mt-5'>
@@ -800,7 +1032,11 @@ const AdminConsoleContent = ({
           <Spinner animation='border' />
         </div>
       ) : (
-        <Tabs defaultActiveKey='overview' className='mb-3'>
+        <Tabs
+          activeKey={activeAdminTab}
+          className='mb-3'
+          onSelect={key => setActiveAdminTab(key || 'overview')}
+        >
           <Tab eventKey='overview' title='Overview'>
             <Table bordered responsive size='sm'>
               <tbody>
@@ -840,6 +1076,18 @@ const AdminConsoleContent = ({
                 )}
               </tbody>
             </Table>
+          </Tab>
+
+          <Tab
+            eventKey='pricing'
+            title={<TabTitleWithBadge label='Pricing' badge={pendingPricingBadge} />}
+          >
+            <PricingReviewsTable
+              canReviewPricing={currentUser.role === 'ADMIN'}
+              onReviewPricing={reviewPricing}
+              pricingReviews={pricingReviews}
+              reviewingPricingTarget={reviewingPricingTarget}
+            />
           </Tab>
 
           <Tab
