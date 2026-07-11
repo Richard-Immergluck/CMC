@@ -86,6 +86,23 @@ test('toTrackCreateData maps upload input into Prisma create data', () => {
   })
 })
 
+test('toTrackCreateData connects tracks to an upload batch when supplied', () => {
+  assert.deepEqual(
+    toTrackCreateData({
+      input: {
+        ...input,
+        uploadBatchId: 42
+      },
+      user
+    }).uploadBatch,
+    {
+      connect: {
+        id: 42
+      }
+    }
+  )
+})
+
 test('publicTrackWhere exposes only published approved ready tracks', () => {
   assert.deepEqual(publicTrackWhere, {
     status: 'PUBLISHED',
