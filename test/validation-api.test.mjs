@@ -17,6 +17,7 @@ import {
   simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
   trackRequestBodySchema,
+  trackRequestPricingDecisionBodySchema,
   trackRequestPricingProposalBodySchema,
   trackRequestStatusBodySchema,
   trackIdParamSchema,
@@ -320,6 +321,36 @@ test('track request pricing proposal body accepts guided catalogue prices only',
       catalogueType: 'SONG_CYCLE',
       saleFormat: 'INDIVIDUAL',
       pricePence: 1499
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('track request pricing decision body accepts requester decisions only', () => {
+  assert.deepEqual(
+    validateInput(trackRequestPricingDecisionBodySchema, {
+      decision: 'ACCEPTED',
+      requesterNote: ' Happy with this price. ',
+      ignored: 'removed'
+    }),
+    {
+      decision: 'ACCEPTED',
+      requesterNote: 'Happy with this price.'
+    }
+  )
+
+  assert.deepEqual(
+    validateInput(trackRequestPricingDecisionBodySchema, {
+      decision: 'DECLINED'
+    }),
+    {
+      decision: 'DECLINED'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestPricingDecisionBodySchema, {
+      decision: 'PENDING'
     }),
     error => error.statusCode === 400
   )

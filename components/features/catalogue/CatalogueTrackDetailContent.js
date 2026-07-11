@@ -190,6 +190,34 @@ const formatRejectionReason = reason => {
   return requestRejectionReasonOptions.find(option => option.value === reason)?.label || reason
 }
 
+const formatPricingReviewStatus = status => {
+  if (status === 'NEEDS_REVIEW') {
+    return 'Admin review needed'
+  }
+
+  if (status === 'REJECTED') {
+    return 'Rejected by admin'
+  }
+
+  return 'Within band'
+}
+
+const formatRequesterDecision = decision => {
+  if (decision === 'ACCEPTED') {
+    return 'Accepted'
+  }
+
+  if (decision === 'DECLINED') {
+    return 'Declined'
+  }
+
+  if (decision === 'SUPERSEDED') {
+    return 'Superseded'
+  }
+
+  return 'Awaiting requester'
+}
+
 const sortCommentsByTimestamp = (comments, direction) => {
   return [...comments].sort((firstComment, secondComment) => {
     const firstTime = Date.parse(firstComment.createdAtTimestamp || '')
@@ -264,6 +292,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     }))
   })
   const [pricingProposalRequestId, setPricingProposalRequestId] = useState(null)
+  const [pricingDecisionProposalId, setPricingDecisionProposalId] = useState(null)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
@@ -523,6 +552,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
           createdAt: formatDisplayDate(data.createdAt),
           description: data.notes || 'No additional request notes supplied.',
           id: data.id,
+          isRequestedByViewer: true,
+          pricingProposals: [],
           requestedBy: catalogueContext.userName || 'You',
           status: data.status,
           title: data.title,
@@ -689,6 +720,57 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       setRequestUpdateError(error.message || 'Unable to propose request price')
     } finally {
       setPricingProposalRequestId(null)
+    }
+  }
+
+  const submitRequestPricingDecision = async ({ decision, proposalId, requestId }) => {
+    setRequestUpdateError('')
+    setRequestUpdateStatus('')
+    setPricingDecisionProposalId(proposalId)
+
+    try {
+      const response = await fetch(`/api/track-requests/${requestId}/pricing-proposals/${proposalId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          decision
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to update request price decision')
+      }
+
+      setRequestList(currentRequests => currentRequests.map(request => (
+        request.id === requestId
+          ? {
+              ...request,
+              pricingProposals: (request.pricingProposals || []).map(proposal => (
+                proposal.id === proposalId
+                  ? {
+                      ...proposal,
+                      requesterDecision: data.requesterDecision
+                    }
+                  : proposal
+              )),
+              status: data.requesterDecision === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING_DECISION'
+            }
+          : request
+      )))
+      setRequestStatusDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: data.requesterDecision === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING_DECISION'
+      }))
+      setRequestUpdateStatus(data.requesterDecision === 'ACCEPTED'
+        ? 'Request price accepted. The uploader can now prepare the track.'
+        : 'Request price declined. The request is waiting for another decision.')
+    } catch (error) {
+      setRequestUpdateError(error.message || 'Unable to update request price decision')
+    } finally {
+      setPricingDecisionProposalId(null)
     }
   }
 
@@ -1137,6 +1219,15 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                       }
                       const pricingBand = getPricingBand(pricingDraft.catalogueType)
                       const latestProposal = request.pricingProposals?.[0]
+                      const canDecideLatestProposal = Boolean(
+                        catalogueContext.isAuthenticated &&
+                        request.isRequestedByViewer &&
+                        latestProposal &&
+                        latestProposal.requesterDecision === 'PENDING'
+                      )
+                      const canAcceptLatestProposal = canDecideLatestProposal &&
+                        latestProposal.reviewStatus !== 'NEEDS_REVIEW' &&
+                        latestProposal.reviewStatus !== 'REJECTED'
 
                       return (
                         <article
@@ -1178,15 +1269,51 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                               <dl>
                                 <div>
                                   <dt>Review</dt>
-                                  <dd>{latestProposal.reviewStatus === 'NEEDS_REVIEW' ? 'Admin review needed' : 'Within band'}</dd>
+                                  <dd>{formatPricingReviewStatus(latestProposal.reviewStatus)}</dd>
                                 </div>
                                 <div>
                                   <dt>Requester</dt>
-                                  <dd>{latestProposal.requesterDecision.toLowerCase()}</dd>
+                                  <dd>{formatRequesterDecision(latestProposal.requesterDecision)}</dd>
                                 </div>
                               </dl>
                               {latestProposal.justification && (
                                 <p>{latestProposal.justification}</p>
+                              )}
+                              {canDecideLatestProposal && (
+                                <div className='cmc-track-request-pricing-actions' aria-label={`Respond to proposed price for ${request.title}`}>
+                                  {latestProposal.reviewStatus === 'NEEDS_REVIEW' && (
+                                    <p>CMC needs to review this price before you can accept it.</p>
+                                  )}
+                                  {latestProposal.reviewStatus === 'REJECTED' && (
+                                    <p>This price was rejected by CMC and cannot be accepted.</p>
+                                  )}
+                                  <Button
+                                    disabled={!canAcceptLatestProposal || pricingDecisionProposalId === latestProposal.id}
+                                    onClick={() => submitRequestPricingDecision({
+                                      decision: 'ACCEPTED',
+                                      proposalId: latestProposal.id,
+                                      requestId: request.id
+                                    })}
+                                    size='sm'
+                                    type='button'
+                                    variant='ink'
+                                  >
+                                    {pricingDecisionProposalId === latestProposal.id ? 'Updating...' : 'Accept Price'}
+                                  </Button>
+                                  <Button
+                                    disabled={pricingDecisionProposalId === latestProposal.id}
+                                    onClick={() => submitRequestPricingDecision({
+                                      decision: 'DECLINED',
+                                      proposalId: latestProposal.id,
+                                      requestId: request.id
+                                    })}
+                                    size='sm'
+                                    type='button'
+                                    variant='paper'
+                                  >
+                                    Decline
+                                  </Button>
+                                </div>
                               )}
                             </div>
                           )}
