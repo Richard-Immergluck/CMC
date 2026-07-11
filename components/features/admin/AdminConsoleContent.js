@@ -693,6 +693,87 @@ const TrackReviewRow = ({ track, onModerate }) => {
   )
 }
 
+const UploadBatchStatusSummary = ({ summary }) => (
+  <dl className='mb-0 d-flex flex-wrap gap-3 small'>
+    <div>
+      <dt className='text-muted'>Tracks</dt>
+      <dd className='mb-0'>{summary?.totalTracks || 0}</dd>
+    </div>
+    <div>
+      <dt className='text-muted'>Ready</dt>
+      <dd className='mb-0'>{summary?.readyTracks || 0}</dd>
+    </div>
+    <div>
+      <dt className='text-muted'>Review</dt>
+      <dd className='mb-0'>{summary?.pendingReviewTracks || 0}</dd>
+    </div>
+    <div>
+      <dt className='text-muted'>Failed</dt>
+      <dd className='mb-0'>{summary?.failedTracks || 0}</dd>
+    </div>
+  </dl>
+)
+
+const UploadBatchTrackPreview = ({ tracks = [] }) => {
+  if (tracks.length === 0) {
+    return <span className='text-muted small'>No tracks attached.</span>
+  }
+
+  return (
+    <ol className='mb-0 ps-3 small'>
+      {tracks.slice(0, 4).map(track => (
+        <li key={track.id}>
+          <strong>{track.title}</strong>{' '}
+          <span className='text-muted'>
+            {track.processingStatus} · {track.moderationStatus}
+          </span>
+        </li>
+      ))}
+      {tracks.length > 4 && (
+        <li className='text-muted'>+ {tracks.length - 4} more tracks</li>
+      )}
+    </ol>
+  )
+}
+
+const UploadBatchesTable = ({ uploadBatches }) => (
+  <Table bordered hover responsive size='sm'>
+    <thead>
+      <tr>
+        <th>Batch</th>
+        <th>Uploader</th>
+        <th>Status</th>
+        <th>Queue</th>
+        <th>Latest tracks</th>
+        <th>Submitted</th>
+      </tr>
+    </thead>
+    <tbody>
+      {uploadBatches.map(batch => (
+        <tr key={batch.id}>
+          <td>
+            <strong>{batch.label || `Batch #${batch.id}`}</strong>
+            <div className='text-muted small'>Created {formatDate(batch.createdAt)}</div>
+          </td>
+          <td>
+            {batch.uploader?.name || 'Unknown'}
+            <div className='text-muted small'>{batch.uploader?.email}</div>
+          </td>
+          <td><StatusBadge value={batch.status} /></td>
+          <td><UploadBatchStatusSummary summary={batch.summary} /></td>
+          <td><UploadBatchTrackPreview tracks={batch.tracks} /></td>
+          <td>{formatDate(batch.submittedAt)}</td>
+        </tr>
+      ))}
+      {uploadBatches.length === 0 && (
+        <tr>
+          <td colSpan='6' className='text-center text-muted'>No upload batches found.</td>
+        </tr>
+      )}
+    </tbody>
+  </Table>
+)
+
 const PricingReviewsTable = ({
   canReviewPricing,
   onReviewPricing,
@@ -950,12 +1031,14 @@ const AdminConsoleContent = ({
   forbidden = false,
   initialSummary = null,
   initialTracks = [],
+  initialUploadBatches = [],
   initialUsers = [],
   initialOperations = null,
   initialPricingReviews = null
 }) => {
   const [summary, setSummary] = useState(initialSummary)
   const [tracks, setTracks] = useState(initialTracks)
+  const [uploadBatches, setUploadBatches] = useState(initialUploadBatches)
   const [users, setUsers] = useState(initialUsers)
   const [operations, setOperations] = useState(initialOperations)
   const [pricingReviews, setPricingReviews] = useState(initialPricingReviews)
@@ -982,9 +1065,10 @@ const AdminConsoleContent = ({
       const operationsQuery = auditCategory
         ? `?${new URLSearchParams({ auditCategory }).toString()}`
         : ''
-      const [summaryData, trackData, userData, operationsData, pricingReviewData] = await Promise.all([
+      const [summaryData, trackData, uploadBatchData, userData, operationsData, pricingReviewData] = await Promise.all([
         fetchJson('/api/admin/summary'),
         fetchJson('/api/admin/tracks'),
+        fetchJson('/api/admin/upload-batches'),
         canManageUsers ? fetchJson('/api/admin/users') : Promise.resolve({ users: [] }),
         fetchJson(`/api/admin/operations${operationsQuery}`),
         fetchJson('/api/admin/pricing-reviews')
@@ -992,6 +1076,7 @@ const AdminConsoleContent = ({
 
       setSummary(summaryData)
       setTracks(trackData.tracks)
+      setUploadBatches(uploadBatchData.uploadBatches)
       setUsers(userData.users)
       setOperations(operationsData)
       setPricingReviews(pricingReviewData)
@@ -1168,6 +1253,10 @@ const AdminConsoleContent = ({
                 )}
               </tbody>
             </Table>
+          </Tab>
+
+          <Tab eventKey='upload-batches' title={`Batch Imports (${uploadBatches.length})`}>
+            <UploadBatchesTable uploadBatches={uploadBatches} />
           </Tab>
 
           <Tab
