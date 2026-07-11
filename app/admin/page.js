@@ -4,6 +4,7 @@ import AdminConsoleContent from '../../components/features/admin/AdminConsoleCon
 import {
   toAdminSummary,
   toTrackReviewItem,
+  toUploadBatchAdminItem,
   toUserAdminItem
 } from '../../lib/server/admin-core.mjs'
 import { getAdminOperationsData } from '../../lib/server/admin-operations'
@@ -43,6 +44,7 @@ const getAdminInitialData = async currentUser => {
     submittedUploadBatchCount,
     uploadBatchesNeedingAttentionCount,
     tracks,
+    uploadBatches,
     users,
     pricingReviews,
     operations
@@ -94,6 +96,39 @@ const getAdminInitialData = async currentUser => {
       ],
       take: 100
     }),
+    prisma.uploadBatch.findMany({
+      include: {
+        _count: {
+          select: {
+            tracks: true
+          }
+        },
+        tracks: {
+          orderBy: {
+            uploadedAt: 'desc'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            moderationStatus: true,
+            processingStatus: true,
+            uploadedAt: true
+          }
+        },
+        uploadedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 100
+    }),
     canManageUsers
       ? prisma.user.findMany({
           orderBy: [
@@ -127,6 +162,7 @@ const getAdminInitialData = async currentUser => {
       ...toTrackReviewItem(track),
       uploadedAt: formatDisplayDate(track.uploadedAt)
     })),
+    initialUploadBatches: serializeOperations(uploadBatches.map(toUploadBatchAdminItem)),
     initialUsers: users.map(toUserAdminItem)
   }
 }
