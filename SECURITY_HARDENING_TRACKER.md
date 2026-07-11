@@ -67,6 +67,8 @@ This tracker records backend security and auditability work completed so far and
 - Added admin review context for batched pending tracks so moderators can see the import batch behind a submission.
 - Added admin pricing-review visibility for ordered Work/Collection contents and e2e coverage for high-priced release approval.
 - Added e2e coverage proving high-priced Works/Collections remain hidden publicly until admin pricing approval.
+- Added an admin Batch Imports tab backed by the protected upload-batch listing API.
+- Added uploader recovery for failed batch tracks with a trusted-origin DELETE route, audit logging, and status recalculation.
 
 ## In Progress
 
@@ -75,4 +77,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
-- Continue upload-management hardening around bulk import failure states, admin batch reporting, and release lifecycle support workflows.
+- Continue upload-management hardening around Work/Collection release lifecycle support workflows and larger uploader-library management.
