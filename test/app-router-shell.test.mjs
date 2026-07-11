@@ -19,6 +19,7 @@ test('app router shell and first public routes are present', () => {
   const appUploadManagePage = fs.readFileSync(path.join(root, 'app/upload/manage/page.js'), 'utf8')
   const appUploadBatchDetailPage = fs.readFileSync(path.join(root, 'app/upload/manage/[batchId]/page.js'), 'utf8')
   const appUploadWorksDetailPage = fs.readFileSync(path.join(root, 'app/upload/manage/works/[collectionId]/page.js'), 'utf8')
+  const appRequestPricingDecisionRoute = fs.readFileSync(path.join(root, 'app/api/track-requests/[requestId]/pricing-proposals/[proposalId]/route.js'), 'utf8')
   const providers = fs.readFileSync(path.join(root, 'components/providers/AppProviders.js'), 'utf8')
 
   assert.match(appAdminPage, /getServerSession/)
@@ -54,6 +55,8 @@ test('app router shell and first public routes are present', () => {
   assert.match(appUploadWorksDetailPage, /getUserWorksCollection/)
   assert.match(appUploadWorksDetailPage, /notFound/)
   assert.match(appUploadWorksDetailPage, /force-dynamic/)
+  assert.match(appRequestPricingDecisionRoute, /decideRequestPricingProposal/)
+  assert.match(appRequestPricingDecisionRoute, /requireTrustedRouteOrigin/)
   assert.match(providers, /SessionProvider/)
   assert.match(providers, /CartProvider/)
   assert.match(providers, /Navbar/)

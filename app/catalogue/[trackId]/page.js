@@ -45,7 +45,7 @@ const trackSelect = {
   }
 }
 
-const getTrackDetail = async trackId => {
+const getTrackDetail = async (trackId, currentUser = null) => {
   const track = await prisma.track.findFirst({
     where: {
       id: trackId,
@@ -154,6 +154,7 @@ const getTrackDetail = async trackId => {
       rejectionNote: request.rejectionNote,
       rejectionReason: request.rejectionReason,
       requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
+      isRequestedByViewer: Boolean(currentUser && request.userId === currentUser.id),
       status: request.status,
       title: request.title,
       userId: request.userId,
@@ -195,7 +196,7 @@ const CatalogueTrackDetailPage = async ({ params }) => {
     notFound()
   }
 
-  const detail = await getTrackDetail(trackId)
+  const detail = await getTrackDetail(trackId, currentUser)
 
   if (!detail) {
     notFound()

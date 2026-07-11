@@ -2906,6 +2906,23 @@ a {
   font-weight: 760;
 }
 
+.cmc-track-request-pricing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  padding-top: var(--cmc-space-2);
+  border-top: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-track-request-pricing-actions p {
+  flex: 1 0 100%;
+  margin: 0;
+  color: var(--cmc-color-accent-rose);
+  font-size: var(--cmc-font-size-small);
+  font-weight: 760;
+}
+
 .cmc-track-request-rejection-note {
   display: grid;
   gap: 0.25rem;
