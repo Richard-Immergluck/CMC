@@ -76,6 +76,7 @@ const formatBatchDate = value => {
 const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [catalogueType, setCatalogueType] = useState(catalogueTypes.collection)
   const [composer, setComposer] = useState('')
+  const [editingCollectionId, setEditingCollectionId] = useState(null)
   const [error, setError] = useState('')
   const [pricePence, setPricePence] = useState(getPricingBand(catalogueTypes.collection).defaultPricePence)
   const [pricingJustification, setPricingJustification] = useState('')
@@ -88,7 +89,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
   const pricingBand = getPricingBand(catalogueType)
   const needsPricingReview = pricePence > pricingBand.reviewThresholdPence
-  const canCreate = selectedTrackIds.length >= 2 && title.trim() && !submitting
+  const canSave = selectedTrackIds.length >= 2 && title.trim() && !submitting
 
   const handleTypeChange = event => {
     const nextType = event.target.value
@@ -109,9 +110,34 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
   const resetForm = () => {
     setComposer('')
+    setEditingCollectionId(null)
     setPricingJustification('')
     setSelectedTrackIds([])
     setTitle('')
+  }
+
+  const startEditingCollection = collection => {
+    const nextBand = getPricingBand(collection.catalogueType)
+
+    setCatalogueType(collection.catalogueType)
+    setComposer(collection.composer || '')
+    setEditingCollectionId(collection.id)
+    setError('')
+    setPricePence(collection.pricePence || nextBand.defaultPricePence)
+    setPricingJustification('')
+    setSaleFormat(collection.saleFormat || saleFormats.both)
+    setSelectedTrackIds(collection.tracks.map(track => track.trackId))
+    setStatus('')
+    setTitle(collection.title)
+  }
+
+  const cancelEditingCollection = () => {
+    const nextBand = getPricingBand(catalogueTypes.collection)
+
+    resetForm()
+    setCatalogueType(catalogueTypes.collection)
+    setPricePence(nextBand.defaultPricePence)
+    setSaleFormat(saleFormats.both)
   }
 
   const submitCollection = async event => {
@@ -121,8 +147,8 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     setSubmitting(true)
 
     try {
-      const response = await fetch('/api/works-collections', {
-        method: 'POST',
+      const response = await fetch(editingCollectionId ? `/api/works-collections/${editingCollectionId}` : '/api/works-collections', {
+        method: editingCollectionId ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -139,14 +165,14 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Unable to create Work or Collection')
+        throw new Error(data.message || 'Unable to save Work or Collection')
       }
 
-      onCreated(data.collection)
+      onCreated(data.collection, editingCollectionId ? { replaceId: editingCollectionId } : {})
       resetForm()
-      setStatus('Work or Collection created.')
+      setStatus(editingCollectionId ? 'Work or Collection updated.' : 'Work or Collection created.')
     } catch (createError) {
-      setError(createError.message || 'Unable to create Work or Collection')
+      setError(createError.message || 'Unable to save Work or Collection')
     } finally {
       setSubmitting(false)
     }
@@ -190,6 +216,11 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
       <div className='cmc-profile-works-grid'>
         <form className='cmc-profile-works-form' onSubmit={submitCollection}>
+          {editingCollectionId && (
+            <div className='cmc-profile-notice cmc-profile-notice--info' role='status'>
+              Editing an existing Work or Collection. Save changes to update the release.
+            </div>
+          )}
           <div className='cmc-profile-works-fields'>
             <label>
               <span>Title</span>
@@ -290,8 +321,15 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
           <div className='cmc-profile-works-actions'>
             <span>{selectedTrackIds.length} selected</span>
-            <Button disabled={!canCreate} type='submit' variant='ink'>
-              {submitting ? 'Creating...' : 'Create Work or Collection'}
+            {editingCollectionId && (
+              <Button disabled={submitting} type='button' variant='subtle' onClick={cancelEditingCollection}>
+                Cancel edit
+              </Button>
+            )}
+            <Button disabled={!canSave} type='submit' variant='ink'>
+              {submitting
+                ? 'Saving...'
+                : editingCollectionId ? 'Save Work or Collection' : 'Create Work or Collection'}
             </Button>
           </div>
         </form>
@@ -309,16 +347,36 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
                     <small>{collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)}</small>
                   </div>
-                  <Button
-                    aria-label={`Delete ${collection.title}`}
-                    disabled={deletingCollectionId === collection.id}
-                    onClick={() => deleteCollection(collection)}
-                    size='sm'
-                    type='button'
-                    variant='subtle'
-                  >
-                    {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
-                  </Button>
+                  <div className='cmc-profile-works-list-actions'>
+                    <Button
+                      as={Link}
+                      href={`/upload/manage/works/${collection.id}`}
+                      size='sm'
+                      variant='subtle'
+                    >
+                      View
+                    </Button>
+                    <Button
+                      aria-label={`Edit ${collection.title}`}
+                      disabled={deletingCollectionId === collection.id}
+                      onClick={() => startEditingCollection(collection)}
+                      size='sm'
+                      type='button'
+                      variant='paper'
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      aria-label={`Delete ${collection.title}`}
+                      disabled={deletingCollectionId === collection.id}
+                      onClick={() => deleteCollection(collection)}
+                      size='sm'
+                      type='button'
+                      variant='subtle'
+                    >
+                      {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -495,6 +553,12 @@ const UploadManagementPageContent = ({
             onCreated={(collection, action = {}) => setWorksCollections(currentCollections => {
               if (action.deleteId) {
                 return currentCollections.filter(currentCollection => currentCollection.id !== action.deleteId)
+              }
+
+              if (action.replaceId) {
+                return currentCollections.map(currentCollection => (
+                  currentCollection.id === action.replaceId ? collection : currentCollection
+                ))
               }
 
               return [collection, ...currentCollections]

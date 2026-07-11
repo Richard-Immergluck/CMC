@@ -292,6 +292,25 @@ test.describe('track review API flow', () => {
       ])
     )
 
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload/manage')
+    const collectionRow = page.getByRole('listitem').filter({
+      hasText: `E2E Grouped Work ${suffix}`
+    })
+
+    await expect(collectionRow.getByRole('link', { name: 'View' })).toHaveAttribute('href', `/upload/manage/works/${collectionBody.collection.id}`)
+    await collectionRow.getByRole('link', { name: 'View' }).click()
+    await expect(page).toHaveURL(new RegExp(`/upload/manage/works/${collectionBody.collection.id}$`))
+    await expect(page.getByRole('heading', { name: `E2E Grouped Work ${suffix}.` })).toBeVisible()
+    await page.getByRole('link', { name: 'Back to management' }).click()
+
+    await collectionRow.getByRole('button', { name: `Edit E2E Grouped Work ${suffix}` }).click()
+    await expect(page.getByText('Editing an existing Work or Collection.')).toBeVisible()
+    await page.getByLabel('Title').fill(`E2E UI Edited Grouped Work ${suffix}`)
+    await page.getByRole('button', { name: 'Save Work or Collection' }).click()
+    await expect(page.getByText('Work or Collection updated.')).toBeVisible()
+    await expect(page.getByText(`E2E UI Edited Grouped Work ${suffix}`)).toBeVisible()
+
     const updateResponse = await request.patch(`/api/works-collections/${collectionBody.collection.id}`, {
       data: {
         catalogueType: 'COLLECTION',
