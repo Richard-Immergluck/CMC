@@ -142,7 +142,10 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
                   <span aria-hidden='true'>{String(track.position).padStart(2, '0')}</span>
                   <div>
                     <Link href={`/catalogue/${track.trackId}`}>{track.title}</Link>
-                    <small>{track.composer || collection.composer || 'Unknown composer'}</small>
+                    <small>
+                      {track.movementNo ? `${track.movementNo} · ` : ''}
+                      {track.composer || collection.composer || 'Unknown composer'}
+                    </small>
                   </div>
                   <dl>
                     <div>
@@ -152,6 +155,10 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
                     <div>
                       <dt>Position</dt>
                       <dd>{track.position}</dd>
+                    </div>
+                    <div>
+                      <dt>Section</dt>
+                      <dd>{track.movementNo || 'Not set'}</dd>
                     </div>
                     <div>
                       <dt>Composer</dt>

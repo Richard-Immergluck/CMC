@@ -110,6 +110,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
         : [
           ...currentItems,
           {
+            movementNo: '',
             titleInWork: track?.title || '',
             trackId
           }
@@ -145,6 +146,17 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     )))
   }
 
+  const updateSelectedTrackMovement = (trackId, movementNo) => {
+    setSelectedTrackItems(currentItems => currentItems.map(item => (
+      item.trackId === trackId
+        ? {
+          ...item,
+          movementNo
+        }
+        : item
+    )))
+  }
+
   const resetForm = () => {
     setComposer('')
     setEditingCollectionId(null)
@@ -164,6 +176,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     setPricingJustification('')
     setSaleFormat(collection.saleFormat || saleFormats.both)
     setSelectedTrackItems(collection.tracks.map(track => ({
+      movementNo: track.movementNo || '',
       titleInWork: track.titleInWork || track.title || '',
       trackId: track.trackId
     })))
@@ -200,6 +213,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
           saleFormat,
           title: title.trim(),
           trackItems: selectedTrackItems.map((item, index) => ({
+            movementNo: item.movementNo.trim() || undefined,
             position: index + 1,
             titleInWork: item.titleInWork.trim() || undefined,
             trackId: item.trackId
@@ -348,6 +362,16 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                           placeholder='Display title inside this Work or Collection'
                           type='text'
                           value={item.titleInWork}
+                        />
+                      </label>
+                      <label>
+                        <span>Movement / section</span>
+                        <input
+                          maxLength={80}
+                          onChange={event => updateSelectedTrackMovement(item.trackId, event.target.value)}
+                          placeholder='e.g. II, No. 4, Act I'
+                          type='text'
+                          value={item.movementNo}
                         />
                       </label>
                       <div className='cmc-profile-works-selected-actions'>

@@ -9,11 +9,13 @@ test('normalizeTrackItems preserves legacy trackIds as ordered release items', (
     }),
     [
       {
+        movementNo: null,
         position: 1,
         titleInWork: null,
         trackId: 12
       },
       {
+        movementNo: null,
         position: 2,
         titleInWork: null,
         trackId: 11
@@ -27,11 +29,13 @@ test('normalizeTrackItems sorts explicit positions and compacts release order', 
     normalizeTrackItems({
       trackItems: [
         {
+          movementNo: 'III.',
           position: 20,
           titleInWork: 'III. Finale',
           trackId: 33
         },
         {
+          movementNo: 'I.',
           position: 10,
           titleInWork: 'I. Opening',
           trackId: 31
@@ -40,11 +44,13 @@ test('normalizeTrackItems sorts explicit positions and compacts release order', 
     }),
     [
       {
+        movementNo: 'I.',
         position: 1,
         titleInWork: 'I. Opening',
         trackId: 31
       },
       {
+        movementNo: 'III.',
         position: 2,
         titleInWork: 'III. Finale',
         trackId: 33
