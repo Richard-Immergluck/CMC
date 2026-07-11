@@ -35,9 +35,35 @@ const generatedRequestTitlePrefixes = [
   'E2E Smoke Request '
 ]
 
+const generatedReleaseTitlePrefixes = [
+  'E2E Checkout Collection ',
+  'E2E Collection ',
+  'E2E Archived Collection ',
+  'E2E Grouped Work ',
+  'E2E Learning Pack '
+]
+
+const generatedUploadBatchLabels = [
+  'E2E Batch Import',
+  'E2E Submitted Batch',
+  'E2E Completed Batch'
+]
+
 const requestTitlePrefixFilters = generatedRequestTitlePrefixes.map(prefix => ({
   title: {
     startsWith: prefix
+  }
+}))
+
+const releaseTitlePrefixFilters = generatedReleaseTitlePrefixes.map(prefix => ({
+  title: {
+    startsWith: prefix
+  }
+}))
+
+const uploadBatchLabelFilters = generatedUploadBatchLabels.map(label => ({
+  label: {
+    startsWith: label
   }
 }))
 
@@ -47,6 +73,18 @@ const richardUploadEmails = [
 ]
 
 const cleanGeneratedE2EData = async () => {
+  await prisma.catalogueRelease.deleteMany({
+    where: {
+      OR: releaseTitlePrefixFilters
+    }
+  })
+
+  await prisma.uploadBatch.deleteMany({
+    where: {
+      OR: uploadBatchLabelFilters
+    }
+  })
+
   const generatedTracks = await prisma.track.findMany({
     where: {
       OR: titlePrefixFilters
@@ -264,6 +302,58 @@ const seed = async () => {
     }
   })
 
+  const draftBatch = await prisma.uploadBatch.create({
+    data: {
+      label: 'E2E Batch Import - Draft Song Cycle',
+      defaultComposer: 'Synthetic Test Fixture',
+      defaultInstrumentation: 'Voice and piano rehearsal',
+      defaultPricePence: 499,
+      status: 'DRAFT',
+      createdAt: new Date('2026-07-01T09:00:00.000Z'),
+      updatedAt: new Date('2026-07-01T09:00:00.000Z'),
+      uploadedBy: {
+        connect: {
+          id: uploader.id
+        }
+      }
+    }
+  })
+  const submittedBatch = await prisma.uploadBatch.create({
+    data: {
+      label: 'E2E Submitted Batch - Opera Scenes',
+      defaultComposer: 'Synthetic Test Fixture',
+      defaultInstrumentation: 'Practice orchestra',
+      defaultPricePence: 699,
+      status: 'SUBMITTED',
+      createdAt: new Date('2026-07-02T09:00:00.000Z'),
+      updatedAt: new Date('2026-07-02T10:00:00.000Z'),
+      submittedAt: new Date('2026-07-02T10:00:00.000Z'),
+      uploadedBy: {
+        connect: {
+          id: uploader.id
+        }
+      }
+    }
+  })
+  const completedBatch = await prisma.uploadBatch.create({
+    data: {
+      label: 'E2E Completed Batch - Teaching Collection',
+      defaultComposer: 'Synthetic Test Fixture',
+      defaultInstrumentation: 'Piano guide tone',
+      defaultPricePence: 299,
+      status: 'COMPLETED',
+      createdAt: new Date('2026-07-03T09:00:00.000Z'),
+      updatedAt: new Date('2026-07-03T12:00:00.000Z'),
+      submittedAt: new Date('2026-07-03T10:00:00.000Z'),
+      completedAt: new Date('2026-07-03T12:00:00.000Z'),
+      uploadedBy: {
+        connect: {
+          id: uploader.id
+        }
+      }
+    }
+  })
+
   const trackData = {
     fileName: 'e2e-fixtures/catalogue-navigation.wav',
     previewFileName: 'e2e-fixtures/catalogue-navigation.wav',
@@ -291,7 +381,12 @@ const seed = async () => {
     downloadCount: 0,
     key: 'C major',
     instrumentation: 'Piano guide tone',
-    additionalInfo: 'Synthetic database-only fixture for browser smoke tests.'
+    additionalInfo: 'Synthetic database-only fixture for browser smoke tests.',
+    uploadBatch: {
+      connect: {
+        id: completedBatch.id
+      }
+    }
   }
 
   const existingTrack = await prisma.track.findFirst({
@@ -356,7 +451,20 @@ const seed = async () => {
     downloadCount: 0,
     key: demoTrack.key,
     instrumentation: demoTrack.instrumentation,
-    additionalInfo: demoTrack.additionalInfo
+    additionalInfo: demoTrack.additionalInfo,
+    uploadBatch: index < 8
+      ? {
+          connect: {
+            id: completedBatch.id
+          }
+        }
+      : index < 16
+        ? {
+            connect: {
+              id: submittedBatch.id
+            }
+          }
+        : undefined
   }))
 
   for (const [index, extraTrack] of extraCatalogueTracks.entries()) {
@@ -398,6 +506,79 @@ const seed = async () => {
           userId: customer.id,
           purchasedAt: new Date(`2026-07-${String(index + 1).padStart(2, '0')}T10:00:00.000Z`)
         }
+      })
+    }
+  }
+
+  const uploadStateTracks = [
+    {
+      fileName: 'demo-fixtures/bach-warmup-study-op-12.wav',
+      previewFileName: 'demo-fixtures/bach-warmup-study-op-12.wav',
+      title: 'E2E Pending Review Upload - Schubert Lieder Cue',
+      composer: 'Schubert Style Synthetic Fixture',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING',
+      processingStatus: 'READY',
+      uploadBatchId: submittedBatch.id
+    },
+    {
+      fileName: 'demo-fixtures/mozart-phrase-study-op-13.wav',
+      previewFileName: 'demo-fixtures/mozart-phrase-study-op-13.wav',
+      title: 'E2E Browser Upload Processing Fixture',
+      composer: 'Mozart Style Synthetic Fixture',
+      status: 'PROCESSING',
+      moderationStatus: 'PENDING',
+      processingStatus: 'PROCESSING',
+      uploadBatchId: draftBatch.id
+    }
+  ]
+
+  for (const [index, uploadStateTrack] of uploadStateTracks.entries()) {
+    const existingUploadStateTrack = await prisma.track.findFirst({
+      where: {
+        title: uploadStateTrack.title,
+        composer: uploadStateTrack.composer,
+        userId: uploader.id
+      }
+    })
+    const uploadStateTrackData = {
+      ...uploadStateTrack,
+      uploadedBy: {
+        connect: {
+          id: uploader.id
+        }
+      },
+      previewStart: 0,
+      previewEnd: 10,
+      durationSeconds: 120 + index * 30,
+      sourceContentType: 'audio/wav',
+      price: 4.99,
+      pricePence: 499,
+      currency: 'gbp',
+      formattedPrice: 'GBP 4.99',
+      downloadName: `e2e-upload-state-${index + 1}.wav`,
+      downloadCount: 0,
+      key: index === 0 ? 'G minor' : 'F major',
+      instrumentation: index === 0 ? 'Voice and piano rehearsal' : 'Practice orchestra',
+      additionalInfo: 'Synthetic upload-state fixture for management and moderation views.',
+      uploadBatch: {
+        connect: {
+          id: uploadStateTrack.uploadBatchId
+        }
+      },
+      uploadBatchId: undefined
+    }
+
+    if (existingUploadStateTrack) {
+      await prisma.track.update({
+        where: {
+          id: existingUploadStateTrack.id
+        },
+        data: uploadStateTrackData
+      })
+    } else {
+      await prisma.track.create({
+        data: uploadStateTrackData
       })
     }
   }
@@ -469,6 +650,181 @@ const seed = async () => {
           trackId: savedPeerTrack.id,
           userId: uploader.id,
           purchasedAt: new Date(`2026-07-${String(index + 6).padStart(2, '0')}T11:00:00.000Z`)
+        }
+      })
+    }
+  }
+
+  const collectionTracks = savedExtraCatalogueTracks.slice(0, 4)
+  const learningPackTracks = savedExtraCatalogueTracks.slice(4, 9)
+  const archivedCollectionTracks = savedExtraCatalogueTracks.slice(9, 12)
+  let publishedCollection = null
+  let reviewCollection = null
+  let archivedCollection = null
+
+  if (collectionTracks.length >= 2) {
+    publishedCollection = await prisma.catalogueRelease.create({
+      data: {
+        title: 'E2E Collection Bach Warmup Pack',
+        composer: 'Bach Style Synthetic Fixture',
+        catalogueType: 'COLLECTION',
+        saleFormat: 'BOTH',
+        pricePence: 999,
+        currency: 'gbp',
+        formattedPrice: 'GBP 9.99',
+        pricingReviewStatus: 'AUTO_APPROVED',
+        pricingJustification: 'Standard grouped fixture for collection browsing and checkout.',
+        status: 'PUBLISHED',
+        createdAt: new Date('2026-07-04T09:00:00.000Z'),
+        uploadedBy: {
+          connect: {
+            id: uploader.id
+          }
+        },
+        tracks: {
+          create: collectionTracks.map((collectionTrack, index) => ({
+            movementNo: `No. ${index + 1}`,
+            position: index + 1,
+            titleInWork: collectionTrack.title.replace(/^E2E Catalogue /, ''),
+            track: {
+              connect: {
+                id: collectionTrack.id
+              }
+            }
+          }))
+        }
+      }
+    })
+  }
+
+  if (learningPackTracks.length >= 2) {
+    reviewCollection = await prisma.catalogueRelease.create({
+      data: {
+        title: 'E2E Learning Pack Opera Scenes',
+        composer: 'Mixed synthetic composers',
+        catalogueType: 'LEARNING_PACK',
+        saleFormat: 'BUNDLE',
+        pricePence: 2999,
+        currency: 'gbp',
+        formattedPrice: 'GBP 29.99',
+        pricingReviewStatus: 'NEEDS_REVIEW',
+        pricingJustification: 'Large multi-track teaching pack intentionally priced for admin review coverage.',
+        status: 'PUBLISHED',
+        createdAt: new Date('2026-07-05T09:00:00.000Z'),
+        uploadedBy: {
+          connect: {
+            id: uploader.id
+          }
+        },
+        tracks: {
+          create: learningPackTracks.map((collectionTrack, index) => ({
+            movementNo: `Scene ${index + 1}`,
+            position: index + 1,
+            titleInWork: collectionTrack.title.replace(/^E2E Catalogue /, ''),
+            track: {
+              connect: {
+                id: collectionTrack.id
+              }
+            }
+          }))
+        }
+      }
+    })
+  }
+
+  if (archivedCollectionTracks.length >= 2) {
+    archivedCollection = await prisma.catalogueRelease.create({
+      data: {
+        title: 'E2E Archived Collection Purchased Fixture',
+        composer: 'Archive Synthetic Fixture',
+        catalogueType: 'COLLECTION',
+        saleFormat: 'BOTH',
+        pricePence: 1499,
+        currency: 'gbp',
+        formattedPrice: 'GBP 14.99',
+        pricingReviewStatus: 'APPROVED',
+        pricingJustification: 'Archived after purchase to test release lifecycle handling.',
+        status: 'ARCHIVED',
+        createdAt: new Date('2026-07-06T09:00:00.000Z'),
+        uploadedBy: {
+          connect: {
+            id: uploader.id
+          }
+        },
+        tracks: {
+          create: archivedCollectionTracks.map((collectionTrack, index) => ({
+            movementNo: `Archive ${index + 1}`,
+            position: index + 1,
+            titleInWork: collectionTrack.title.replace(/^E2E Catalogue /, ''),
+            track: {
+              connect: {
+                id: collectionTrack.id
+              }
+            }
+          }))
+        }
+      }
+    })
+
+    const archivedOrder = await prisma.order.create({
+      data: {
+        userId: customer.id,
+        status: 'PAID',
+        amountTotal: archivedCollection.pricePence,
+        currency: 'gbp',
+        stripeCheckoutSession: `cs_e2e_archived_collection_${archivedCollection.id}`,
+        stripePaymentIntent: `pi_e2e_archived_collection_${archivedCollection.id}`,
+        createdAt: new Date('2026-07-06T10:00:00.000Z'),
+        items: {
+          create: archivedCollectionTracks.map((collectionTrack, index) => {
+            const baseAmount = Math.floor(archivedCollection.pricePence / archivedCollectionTracks.length)
+            const remainder = archivedCollection.pricePence % archivedCollectionTracks.length
+
+            return {
+              trackId: collectionTrack.id,
+              sourceReleaseId: archivedCollection.id,
+              sourceReleaseTitle: archivedCollection.title,
+              title: collectionTrack.title.replace(/^E2E Catalogue /, ''),
+              composer: collectionTrack.composer,
+              unitAmount: baseAmount + (index < remainder ? 1 : 0),
+              currency: 'gbp'
+            }
+          })
+        }
+      }
+    })
+
+    await prisma.paymentEvent.create({
+      data: {
+        stripeEventId: `evt_e2e_archived_collection_${archivedCollection.id}`,
+        type: 'checkout.session.completed',
+        orderId: archivedOrder.id,
+        payload: JSON.stringify({
+          id: `evt_e2e_archived_collection_${archivedCollection.id}`,
+          type: 'checkout.session.completed',
+          fixture: true
+        })
+      }
+    })
+
+    for (const collectionTrack of archivedCollectionTracks) {
+      await prisma.trackOwner.upsert({
+        where: {
+          trackId_userId: {
+            trackId: collectionTrack.id,
+            userId: customer.id
+          }
+        },
+        update: {
+          sourceReleaseId: archivedCollection.id,
+          sourceReleaseTitle: archivedCollection.title
+        },
+        create: {
+          trackId: collectionTrack.id,
+          userId: customer.id,
+          sourceReleaseId: archivedCollection.id,
+          sourceReleaseTitle: archivedCollection.title,
+          purchasedAt: new Date('2026-07-06T10:05:00.000Z')
         }
       })
     }
@@ -546,6 +902,13 @@ const seed = async () => {
       instrumentation: 'Violin and piano',
       notes: 'A version with a light violin entry cue would make this easier to use in lessons.',
       status: 'PENDING_DECISION',
+      pricingProposal: {
+        catalogueType: 'MOVEMENT',
+        pricePence: 999,
+        requesterDecision: 'PENDING',
+        reviewStatus: 'AUTO_APPROVED',
+        saleFormat: 'INDIVIDUAL'
+      },
       userId: support.id,
       createdAt: new Date('2026-07-10T13:45:00.000Z')
     },
@@ -555,6 +918,13 @@ const seed = async () => {
       instrumentation: 'Piano guide tone',
       notes: 'Accepted request fixture for testing upload fulfilment from the details page.',
       status: 'ACCEPTED',
+      pricingProposal: {
+        catalogueType: 'SINGLE_TRACK',
+        pricePence: 499,
+        requesterDecision: 'ACCEPTED',
+        reviewStatus: 'AUTO_APPROVED',
+        saleFormat: 'INDIVIDUAL'
+      },
       userId: customer.id,
       createdAt: new Date('2026-07-10T13:55:00.000Z')
     },
@@ -575,6 +945,7 @@ const seed = async () => {
       instrumentation: 'Piano guide tone',
       notes: 'Could this be available as a short 45-second rehearsal cut?',
       status: 'COMPLETED',
+      fulfilledByTrackId: savedExtraCatalogueTracks[12]?.id,
       userId: customer.id,
       createdAt: new Date('2026-07-10T14:10:00.000Z')
     }
@@ -639,7 +1010,8 @@ const seed = async () => {
       composer: 'W. A. Mozart',
       instrumentation: 'Clarinet and orchestra reduction',
       notes: 'Request fulfilled by an existing catalogue upload for smoke coverage.',
-      status: 'COMPLETED'
+      status: 'COMPLETED',
+      fulfilledByTrackId: purchasedTracks[2]?.id
     }
   ]
 
@@ -673,18 +1045,44 @@ const seed = async () => {
             connect: {
               id: bachWarmupTrack.id
             }
-          }
+          },
+          fulfilledByTrack: requestFixture.fulfilledByTrackId
+            ? {
+                connect: {
+                  id: requestFixture.fulfilledByTrackId
+                }
+              }
+            : undefined,
+          pricingProposals: requestFixture.pricingProposal
+            ? {
+                create: {
+                  ...requestFixture.pricingProposal,
+                  currency: 'gbp',
+                  justification: 'Seeded request price proposal for requester decision testing.',
+                  proposedBy: {
+                    connect: {
+                      id: uploader.id
+                    }
+                  },
+                  requesterRespondedAt:
+                    requestFixture.pricingProposal.requesterDecision === 'PENDING'
+                      ? null
+                      : new Date('2026-07-10T15:00:00.000Z')
+                }
+              }
+            : undefined
         }
       })
     }
   }
 
   for (const [index, requestFixture] of requestFixtures.entries()) {
+    const { fulfilledByTrackId, ...requestData } = requestFixture
     const requestTrack = purchasedTracks[index] || purchasedTracks[0]
 
     await prisma.trackRequest.create({
       data: {
-        ...requestFixture,
+        ...requestData,
         track: {
           connect: {
             id: requestTrack.id
@@ -695,6 +1093,13 @@ const seed = async () => {
             id: customer.id
           }
         },
+        fulfilledByTrack: fulfilledByTrackId
+          ? {
+              connect: {
+                id: fulfilledByTrackId
+              }
+            }
+          : undefined,
         createdAt: new Date(`2026-07-${String(index + 3).padStart(2, '0')}T09:15:00.000Z`)
       }
     })
@@ -720,11 +1125,13 @@ const seed = async () => {
       composer: 'Gabriel Faure',
       instrumentation: 'Cello and piano',
       notes: 'Uploader request fixture marked fulfilled for profile and detail review.',
-      status: 'COMPLETED'
+      status: 'COMPLETED',
+      fulfilledByTrackId: uploaderPurchasedTracks[2]?.id
     }
   ]
 
   for (const [index, requestFixture] of uploaderRequestFixtures.entries()) {
+    const { fulfilledByTrackId, ...requestData } = requestFixture
     const requestTrack = uploaderPurchasedTracks[index] || uploaderPurchasedTracks[0]
 
     if (!requestTrack) {
@@ -733,7 +1140,7 @@ const seed = async () => {
 
     await prisma.trackRequest.create({
       data: {
-        ...requestFixture,
+        ...requestData,
         track: {
           connect: {
             id: requestTrack.id
@@ -744,6 +1151,13 @@ const seed = async () => {
             id: uploader.id
           }
         },
+        fulfilledByTrack: fulfilledByTrackId
+          ? {
+              connect: {
+                id: fulfilledByTrackId
+              }
+            }
+          : undefined,
         createdAt: new Date(`2026-07-${String(index + 8).padStart(2, '0')}T09:45:00.000Z`)
       }
     })
@@ -758,6 +1172,12 @@ const seed = async () => {
   console.log(`Seeded Bach Warmup detail fixtures for ${bachWarmupTrack?.title || 'missing target track'}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
   console.log(`Seeded ${uploaderRequestFixtures.length} E2E uploader requests for ${uploader.email}`)
+  console.log(`Seeded 3 E2E upload batches for ${uploader.email}`)
+  console.log(`Seeded ${[
+    publishedCollection,
+    reviewCollection,
+    archivedCollection
+  ].filter(Boolean).length} E2E Works & Collections fixtures`)
 
   const richardPlaybackTrack = await prisma.track.findFirst({
     where: {

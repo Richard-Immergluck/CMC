@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-label="A  ARCHIVE STAFF MARKS">
+  <defs>
+    <filter id="paperNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" seed="31" />
+      <feColorMatrix type="saturate" values="0.15" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.16" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#2a2012" flood-opacity="0.11" />
+    </filter>
+    <filter id="inkTexture" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="4" seed="9" />
+      <feColorMatrix type="saturate" values="0.3" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0.04 0.2" />
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="parchment" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#efd5ad" />
+      <stop offset="0.55" stop-color="#f4deb9" />
+      <stop offset="1" stop-color="#d19a43" />
+    </linearGradient>
+    <style>
+      .bg { fill: #f8f3e9; }
+      .grain { filter: url(#paperNoise); opacity: 0.68; }
+      .outer { fill: none; stroke: rgba(24,32,37,0.14); stroke-width: 1; }
+      .card { fill: rgba(255,251,243,0.58); stroke: rgba(24,32,37,0.14); stroke-width: 1; }
+      .label { fill: #94383d; font: 800 13px Arial, sans-serif; letter-spacing: 4px; }
+      .small { fill: #665f52; font: 650 13px Arial, sans-serif; }
+      .tiny { fill: #665f52; font: 760 10px Arial, sans-serif; letter-spacing: 2px; }
+      .serif { fill: #182025; font-family: Georgia, 'Times New Roman', serif; }
+      .fine { stroke: #596765; stroke-width: 0.8; opacity: 0.24; }
+      .staff { stroke: #596765; stroke-width: 1.1; opacity: 0.58; }
+      .gold { stroke: #bb811a; fill: none; }
+      .red { stroke: #94383d; fill: none; }
+      .teal { stroke: #0b626b; fill: none; }
+    </style>
+  </defs>
+  <rect class="bg" width="760" height="520" />
+  <rect class="grain" width="760" height="520" />
+  <rect x="32" y="36" width="696" height="448" class="outer" />
+  
+    <text x="64" y="78" class="label">A  ARCHIVE STAFF MARKS</text>
+    <text x="64" y="104" class="small">Upload, review, publish. Private until approved.</text>
+    <rect x="150" y="130" width="430" height="286" class="card" filter="url(#softShadow)" />
+    <rect x="112" y="104" width="68" height="344" fill="url(#parchment)" />
+    <rect x="112" y="104" width="68" height="344" class="grain" />
+    <line x1="220" x2="528" y1="240" y2="240" class="fine" />
+    <line x1="220" x2="528" y1="326" y2="326" class="fine" />
+    
+    
+  <g transform="translate(146 188)">
+    
+  <g stroke="#bb811a" opacity="0.75">
+    <line x1="-25" x2="21" y1="-14" y2="-14" stroke-width="1.1" /><line x1="-25" x2="21" y1="-8" y2="-8" stroke-width="1.1" /><line x1="-25" x2="21" y1="-2" y2="-2" stroke-width="1.1" /><line x1="-25" x2="21" y1="4" y2="4" stroke-width="1.1" /><line x1="-25" x2="21" y1="10" y2="10" stroke-width="1.1" />
+  </g>
+    <rect x="-4" y="-30" width="11" height="58" fill="#efd5ad" opacity="0.7" />
+    <line x1="16" x2="30" y1="0" y2="0" stroke="#bb811a" stroke-width="1.5" />
+    <circle cx="34" cy="0" r="2.5" fill="#bb811a" />
+  </g>
+    
+  <g transform="translate(146 274)" stroke="#94383d" fill="none">
+    <path d="M-24 -4 C-10 -18, 11 -18, 27 -2" stroke-width="2" />
+    <path d="M-22 10 C-4 -2, 9 2, 24 14" stroke-width="1.4" opacity="0.72" />
+    <line x1="-31" x2="31" y1="23" y2="23" stroke-width="1.2" opacity="0.6" />
+  </g>
+    
+  <g transform="translate(146 360)">
+    <rect x="-24" y="-20" width="48" height="40" fill="#0b626b" opacity="0.14" />
+    <rect x="-24" y="-20" width="48" height="40" filter="url(#inkTexture)" />
+    <path d="M-30 -3 H-8 M8 -3 H30 M-30 9 H30" stroke="#0b626b" stroke-width="1.5" opacity="0.78" />
+    <rect x="-6" y="-11" width="12" height="28" fill="#0b626b" opacity="0.9" />
+  </g>
+  
+    
+    <text x="230" y="198" class="serif" style="font-size:32px">Upload</text>
+    <text x="230" y="284" class="serif" style="font-size:32px">Review</text>
+    <text x="230" y="370" class="serif" style="font-size:32px">Publish</text>
+    <line x1="388" x2="510" y1="188" y2="188" stroke="#bb811a" stroke-width="2.3" />
+    <line x1="388" x2="510" y1="274" y2="274" stroke="#94383d" stroke-width="2.3" />
+    <line x1="388" x2="510" y1="360" y2="360" stroke="#0b626b" stroke-width="2.3" />
+    <text x="230" y="430" class="small">The track enters CMC as a private review record.</text>
+  
+  
+</svg>

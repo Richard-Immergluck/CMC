@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-label="C  FOLIO EXCHANGE">
+  <defs>
+    <filter id="paperNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" seed="31" />
+      <feColorMatrix type="saturate" values="0.15" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.16" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#2a2012" flood-opacity="0.11" />
+    </filter>
+    <filter id="inkTexture" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="4" seed="9" />
+      <feColorMatrix type="saturate" values="0.3" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0.04 0.2" />
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="parchment" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#efd5ad" />
+      <stop offset="0.55" stop-color="#f4deb9" />
+      <stop offset="1" stop-color="#d19a43" />
+    </linearGradient>
+    <style>
+      .bg { fill: #f8f3e9; }
+      .grain { filter: url(#paperNoise); opacity: 0.68; }
+      .outer { fill: none; stroke: rgba(24,32,37,0.14); stroke-width: 1; }
+      .card { fill: rgba(255,251,243,0.58); stroke: rgba(24,32,37,0.14); stroke-width: 1; }
+      .label { fill: #94383d; font: 800 13px Arial, sans-serif; letter-spacing: 4px; }
+      .small { fill: #665f52; font: 650 13px Arial, sans-serif; }
+      .tiny { fill: #665f52; font: 760 10px Arial, sans-serif; letter-spacing: 2px; }
+      .serif { fill: #182025; font-family: Georgia, 'Times New Roman', serif; }
+      .fine { stroke: #596765; stroke-width: 0.8; opacity: 0.24; }
+      .staff { stroke: #596765; stroke-width: 1.1; opacity: 0.58; }
+      .gold { stroke: #bb811a; fill: none; }
+      .red { stroke: #94383d; fill: none; }
+      .teal { stroke: #0b626b; fill: none; }
+    </style>
+  </defs>
+  <rect class="bg" width="760" height="520" />
+  <rect class="grain" width="760" height="520" />
+  <rect x="32" y="36" width="696" height="448" class="outer" />
+  
+    <text x="64" y="78" class="label">C  FOLIO EXCHANGE</text>
+    <text x="64" y="104" class="small">Upload, review, publish. Private until approved.</text>
+    <rect x="150" y="130" width="430" height="286" class="card" filter="url(#softShadow)" />
+    <rect x="112" y="104" width="68" height="344" fill="url(#parchment)" />
+    <rect x="112" y="104" width="68" height="344" class="grain" />
+    <line x1="220" x2="528" y1="240" y2="240" class="fine" />
+    <line x1="220" x2="528" y1="326" y2="326" class="fine" />
+    
+    <g transform="translate(146 188)">
+      <path d="M-25 -26 H16 V26 H-25 Z" fill="#bb811a" opacity="0.22" />
+      <path d="M-25 -26 H16 V26 H-25 Z" stroke="#bb811a" fill="none" stroke-width="1.5" />
+      <path d="M-8 -16 V16" stroke="#bb811a" stroke-width="2" />
+    </g>
+    <g transform="translate(146 274)">
+      <path d="M-26 -22 H22 V22 H-26 Z" fill="#94383d" opacity="0.14" />
+      <path d="M-26 -22 H22 V22 H-26 Z" stroke="#94383d" fill="none" stroke-width="1.5" />
+      <path d="M-20 0 C-6 -16, 7 -16, 22 0 C8 15, -6 15, -20 0Z" stroke="#94383d" fill="none" stroke-width="1.6" />
+    </g>
+    <g transform="translate(146 360)">
+      <path d="M-24 -24 H24 V24 H-24 Z" fill="#0b626b" opacity="0.14" />
+      <path d="M-18 -10 H18 M-18 2 H18 M-18 14 H18" stroke="#0b626b" stroke-width="1.5" />
+      <rect x="-5" y="-18" width="10" height="36" fill="#0b626b" />
+    </g>
+  
+    
+    <text x="230" y="198" class="serif" style="font-size:34px">Upload</text>
+    <text x="230" y="284" class="serif" style="font-size:34px">Review</text>
+    <text x="230" y="370" class="serif" style="font-size:34px">Publish</text>
+    <path d="M388 184 C430 196, 468 176, 514 190" stroke="#bb811a" stroke-width="2.2" fill="none" />
+    <path d="M388 270 C430 282, 468 262, 514 276" stroke="#94383d" stroke-width="2.2" fill="none" />
+    <path d="M388 356 C430 368, 468 348, 514 362" stroke="#0b626b" stroke-width="2.2" fill="none" />
+    <text x="230" y="430" class="small">A paper fragment becomes a discoverable record.</text>
+  
+  
+</svg>
