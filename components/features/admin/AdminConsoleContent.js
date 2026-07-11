@@ -801,6 +801,18 @@ const PricingReviewsTable = ({
                       <div className='text-muted small'>
                         {release.composer || 'Mixed composers'} · {release.trackCount} tracks
                       </div>
+                      {release.tracks?.length > 0 && (
+                        <ol className='cmc-admin-release-track-list'>
+                          {release.tracks.slice(0, 4).map(track => (
+                            <li key={`${release.id}-${track.trackId}`}>
+                              {track.position}. {track.movementNo ? `${track.movementNo} · ` : ''}{track.title}
+                            </li>
+                          ))}
+                          {release.tracks.length > 4 && (
+                            <li>{release.tracks.length - 4} more tracks</li>
+                          )}
+                        </ol>
+                      )}
                     </td>
                     <td>
                       {release.uploader?.name || 'Unknown'}

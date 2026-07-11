@@ -63,7 +63,29 @@ test('admin pricing review serializers expose stable review context', () => {
       pricingReviewStatus: 'NEEDS_REVIEW',
       pricingJustification: 'Large collection',
       status: 'PUBLISHED',
-      tracks: [{ id: 1 }, { id: 2 }],
+      tracks: [
+        {
+          movementNo: 'I',
+          position: 1,
+          titleInWork: 'Opening cut',
+          track: {
+            id: 1,
+            title: 'Original title one',
+            composer: 'Track composer',
+            fileName: 'should-not-leak.mp3'
+          }
+        },
+        {
+          movementNo: null,
+          position: 2,
+          titleInWork: null,
+          track: {
+            id: 2,
+            title: 'Original title two',
+            composer: 'Track composer'
+          }
+        }
+      ],
       createdAt: new Date('2026-07-03T10:00:00.000Z'),
       uploadedBy: {
         id: 'uploader-2',
@@ -83,6 +105,24 @@ test('admin pricing review serializers expose stable review context', () => {
       pricingJustification: 'Large collection',
       status: 'PUBLISHED',
       suggestedBand: 'Collection',
+      tracks: [
+        {
+          id: 1,
+          composer: 'Track composer',
+          movementNo: 'I',
+          position: 1,
+          title: 'Opening cut',
+          trackId: 1
+        },
+        {
+          id: 2,
+          composer: 'Track composer',
+          movementNo: null,
+          position: 2,
+          title: 'Original title two',
+          trackId: 2
+        }
+      ],
       trackCount: 2,
       createdAt: new Date('2026-07-03T10:00:00.000Z'),
       uploader: {
