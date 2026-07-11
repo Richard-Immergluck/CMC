@@ -62,6 +62,11 @@ This tracker records backend security and auditability work completed so far and
 - Added a persisted user session revocation watermark so access changes force old JWT sessions through sign-in again.
 - Added explicit session revocation context to user access-change audit metadata without exposing session tokens.
 - Added a CI-enforced sensitive route policy check so high-risk admin mutation routes keep the stronger session guard.
+- Added a shared 50-track upload batch limit enforced in both the upload UI and server-side track creation.
+- Added uploader management visibility for upload batch capacity and Work/Collection membership while keeping tracks individually saleable.
+- Added admin review context for batched pending tracks so moderators can see the import batch behind a submission.
+- Added admin pricing-review visibility for ordered Work/Collection contents and e2e coverage for high-priced release approval.
+- Added e2e coverage proving high-priced Works/Collections remain hidden publicly until admin pricing approval.
 
 ## In Progress
 
@@ -70,3 +75,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
+- Continue upload-management hardening around bulk import failure states, admin batch reporting, and release lifecycle support workflows.
