@@ -495,6 +495,7 @@ const ProfilePageContent = ({
         : 'Tracks you have saved for later.',
       items: userWishlistedTracks.slice(0, 3).map(track => ({
         href: `/catalogue/${track.id}`,
+        itemKey: `wishlist-${track.id}`,
         meta: `Saved ${track.savedAt}`,
         title: track.title,
         trackId: track.id
@@ -508,6 +509,7 @@ const ProfilePageContent = ({
         : 'Recent requests you have created or followed.',
       items: userTrackRequests.slice(0, 3).map(request => ({
         href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : null,
+        itemKey: `request-${request.id}`,
         meta: `${formatRequestStatus(request.status)} · ${request.createdAt}`,
         title: request.title.replace(/^E2E Request /, ''),
         trackId: request.trackId
@@ -521,6 +523,7 @@ const ProfilePageContent = ({
         : 'Recent comments you have added to downloaded tracks.',
       items: userComments.slice(0, 3).map(comment => ({
         href: `/catalogue/${comment.trackId}?tab=comments&commentId=${comment.id}`,
+        itemKey: `comment-${comment.id}`,
         meta: comment.createdAt,
         title: comment.trackTitle,
         trackId: comment.trackId
@@ -694,6 +697,21 @@ const ProfilePageContent = ({
               mode={safeActiveLibraryTab}
               tracks={filteredLibraryTracks}
             />
+
+            {hasUploadedTrackLibrary && safeActiveLibraryTab === 'uploads' && (
+              <div className='cmc-profile-management-link'>
+                <div>
+                  <p className='cmc-profile-kicker'>Upload management</p>
+                  <h3>Organise uploaded tracks into Works and Collections</h3>
+                  <p>
+                    Group related approved tracks, prepare buyer-facing releases, and keep upload operations separate from your personal profile.
+                  </p>
+                </div>
+                <Button as={Link} href='/upload/manage' variant='ink'>
+                  Manage uploads
+                </Button>
+              </div>
+            )}
           </section>
 
           <section className='cmc-profile-secondary-grid' aria-label='Profile sections'>
@@ -705,7 +723,7 @@ const ProfilePageContent = ({
                 {panel.items?.length > 0 && (
                   <ul>
                     {panel.items.map(item => (
-                      <li key={`${panel.label}-${item.title}-${item.meta}`}>
+                      <li key={item.itemKey || `${panel.label}-${item.title}-${item.meta}`}>
                         {item.href ? (
                           <Link href={item.href} onClick={() => item.trackId && storeProfileTrackReturn(item.trackId)}>{item.title}</Link>
                         ) : (
@@ -744,6 +762,9 @@ const ProfilePageContent = ({
                     <div className='cmc-profile-role-actions'>
                       <Button as={Link} href='/upload' variant='ink'>
                         Upload track
+                      </Button>
+                      <Button as={Link} href='/upload/manage' variant='paper'>
+                        Manage uploads
                       </Button>
                       <Button as={Link} href='/catalogue' variant='paper'>
                         View catalogue

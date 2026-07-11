@@ -10,10 +10,12 @@ import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import {
+  atomicTrackCatalogueTypes,
   catalogueTypes,
   formatPricePence,
   getPricingBand,
-  saleFormats
+  saleFormats,
+  trackTypeLabels
 } from '../../../lib/pricing-policy.mjs'
 import { canUseFullTrackPlayback } from '../../../lib/track-audio-access.mjs'
 
@@ -148,12 +150,6 @@ const requestStatusOptions = [
 ]
 
 const manageableRequestStatusOptions = requestStatusOptions.filter(option => option.value !== 'COMPLETED')
-
-const saleFormatLabels = {
-  [saleFormats.individual]: 'Individual download',
-  [saleFormats.bundle]: 'Bundle only',
-  [saleFormats.both]: 'Individual and collection'
-}
 
 const formatRequestStatus = status => {
   return requestStatusOptions.find(option => option.value === status)?.label || status
@@ -1177,7 +1173,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                             <div className='cmc-track-request-pricing-summary'>
                               <div>
                                 <strong>{formatPricePence(latestProposal.pricePence)}</strong>
-                                <span>{getPricingBand(latestProposal.catalogueType).label} · {saleFormatLabels[latestProposal.saleFormat] || latestProposal.saleFormat}</span>
+                                <span>{trackTypeLabels[latestProposal.catalogueType] || getPricingBand(latestProposal.catalogueType).label}</span>
                               </div>
                               <dl>
                                 <div>
@@ -1283,9 +1279,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                                   <strong>Request fulfilment price</strong>
                                   <span>Use CMC guided bands before preparing bespoke work.</span>
                                 </div>
-                                <div className='cmc-track-request-pricing-grid'>
+                                <div className='cmc-track-request-pricing-grid cmc-track-request-pricing-grid--single'>
                                   <div>
-                                    <label htmlFor={`request-pricing-type-${request.id}`}>Type</label>
+                                    <label htmlFor={`request-pricing-type-${request.id}`}>Track type</label>
                                     <select
                                       id={`request-pricing-type-${request.id}`}
                                       onChange={event => updateRequestPricingDraft(request.id, {
@@ -1293,25 +1289,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                                       })}
                                       value={pricingDraft.catalogueType}
                                     >
-                                      {Object.values(catalogueTypes).map(type => (
+                                      {atomicTrackCatalogueTypes.map(type => (
                                         <option key={type} value={type}>
-                                          {getPricingBand(type).label}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div>
-                                    <label htmlFor={`request-pricing-sale-format-${request.id}`}>Sale format</label>
-                                    <select
-                                      id={`request-pricing-sale-format-${request.id}`}
-                                      onChange={event => updateRequestPricingDraft(request.id, {
-                                        saleFormat: event.target.value
-                                      })}
-                                      value={pricingDraft.saleFormat}
-                                    >
-                                      {Object.values(saleFormats).map(format => (
-                                        <option key={format} value={format}>
-                                          {saleFormatLabels[format]}
+                                          {trackTypeLabels[type] || getPricingBand(type).label}
                                         </option>
                                       ))}
                                     </select>

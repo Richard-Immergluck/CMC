@@ -16,24 +16,20 @@ import * as yup from 'yup'
 import BrandDisplayText from '../brand/BrandDisplayText'
 import { canStartTrackUpload } from '../../lib/access-control.mjs'
 import {
+  atomicTrackCatalogueTypes,
   catalogueTypes,
   formatPricePence,
   getPricingBand,
   getPricingReviewStatus,
   isAllowedPriceForCatalogueType,
   pricingReviewStatuses,
-  saleFormats
+  saleFormats,
+  trackTypeLabels
 } from '../../lib/pricing-policy.mjs'
 import { Button, Panel } from '../ui/primitives'
 
 const PREVIEW_LENGTH_SECONDS = 15
 const WAVEFORM_BAR_COUNT = 180
-
-const saleFormatLabels = {
-  [saleFormats.individual]: 'Individual download',
-  [saleFormats.bundle]: 'Bundle only',
-  [saleFormats.both]: 'Individual and bundle'
-}
 
 const formatSeconds = seconds => {
   if (!Number.isFinite(seconds)) {
@@ -70,8 +66,43 @@ const buildWaveformPeaks = audioBuffer => {
   })
 }
 
+const createUploadBatch = async ({
+  defaultComposer,
+  defaultInstrumentation,
+  defaultPricePence,
+  label
+}) => {
+  const response = await fetch('/api/upload-batches', {
+    method: 'POST',
+    body: JSON.stringify({
+      defaultComposer,
+      defaultInstrumentation,
+      defaultPricePence,
+      label
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Unable to create upload batch')
+  }
+
+  return data.batch
+}
+
+const getInitialCatalogueTypeForPrice = pricePence => {
+  if (!Number.isInteger(Number(pricePence))) {
+    return catalogueTypes.singleTrack
+  }
+
+  return atomicTrackCatalogueTypes.find(type => getPricingBand(type).options.includes(Number(pricePence))) || catalogueTypes.singleTrack
+}
+
 // DBUpload function
-const uploadToDB = async (values, newFileName) => {
+const uploadToDB = async (values, newFileName, { uploadBatchId } = {}) => {
   const {
     title,
     composer,
@@ -124,7 +155,8 @@ const uploadToDB = async (values, newFileName) => {
     pricingJustification,
     downloadName,
     downloadCount,
-    fulfilledRequestId: resolvedFulfilledRequestId
+    fulfilledRequestId: resolvedFulfilledRequestId,
+    uploadBatchId
   }
 
   // Send the submission object to the api endpoint
@@ -378,9 +410,10 @@ const UploadPreviewSelector = ({
   )
 }
 
-function UploadForm({ initialFulfilledRequestId = '' }) {
+function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null }) {
   const fulfilledRequestId = initialFulfilledRequestId
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
+  const [selectedFiles, setSelectedFiles] = useState([])
   const [uploadedFileName, setUploadedFileName] = useState('')
   const [audioUrl, setAudioUrl] = useState('')
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform())
@@ -393,6 +426,9 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
   const [uploadError, setUploadError] = useState('')
   const [uploadingAudio, setUploadingAudio] = useState(false)
   const [showUploadComplete, setShowUploadComplete] = useState(false)
+  const [uploadMode, setUploadMode] = useState(initialUploadBatch ? 'batch' : 'single')
+  const [batchLabel, setBatchLabel] = useState(initialUploadBatch?.label || '')
+  const [activeUploadBatch, setActiveUploadBatch] = useState(initialUploadBatch)
 
   // Get the session
   const { data: session } = useSession()
@@ -416,22 +452,29 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
   }, [audioUrl])
 
   // --- Formik Setup ---
+  const initialCatalogueType = getInitialCatalogueTypeForPrice(initialUploadBatch?.defaultPricePence)
+  const initialPricingBand = getPricingBand(initialCatalogueType)
+  const initialPricePence = Number.isInteger(Number(initialUploadBatch?.defaultPricePence))
+    ? Number(initialUploadBatch.defaultPricePence)
+    : initialPricingBand.defaultPricePence
   const initialValues = {
     file: null,
     title: '',
-    composer: '',
+    composer: initialUploadBatch?.defaultComposer || '',
     key: '',
-    instrumentation: '',
+    instrumentation: initialUploadBatch?.defaultInstrumentation || '',
     previewStart: 0,
     previewEnd: PREVIEW_LENGTH_SECONDS,
     durationSeconds: PREVIEW_LENGTH_SECONDS,
     sourceContentType: '',
     additionalInfo: '',
-    catalogueType: catalogueTypes.singleTrack,
+    catalogueType: initialCatalogueType,
     saleFormat: saleFormats.individual,
-    pricingTier: '',
+    pricingTier: initialUploadBatch?.defaultPricePence
+      ? `${initialPricingBand.label} ${formatPricePence(initialPricePence)}`
+      : '',
     pricingJustification: '',
-    priceString: '2.99',
+    priceString: (initialPricePence / 100).toFixed(2),
     fulfilledRequestId,
     terms: false
   }
@@ -441,13 +484,14 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
   const validationSchema = yup.object().shape({
     file: yup
       .mixed()
-      .required('Please select a file to upload')
       .test('format', 'File format not supported', value => {
-        if (!value) {
+        const fileName = value || selectedFile?.name
+
+        if (!fileName) {
           return false
         }
 
-        var fileExtension = value.split('.').pop().toLowerCase() // pull file extension from string
+        var fileExtension = fileName.split('.').pop().toLowerCase() // pull file extension from string
         return supportedFormats.includes(`.${fileExtension}`)
       }),
     title: yup.string().required('Please enter a title'),
@@ -459,8 +503,8 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
     durationSeconds: yup.number().integer().min(1).required(),
     sourceContentType: yup.string().required(),
     additionalInfo: yup.string().required('Please enter additional info'),
-    catalogueType: yup.string().oneOf(Object.values(catalogueTypes)).required(),
-    saleFormat: yup.string().oneOf(Object.values(saleFormats)).required(),
+    catalogueType: yup.string().oneOf(atomicTrackCatalogueTypes).required(),
+    saleFormat: yup.string().oneOf([saleFormats.individual]).required(),
     pricingTier: yup.string(),
     pricingJustification: yup.string().max(2000),
     priceString: yup
@@ -487,16 +531,39 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
     }
 
     setUploadError('')
-    await uploadToDB(values, uploadedFileName)
+    let uploadBatch = activeUploadBatch
+
+    if (uploadMode === 'batch' && !uploadBatch) {
+      uploadBatch = await createUploadBatch({
+        defaultComposer: values.composer,
+        defaultInstrumentation: values.instrumentation,
+        defaultPricePence: Math.round(Number(values.priceString) * 100),
+        label: batchLabel.trim() || `${values.composer || 'CMC'} upload batch`
+      })
+      setActiveUploadBatch(uploadBatch)
+    }
+
+    await uploadToDB(values, uploadedFileName, {
+      uploadBatchId: uploadBatch?.id
+    })
     setShowUploadComplete(true)
     fileReset()
-    setSelectedFile(null)
   }
 
   const uploadAnotherTrack = () => {
+    const currentFileIndex = selectedFiles.findIndex(file => file === selectedFile)
+    const nextQueuedFile = activeUploadBatch && currentFileIndex >= 0
+      ? selectedFiles[currentFileIndex + 1]
+      : null
+
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl)
+    }
+
     setShowUploadComplete(false)
     setUploadError('')
-    setSelectedFile(null)
+    setSelectedFile(nextQueuedFile || null)
+    setAudioUrl(nextQueuedFile ? URL.createObjectURL(nextQueuedFile) : '')
     setUploadedFileName('')
     setWaveformPeaks(createFallbackWaveform())
     setAudioDuration(PREVIEW_LENGTH_SECONDS)
@@ -507,6 +574,9 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
 
     fileReset()
   }
+
+  const activeQueueIndex = selectedFiles.findIndex(file => file === selectedFile)
+  const hasNextQueuedFile = activeQueueIndex >= 0 && Boolean(selectedFiles[activeQueueIndex + 1])
 
   if (session && session.user && canStartTrackUpload(session.user)) {
     return (
@@ -554,6 +624,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
               pricePence: selectedPricePence
             })
             const needsPricingReview = pricingReviewStatus === pricingReviewStatuses.needsReview
+            const isBatchMode = uploadMode === 'batch'
 
             const resetUploadProgress = () => {
               setUploadedFileName('')
@@ -600,7 +671,9 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
             }
 
             const handleFileChange = event => {
-              const file = event.target.files[0]
+              const nextFiles = Array.from(event.target.files || [])
+              const filesForMode = isBatchMode ? nextFiles : nextFiles.slice(0, 1)
+              const file = filesForMode[0]
 
               if (audioUrl) {
                 URL.revokeObjectURL(audioUrl)
@@ -608,6 +681,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
 
               setUploadError('')
               setSelectedFile(file || null)
+              setSelectedFiles(filesForMode)
               setFieldValue('file', file?.name || '')
               setAudioUrl(file ? URL.createObjectURL(file) : '')
               resetUploadProgress()
@@ -615,14 +689,15 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
 
             const handleFileDrop = event => {
               event.preventDefault()
-              const file = event.dataTransfer.files?.[0]
+              const droppedFiles = Array.from(event.dataTransfer.files || [])
+              const filesForMode = isBatchMode ? droppedFiles : droppedFiles.slice(0, 1)
 
-              if (!file || !ref.current) {
+              if (filesForMode.length === 0 || !ref.current) {
                 return
               }
 
               const dataTransfer = new DataTransfer()
-              dataTransfer.items.add(file)
+              filesForMode.forEach(file => dataTransfer.items.add(file))
               ref.current.files = dataTransfer.files
               handleFileChange({ target: ref.current })
             }
@@ -716,6 +791,22 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
               setFieldValue('terms', false)
             }
 
+            const chooseSingleMode = () => {
+              setUploadMode('single')
+              setActiveUploadBatch(null)
+              setSelectedFiles(selectedFile ? [selectedFile] : [])
+            }
+
+            const chooseBatchMode = () => {
+              setUploadMode('batch')
+            }
+
+            const startNewBatch = () => {
+              setActiveUploadBatch(null)
+              setBatchLabel('')
+              setShowUploadComplete(false)
+            }
+
             return (
               <Form noValidate onSubmit={handleSubmit} className='cmc-upload-form'>
               <main className='cmc-upload-page'>
@@ -744,6 +835,64 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                       )}
 
                       <div className='cmc-upload-fields'>
+                        <section className='cmc-upload-mode-panel' aria-labelledby='upload-mode-heading'>
+                          <div className='cmc-upload-step-heading'>
+                            <span>Upload mode</span>
+                            <h2 id='upload-mode-heading'>Choose how this upload should be organised</h2>
+                            <p>Use a batch when several tracks belong to the same first import, song cycle, scene, or teaching collection.</p>
+                          </div>
+                          <div className='cmc-upload-mode-options' role='radiogroup' aria-label='Upload mode'>
+                            <button
+                              aria-checked={!isBatchMode}
+                              className={!isBatchMode ? 'cmc-upload-mode-option cmc-upload-mode-option--active' : 'cmc-upload-mode-option'}
+                              onClick={chooseSingleMode}
+                              role='radio'
+                              type='button'
+                            >
+                              <strong>Single track</strong>
+                              <span>Submit one track for review.</span>
+                            </button>
+                            <button
+                              aria-checked={isBatchMode}
+                              className={isBatchMode ? 'cmc-upload-mode-option cmc-upload-mode-option--active' : 'cmc-upload-mode-option'}
+                              onClick={chooseBatchMode}
+                              role='radio'
+                              type='button'
+                            >
+                              <strong>Batch upload</strong>
+                              <span>Keep adding tracks to the same upload batch.</span>
+                            </button>
+                          </div>
+
+                          {isBatchMode && (
+                            <div className='cmc-upload-batch-fields'>
+                              <label htmlFor='upload-batch-label'>
+                                <span>Batch label</span>
+                                <input
+                                  id='upload-batch-label'
+                                  maxLength={255}
+                                  onChange={event => setBatchLabel(event.target.value)}
+                                  placeholder='e.g. Mozart opera scenes import'
+                                  type='text'
+                                  value={activeUploadBatch?.label || batchLabel}
+                                  disabled={Boolean(activeUploadBatch)}
+                                />
+                              </label>
+                              {activeUploadBatch ? (
+                                <div className='cmc-upload-batch-status' role='status'>
+                                  <strong>{activeUploadBatch.label || `Upload batch #${activeUploadBatch.id}`}</strong>
+                                  <span>New tracks will be attached to this batch.</span>
+                                  <Button type='button' variant='subtle' onClick={startNewBatch}>
+                                    Start new batch
+                                  </Button>
+                                </div>
+                              ) : (
+                                <p>The batch will be created when the first track is submitted.</p>
+                              )}
+                            </div>
+                          )}
+                        </section>
+
                         {canShowUploadStep && (
                           <>
                             <Form.Group className='cmc-upload-field' controlId='upload-file'>
@@ -762,9 +911,13 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                                   <span />
                                 </span>
                                 <span className='cmc-upload-dropzone__content'>
-                                  <strong>{selectedFile?.name || 'Drop an MP3 file here'}</strong>
-                                  <span>{selectedFile ? 'Click to choose a different file' : 'or click anywhere in this box to browse'}</span>
-                                  <small>MP3 files only. The full track remains private while it is reviewed.</small>
+                                  <strong>{selectedFile?.name || (isBatchMode ? 'Drop MP3 files here' : 'Drop an MP3 file here')}</strong>
+                                  <span>{selectedFile ? 'Click to choose different files' : 'or click anywhere in this box to browse'}</span>
+                                  <small>
+                                    {isBatchMode
+                                      ? 'MP3 files only. Each file will still be reviewed with its own preview, details and price.'
+                                      : 'MP3 files only. The full track remains private while it is reviewed.'}
+                                  </small>
                                 </span>
                               </label>
                               <Form.Control
@@ -776,11 +929,32 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                                 onChange={handleFileChange}
                                 isInvalid={!!errors.file}
                                 accept='audio/mpeg,audio/mp3'
+                                multiple={isBatchMode}
                               />
                               <Form.Control.Feedback type='invalid'>
                                 {errors.file}
                               </Form.Control.Feedback>
                             </Form.Group>
+
+                            {isBatchMode && selectedFiles.length > 1 && (
+                              <div className='cmc-upload-queue' aria-label='Selected batch files'>
+                                <div>
+                                  <strong>{selectedFiles.length} files selected</strong>
+                                  <span>Submit each track in turn. The next file will load after this one is submitted.</span>
+                                </div>
+                                <ol>
+                                  {selectedFiles.map((file, index) => (
+                                    <li
+                                      className={file === selectedFile ? 'cmc-upload-queue-item cmc-upload-queue-item--active' : 'cmc-upload-queue-item'}
+                                      key={`${file.name}-${file.size}-${index}`}
+                                    >
+                                      <span>{String(index + 1).padStart(2, '0')}</span>
+                                      <strong>{file.name}</strong>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                            )}
 
                             <div className='cmc-upload-step-actions'>
                               <Button
@@ -973,60 +1147,39 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                           <section className='cmc-upload-step-section'>
                             <div className='cmc-upload-step-heading'>
                               <span>Pricing</span>
-                              <h2>Set a fair catalogue price</h2>
-                              <p>Choose the upload type first, then select a platform-approved buyer price.</p>
+                              <h2>Set a fair track price</h2>
+                              <p>Price this individual uploaded track. Works & Collections can be created later by grouping approved tracks together.</p>
                             </div>
 
-                            <div className='cmc-upload-pricing-grid'>
-                              <Form.Group className='cmc-upload-field' controlId='upload-catalogue-type'>
-                                <Form.Label>Upload type</Form.Label>
-                                <Form.Select
-                                  name='catalogueType'
-                                  value={values.catalogueType}
-                                  onChange={event => {
-                                    const nextBand = getPricingBand(event.target.value)
+                            <Form.Group className='cmc-upload-field' controlId='upload-catalogue-type'>
+                              <Form.Label>Track type</Form.Label>
+                              <Form.Select
+                                name='catalogueType'
+                                value={values.catalogueType}
+                                onChange={event => {
+                                  const nextBand = getPricingBand(event.target.value)
 
-                                    setPricingConfirmed(false)
-                                    setFieldValue('catalogueType', event.target.value)
-                                    setFieldValue('priceString', (nextBand.defaultPricePence / 100).toFixed(2))
-                                    setFieldValue('pricingTier', nextBand.label)
-                                    setFieldValue('pricingJustification', '')
-                                  }}
-                                  isInvalid={!!errors.catalogueType}
-                                >
-                                  {Object.entries(catalogueTypes).map(([, type]) => {
-                                    const band = getPricingBand(type)
+                                  setPricingConfirmed(false)
+                                  setFieldValue('catalogueType', event.target.value)
+                                  setFieldValue('saleFormat', saleFormats.individual)
+                                  setFieldValue('priceString', (nextBand.defaultPricePence / 100).toFixed(2))
+                                  setFieldValue('pricingTier', nextBand.label)
+                                  setFieldValue('pricingJustification', '')
+                                }}
+                                isInvalid={!!errors.catalogueType}
+                              >
+                                {atomicTrackCatalogueTypes.map(type => {
+                                  const band = getPricingBand(type)
 
-                                    return (
-                                      <option key={type} value={type}>
-                                        {band.label}
-                                      </option>
-                                    )
-                                  })}
-                                </Form.Select>
-                                <Form.Text>{pricingBand.description}</Form.Text>
-                              </Form.Group>
-
-                              <Form.Group className='cmc-upload-field' controlId='upload-sale-format'>
-                                <Form.Label>Sale format</Form.Label>
-                                <Form.Select
-                                  name='saleFormat'
-                                  value={values.saleFormat}
-                                  onChange={event => {
-                                    setPricingConfirmed(false)
-                                    setFieldValue('saleFormat', event.target.value)
-                                  }}
-                                  isInvalid={!!errors.saleFormat}
-                                >
-                                  {Object.values(saleFormats).map(format => (
-                                    <option key={format} value={format}>
-                                      {saleFormatLabels[format]}
+                                  return (
+                                    <option key={type} value={type}>
+                                      {trackTypeLabels[type] || band.label}
                                     </option>
-                                  ))}
-                                </Form.Select>
-                                <Form.Text>Bundles and collections can be connected to multiple tracks after review.</Form.Text>
-                              </Form.Group>
-                            </div>
+                                  )
+                                })}
+                              </Form.Select>
+                              <Form.Text>{pricingBand.description}</Form.Text>
+                            </Form.Group>
 
                             <Form.Group className='cmc-upload-field' controlId='upload-price'>
                               <Form.Label>Buyer price</Form.Label>
@@ -1059,7 +1212,7 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                             <div className={needsPricingReview ? 'cmc-upload-pricing-note cmc-upload-pricing-note--review' : 'cmc-upload-pricing-note'}>
                               {needsPricingReview
                                 ? 'This price is allowed, but it will be highlighted for admin review before publication.'
-                                : 'This price sits inside the standard community pricing band for this upload type.'}
+                                : 'This price sits inside the standard community pricing band for this track type.'}
                             </div>
 
                             {needsPricingReview && (
@@ -1193,20 +1346,41 @@ function UploadForm({ initialFulfilledRequestId = '' }) {
                   />
                 </div>
                 <div className='modal-body'>
-                  <p>
-                    Your track has been uploaded as a draft and is now waiting
-                    for review. It will not appear in the public catalogue until
-                    it has been checked and approved.
-                  </p>
-                  <p className='mb-0'>
-                    You can upload another track now, return to the catalogue,
-                    or open the admin console to review pending submissions.
-                  </p>
+                  {activeUploadBatch ? (
+                    <>
+                      <p>
+                        Your track has been uploaded as a draft and attached to
+                        {` ${activeUploadBatch.label || `upload batch #${activeUploadBatch.id}`}`}.
+                      </p>
+                      <p className='mb-0'>
+                        {hasNextQueuedFile
+                          ? 'The next queued file is ready to continue this batch.'
+                          : 'You can add another related track to this batch now, or move to upload management to review the batch.'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Your track has been uploaded as a draft and is now waiting
+                        for review. It will not appear in the public catalogue until
+                        it has been checked and approved.
+                      </p>
+                      <p className='mb-0'>
+                        You can upload another track now, return to the catalogue,
+                        or open the admin console to review pending submissions.
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className='modal-footer'>
                   <Button variant='subtle' onClick={uploadAnotherTrack}>
-                    Upload Another
+                    {activeUploadBatch ? 'Add Another to Batch' : 'Upload Another'}
                   </Button>
+                  {activeUploadBatch && (
+                    <Button as={Link} href='/upload/manage' variant='secondary'>
+                      Manage Uploads
+                    </Button>
+                  )}
                   <Button as={Link} href='/catalogue' variant='secondary'>
                     Catalogue
                   </Button>
