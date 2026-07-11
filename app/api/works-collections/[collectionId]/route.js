@@ -86,7 +86,7 @@ export async function DELETE(request, { params }) {
       'Invalid Work or Collection id'
     )
 
-    await deleteWorksCollection({
+    const result = await deleteWorksCollection({
       collectionId,
       user
     })
@@ -98,7 +98,9 @@ export async function DELETE(request, { params }) {
     })
 
     return jsonResponse(200, {
-      deleted: true
+      archived: result.action === 'archive',
+      collection: result.collection ? serializeWorksCollection(result.collection) : null,
+      deleted: result.action === 'delete'
     })
   } catch (error) {
     telemetry.fail(error)
