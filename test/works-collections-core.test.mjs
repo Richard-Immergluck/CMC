@@ -3,6 +3,8 @@ import test from 'node:test'
 import {
   canEditWorksCollection,
   catalogueReleaseStatuses,
+  getInitialWorksCollectionStatus,
+  getWorksCollectionStatusAfterPricingDecision,
   getWorksCollectionDeleteResolution,
   isPublicWorksCollectionStatus,
   isTerminalWorksCollectionStatus,
@@ -20,6 +22,10 @@ test('works collection lifecycle statuses describe editing and public visibility
   assert.equal(isPublicWorksCollectionStatus(catalogueReleaseStatuses.submitted), false)
   assert.equal(isTerminalWorksCollectionStatus(catalogueReleaseStatuses.rejected), true)
   assert.equal(isTerminalWorksCollectionStatus(catalogueReleaseStatuses.archived), true)
+  assert.equal(getInitialWorksCollectionStatus({ pricingReviewStatus: 'NEEDS_REVIEW' }), catalogueReleaseStatuses.submitted)
+  assert.equal(getInitialWorksCollectionStatus({ pricingReviewStatus: 'AUTO_APPROVED' }), catalogueReleaseStatuses.published)
+  assert.equal(getWorksCollectionStatusAfterPricingDecision('approve'), catalogueReleaseStatuses.published)
+  assert.equal(getWorksCollectionStatusAfterPricingDecision('reject'), catalogueReleaseStatuses.needsChanges)
 })
 
 test('normalizeTrackItems sorts positions and rejects duplicate tracks', () => {

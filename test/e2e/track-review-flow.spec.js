@@ -423,6 +423,7 @@ test.describe('track review API flow', () => {
 
     expect(collectionResponse.status()).toBe(200)
     expect(collectionBody.collection.pricingReviewStatus).toBe('NEEDS_REVIEW')
+    expect(collectionBody.collection.status).toBe('SUBMITTED')
 
     const hiddenReleaseResponse = await page.goto(`/works-collections/${collectionBody.collection.id}`)
 
