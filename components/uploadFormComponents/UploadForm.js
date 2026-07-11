@@ -66,10 +66,18 @@ const buildWaveformPeaks = audioBuffer => {
   })
 }
 
-const createUploadBatch = async ({ label }) => {
+const createUploadBatch = async ({
+  defaultComposer,
+  defaultInstrumentation,
+  defaultPricePence,
+  label
+}) => {
   const response = await fetch('/api/upload-batches', {
     method: 'POST',
     body: JSON.stringify({
+      defaultComposer,
+      defaultInstrumentation,
+      defaultPricePence,
       label
     }),
     headers: {
@@ -83,6 +91,14 @@ const createUploadBatch = async ({ label }) => {
   }
 
   return data.batch
+}
+
+const getInitialCatalogueTypeForPrice = pricePence => {
+  if (!Number.isInteger(Number(pricePence))) {
+    return catalogueTypes.singleTrack
+  }
+
+  return atomicTrackCatalogueTypes.find(type => getPricingBand(type).options.includes(Number(pricePence))) || catalogueTypes.singleTrack
 }
 
 // DBUpload function
@@ -436,22 +452,29 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
   }, [audioUrl])
 
   // --- Formik Setup ---
+  const initialCatalogueType = getInitialCatalogueTypeForPrice(initialUploadBatch?.defaultPricePence)
+  const initialPricingBand = getPricingBand(initialCatalogueType)
+  const initialPricePence = Number.isInteger(Number(initialUploadBatch?.defaultPricePence))
+    ? Number(initialUploadBatch.defaultPricePence)
+    : initialPricingBand.defaultPricePence
   const initialValues = {
     file: null,
     title: '',
-    composer: '',
+    composer: initialUploadBatch?.defaultComposer || '',
     key: '',
-    instrumentation: '',
+    instrumentation: initialUploadBatch?.defaultInstrumentation || '',
     previewStart: 0,
     previewEnd: PREVIEW_LENGTH_SECONDS,
     durationSeconds: PREVIEW_LENGTH_SECONDS,
     sourceContentType: '',
     additionalInfo: '',
-    catalogueType: catalogueTypes.singleTrack,
+    catalogueType: initialCatalogueType,
     saleFormat: saleFormats.individual,
-    pricingTier: '',
+    pricingTier: initialUploadBatch?.defaultPricePence
+      ? `${initialPricingBand.label} ${formatPricePence(initialPricePence)}`
+      : '',
     pricingJustification: '',
-    priceString: '2.99',
+    priceString: (initialPricePence / 100).toFixed(2),
     fulfilledRequestId,
     terms: false
   }
@@ -512,6 +535,9 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
 
     if (uploadMode === 'batch' && !uploadBatch) {
       uploadBatch = await createUploadBatch({
+        defaultComposer: values.composer,
+        defaultInstrumentation: values.instrumentation,
+        defaultPricePence: Math.round(Number(values.priceString) * 100),
         label: batchLabel.trim() || `${values.composer || 'CMC'} upload batch`
       })
       setActiveUploadBatch(uploadBatch)
