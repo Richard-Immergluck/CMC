@@ -710,10 +710,16 @@ test('upload batch body accepts optional catalogue defaults', () => {
 
   assert.deepEqual(
     validateInput(updateUploadBatchBodySchema, {
+      defaultComposer: '',
+      defaultInstrumentation: '',
+      defaultPricePence: '',
       label: ' Updated batch ',
       status: 'READY_FOR_REVIEW'
     }),
     {
+      defaultComposer: '',
+      defaultInstrumentation: '',
+      defaultPricePence: null,
       label: 'Updated batch',
       status: 'READY_FOR_REVIEW'
     }
