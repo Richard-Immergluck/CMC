@@ -307,7 +307,14 @@ const TrackTable = ({
               <Link href={getCatalogueTrackHref(track)} onClick={() => storeProfileTrackReturn(track.id, returnUrl)}>
                 {track.title}
               </Link>
-              <span>{track.uploadedAt ? `${mode === 'uploads' ? 'Uploaded' : 'Added'} ${track.uploadedAt}` : 'Purchased track'}</span>
+              <span>
+                {mode === 'uploads'
+                  ? track.uploadedAt ? `Uploaded ${track.uploadedAt}` : 'Uploaded track'
+                  : track.purchasedAt ? `Purchased ${track.purchasedAt}` : 'Purchased track'}
+              </span>
+              {mode !== 'uploads' && track.sourceReleaseTitle && (
+                <small>From {track.sourceReleaseTitle}</small>
+              )}
             </div>
             <span role='cell'>{track.composer || 'Unknown composer'}</span>
             <span role='cell'>{track.key || 'Not set'}</span>

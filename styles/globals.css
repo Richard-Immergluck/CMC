@@ -4586,6 +4586,12 @@ a {
   font-weight: 650;
 }
 
+.cmc-profile-track-title small {
+  color: var(--cmc-color-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 760;
+}
+
 .cmc-profile-preview-cell {
   min-width: 0;
 }

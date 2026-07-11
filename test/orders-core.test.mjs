@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   allocateMinorUnits,
   buildReleaseOrderItems,
+  buildOwnershipGrantData,
   buildOrderItems,
   buildStripeLineItems,
   calculateOrderTotal,
@@ -181,6 +182,40 @@ test('buildReleaseOrderItems allocates a collection price across track entitleme
         currency: 'gbp'
       }
     ]
+  )
+})
+
+test('buildOwnershipGrantData preserves source release context for collection purchases', () => {
+  assert.deepEqual(
+    buildOwnershipGrantData({
+      item: {
+        trackId: 1,
+        sourceReleaseId: 10,
+        sourceReleaseTitle: 'Bach Learning Pack'
+      },
+      userId: 'user-1'
+    }),
+    {
+      trackId: 1,
+      userId: 'user-1',
+      sourceReleaseId: 10,
+      sourceReleaseTitle: 'Bach Learning Pack'
+    }
+  )
+
+  assert.deepEqual(
+    buildOwnershipGrantData({
+      item: {
+        trackId: 2
+      },
+      userId: 'user-1'
+    }),
+    {
+      trackId: 2,
+      userId: 'user-1',
+      sourceReleaseId: undefined,
+      sourceReleaseTitle: undefined
+    }
   )
 })
 

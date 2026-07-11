@@ -52,6 +52,13 @@ const serializeTrack = track => {
   }
 }
 
+const serializePurchasedTrack = purchase => ({
+  ...serializeTrack(purchase.track),
+  purchasedAt: formatDisplayDate(purchase.purchasedAt),
+  sourceReleaseId: purchase.sourceReleaseId,
+  sourceReleaseTitle: purchase.sourceReleaseTitle
+})
+
 const serializeComment = comment => ({
   id: comment.id,
   content: comment.content,
@@ -168,7 +175,7 @@ const getProfileData = async email => {
   return {
     currentUser,
     userComments: comments.map(serializeComment),
-    userPurchasedTracks: purchases.map(purchase => serializeTrack(purchase.track)),
+    userPurchasedTracks: purchases.map(serializePurchasedTrack),
     userTrackRequests: trackRequests.map(serializeTrackRequest),
     userWishlistedTracks: wishlistItems.map(item => ({
       ...serializeTrack(item.track),
