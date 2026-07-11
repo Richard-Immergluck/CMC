@@ -18,6 +18,7 @@ test('app router shell and first public routes are present', () => {
   const appUploadPage = fs.readFileSync(path.join(root, 'app/upload/page.js'), 'utf8')
   const appUploadManagePage = fs.readFileSync(path.join(root, 'app/upload/manage/page.js'), 'utf8')
   const appUploadBatchDetailPage = fs.readFileSync(path.join(root, 'app/upload/manage/[batchId]/page.js'), 'utf8')
+  const appUploadWorksDetailPage = fs.readFileSync(path.join(root, 'app/upload/manage/works/[collectionId]/page.js'), 'utf8')
   const providers = fs.readFileSync(path.join(root, 'components/providers/AppProviders.js'), 'utf8')
 
   assert.match(appAdminPage, /getServerSession/)
@@ -49,6 +50,10 @@ test('app router shell and first public routes are present', () => {
   assert.match(appUploadBatchDetailPage, /notFound/)
   assert.match(appUploadBatchDetailPage, /serializeUploadBatch/)
   assert.match(appUploadBatchDetailPage, /force-dynamic/)
+  assert.match(appUploadWorksDetailPage, /getServerSession/)
+  assert.match(appUploadWorksDetailPage, /getUserWorksCollection/)
+  assert.match(appUploadWorksDetailPage, /notFound/)
+  assert.match(appUploadWorksDetailPage, /force-dynamic/)
   assert.match(providers, /SessionProvider/)
   assert.match(providers, /CartProvider/)
   assert.match(providers, /Navbar/)

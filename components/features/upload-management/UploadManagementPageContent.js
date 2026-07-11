@@ -6,6 +6,7 @@ import { Layers3, UploadCloud } from 'lucide-react'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
+  atomicTrackCatalogueTypes,
   catalogueTypes,
   formatPricePence,
   getPricingBand,
@@ -50,6 +51,16 @@ const resumableBatchStatuses = new Set([
   'PARTIALLY_FAILED'
 ])
 
+const canSubmitUploadBatch = batch => (
+  batch.summary.totalTracks > 0 &&
+  batch.summary.failedTracks === 0 &&
+  batch.summary.readyTracks === batch.summary.totalTracks
+)
+
+const batchDefaultPriceOptions = Array.from(new Set(
+  atomicTrackCatalogueTypes.flatMap(type => getPricingBand(type).options)
+)).sort((firstPrice, secondPrice) => firstPrice - secondPrice)
+
 const formatBatchDate = value => {
   if (!value) {
     return 'Not submitted'
@@ -65,6 +76,7 @@ const formatBatchDate = value => {
 const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [catalogueType, setCatalogueType] = useState(catalogueTypes.collection)
   const [composer, setComposer] = useState('')
+  const [editingCollectionId, setEditingCollectionId] = useState(null)
   const [error, setError] = useState('')
   const [pricePence, setPricePence] = useState(getPricingBand(catalogueTypes.collection).defaultPricePence)
   const [pricingJustification, setPricingJustification] = useState('')
@@ -77,7 +89,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
   const pricingBand = getPricingBand(catalogueType)
   const needsPricingReview = pricePence > pricingBand.reviewThresholdPence
-  const canCreate = selectedTrackIds.length >= 2 && title.trim() && !submitting
+  const canSave = selectedTrackIds.length >= 2 && title.trim() && !submitting
 
   const handleTypeChange = event => {
     const nextType = event.target.value
@@ -98,9 +110,34 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
   const resetForm = () => {
     setComposer('')
+    setEditingCollectionId(null)
     setPricingJustification('')
     setSelectedTrackIds([])
     setTitle('')
+  }
+
+  const startEditingCollection = collection => {
+    const nextBand = getPricingBand(collection.catalogueType)
+
+    setCatalogueType(collection.catalogueType)
+    setComposer(collection.composer || '')
+    setEditingCollectionId(collection.id)
+    setError('')
+    setPricePence(collection.pricePence || nextBand.defaultPricePence)
+    setPricingJustification('')
+    setSaleFormat(collection.saleFormat || saleFormats.both)
+    setSelectedTrackIds(collection.tracks.map(track => track.trackId))
+    setStatus('')
+    setTitle(collection.title)
+  }
+
+  const cancelEditingCollection = () => {
+    const nextBand = getPricingBand(catalogueTypes.collection)
+
+    resetForm()
+    setCatalogueType(catalogueTypes.collection)
+    setPricePence(nextBand.defaultPricePence)
+    setSaleFormat(saleFormats.both)
   }
 
   const submitCollection = async event => {
@@ -110,8 +147,8 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     setSubmitting(true)
 
     try {
-      const response = await fetch('/api/works-collections', {
-        method: 'POST',
+      const response = await fetch(editingCollectionId ? `/api/works-collections/${editingCollectionId}` : '/api/works-collections', {
+        method: editingCollectionId ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -128,14 +165,14 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Unable to create Work or Collection')
+        throw new Error(data.message || 'Unable to save Work or Collection')
       }
 
-      onCreated(data.collection)
+      onCreated(data.collection, editingCollectionId ? { replaceId: editingCollectionId } : {})
       resetForm()
-      setStatus('Work or Collection created.')
+      setStatus(editingCollectionId ? 'Work or Collection updated.' : 'Work or Collection created.')
     } catch (createError) {
-      setError(createError.message || 'Unable to create Work or Collection')
+      setError(createError.message || 'Unable to save Work or Collection')
     } finally {
       setSubmitting(false)
     }
@@ -179,6 +216,11 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
       <div className='cmc-profile-works-grid'>
         <form className='cmc-profile-works-form' onSubmit={submitCollection}>
+          {editingCollectionId && (
+            <div className='cmc-profile-notice cmc-profile-notice--info' role='status'>
+              Editing an existing Work or Collection. Save changes to update the release.
+            </div>
+          )}
           <div className='cmc-profile-works-fields'>
             <label>
               <span>Title</span>
@@ -279,8 +321,15 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
           <div className='cmc-profile-works-actions'>
             <span>{selectedTrackIds.length} selected</span>
-            <Button disabled={!canCreate} type='submit' variant='ink'>
-              {submitting ? 'Creating...' : 'Create Work or Collection'}
+            {editingCollectionId && (
+              <Button disabled={submitting} type='button' variant='subtle' onClick={cancelEditingCollection}>
+                Cancel edit
+              </Button>
+            )}
+            <Button disabled={!canSave} type='submit' variant='ink'>
+              {submitting
+                ? 'Saving...'
+                : editingCollectionId ? 'Save Work or Collection' : 'Create Work or Collection'}
             </Button>
           </div>
         </form>
@@ -298,16 +347,36 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
                     <small>{collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)}</small>
                   </div>
-                  <Button
-                    aria-label={`Delete ${collection.title}`}
-                    disabled={deletingCollectionId === collection.id}
-                    onClick={() => deleteCollection(collection)}
-                    size='sm'
-                    type='button'
-                    variant='subtle'
-                  >
-                    {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
-                  </Button>
+                  <div className='cmc-profile-works-list-actions'>
+                    <Button
+                      as={Link}
+                      href={`/upload/manage/works/${collection.id}`}
+                      size='sm'
+                      variant='subtle'
+                    >
+                      View
+                    </Button>
+                    <Button
+                      aria-label={`Edit ${collection.title}`}
+                      disabled={deletingCollectionId === collection.id}
+                      onClick={() => startEditingCollection(collection)}
+                      size='sm'
+                      type='button'
+                      variant='paper'
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      aria-label={`Delete ${collection.title}`}
+                      disabled={deletingCollectionId === collection.id}
+                      onClick={() => deleteCollection(collection)}
+                      size='sm'
+                      type='button'
+                      variant='subtle'
+                    >
+                      {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -328,7 +397,70 @@ const UploadManagementPageContent = ({
   const [worksCollections, setWorksCollections] = useState(userWorksCollections)
   const [batchStatusMessage, setBatchStatusMessage] = useState('')
   const [batchError, setBatchError] = useState('')
+  const [defaultsDraft, setDefaultsDraft] = useState(null)
+  const [editingDefaultsBatchId, setEditingDefaultsBatchId] = useState(null)
+  const [savingDefaultsBatchId, setSavingDefaultsBatchId] = useState(null)
   const [submittingBatchId, setSubmittingBatchId] = useState(null)
+
+  const startEditingDefaults = batch => {
+    setBatchError('')
+    setBatchStatusMessage('')
+    setEditingDefaultsBatchId(batch.id)
+    setDefaultsDraft({
+      defaultComposer: batch.defaultComposer || '',
+      defaultInstrumentation: batch.defaultInstrumentation || '',
+      defaultPricePence: batch.defaultPricePence ? String(batch.defaultPricePence) : '',
+      label: batch.label || ''
+    })
+  }
+
+  const updateDefaultsDraft = (field, value) => {
+    setDefaultsDraft(currentDraft => ({
+      ...(currentDraft || {}),
+      [field]: value
+    }))
+  }
+
+  const cancelEditingDefaults = () => {
+    setEditingDefaultsBatchId(null)
+    setDefaultsDraft(null)
+  }
+
+  const saveBatchDefaults = async batch => {
+    setBatchError('')
+    setBatchStatusMessage('')
+    setSavingDefaultsBatchId(batch.id)
+
+    try {
+      const response = await fetch(`/api/upload-batches/${batch.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          defaultComposer: defaultsDraft?.defaultComposer || '',
+          defaultInstrumentation: defaultsDraft?.defaultInstrumentation || '',
+          defaultPricePence: defaultsDraft?.defaultPricePence || '',
+          label: defaultsDraft?.label?.trim() || batch.label || `Upload batch #${batch.id}`
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to update upload batch defaults')
+      }
+
+      setUploadBatches(currentBatches => currentBatches.map(currentBatch => (
+        currentBatch.id === batch.id ? data.batch : currentBatch
+      )))
+      setBatchStatusMessage('Upload batch defaults updated.')
+      cancelEditingDefaults()
+    } catch (error) {
+      setBatchError(error.message || 'Unable to update upload batch defaults')
+    } finally {
+      setSavingDefaultsBatchId(null)
+    }
+  }
 
   const submitBatch = async batch => {
     setBatchError('')
@@ -423,6 +555,12 @@ const UploadManagementPageContent = ({
                 return currentCollections.filter(currentCollection => currentCollection.id !== action.deleteId)
               }
 
+              if (action.replaceId) {
+                return currentCollections.map(currentCollection => (
+                  currentCollection.id === action.replaceId ? collection : currentCollection
+                ))
+              }
+
               return [collection, ...currentCollections]
             })}
             tracks={userUploadedTracks}
@@ -473,20 +611,86 @@ const UploadManagementPageContent = ({
                         <dd>{batch.summary.failedTracks}</dd>
                       </div>
                     </dl>
+                    {editingDefaultsBatchId === batch.id && defaultsDraft && (
+                      <form
+                        className='cmc-upload-management-defaults-form'
+                        onSubmit={event => {
+                          event.preventDefault()
+                          saveBatchDefaults(batch)
+                        }}
+                      >
+                        <label>
+                          <span>Batch label</span>
+                          <input
+                            maxLength={255}
+                            onChange={event => updateDefaultsDraft('label', event.target.value)}
+                            placeholder='e.g. Mozart opera scenes import'
+                            type='text'
+                            value={defaultsDraft.label}
+                          />
+                        </label>
+                        <label>
+                          <span>Default composer</span>
+                          <input
+                            maxLength={255}
+                            onChange={event => updateDefaultsDraft('defaultComposer', event.target.value)}
+                            placeholder='Optional'
+                            type='text'
+                            value={defaultsDraft.defaultComposer}
+                          />
+                        </label>
+                        <label>
+                          <span>Default instrumentation</span>
+                          <input
+                            maxLength={255}
+                            onChange={event => updateDefaultsDraft('defaultInstrumentation', event.target.value)}
+                            placeholder='Optional'
+                            type='text'
+                            value={defaultsDraft.defaultInstrumentation}
+                          />
+                        </label>
+                        <label>
+                          <span>Default price</span>
+                          <select
+                            onChange={event => updateDefaultsDraft('defaultPricePence', event.target.value)}
+                            value={defaultsDraft.defaultPricePence}
+                          >
+                            <option value=''>No default price</option>
+                            {batchDefaultPriceOptions.map(pricePence => (
+                              <option key={pricePence} value={pricePence}>
+                                {formatPricePence(pricePence)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div className='cmc-upload-management-defaults-actions'>
+                          <Button disabled={savingDefaultsBatchId === batch.id} size='sm' type='submit' variant='ink'>
+                            {savingDefaultsBatchId === batch.id ? 'Saving...' : 'Save defaults'}
+                          </Button>
+                          <Button disabled={savingDefaultsBatchId === batch.id} size='sm' type='button' variant='subtle' onClick={cancelEditingDefaults}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    )}
                     <div className='cmc-upload-management-batch-actions'>
                       <Button as={Link} href={`/upload/manage/${batch.id}`} variant='subtle'>
                         View batch
                       </Button>
                       {resumableBatchStatuses.has(batch.status) && (
                         <>
+                        <Button type='button' variant='subtle' onClick={() => startEditingDefaults(batch)}>
+                          Edit defaults
+                        </Button>
                         <Button as={Link} href={`/upload?batchId=${batch.id}`} variant='paper'>
                           Continue batch
                         </Button>
                         <Button
-                          disabled={submittingBatchId === batch.id}
+                          disabled={submittingBatchId === batch.id || !canSubmitUploadBatch(batch)}
                           onClick={() => submitBatch(batch)}
                           type='button'
                           variant='ink'
+                          title={canSubmitUploadBatch(batch) ? undefined : 'Add at least one successfully processed track before submitting this batch'}
                         >
                           {submittingBatchId === batch.id ? 'Submitting...' : 'Submit batch'}
                         </Button>
