@@ -4899,6 +4899,48 @@ a {
   font-weight: 700;
 }
 
+.cmc-upload-management-failed-tracks {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--cmc-space-2);
+  padding: var(--cmc-space-3);
+  background: rgba(148, 58, 58, 0.06);
+  border: 1px solid rgba(148, 58, 58, 0.18);
+}
+
+.cmc-upload-management-failed-tracks > strong {
+  color: var(--cmc-color-accent-red);
+  font-family: var(--cmc-font-family-sans);
+  font-size: 0.82rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-management-failed-tracks ul {
+  display: grid;
+  gap: var(--cmc-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-upload-management-failed-tracks li {
+  display: flex;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.cmc-upload-management-failed-tracks li span {
+  margin: 0;
+  color: var(--cmc-theme-heading);
+  font-weight: 800;
+}
+
 .cmc-upload-management-membership {
   display: block;
   margin-top: 0.18rem;

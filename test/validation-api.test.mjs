@@ -24,6 +24,7 @@ import {
   updateUploadBatchBodySchema,
   updateWorksCollectionBodySchema,
   uploadBatchIdParamSchema,
+  uploadBatchTrackIdParamSchema,
   uploadSignedUrlBodySchema,
   validateInput,
   worksCollectionIdParamSchema
@@ -76,6 +77,24 @@ test('upload batch id params parse positive integer strings', () => {
 
   assert.throws(
     () => validateInput(uploadBatchIdParamSchema, { batchId: 'nope' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('upload batch track id params parse positive integer strings', () => {
+  assert.deepEqual(validateInput(uploadBatchTrackIdParamSchema, {
+    batchId: '42',
+    trackId: '84'
+  }), {
+    batchId: 42,
+    trackId: 84
+  })
+
+  assert.throws(
+    () => validateInput(uploadBatchTrackIdParamSchema, {
+      batchId: '42',
+      trackId: 'nope'
+    }),
     error => error.statusCode === 400
   )
 })

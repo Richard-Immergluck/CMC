@@ -563,6 +563,7 @@ const UploadManagementPageContent = ({
   const [editingDefaultsBatchId, setEditingDefaultsBatchId] = useState(null)
   const [savingDefaultsBatchId, setSavingDefaultsBatchId] = useState(null)
   const [submittingBatchId, setSubmittingBatchId] = useState(null)
+  const [removingFailedTrackId, setRemovingFailedTrackId] = useState(null)
 
   const startEditingDefaults = batch => {
     setBatchError('')
@@ -653,6 +654,32 @@ const UploadManagementPageContent = ({
       setBatchError(error.message || 'Unable to submit upload batch')
     } finally {
       setSubmittingBatchId(null)
+    }
+  }
+
+  const removeFailedTrack = async ({ batch, track }) => {
+    setBatchError('')
+    setBatchStatusMessage('')
+    setRemovingFailedTrackId(track.id)
+
+    try {
+      const response = await fetch(`/api/upload-batches/${batch.id}/tracks/${track.id}`, {
+        method: 'DELETE'
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to remove failed track')
+      }
+
+      setUploadBatches(currentBatches => currentBatches.map(currentBatch => (
+        currentBatch.id === batch.id ? data.batch : currentBatch
+      )))
+      setBatchStatusMessage('Failed track removed from upload batch.')
+    } catch (error) {
+      setBatchError(error.message || 'Unable to remove failed track')
+    } finally {
+      setRemovingFailedTrackId(null)
     }
   }
 
@@ -858,6 +885,29 @@ const UploadManagementPageContent = ({
                           </Button>
                         </div>
                       </form>
+                    )}
+                    {batch.tracks?.some(track => track.processingStatus === 'FAILED') && (
+                      <div className='cmc-upload-management-failed-tracks' role='group' aria-label={`${batch.label || `Upload batch #${batch.id}`} failed tracks`}>
+                        <strong>Failed tracks</strong>
+                        <ul>
+                          {batch.tracks
+                            .filter(track => track.processingStatus === 'FAILED')
+                            .map(track => (
+                              <li key={track.id}>
+                                <span>{track.title}</span>
+                                <Button
+                                  disabled={removingFailedTrackId === track.id}
+                                  onClick={() => removeFailedTrack({ batch, track })}
+                                  size='sm'
+                                  type='button'
+                                  variant='subtle'
+                                >
+                                  {removingFailedTrackId === track.id ? 'Removing...' : 'Remove failed track'}
+                                </Button>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
                     )}
                     <div className='cmc-upload-management-batch-actions'>
                       <Button as={Link} href={`/upload/manage/${batch.id}`} variant='subtle'>
