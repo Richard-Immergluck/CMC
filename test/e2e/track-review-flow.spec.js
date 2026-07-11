@@ -424,6 +424,11 @@ test.describe('track review API flow', () => {
     expect(collectionResponse.status()).toBe(200)
     expect(collectionBody.collection.pricingReviewStatus).toBe('NEEDS_REVIEW')
 
+    const hiddenReleaseResponse = await page.goto(`/works-collections/${collectionBody.collection.id}`)
+
+    expect(hiddenReleaseResponse.status()).toBe(404)
+    await expect(page.getByText(/404/i)).toBeVisible()
+
     await signInAs(request, 'e2e-admin@example.com')
 
     const pricingReviewResponse = await request.get('/api/admin/pricing-reviews')
@@ -466,6 +471,10 @@ test.describe('track review API flow', () => {
     await expect(releaseRow.getByText('£29.99')).toBeVisible()
     await releaseRow.getByRole('button', { name: 'Approve' }).click()
     await expect(releaseRow).toHaveCount(0)
+
+    await page.goto(`/works-collections/${collectionBody.collection.id}`)
+    await expect(page.getByRole('heading', { name: `${releaseTitle}.` })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Opening rehearsal cut' })).toBeVisible()
   })
 
   test('uploaders can propose request fulfilment pricing from the track requests tab', async ({ page }) => {
