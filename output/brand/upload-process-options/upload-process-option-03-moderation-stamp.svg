@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-label="03 MODERATION STAMP">
+  <defs>
+    <filter id="paperNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="18" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.12" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="inkNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="4" seed="7" />
+      <feColorMatrix type="saturate" values="0.35" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0.08 0.25" />
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="parchmentGradient" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#efd5ad" />
+      <stop offset="0.55" stop-color="#f5ddba" />
+      <stop offset="1" stop-color="#d6a75c" />
+    </linearGradient>
+    <linearGradient id="tealGradient" x1="0" x2="1">
+      <stop offset="0" stop-color="#073f42" />
+      <stop offset="1" stop-color="#0b626b" />
+    </linearGradient>
+    <style>
+      .bg { fill: #f8f3e9; }
+      .texture { filter: url(#paperNoise); opacity: 0.55; }
+      .label { fill: #94383d; font: 800 15px Arial, sans-serif; letter-spacing: 5px; }
+      .serif { fill: #182025; font-family: Georgia, 'Times New Roman', serif; }
+      .sans { font-family: Arial, sans-serif; }
+      .small { fill: #665f52; font: 600 14px Arial, sans-serif; }
+      .tiny { fill: #665f52; font: 700 11px Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+      .line { stroke: #5f6c69; stroke-width: 1.25; opacity: 0.6; }
+      .fine { stroke: #5f6c69; stroke-width: 0.75; opacity: 0.38; }
+      .gold-line { stroke: #bb811a; stroke-width: 2.5; }
+      .red-line { stroke: #94383d; stroke-width: 2; }
+      .teal-fill { fill: url(#tealGradient); }
+      .gold-fill { fill: #bb811a; }
+      .red-fill { fill: #94383d; }
+      .grey-fill { fill: #a4aaa5; }
+      .paper-stroke { stroke: rgba(24,32,37,0.16); stroke-width: 1; fill: rgba(255,253,248,0.55); }
+    </style>
+  </defs>
+  <rect class="bg" width="760" height="520" />
+  <rect class="texture" width="760" height="520" />
+  <rect x="20" y="20" width="720" height="480" fill="none" stroke="rgba(24,32,37,0.16)" />
+  <text x="42" y="58" class="label">03 MODERATION STAMP</text>
+  <text x="42" y="84" class="small">A tactile review mark before public catalogue release.</text>
+  
+    <rect x="92" y="122" width="238" height="286" rx="2" fill="#ead9bb" opacity="0.75" />
+    <rect x="92" y="122" width="238" height="286" filter="url(#paperNoise)" />
+    <line x1="118" x2="298" y1="290" y2="290" class="line" />
+<line x1="118" x2="298" y1="302" y2="302" class="line" />
+<line x1="118" x2="298" y1="314" y2="314" class="line" />
+<line x1="118" x2="298" y1="326" y2="326" class="line" />
+<line x1="118" x2="298" y1="338" y2="338" class="line" />
+    <rect x="350" y="154" width="226" height="214" class="teal-fill" opacity="0.96" />
+    <rect x="350" y="154" width="226" height="214" filter="url(#inkNoise)" />
+    <path d="M316 170 C 396 142, 486 142, 604 174" fill="none" stroke="#94383d" stroke-width="2.5" />
+    <circle cx="460" cy="252" r="70" fill="none" stroke="#94383d" stroke-width="3" opacity="0.8" />
+    <circle cx="460" cy="252" r="53" fill="none" stroke="#94383d" stroke-width="1.5" opacity="0.65" />
+    <text x="402" y="246" class="label" style="fill:#94383d; letter-spacing:4px">REVIEW</text>
+    <text x="410" y="278" class="tiny" style="fill:#94383d">PENDING</text>
+    <rect x="510" y="320" width="86" height="32" fill="#bb811a" />
+    <text x="528" y="342" class="tiny" style="fill:#f8f3e9">APPROVE</text>
+    <text x="106" y="446" class="serif" style="font-size:30px">Upload</text>
+    <text x="262" y="446" class="serif" style="font-size:30px">Review</text>
+    <text x="438" y="446" class="serif" style="font-size:30px">Catalogue</text>
+    <line x1="196" x2="244" y1="435" y2="435" class="gold-line" />
+    <line x1="372" x2="420" y1="435" y2="435" class="gold-line" />
+  
+</svg>

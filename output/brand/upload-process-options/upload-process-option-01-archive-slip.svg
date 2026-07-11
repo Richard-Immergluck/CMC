@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-label="01 ARCHIVE SLIP PROCESS">
+  <defs>
+    <filter id="paperNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="18" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.12" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="inkNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="4" seed="7" />
+      <feColorMatrix type="saturate" values="0.35" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0.08 0.25" />
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="parchmentGradient" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#efd5ad" />
+      <stop offset="0.55" stop-color="#f5ddba" />
+      <stop offset="1" stop-color="#d6a75c" />
+    </linearGradient>
+    <linearGradient id="tealGradient" x1="0" x2="1">
+      <stop offset="0" stop-color="#073f42" />
+      <stop offset="1" stop-color="#0b626b" />
+    </linearGradient>
+    <style>
+      .bg { fill: #f8f3e9; }
+      .texture { filter: url(#paperNoise); opacity: 0.55; }
+      .label { fill: #94383d; font: 800 15px Arial, sans-serif; letter-spacing: 5px; }
+      .serif { fill: #182025; font-family: Georgia, 'Times New Roman', serif; }
+      .sans { font-family: Arial, sans-serif; }
+      .small { fill: #665f52; font: 600 14px Arial, sans-serif; }
+      .tiny { fill: #665f52; font: 700 11px Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+      .line { stroke: #5f6c69; stroke-width: 1.25; opacity: 0.6; }
+      .fine { stroke: #5f6c69; stroke-width: 0.75; opacity: 0.38; }
+      .gold-line { stroke: #bb811a; stroke-width: 2.5; }
+      .red-line { stroke: #94383d; stroke-width: 2; }
+      .teal-fill { fill: url(#tealGradient); }
+      .gold-fill { fill: #bb811a; }
+      .red-fill { fill: #94383d; }
+      .grey-fill { fill: #a4aaa5; }
+      .paper-stroke { stroke: rgba(24,32,37,0.16); stroke-width: 1; fill: rgba(255,253,248,0.55); }
+    </style>
+  </defs>
+  <rect class="bg" width="760" height="520" />
+  <rect class="texture" width="760" height="520" />
+  <rect x="20" y="20" width="720" height="480" fill="none" stroke="rgba(24,32,37,0.16)" />
+  <text x="42" y="58" class="label">01 ARCHIVE SLIP PROCESS</text>
+  <text x="42" y="84" class="small">A track enters the catalogue record.</text>
+  
+    <rect x="82" y="122" width="420" height="312" class="paper-stroke" />
+    <rect x="112" y="104" width="60" height="350" fill="url(#parchmentGradient)" opacity="0.92" />
+    <rect x="112" y="104" width="60" height="350" filter="url(#paperNoise)" />
+    <line x1="190" x2="478" y1="150" y2="150" class="fine" />
+<line x1="190" x2="478" y1="160" y2="160" class="fine" />
+<line x1="190" x2="478" y1="170" y2="170" class="fine" />
+<line x1="190" x2="478" y1="180" y2="180" class="fine" />
+<line x1="190" x2="478" y1="190" y2="190" class="fine" />
+    <line x1="198" y1="212" x2="468" y2="212" class="fine" />
+    <line x1="198" y1="292" x2="468" y2="292" class="fine" />
+    <line x1="198" y1="372" x2="468" y2="372" class="fine" />
+    <text x="210" y="197" class="tiny">01 SUBMIT</text>
+    <text x="210" y="226" class="serif" style="font-size:28px">Upload received</text>
+    <text x="210" y="252" class="small">Private file stored for review.</text>
+    <text x="210" y="277" class="tiny">02 REVIEW</text>
+    <text x="210" y="306" class="serif" style="font-size:28px">Checked by CMC</text>
+    <text x="210" y="332" class="small">Audio, notes and rights verified.</text>
+    <text x="210" y="357" class="tiny">03 PUBLISH</text>
+    <text x="210" y="386" class="serif" style="font-size:28px">Catalogue ready</text>
+    <text x="210" y="412" class="small">Buyers can preview, request and comment.</text>
+    <circle cx="142" cy="205" r="8" class="gold-fill" />
+    <circle cx="142" cy="285" r="8" class="red-fill" />
+    <circle cx="142" cy="365" r="8" fill="#0b626b" />
+    <aside>
+      <rect x="548" y="156" width="116" height="190" fill="rgba(11,98,107,0.08)" stroke="rgba(11,98,107,0.25)" />
+      <text x="572" y="205" class="serif" style="font-size:46px; fill:#0b626b">CMC</text>
+      <text x="572" y="240" class="tiny">UPLOAD</text>
+      <line x1="572" x2="640" y1="258" y2="258" class="gold-line" />
+      <text x="572" y="292" class="small">record no.</text>
+      <text x="572" y="318" class="label" style="letter-spacing:3px">03 / 12</text>
+    </aside>
+  
+</svg>

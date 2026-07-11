@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520" role="img" aria-label="Pressed notations">
+  <defs>
+    <filter id="paperNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" seed="52" />
+      <feColorMatrix type="saturate" values="0.14" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.14" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="inkBleed" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.28" numOctaves="3" seed="12" />
+      <feDisplacementMap in="SourceGraphic" scale="0.45" />
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="11" stdDeviation="15" flood-color="#2a2012" flood-opacity="0.10" />
+    </filter>
+    <linearGradient id="parchment" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#efd5ad" />
+      <stop offset="0.58" stop-color="#f3d8ad" />
+      <stop offset="1" stop-color="#d19a43" />
+    </linearGradient>
+    <style>
+      .bg { fill: #f8f3e9; }
+      .grain { filter: url(#paperNoise); opacity: 0.72; }
+      .outer { fill: none; stroke: rgba(24,32,37,0.15); stroke-width: 1; }
+      .card { fill: rgba(255,250,240,0.64); stroke: rgba(24,32,37,0.15); stroke-width: 1; }
+      .serif { fill: #182025; font-family: Georgia, 'Times New Roman', serif; font-size: 40px; }
+      .number { fill: #665f52; font: 800 11px Arial, sans-serif; letter-spacing: 2.2px; }
+      .rule { stroke: #596765; stroke-width: 0.9; opacity: 0.2; }
+      .mark { filter: url(#inkBleed); }
+    </style>
+  </defs>
+  <rect class="bg" width="760" height="520" />
+  <rect class="grain" width="760" height="520" />
+  <rect x="32" y="36" width="696" height="448" class="outer" />
+  <rect x="166" y="100" width="440" height="320" class="card" filter="url(#softShadow)" />
+  <rect x="118" y="74" width="74" height="372" fill="url(#parchment)" />
+  <rect x="118" y="74" width="74" height="372" class="grain" />
+  <text x="226" y="152" class="number">01</text>
+  <text x="280" y="158" class="serif">Upload</text>
+  <text x="226" y="260" class="number">02</text>
+  <text x="280" y="266" class="serif">Review</text>
+  <text x="226" y="368" class="number">03</text>
+  <text x="280" y="374" class="serif">Publish</text>
+  <line x1="222" x2="552" y1="202" y2="202" class="rule" />
+  <line x1="222" x2="552" y1="310" y2="310" class="rule" />
+  
+        
+  <g class="mark" transform="translate(155 145)" opacity="0.94">
+    <g stroke="none" fill="none"><path d="M-34 -18 C-18 -19.1, 4 -18, 34.9 -19.1" stroke="#bb811a" stroke-width="1.25" opacity="0.52" /><path d="M-34 -8.2 C-18 -9, 4 -9.8, 33.1 -9" stroke="#bb811a" stroke-width="0.95" opacity="0.5750000000000001" /><path d="M-34 -0.8 C-18 1.1, 4 0.8, 31.3 1.1" stroke="#bb811a" stroke-width="1.25" opacity="0.63" /><path d="M-34 9 C-18 8.45, 4 9, 36.7 8.45" stroke="#bb811a" stroke-width="0.95" opacity="0.685" /><path d="M-34 18.8 C-18 18.55, 4 17.2, 34.9 18.55" stroke="#bb811a" stroke-width="1.25" opacity="0.74" /><path d="M-1 -31 C-2.4 -10, 0.3999999999999999 8, -1.3 29" stroke="#bb811a" stroke-width="1.05" opacity="0.34" />
+    <g transform="translate(-22 -8)">
+      <circle cx="0" cy="0" r="3.1" fill="#bb811a" stroke="none" opacity="0.9" />
+      <path d="M-2.325 -0.372 C-0.31000000000000005 -2.4800000000000004, 2.325 -0.46499999999999997, 0.6200000000000001 1.7360000000000002" stroke="#bb811a" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  
+    <g transform="translate(4 0)">
+      <circle cx="0" cy="0" r="2.4" fill="#bb811a" stroke="none" opacity="0.9" />
+      <path d="M-1.7999999999999998 -0.288 C-0.24 -1.92, 1.7999999999999998 -0.36, 0.48 1.344" stroke="#bb811a" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  
+    <g transform="translate(27 9)">
+      <circle cx="0" cy="0" r="1.8" fill="#bb811a" stroke="none" opacity="0.58" />
+      <path d="M-1.35 -0.216 C-0.18000000000000002 -1.4400000000000002, 1.35 -0.27, 0.36000000000000004 1.0080000000000002" stroke="#bb811a" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  </g><circle cx="-21" cy="-8" r="6.2" stroke="#bb811a" stroke-width="0.9" opacity="0.18" />
+  </g>
+        
+  <g class="mark" transform="translate(155 253)" opacity="0.94">
+    <g stroke="none" fill="none"><path d="M-34 -17.2 C-18 -18.55, 4 -18.8, 36.7 -18.55" stroke="#94383d" stroke-width="1.25" opacity="0.52" /><path d="M-34 -9.8 C-18 -8.45, 4 -8.2, 34.9 -8.45" stroke="#94383d" stroke-width="0.95" opacity="0.5750000000000001" /><path d="M-34 0 C-18 -1.1, 4 0, 33.1 -1.1" stroke="#94383d" stroke-width="1.25" opacity="0.63" /><path d="M-34 9.8 C-18 9, 4 8.2, 31.3 9" stroke="#94383d" stroke-width="0.95" opacity="0.685" /><path d="M-34 17.2 C-18 19.1, 4 18.8, 36.7 19.1" stroke="#94383d" stroke-width="1.25" opacity="0.74" /><path d="M1 -31 C-0.3999999999999999 -10, 2.4 8, 0.7 29" stroke="#94383d" stroke-width="1.05" opacity="0.34" />
+    <g transform="translate(-25 -8)">
+      <circle cx="0" cy="0" r="2.1" fill="#94383d" stroke="none" opacity="0.58" />
+      <path d="M-1.5750000000000002 -0.252 C-0.21000000000000002 -1.6800000000000002, 1.5750000000000002 -0.315, 0.42000000000000004 1.1760000000000002" stroke="#94383d" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  
+    <g transform="translate(0 0)">
+      <circle cx="0" cy="0" r="3.2" fill="#94383d" stroke="none" opacity="0.9" />
+      <path d="M-2.4000000000000004 -0.384 C-0.32000000000000006 -2.5600000000000005, 2.4000000000000004 -0.48, 0.6400000000000001 1.7920000000000003" stroke="#94383d" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  
+    <g transform="translate(24 9)">
+      <circle cx="0" cy="0" r="2.1" fill="#94383d" stroke="none" opacity="0.58" />
+      <path d="M-1.5750000000000002 -0.252 C-0.21000000000000002 -1.6800000000000002, 1.5750000000000002 -0.315, 0.42000000000000004 1.1760000000000002" stroke="#94383d" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  </g><circle cx="0" cy="0" r="6.5" stroke="#94383d" stroke-width="0.9" opacity="0.18" />
+  </g>
+        
+  <g class="mark" transform="translate(155 361)" opacity="0.94">
+    <g stroke="none" fill="none"><path d="M-34 -18.8 C-18 -18, 4 -17.2, 31.3 -18" stroke="#0b626b" stroke-width="1.25" opacity="0.52" /><path d="M-34 -9 C-18 -7.9, 4 -9, 36.7 -7.9" stroke="#0b626b" stroke-width="0.95" opacity="0.5750000000000001" /><path d="M-34 0.8 C-18 -0.55, 4 -0.8, 34.9 -0.55" stroke="#0b626b" stroke-width="1.25" opacity="0.63" /><path d="M-34 8.2 C-18 9.55, 4 9.8, 33.1 9.55" stroke="#0b626b" stroke-width="0.95" opacity="0.685" /><path d="M-34 18 C-18 16.9, 4 18, 31.3 16.9" stroke="#0b626b" stroke-width="1.25" opacity="0.74" /><path d="M1 -31 C-0.3999999999999999 -10, 2.4 8, 0.7 29" stroke="#0b626b" stroke-width="1.05" opacity="0.34" />
+    <g transform="translate(-24 -8)">
+      <circle cx="0" cy="0" r="1.8" fill="#0b626b" stroke="none" opacity="0.58" />
+      <path d="M-1.35 -0.216 C-0.18000000000000002 -1.4400000000000002, 1.35 -0.27, 0.36000000000000004 1.0080000000000002" stroke="#0b626b" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  
+    <g transform="translate(2 0)">
+      <circle cx="0" cy="0" r="2.4" fill="#0b626b" stroke="none" opacity="0.9" />
+      <path d="M-1.7999999999999998 -0.288 C-0.24 -1.92, 1.7999999999999998 -0.36, 0.48 1.344" stroke="#0b626b" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  
+    <g transform="translate(25 9)">
+      <circle cx="0" cy="0" r="3.1" fill="#0b626b" stroke="none" opacity="0.9" />
+      <path d="M-2.325 -0.372 C-0.31000000000000005 -2.4800000000000004, 2.325 -0.46499999999999997, 0.6200000000000001 1.7360000000000002" stroke="#0b626b" stroke-width="0.7" fill="none" opacity="0.35" />
+    </g>
+  </g><circle cx="25" cy="9" r="6.2" stroke="#0b626b" stroke-width="0.9" opacity="0.18" />
+  </g>
+      
+</svg>
