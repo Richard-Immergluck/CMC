@@ -69,6 +69,7 @@ This tracker records backend security and auditability work completed so far and
 - Added e2e coverage proving high-priced Works/Collections remain hidden publicly until admin pricing approval.
 - Added an admin Batch Imports tab backed by the protected upload-batch listing API.
 - Added uploader recovery for failed batch tracks with a trusted-origin DELETE route, audit logging, and status recalculation.
+- Added a full Work/Collection release lifecycle so expensive releases are submitted for admin pricing review, approved releases become public, rejected releases move to needs-changes, and uploader management screens expose human-readable lifecycle state.
 
 ## In Progress
 
@@ -77,4 +78,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
-- Continue upload-management hardening around Work/Collection release lifecycle support workflows and larger uploader-library management.
+- Continue upload-management hardening around larger uploader-library management, including bulk-edit ergonomics, searchable upload inventories, and admin/support surfaces for Works & Collections.
