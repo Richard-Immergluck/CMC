@@ -9,6 +9,7 @@ import {
   adminPricingReviewBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
+  createUploadBatchBodySchema,
   createWorksCollectionBodySchema,
   profileCommentBodySchema,
   positiveIntegerParamSchema,
@@ -19,7 +20,9 @@ import {
   trackRequestPricingProposalBodySchema,
   trackRequestStatusBodySchema,
   trackIdParamSchema,
+  updateUploadBatchBodySchema,
   updateWorksCollectionBodySchema,
+  uploadBatchIdParamSchema,
   uploadSignedUrlBodySchema,
   validateInput,
   worksCollectionIdParamSchema
@@ -61,6 +64,17 @@ test('works collection id params parse positive integer strings', () => {
 
   assert.throws(
     () => validateInput(worksCollectionIdParamSchema, { collectionId: 'nope' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('upload batch id params parse positive integer strings', () => {
+  assert.deepEqual(validateInput(uploadBatchIdParamSchema, { batchId: '42' }), {
+    batchId: 42
+  })
+
+  assert.throws(
+    () => validateInput(uploadBatchIdParamSchema, { batchId: 'nope' }),
     error => error.statusCode === 400
   )
 })
@@ -483,7 +497,8 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       currency: 'GBP',
       catalogueType: 'SINGLE_TRACK',
       saleFormat: 'INDIVIDUAL',
-      fulfilledRequestId: '42'
+      fulfilledRequestId: '42',
+      uploadBatchId: '24'
     }),
     {
       title: 'Bach Study',
@@ -501,6 +516,7 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       catalogueType: 'SINGLE_TRACK',
       saleFormat: 'INDIVIDUAL',
       fulfilledRequestId: 42,
+      uploadBatchId: 24,
       downloadCount: 0
     }
   )
@@ -672,5 +688,52 @@ test('works collection body accepts guided grouped prices only', () => {
       title: 'Updated song cycle',
       trackIds: [12, 11]
     }
+  )
+})
+
+test('upload batch body accepts optional catalogue defaults', () => {
+  assert.deepEqual(
+    validateInput(createUploadBatchBodySchema, {
+      defaultComposer: ' W. A. Mozart ',
+      defaultInstrumentation: ' Piano and orchestra ',
+      defaultPricePence: '599',
+      ignored: 'removed',
+      label: ' First Mozart import '
+    }),
+    {
+      defaultComposer: 'W. A. Mozart',
+      defaultInstrumentation: 'Piano and orchestra',
+      defaultPricePence: 599,
+      label: 'First Mozart import'
+    }
+  )
+
+  assert.deepEqual(
+    validateInput(updateUploadBatchBodySchema, {
+      defaultComposer: '',
+      defaultInstrumentation: '',
+      defaultPricePence: '',
+      label: ' Updated batch ',
+      status: 'READY_FOR_REVIEW'
+    }),
+    {
+      defaultComposer: '',
+      defaultInstrumentation: '',
+      defaultPricePence: null,
+      label: 'Updated batch',
+      status: 'READY_FOR_REVIEW'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(updateUploadBatchBodySchema, {
+      status: 'COMPLETED'
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(updateUploadBatchBodySchema, {}),
+    error => error.statusCode === 400
   )
 })
