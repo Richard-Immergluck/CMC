@@ -63,7 +63,15 @@ Recommended Works & Collections types for the later grouping flow:
 - Collection.
 - Complete work.
 
-The single-track upload flow should only price the individual audio file being uploaded. It should not ask uploaders to price a song cycle, collection, or complete work when they have uploaded one MP3. A later Works & Collections manager should allow uploaders or admins to group existing approved tracks into one purchasable item, set track order, maintain individual-track purchase options, and choose a fair grouped price.
+The single-track upload flow should only price the individual audio file being uploaded. It should not ask uploaders to price a song cycle, collection, or complete work when they have uploaded one MP3. The Works & Collections manager allows uploaders to group existing approved tracks into one purchasable item, set track order, maintain individual-track purchase options, and choose a fair grouped price.
+
+Works & Collections release lifecycle:
+
+- Normal guided-price releases can publish immediately.
+- Releases above the pricing review threshold are created as submitted for review and must not be public until an admin approves the price.
+- Admin approval publishes the release.
+- Admin rejection moves the release into a needs-changes state so the uploader can edit and resubmit with a more suitable price or structure.
+- Archived releases are removed from public sale while preserving existing buyer library access.
 
 Bulk upload should be treated as a separate operational workflow:
 
