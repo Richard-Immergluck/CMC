@@ -4,6 +4,7 @@ import {
   canAddTrackToUploadBatch,
   canEditUploadBatch,
   canSubmitUploadBatch,
+  getUploadBatchSubmitBlocker,
   isTerminalUploadBatch,
   maxUploadBatchTracks,
   normalizeUploadBatchDefaults,
@@ -52,6 +53,10 @@ test('upload batch editability protects submitted and terminal batches', () => {
 
 test('upload batch submission requires successful processed tracks', () => {
   assert.equal(canSubmitUploadBatch({ tracks: [] }), false)
+  assert.match(
+    getUploadBatchSubmitBlocker(summarizeUploadBatch({ tracks: [] })),
+    /Add at least one uploaded track/
+  )
   assert.equal(
     canSubmitUploadBatch({
       tracks: [
@@ -61,6 +66,16 @@ test('upload batch submission requires successful processed tracks', () => {
       ]
     }),
     true
+  )
+  assert.equal(
+    getUploadBatchSubmitBlocker(summarizeUploadBatch({
+      tracks: [
+        {
+          processingStatus: 'READY'
+        }
+      ]
+    })),
+    ''
   )
   assert.equal(
     canSubmitUploadBatch({
@@ -75,6 +90,19 @@ test('upload batch submission requires successful processed tracks', () => {
     }),
     false
   )
+  assert.match(
+    getUploadBatchSubmitBlocker(summarizeUploadBatch({
+      tracks: [
+        {
+          processingStatus: 'READY'
+        },
+        {
+          processingStatus: 'FAILED'
+        }
+      ]
+    })),
+    /Resolve or remove failed tracks/
+  )
   assert.equal(
     canSubmitUploadBatch({
       tracks: [
@@ -84,6 +112,16 @@ test('upload batch submission requires successful processed tracks', () => {
       ]
     }),
     false
+  )
+  assert.match(
+    getUploadBatchSubmitBlocker(summarizeUploadBatch({
+      tracks: [
+        {
+          processingStatus: 'PROCESSING'
+        }
+      ]
+    })),
+    /finish processing/
   )
 })
 

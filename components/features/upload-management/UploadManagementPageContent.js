@@ -14,7 +14,10 @@ import {
   worksAndCollectionsCatalogueTypes,
   worksAndCollectionsTypeLabels
 } from '../../../lib/pricing-policy.mjs'
-import { maxUploadBatchTracks } from '../../../lib/upload-batch-policy.mjs'
+import {
+  getUploadBatchSubmitBlocker,
+  maxUploadBatchTracks
+} from '../../../lib/upload-batch-policy.mjs'
 
 const formatCollectionDate = value => {
   if (!value || !String(value).includes('T')) {
@@ -57,11 +60,7 @@ const resumableBatchStatuses = new Set([
   'PARTIALLY_FAILED'
 ])
 
-const canSubmitUploadBatch = batch => (
-  batch.summary.totalTracks > 0 &&
-  batch.summary.failedTracks === 0 &&
-  batch.summary.readyTracks === batch.summary.totalTracks
-)
+const canSubmitUploadBatch = batch => getUploadBatchSubmitBlocker(batch.summary) === ''
 
 const getTrackMembershipSummary = track => {
   const memberships = track.collectionMemberships || []
@@ -759,15 +758,21 @@ const UploadManagementPageContent = ({
                         remainingTracks: Math.max(0, maxUploadBatchTracks - batch.summary.totalTracks)
                       }
                       const usedPercent = Math.min(100, Math.round((batch.summary.totalTracks / capacity.maxTracks) * 100))
+                      const submitBlocker = getUploadBatchSubmitBlocker(batch.summary)
 
                       return (
-                        <div className='cmc-upload-management-batch-capacity' aria-label={`${batch.summary.totalTracks} of ${capacity.maxTracks} upload batch slots used`}>
-                          <span>{batch.summary.totalTracks}/{capacity.maxTracks} tracks</span>
-                          <span>{capacity.remainingTracks} slots remaining</span>
-                          <div aria-hidden='true'>
-                            <span style={{ width: `${usedPercent}%` }} />
+                        <>
+                          <div className='cmc-upload-management-batch-capacity' aria-label={`${batch.summary.totalTracks} of ${capacity.maxTracks} upload batch slots used`}>
+                            <span>{batch.summary.totalTracks}/{capacity.maxTracks} tracks</span>
+                            <span>{capacity.remainingTracks} slots remaining</span>
+                            <div aria-hidden='true'>
+                              <span style={{ width: `${usedPercent}%` }} />
+                            </div>
                           </div>
-                        </div>
+                          {submitBlocker && (
+                            <p className='cmc-upload-management-submit-blocker'>{submitBlocker}</p>
+                          )}
+                        </>
                       )
                     })()}
                     <div>
@@ -877,7 +882,7 @@ const UploadManagementPageContent = ({
                           onClick={() => submitBatch(batch)}
                           type='button'
                           variant='ink'
-                          title={canSubmitUploadBatch(batch) ? undefined : 'Add at least one successfully processed track before submitting this batch'}
+                          title={getUploadBatchSubmitBlocker(batch.summary) || undefined}
                         >
                           {submittingBatchId === batch.id ? 'Submitting...' : 'Submit batch'}
                         </Button>
