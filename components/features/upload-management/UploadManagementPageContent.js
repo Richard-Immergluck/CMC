@@ -18,6 +18,11 @@ import {
   getUploadBatchSubmitBlocker,
   maxUploadBatchTracks
 } from '../../../lib/upload-batch-policy.mjs'
+import {
+  canEditWorksCollection,
+  catalogueReleaseStatusDescriptions,
+  catalogueReleaseStatusLabels
+} from '../../../lib/server/works-collections-core.mjs'
 
 const formatCollectionDate = value => {
   if (!value || !String(value).includes('T')) {
@@ -34,11 +39,6 @@ const formatCollectionDate = value => {
 const worksSaleFormatLabels = {
   [saleFormats.bundle]: 'Collection only',
   [saleFormats.both]: 'Collection and individual tracks'
-}
-
-const worksStatusLabels = {
-  ARCHIVED: 'Archived',
-  PUBLISHED: 'Published'
 }
 
 const getDisplayName = user => user.name || user.email || 'CMC member'
@@ -506,8 +506,11 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     <strong>{collection.title}</strong>
                     <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
                     <small>
-                      {collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)} · {worksStatusLabels[collection.status] || collection.status}
+                      {collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)} · {catalogueReleaseStatusLabels[collection.status] || collection.status}
                     </small>
+                    {catalogueReleaseStatusDescriptions[collection.status] && (
+                      <small>{catalogueReleaseStatusDescriptions[collection.status]}</small>
+                    )}
                   </div>
                   <div className='cmc-profile-works-list-actions'>
                     <Button
@@ -520,7 +523,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     </Button>
                     <Button
                       aria-label={`Edit ${collection.title}`}
-                      disabled={deletingCollectionId === collection.id || collection.status === 'ARCHIVED'}
+                      disabled={deletingCollectionId === collection.id || !canEditWorksCollection(collection)}
                       onClick={() => startEditingCollection(collection)}
                       size='sm'
                       type='button'
