@@ -20,19 +20,31 @@ import {
 
 const normalize = value => String(value || '').toLowerCase()
 
+const requestStatusLabels = {
+  OPEN: 'New request',
+  PENDING_DECISION: 'Pending decision',
+  ACCEPTED: 'Accepted - preparing',
+  REJECTED: 'Rejected',
+  COMPLETED: 'Completed'
+}
+
+const formatRequestStatus = status => requestStatusLabels[status] || String(status || 'Request')
+
 const trackReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const trackReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 
 const getCatalogueTrackHref = track => `/catalogue/${track.id}`
 
-const storeProfileTrackReturn = trackId => {
+const storeProfileTrackReturn = (trackId, returnUrl = null) => {
   if (typeof window === 'undefined') {
     return
   }
 
   sessionStorage.setItem(trackReturnTrackIdStorageKey, String(trackId))
-  sessionStorage.setItem(trackReturnUrlStorageKey, `${window.location.pathname}${window.location.search}`)
+  sessionStorage.setItem(trackReturnUrlStorageKey, returnUrl || `${window.location.pathname}${window.location.search}`)
 }
+
+const getProfileLibraryReturnUrl = ({ trackId, tab }) => `/profile?library=${tab}&focusTrackId=${trackId}`
 
 const formatPlaybackTime = seconds => {
   if (!Number.isFinite(seconds) || seconds < 0) {
@@ -227,12 +239,16 @@ const ProfileInlinePlayer = ({ active, onActivate, onDeactivate, track }) => {
 }
 
 const TrackTable = ({
+  activeLibraryTab,
   emptyAction,
   emptyText,
   emptyTitle,
+  focusedTrackId,
+  mode = 'downloads',
   tracks
 }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
+  const tableLabel = mode === 'uploads' ? 'Uploaded tracks' : 'Downloaded tracks'
 
   if (tracks.length === 0) {
     return (
@@ -246,53 +262,106 @@ const TrackTable = ({
   }
 
   return (
-    <div className='cmc-profile-table' role='table' aria-label='Downloaded tracks'>
+    <div
+      className={mode === 'uploads' ? 'cmc-profile-table cmc-profile-table--uploads' : 'cmc-profile-table'}
+      id='profile-library-table'
+      role='table'
+      aria-label={tableLabel}
+    >
       <div className='cmc-profile-table-head' role='row'>
         <span className='cmc-profile-column-index' aria-hidden='true' />
         <span role='columnheader'>Title</span>
         <span role='columnheader'>Composer</span>
         <span role='columnheader'>Key</span>
-        <span className='cmc-profile-column-preview' aria-hidden='true' />
-        <span className='cmc-profile-column-download' aria-hidden='true' />
+        {mode === 'uploads' ? (
+          <>
+            <span role='columnheader'>Downloads</span>
+            <span role='columnheader'>Comments</span>
+            <span role='columnheader'>Requests</span>
+          </>
+        ) : (
+          <>
+            <span className='cmc-profile-column-preview' aria-hidden='true' />
+            <span className='cmc-profile-column-download' aria-hidden='true' />
+          </>
+        )}
       </div>
       <ul className='cmc-profile-table-body'>
-        {tracks.map((track, index) => (
-          <li className='cmc-profile-table-row' key={track.id} role='row'>
+        {tracks.map((track, index) => {
+          const returnUrl = getProfileLibraryReturnUrl({
+            tab: activeLibraryTab,
+            trackId: track.id
+          })
+
+          return (
+            <li
+              className={track.id === focusedTrackId ? 'cmc-profile-table-row cmc-profile-table-row--focused' : 'cmc-profile-table-row'}
+              id={`profile-track-${track.id}`}
+              key={track.id}
+              role='row'
+            >
             <span className='cmc-profile-row-index' aria-hidden='true'>
               {String(index + 1).padStart(2, '0')}
             </span>
             <div className='cmc-profile-track-title' role='cell'>
-              <Link href={getCatalogueTrackHref(track)} onClick={() => storeProfileTrackReturn(track.id)}>
+              <Link href={getCatalogueTrackHref(track)} onClick={() => storeProfileTrackReturn(track.id, returnUrl)}>
                 {track.title}
               </Link>
-              <span>{track.uploadedAt ? `Added ${track.uploadedAt}` : 'Purchased track'}</span>
+              <span>{track.uploadedAt ? `${mode === 'uploads' ? 'Uploaded' : 'Added'} ${track.uploadedAt}` : 'Purchased track'}</span>
             </div>
             <span role='cell'>{track.composer || 'Unknown composer'}</span>
             <span role='cell'>{track.key || 'Not set'}</span>
-            <div className='cmc-profile-preview-cell' role='cell'>
-              <ProfileInlinePlayer
-                active={activePreviewTrackId === track.id}
-                onActivate={() => setActivePreviewTrackId(track.id)}
-                onDeactivate={() => setActivePreviewTrackId(null)}
-                track={track}
-              />
-            </div>
-            <div className='cmc-profile-row-actions' role='cell'>
-              <Button
-                aria-label={`Download ${track.title}`}
-                as='a'
-                href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
-                rel='noreferrer'
-                target='_blank'
-                download={track.downloadName}
-                size='sm'
-                variant='ink'
-              >
-                <Download aria-hidden='true' strokeWidth={1.8} />
-              </Button>
-            </div>
-          </li>
-        ))}
+            {mode === 'uploads' ? (
+              <>
+                <span role='cell'>{track.downloadCount || 0}</span>
+                <span role='cell'>
+                  <Link
+                    className='cmc-profile-metric-link'
+                    href={`${getCatalogueTrackHref(track)}?tab=comments`}
+                    onClick={() => storeProfileTrackReturn(track.id, returnUrl)}
+                  >
+                    {track.commentCount || 0}
+                  </Link>
+                </span>
+                <span role='cell'>
+                  <Link
+                    className='cmc-profile-metric-link'
+                    href={`${getCatalogueTrackHref(track)}?tab=requests`}
+                    onClick={() => storeProfileTrackReturn(track.id, returnUrl)}
+                  >
+                    {track.requestCount || 0}
+                  </Link>
+                </span>
+              </>
+            ) : (
+              <>
+                <div className='cmc-profile-preview-cell' role='cell'>
+                  <ProfileInlinePlayer
+                    active={activePreviewTrackId === track.id}
+                    onActivate={() => setActivePreviewTrackId(track.id)}
+                    onDeactivate={() => setActivePreviewTrackId(null)}
+                    track={track}
+                  />
+                </div>
+                <div className='cmc-profile-row-actions' role='cell'>
+                  <Button
+                    aria-label={`Download ${track.title}`}
+                    as='a'
+                    href={`/api/tracks/${track.id}/signed-url?mode=download&redirect=1`}
+                    rel='noreferrer'
+                    target='_blank'
+                    download={track.downloadName}
+                    size='sm'
+                    variant='ink'
+                  >
+                    <Download aria-hidden='true' strokeWidth={1.8} />
+                  </Button>
+                </div>
+              </>
+            )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
@@ -302,6 +371,8 @@ const ProfilePageContent = ({
   checkout,
   checkoutSessionId,
   currentUser,
+  focusedTrackId,
+  initialLibraryTab,
   purchase,
   userComments,
   userUploadedTracks,
@@ -310,12 +381,30 @@ const ProfilePageContent = ({
   userWishlistedTracks = [],
   wishlist
 }) => {
+  const hasUploadedTrackLibrary = userUploadedTracks.length > 0
+  const defaultLibraryTab = hasUploadedTrackLibrary ? 'uploads' : 'downloads'
   const [checkoutError, setCheckoutError] = useState('')
   const [composerFilter, setComposerFilter] = useState('all')
   const [keyFilter, setKeyFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [activeLibraryTab, setActiveLibraryTab] = useState(() => (
+    hasUploadedTrackLibrary ? initialLibraryTab || defaultLibraryTab : 'downloads'
+  ))
   const router = useRouter()
   const { emptyCart } = useCart()
+
+  useEffect(() => {
+    if (!focusedTrackId) {
+      return
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(`profile-track-${focusedTrackId}`)?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth'
+      })
+    })
+  }, [activeLibraryTab, focusedTrackId])
 
   useEffect(() => {
     const reconcileCheckout = async () => {
@@ -361,9 +450,11 @@ const ProfilePageContent = ({
     reconcileCheckout()
   }, [checkout, checkoutSessionId, emptyCart, router])
 
-  const composerOptions = useMemo(() => uniqueSortedValues(userPurchasedTracks, 'composer'), [userPurchasedTracks])
-  const keyOptions = useMemo(() => uniqueSortedValues(userPurchasedTracks, 'key'), [userPurchasedTracks])
-  const filteredPurchasedTracks = useMemo(() => userPurchasedTracks.filter(track => {
+  const safeActiveLibraryTab = hasUploadedTrackLibrary ? activeLibraryTab : 'downloads'
+  const activeTrackSet = safeActiveLibraryTab === 'uploads' ? userUploadedTracks : userPurchasedTracks
+  const composerOptions = useMemo(() => uniqueSortedValues(activeTrackSet, 'composer'), [activeTrackSet])
+  const keyOptions = useMemo(() => uniqueSortedValues(activeTrackSet, 'key'), [activeTrackSet])
+  const filteredLibraryTracks = useMemo(() => activeTrackSet.filter(track => {
     if (composerFilter !== 'all' && track.composer !== composerFilter) {
       return false
     }
@@ -373,7 +464,20 @@ const ProfilePageContent = ({
     }
 
     return matchesSearch(track, search)
-  }), [composerFilter, keyFilter, search, userPurchasedTracks])
+  }), [activeTrackSet, composerFilter, keyFilter, search])
+  const activeTrackTotal = activeTrackSet.length
+  const activeLibraryTitle = safeActiveLibraryTab === 'uploads' ? 'Uploaded Tracks' : 'Downloaded Tracks'
+  const activeLibrarySearchLabel = safeActiveLibraryTab === 'uploads' ? 'Search uploaded tracks' : 'Search downloaded tracks'
+  const resetLibraryFilters = nextTab => {
+    if (nextTab === 'uploads' && !hasUploadedTrackLibrary) {
+      return
+    }
+
+    setActiveLibraryTab(nextTab)
+    setComposerFilter('all')
+    setKeyFilter('all')
+    setSearch('')
+  }
 
   const purchaseConfirmed = purchase === 'confirmed'
   const wishlistAdded = wishlist === 'added'
@@ -391,6 +495,7 @@ const ProfilePageContent = ({
         : 'Tracks you have saved for later.',
       items: userWishlistedTracks.slice(0, 3).map(track => ({
         href: `/catalogue/${track.id}`,
+        itemKey: `wishlist-${track.id}`,
         meta: `Saved ${track.savedAt}`,
         title: track.title,
         trackId: track.id
@@ -404,7 +509,8 @@ const ProfilePageContent = ({
         : 'Recent requests you have created or followed.',
       items: userTrackRequests.slice(0, 3).map(request => ({
         href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : null,
-        meta: `${request.status.toLowerCase().replace('_', ' ')} · ${request.createdAt}`,
+        itemKey: `request-${request.id}`,
+        meta: `${formatRequestStatus(request.status)} · ${request.createdAt}`,
         title: request.title.replace(/^E2E Request /, ''),
         trackId: request.trackId
       }))
@@ -417,6 +523,7 @@ const ProfilePageContent = ({
         : 'Recent comments you have added to downloaded tracks.',
       items: userComments.slice(0, 3).map(comment => ({
         href: `/catalogue/${comment.trackId}?tab=comments&commentId=${comment.id}`,
+        itemKey: `comment-${comment.id}`,
         meta: comment.createdAt,
         title: comment.trackTitle,
         trackId: comment.trackId
@@ -489,24 +596,50 @@ const ProfilePageContent = ({
             </div>
           )}
 
-          <section className='cmc-profile-library' aria-labelledby='profile-downloads-heading'>
+          <section className='cmc-profile-library' aria-labelledby='profile-library-heading'>
             <div className='cmc-profile-section-heading'>
               <div>
-                <p className='cmc-profile-kicker'>Download library</p>
-                <h2 id='profile-downloads-heading'>Downloaded tracks</h2>
+                <h2 id='profile-library-heading'>{activeLibraryTitle}</h2>
               </div>
               <p>
-                Showing {filteredPurchasedTracks.length} of {userPurchasedTracks.length}
+                Showing {filteredLibraryTracks.length} of {activeTrackTotal}
               </p>
             </div>
 
+            {hasUploadedTrackLibrary && (
+              <div className='cmc-profile-library-tabs' role='tablist' aria-label='Profile track library'>
+                <button
+                  aria-controls='profile-library-table'
+                  aria-selected={safeActiveLibraryTab === 'uploads'}
+                  id='profile-library-uploads-tab'
+                  onClick={() => resetLibraryFilters('uploads')}
+                  role='tab'
+                  type='button'
+                >
+                  Uploaded Tracks
+                  <span>{userUploadedTracks.length}</span>
+                </button>
+                <button
+                  aria-controls='profile-library-table'
+                  aria-selected={safeActiveLibraryTab === 'downloads'}
+                  id='profile-library-downloads-tab'
+                  onClick={() => resetLibraryFilters('downloads')}
+                  role='tab'
+                  type='button'
+                >
+                  Downloaded Tracks
+                  <span>{userPurchasedTracks.length}</span>
+                </button>
+              </div>
+            )}
+
             <div className='cmc-profile-searchbar'>
-              <label className='cmc-sr-only' htmlFor='profile-track-search'>Search downloaded tracks</label>
+              <label className='cmc-sr-only' htmlFor='profile-track-search'>{activeLibrarySearchLabel}</label>
               <Search aria-hidden='true' strokeWidth={1.8} />
               <input
                 id='profile-track-search'
                 onChange={event => setSearch(event.target.value)}
-                placeholder='Search downloaded tracks'
+                placeholder={activeLibrarySearchLabel}
                 type='search'
                 value={search}
               />
@@ -540,15 +673,45 @@ const ProfilePageContent = ({
             </div>
 
             <TrackTable
+              activeLibraryTab={safeActiveLibraryTab}
               emptyAction={(
-                <Button as={Link} href='/catalogue' variant='paper'>
-                  Browse Archive
-                </Button>
+                safeActiveLibraryTab === 'uploads'
+                  ? (
+                      <Button as={Link} href='/upload' variant='paper'>
+                        Upload Track
+                      </Button>
+                    )
+                  : (
+                      <Button as={Link} href='/catalogue' variant='paper'>
+                        Browse Archive
+                      </Button>
+                    )
               )}
-              emptyText='Purchased tracks will appear here with secure download links after checkout.'
-              emptyTitle={userPurchasedTracks.length === 0 ? 'No downloads yet' : 'No matching downloads'}
-              tracks={filteredPurchasedTracks}
+              emptyText={safeActiveLibraryTab === 'uploads'
+                ? 'Your uploaded tracks will appear here after submission.'
+                : 'Purchased tracks will appear here with secure download links after checkout.'}
+              emptyTitle={activeTrackTotal === 0
+                ? (safeActiveLibraryTab === 'uploads' ? 'No uploads yet' : 'No downloads yet')
+                : (safeActiveLibraryTab === 'uploads' ? 'No matching uploads' : 'No matching downloads')}
+              focusedTrackId={focusedTrackId}
+              mode={safeActiveLibraryTab}
+              tracks={filteredLibraryTracks}
             />
+
+            {hasUploadedTrackLibrary && safeActiveLibraryTab === 'uploads' && (
+              <div className='cmc-profile-management-link'>
+                <div>
+                  <p className='cmc-profile-kicker'>Upload management</p>
+                  <h3>Organise uploaded tracks into Works and Collections</h3>
+                  <p>
+                    Group related approved tracks, prepare buyer-facing releases, and keep upload operations separate from your personal profile.
+                  </p>
+                </div>
+                <Button as={Link} href='/upload/manage' variant='ink'>
+                  Manage uploads
+                </Button>
+              </div>
+            )}
           </section>
 
           <section className='cmc-profile-secondary-grid' aria-label='Profile sections'>
@@ -560,7 +723,7 @@ const ProfilePageContent = ({
                 {panel.items?.length > 0 && (
                   <ul>
                     {panel.items.map(item => (
-                      <li key={`${panel.label}-${item.title}-${item.meta}`}>
+                      <li key={item.itemKey || `${panel.label}-${item.title}-${item.meta}`}>
                         {item.href ? (
                           <Link href={item.href} onClick={() => item.trackId && storeProfileTrackReturn(item.trackId)}>{item.title}</Link>
                         ) : (
@@ -599,6 +762,9 @@ const ProfilePageContent = ({
                     <div className='cmc-profile-role-actions'>
                       <Button as={Link} href='/upload' variant='ink'>
                         Upload track
+                      </Button>
+                      <Button as={Link} href='/upload/manage' variant='paper'>
+                        Manage uploads
                       </Button>
                       <Button as={Link} href='/catalogue' variant='paper'>
                         View catalogue

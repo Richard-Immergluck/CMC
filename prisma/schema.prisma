@@ -44,24 +44,27 @@ model Session {
 }
 
 model User {
-  id             String            @id @default(cuid())
-  name           String?
-  email          String?           @unique
-  image          String?
-  emailVerified  String?
-  role           UserRole          @default(CUSTOMER)
-  accountStatus  UserAccountStatus @default(ACTIVE)
-  uploaderStatus UploaderStatus    @default(NOT_REQUESTED)
-  sessionRevokedBefore DateTime?
-  accounts       Account[]
-  sessions       Session[]
-  Track          Track[]
-  TrackOwners    TrackOwner[]
-  Comment        Comment[]
-  orders         Order[]
-  auditEvents    AuditEvent[]
-  TrackRequests  TrackRequest[]
-  WishlistItems  WishlistItem[]
+  id                            String                    @id @default(cuid())
+  name                          String?
+  email                         String?                   @unique
+  image                         String?
+  emailVerified                 String?
+  role                          UserRole                  @default(CUSTOMER)
+  accountStatus                 UserAccountStatus         @default(ACTIVE)
+  uploaderStatus                UploaderStatus            @default(NOT_REQUESTED)
+  sessionRevokedBefore          DateTime?
+  accounts                      Account[]
+  sessions                      Session[]
+  Track                         Track[]
+  TrackOwners                   TrackOwner[]
+  Comment                       Comment[]
+  orders                        Order[]
+  auditEvents                   AuditEvent[]
+  TrackRequests                 TrackRequest[]
+  WishlistItems                 WishlistItem[]
+  CatalogueReleases             CatalogueRelease[]
+  UploadBatches                 UploadBatch[]
+  RequestPricingProposals       RequestPricingProposal[]
   accessChangeRequestsRequested UserAccessChangeRequest[] @relation("UserAccessChangeRequestedBy")
   accessChangeRequestsReviewed  UserAccessChangeRequest[] @relation("UserAccessChangeReviewedBy")
   accessChangeRequestsTargeted  UserAccessChangeRequest[] @relation("UserAccessChangeTarget")
@@ -81,46 +84,116 @@ model VerificationToken {
 }
 
 model Track {
-  id                  Int                   @id @default(autoincrement())
-  fileName            String
-  title               String
-  composer            String
-  status              TrackStatus           @default(PUBLISHED)
-  moderationStatus    TrackModerationStatus @default(APPROVED)
-  processingStatus    TrackProcessingStatus @default(READY)
-  uploadedAt          DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  publishedAt         DateTime?
-  reviewedAt          DateTime?
-  uploadedBy          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId              String
-  previewFileName     String?
-  previewStart        Int?
-  previewEnd          Int?
-  durationSeconds     Int?
-  sourceContentType   String?
-  price               Float?
-  pricePence          Int?
-  currency            String                @default("gbp")
-  formattedPrice      String?
-  downloadName        String?
-  downloadCount       Int?
-  key                 String?
-  instrumentation     String?
-  additionalInfo      String?
-  moderationNotes     String?               @db.Text
-  processingError     String?               @db.Text
-  TrackOwner          TrackOwner[]
-  Comments            Comment[]
-  TrackRequests       TrackRequest[]
-  WishlistItems       WishlistItem[]
-  orderItems          OrderItem[]
+  id                     Int                   @id @default(autoincrement())
+  fileName               String
+  title                  String
+  composer               String
+  status                 TrackStatus           @default(PUBLISHED)
+  moderationStatus       TrackModerationStatus @default(APPROVED)
+  processingStatus       TrackProcessingStatus @default(READY)
+  uploadedAt             DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  publishedAt            DateTime?
+  reviewedAt             DateTime?
+  uploadedBy             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String
+  uploadBatch            UploadBatch?          @relation(fields: [uploadBatchId], references: [id], onDelete: SetNull)
+  uploadBatchId          Int?
+  previewFileName        String?
+  previewStart           Int?
+  previewEnd             Int?
+  durationSeconds        Int?
+  sourceContentType      String?
+  price                  Float?
+  pricePence             Int?
+  currency               String                @default("gbp")
+  formattedPrice         String?
+  catalogueType          CatalogueType         @default(SINGLE_TRACK)
+  saleFormat             SaleFormat            @default(INDIVIDUAL)
+  pricingTier            String?
+  pricingReviewStatus    PricingReviewStatus   @default(AUTO_APPROVED)
+  pricingJustification   String?               @db.Text
+  downloadName           String?
+  downloadCount          Int?
+  key                    String?
+  instrumentation        String?
+  additionalInfo         String?
+  moderationNotes        String?               @db.Text
+  processingError        String?               @db.Text
+  TrackOwner             TrackOwner[]
+  Comments               Comment[]
+  TrackRequests          TrackRequest[]
+  FulfilledTrackRequests TrackRequest[]        @relation("TrackRequestFulfilment")
+  WishlistItems          WishlistItem[]
+  orderItems             OrderItem[]
+  releaseItems           CatalogueReleaseTrack[]
 
   @@index([status])
   @@index([userId])
+  @@index([uploadBatchId])
+  @@index([catalogueType])
+  @@index([pricingReviewStatus])
   @@index([status, moderationStatus, processingStatus])
   @@index([status, uploadedAt])
   @@index([userId, status])
+}
+
+model UploadBatch {
+  id                     Int               @id @default(autoincrement())
+  uploadedBy             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                 String
+  label                  String?
+  defaultComposer        String?
+  defaultInstrumentation String?
+  defaultPricePence      Int?
+  status                 UploadBatchStatus @default(DRAFT)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  submittedAt            DateTime?
+  completedAt            DateTime?
+  tracks                 Track[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model CatalogueRelease {
+  id                    Int                     @id @default(autoincrement())
+  title                 String
+  composer              String?
+  catalogueType         CatalogueType
+  saleFormat            SaleFormat              @default(BUNDLE)
+  pricePence            Int?
+  currency              String                  @default("gbp")
+  formattedPrice        String?
+  pricingReviewStatus   PricingReviewStatus     @default(AUTO_APPROVED)
+  pricingJustification  String?                 @db.Text
+  uploadedBy            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  tracks                CatalogueReleaseTrack[]
+  orderItems            OrderItem[]
+
+  @@index([catalogueType])
+  @@index([saleFormat])
+  @@index([userId, createdAt])
+  @@index([pricingReviewStatus])
+}
+
+model CatalogueReleaseTrack {
+  id          Int              @id @default(autoincrement())
+  release     CatalogueRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  releaseId   Int
+  track       Track            @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId     Int
+  position    Int              @default(0)
+  movementNo  String?
+  titleInWork String?
+
+  @@unique([releaseId, trackId])
+  @@index([releaseId, position])
+  @@index([trackId])
 }
 
 model TrackOwner {
@@ -151,22 +224,52 @@ model Comment {
 }
 
 model TrackRequest {
-  id              Int                @id @default(autoincrement())
-  requestedBy     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String
-  track           Track?             @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  trackId         Int?
-  title           String
-  composer        String?
-  instrumentation String?
-  notes           String?            @db.Text
-  status          TrackRequestStatus @default(OPEN)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id                 Int                @id @default(autoincrement())
+  requestedBy        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String
+  track              Track?             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  trackId            Int?
+  fulfilledByTrack   Track?             @relation("TrackRequestFulfilment", fields: [fulfilledByTrackId], references: [id], onDelete: SetNull)
+  fulfilledByTrackId Int?
+  title              String
+  composer           String?
+  instrumentation    String?
+  notes              String?            @db.Text
+  rejectionReason    String?
+  rejectionNote      String?            @db.Text
+  status             TrackRequestStatus @default(OPEN)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  pricingProposals   RequestPricingProposal[]
 
   @@index([userId, createdAt])
   @@index([trackId, createdAt])
+  @@index([fulfilledByTrackId])
   @@index([status, createdAt])
+}
+
+model RequestPricingProposal {
+  id                    Int                          @id @default(autoincrement())
+  request               TrackRequest                 @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId             Int
+  proposedBy            User                         @relation(fields: [proposedById], references: [id], onDelete: Cascade)
+  proposedById          String
+  pricePence            Int
+  currency              String                       @default("gbp")
+  catalogueType         CatalogueType                @default(SINGLE_TRACK)
+  saleFormat            SaleFormat                   @default(INDIVIDUAL)
+  reviewStatus          PricingReviewStatus          @default(AUTO_APPROVED)
+  requesterDecision     RequestPricingDecisionStatus @default(PENDING)
+  justification         String?                      @db.Text
+  requesterNote         String?                      @db.Text
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  requesterRespondedAt  DateTime?
+
+  @@index([requestId, createdAt])
+  @@index([proposedById, createdAt])
+  @@index([reviewStatus, createdAt])
+  @@index([requesterDecision, createdAt])
 }
 
 model WishlistItem {
@@ -201,28 +304,32 @@ model Order {
 }
 
 model OrderItem {
-  id           Int      @id @default(autoincrement())
-  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId      Int
-  track        Track    @relation(fields: [trackId], references: [id], onDelete: Restrict)
-  trackId      Int
-  title        String
-  composer     String
-  unitAmount   Int
-  currency     String   @default("gbp")
+  id                 Int               @id @default(autoincrement())
+  order              Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId            Int
+  track              Track             @relation(fields: [trackId], references: [id], onDelete: Restrict)
+  trackId            Int
+  sourceRelease      CatalogueRelease? @relation(fields: [sourceReleaseId], references: [id], onDelete: SetNull)
+  sourceReleaseId    Int?
+  sourceReleaseTitle String?
+  title              String
+  composer           String
+  unitAmount         Int
+  currency           String            @default("gbp")
 
   @@unique([orderId, trackId])
   @@index([trackId])
+  @@index([sourceReleaseId])
 }
 
 model PaymentEvent {
-  id             Int      @id @default(autoincrement())
-  stripeEventId  String   @unique
-  type           String
-  order          Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  orderId        Int?
-  payload        String   @db.Text
-  processedAt    DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  stripeEventId String   @unique
+  type          String
+  order         Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId       Int?
+  payload       String   @db.Text
+  processedAt   DateTime @default(now())
 
   @@index([orderId])
 }
@@ -244,20 +351,20 @@ model AuditEvent {
 }
 
 model UserAccessChangeRequest {
-  id                      Int                            @id @default(autoincrement())
-  targetUser              User                           @relation("UserAccessChangeTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  id                      Int                           @id @default(autoincrement())
+  targetUser              User                          @relation("UserAccessChangeTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
   targetUserId            String
-  requestedBy             User                           @relation("UserAccessChangeRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  requestedBy             User                          @relation("UserAccessChangeRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
   requestedById           String
-  reviewedBy              User?                          @relation("UserAccessChangeReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy              User?                         @relation("UserAccessChangeReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedById            String?
-  status                  UserAccessChangeRequestStatus  @default(PENDING)
+  status                  UserAccessChangeRequestStatus @default(PENDING)
   requestedRole           UserRole?
   requestedAccountStatus  UserAccountStatus?
   requestedUploaderStatus UploaderStatus?
-  reason                  String?                        @db.Text
-  reviewNote              String?                        @db.Text
-  createdAt               DateTime                       @default(now())
+  reason                  String?                       @db.Text
+  reviewNote              String?                       @db.Text
+  createdAt               DateTime                      @default(now())
   reviewedAt              DateTime?
   appliedAt               DateTime?
 
@@ -284,9 +391,40 @@ enum TrackStatus {
 
 enum TrackRequestStatus {
   OPEN
-  IN_PROGRESS
-  FULFILLED
-  CLOSED
+  PENDING_DECISION
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+enum CatalogueType {
+  SINGLE_TRACK
+  MOVEMENT
+  SONG_CYCLE
+  COLLECTION
+  LEARNING_PACK
+  OPERA_EXCERPT
+  COMPLETE_WORK
+}
+
+enum SaleFormat {
+  INDIVIDUAL
+  BUNDLE
+  BOTH
+}
+
+enum PricingReviewStatus {
+  AUTO_APPROVED
+  NEEDS_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum RequestPricingDecisionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  SUPERSEDED
 }
 
 enum UserRole {
@@ -320,6 +458,16 @@ enum TrackProcessingStatus {
   PROCESSING
   READY
   FAILED
+}
+
+enum UploadBatchStatus {
+  DRAFT
+  UPLOADING
+  READY_FOR_REVIEW
+  SUBMITTED
+  PARTIALLY_FAILED
+  COMPLETED
+  ARCHIVED
 }
 
 enum UserAccessChangeRequestStatus {

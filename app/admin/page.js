@@ -7,6 +7,7 @@ import {
   toUserAdminItem
 } from '../../lib/server/admin-core.mjs'
 import { getAdminOperationsData } from '../../lib/server/admin-operations'
+import { getAdminPricingReviews } from '../../lib/server/admin-pricing-reviews.mjs'
 import {
   canAccessAdminSurface,
   canAccessSupportSurface
@@ -39,6 +40,7 @@ const getAdminInitialData = async currentUser => {
     auditEventCount,
     tracks,
     users,
+    pricingReviews,
     operations
   ] = await Promise.all([
     prisma.user.count(),
@@ -75,12 +77,14 @@ const getAdminInitialData = async currentUser => {
           take: 100
         })
       : Promise.resolve([]),
+    getAdminPricingReviews(),
     getAdminOperationsData()
   ])
 
   return {
     canManageUsers,
     initialOperations: serializeOperations(operations),
+    initialPricingReviews: serializeOperations(pricingReviews),
     initialSummary: toAdminSummary({
       userCount,
       trackCount,

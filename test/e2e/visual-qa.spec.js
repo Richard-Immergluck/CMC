@@ -58,8 +58,9 @@ test.describe('visual QA snapshots', () => {
   test('protected upload and admin surfaces have review screenshots', async ({ page }, testInfo) => {
     await signInPageAs(page, 'e2e-customer@example.com')
     await page.goto('/upload')
-    await expect(page.getByText('Approved uploader access is required before you can submit tracks.')).toBeVisible()
-    await capture({ name: 'upload-customer-guard', page }, testInfo)
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeVisible()
+    await capture({ name: 'upload-customer-form', page }, testInfo)
 
     await signInPageAs(page, 'e2e-admin@example.com')
     await page.goto('/admin')

@@ -12,10 +12,10 @@ const createTrackInput = suffix => ({
   durationSeconds: 30,
   sourceContentType: 'audio/mpeg',
   additionalInfo: 'Synthetic checkout track created by Playwright.',
-  price: 4.75,
-  pricePence: 475,
+  price: 4.99,
+  pricePence: 499,
   currency: 'gbp',
-  formattedPrice: 'GBP 4.75',
+  formattedPrice: '£4.99',
   downloadName: `checkout-${suffix}.mp3`,
   downloadCount: 0
 })
@@ -49,18 +49,64 @@ const addTrackToCart = async (page, track) => {
 
   await expect(page.getByRole('heading', { name: track.title })).toBeVisible()
 
-  page.once('dialog', async dialog => {
-    expect(dialog.message()).toBe('Track added to cart!')
-    await dialog.accept()
-  })
-
   await page.getByRole('button', { name: 'Add to Cart' }).click()
+  await expect(page.getByRole('heading', { name: `${track.title} has been added to your cart.` })).toBeVisible()
   await page.goto('/cart')
 
   await expect(page.getByText('Shopping Cart')).toBeVisible()
   const cartItems = page.getByLabel('Tracks in cart')
   await expect(cartItems.getByRole('link', { name: track.title })).toBeVisible()
-  await expect(cartItems.getByText('£4.75')).toBeVisible()
+  await expect(cartItems.getByText('£4.99')).toBeVisible()
+}
+
+const createPublishedCollection = async (page, suffix) => {
+  await signInPageAs(page, 'e2e-uploader@example.com')
+
+  const firstCreateResponse = await page.request.post('/api/tracks', {
+    data: createTrackInput(`${suffix}-collection-one`)
+  })
+  const firstTrack = await firstCreateResponse.json()
+  const secondCreateResponse = await page.request.post('/api/tracks', {
+    data: createTrackInput(`${suffix}-collection-two`)
+  })
+  const secondTrack = await secondCreateResponse.json()
+
+  expect(firstCreateResponse.status()).toBe(200)
+  expect(secondCreateResponse.status()).toBe(200)
+
+  await signInPageAs(page, 'e2e-admin@example.com')
+
+  for (const track of [firstTrack, secondTrack]) {
+    const approvalResponse = await page.request.patch(`/api/admin/tracks/${track.id}`, {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved for collection checkout E2E.'
+      }
+    })
+
+    expect(approvalResponse.status()).toBe(200)
+  }
+
+  await signInPageAs(page, 'e2e-uploader@example.com')
+
+  const collectionResponse = await page.request.post('/api/works-collections', {
+    data: {
+      catalogueType: 'COLLECTION',
+      composer: 'Synthetic Checkout Fixture',
+      pricePence: 1499,
+      saleFormat: 'BOTH',
+      title: `E2E Checkout Collection ${suffix}`,
+      trackIds: [firstTrack.id, secondTrack.id]
+    }
+  })
+  const collectionBody = await collectionResponse.json()
+
+  expect(collectionResponse.status()).toBe(200)
+
+  return {
+    collection: collectionBody.collection,
+    tracks: [firstTrack, secondTrack]
+  }
 }
 
 const denyDownload = async (page, trackId) => {
@@ -104,6 +150,40 @@ test.describe('checkout browser flow', () => {
         url: expect.any(String)
       })
     )
+  })
+
+  test('customers can buy a Work or Collection and receive included tracks', async ({ page }) => {
+    const suffix = `${Date.now()}`
+    const { collection, tracks } = await createPublishedCollection(page, suffix)
+
+    await signInPageAs(page, 'e2e-customer@example.com')
+    await page.goto(`/works-collections/${collection.id}`)
+    await expect(page.getByRole('heading', { name: `${collection.title}.` })).toBeVisible()
+
+    for (const track of tracks) {
+      await denyDownload(page, track.id)
+    }
+
+    await page.getByRole('button', { name: 'Add Collection to Cart' }).click()
+    await expect(page.getByRole('button', { name: 'Added to Cart' })).toBeVisible()
+    await page.goto('/cart')
+
+    const cartItems = page.getByLabel('Tracks in cart')
+    await expect(cartItems.getByRole('link', { name: collection.title })).toBeVisible()
+    await expect(cartItems.getByText('2 track collection')).toBeVisible()
+    await expect(cartItems.getByText('£14.99')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Buy Now' }).click()
+
+    await expect(page).toHaveURL(/\/profile\?checkout=success&session_id=cs_e2e_paid_/)
+    const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
+
+    for (const track of tracks) {
+      await expect(downloadsTable.getByRole('link', { name: track.title, exact: true })).toBeVisible()
+
+      const signedUrlResponse = await page.request.get(`/api/tracks/${track.id}/signed-url?mode=download`)
+      expect(signedUrlResponse.status()).toBe(200)
+    }
   })
 
   test('cancelled checkout returns to cart without granting ownership', async ({ page }) => {

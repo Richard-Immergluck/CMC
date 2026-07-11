@@ -72,6 +72,13 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('admin pricing reviews require authentication', async ({ request }) => {
+    const response = await request.get('/api/admin/pricing-reviews')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('profile ownership data requires authentication', async ({ request }) => {
     const response = await request.get('/api/profile')
 
@@ -84,6 +91,41 @@ test.describe('anonymous API access', () => {
       data: {
         trackId: 1,
         comment: 'Anonymous comment attempt'
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
+  test('works collections require authentication', async ({ request }) => {
+    const response = await request.post('/api/works-collections', {
+      data: {
+        catalogueType: 'COLLECTION',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        title: 'Anonymous collection attempt',
+        trackIds: [1, 2]
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
+  test('works collection management requires authentication', async ({ request }) => {
+    const response = await request.delete('/api/works-collections/1')
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
+  test('request pricing proposals require authentication', async ({ request }) => {
+    const response = await request.post('/api/track-requests/1/pricing-proposals', {
+      data: {
+        catalogueType: 'SINGLE_TRACK',
+        saleFormat: 'INDIVIDUAL',
+        pricePence: 299
       }
     })
 

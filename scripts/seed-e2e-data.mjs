@@ -328,6 +328,7 @@ const seed = async () => {
   })
 
   const purchasedTracks = [track]
+  const savedExtraCatalogueTracks = []
   const extraCatalogueTracks = demoCatalogueTracks.slice(1).map((demoTrack, index) => ({
     fileName: `demo-fixtures/${demoTrack.slug}.wav`,
     previewFileName: `demo-fixtures/${demoTrack.slug}.wav`,
@@ -377,6 +378,8 @@ const seed = async () => {
       : await prisma.track.create({
         data: extraTrack
       })
+
+    savedExtraCatalogueTracks.push(savedTrack)
 
     if (index < 5) {
       purchasedTracks.push(savedTrack)
@@ -498,6 +501,124 @@ const seed = async () => {
     })
   }
 
+  const uploaderOwnerComments = [
+    'Uploader note: this guide track is intentionally steady for first-pass rehearsal.',
+    'Uploader note: phrasing cues are slightly forward in the mix for entry practice.'
+  ]
+
+  for (const [index, ownerComment] of uploaderOwnerComments.entries()) {
+    const ownerCommentTrack = purchasedTracks[index] || purchasedTracks[0]
+
+    await prisma.comment.create({
+      data: {
+        content: ownerComment,
+        postedBy: {
+          connect: {
+            id: uploader.id
+          }
+        },
+        track: {
+          connect: {
+            id: ownerCommentTrack.id
+          }
+        },
+        createdAt: new Date(`2026-07-${String(index + 7).padStart(2, '0')}T15:15:00.000Z`)
+      }
+    })
+  }
+
+  const bachWarmupTrack = savedExtraCatalogueTracks.find(savedTrack => (
+    savedTrack.title === 'E2E Catalogue Bach Warmup Study Op. 92'
+  ))
+  const bachWarmupRequests = [
+    {
+      title: 'E2E Request Bach Warmup Slower Tempo',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Piano guide tone',
+      notes: 'Please add a slower preview-friendly version for early warmup work.',
+      status: 'OPEN',
+      userId: customer.id,
+      createdAt: new Date('2026-07-10T13:15:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Violin Cue',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Violin and piano',
+      notes: 'A version with a light violin entry cue would make this easier to use in lessons.',
+      status: 'PENDING_DECISION',
+      userId: support.id,
+      createdAt: new Date('2026-07-10T13:45:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Accepted Cut',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Piano guide tone',
+      notes: 'Accepted request fixture for testing upload fulfilment from the details page.',
+      status: 'ACCEPTED',
+      userId: customer.id,
+      createdAt: new Date('2026-07-10T13:55:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Clarinet Version',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Clarinet and piano',
+      notes: 'A declined fixture so the rejected state can be reviewed by requesters and uploaders.',
+      rejectionNote: 'Clarinet cue versions are not part of this uploader’s current catalogue plan.',
+      rejectionReason: 'outside_catalogue_plans',
+      status: 'REJECTED',
+      userId: support.id,
+      createdAt: new Date('2026-07-10T14:00:00.000Z')
+    },
+    {
+      title: 'E2E Request Bach Warmup Short Cut',
+      composer: 'Bach Style Synthetic Fixture',
+      instrumentation: 'Piano guide tone',
+      notes: 'Could this be available as a short 45-second rehearsal cut?',
+      status: 'COMPLETED',
+      userId: customer.id,
+      createdAt: new Date('2026-07-10T14:10:00.000Z')
+    }
+  ]
+
+  if (bachWarmupTrack) {
+    const bachWarmupComments = [
+      {
+        content: 'The pulse is very steady here; useful for first-play warmups before moving to faster excerpts.',
+        createdAt: new Date('2026-07-10T10:20:00.000Z'),
+        userId: customer.id
+      },
+      {
+        content: 'Uploader note: this was designed as a clean harmonic guide rather than a performance-style accompaniment.',
+        createdAt: new Date('2026-07-10T11:05:00.000Z'),
+        userId: uploader.id
+      },
+      {
+        content: 'Could work well for sectional practice. The lower line is clear enough to tune against.',
+        createdAt: new Date('2026-07-10T12:40:00.000Z'),
+        userId: support.id
+      }
+    ]
+
+    for (const commentFixture of bachWarmupComments) {
+      await prisma.comment.create({
+        data: {
+          content: commentFixture.content,
+          createdAt: commentFixture.createdAt,
+          postedBy: {
+            connect: {
+              id: commentFixture.userId
+            }
+          },
+          track: {
+            connect: {
+              id: bachWarmupTrack.id
+            }
+          }
+        }
+      })
+    }
+  }
+
   const requestFixtures = [
     {
       title: 'E2E Request Poulenc Oboe Sonata',
@@ -511,25 +632,52 @@ const seed = async () => {
       composer: 'Camille Saint-Saens',
       instrumentation: 'Cello and piano',
       notes: 'Useful if the accompaniment has a flexible but stable tempo.',
-      status: 'IN_PROGRESS'
+      status: 'PENDING_DECISION'
     },
     {
       title: 'E2E Request Mozart Clarinet Concerto Adagio',
       composer: 'W. A. Mozart',
       instrumentation: 'Clarinet and orchestra reduction',
       notes: 'Request fulfilled by an existing catalogue upload for smoke coverage.',
-      status: 'FULFILLED'
+      status: 'COMPLETED'
     }
   ]
 
   await prisma.trackRequest.deleteMany({
     where: {
       userId: {
-        in: [customer.id, uploader.id]
+        in: [customer.id, uploader.id, support.id]
       },
       OR: requestTitlePrefixFilters
     }
   })
+
+  if (bachWarmupTrack) {
+    for (const requestFixture of bachWarmupRequests) {
+      await prisma.trackRequest.create({
+        data: {
+          composer: requestFixture.composer,
+          instrumentation: requestFixture.instrumentation,
+          notes: requestFixture.notes,
+          rejectionNote: requestFixture.rejectionNote,
+          rejectionReason: requestFixture.rejectionReason,
+          status: requestFixture.status,
+          title: requestFixture.title,
+          createdAt: requestFixture.createdAt,
+          requestedBy: {
+            connect: {
+              id: requestFixture.userId
+            }
+          },
+          track: {
+            connect: {
+              id: bachWarmupTrack.id
+            }
+          }
+        }
+      })
+    }
+  }
 
   for (const [index, requestFixture] of requestFixtures.entries()) {
     const requestTrack = purchasedTracks[index] || purchasedTracks[0]
@@ -565,14 +713,14 @@ const seed = async () => {
       composer: 'Claude Debussy',
       instrumentation: 'Flute practice guide',
       notes: 'Uploader has asked for an alternate guide tempo on a track they own.',
-      status: 'IN_PROGRESS'
+      status: 'ACCEPTED'
     },
     {
       title: 'E2E Request Uploader Faure Elegie Reduction',
       composer: 'Gabriel Faure',
       instrumentation: 'Cello and piano',
       notes: 'Uploader request fixture marked fulfilled for profile and detail review.',
-      status: 'FULFILLED'
+      status: 'COMPLETED'
     }
   ]
 
@@ -606,6 +754,8 @@ const seed = async () => {
   console.log(`Seeded ${purchasedTracks.length} E2E customer purchases for ${customer.email}`)
   console.log(`Seeded ${uploaderPurchasedTracks.length} E2E uploader purchases for ${uploader.email}`)
   console.log(`Seeded ${customerComments.length} E2E customer comments for ${customer.email}`)
+  console.log(`Seeded ${uploaderOwnerComments.length} E2E uploader owner comments for ${uploader.email}`)
+  console.log(`Seeded Bach Warmup detail fixtures for ${bachWarmupTrack?.title || 'missing target track'}`)
   console.log(`Seeded ${requestFixtures.length} E2E customer requests for ${customer.email}`)
   console.log(`Seeded ${uploaderRequestFixtures.length} E2E uploader requests for ${uploader.email}`)
 

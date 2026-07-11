@@ -1,14 +1,22 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Bookmark, Volume2 } from 'lucide-react'
+import { BadgeCheck, Bookmark, Volume2 } from 'lucide-react'
 import { useCart } from 'react-use-cart'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
 import { Button } from '../../ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
+import {
+  atomicTrackCatalogueTypes,
+  catalogueTypes,
+  formatPricePence,
+  getPricingBand,
+  saleFormats,
+  trackTypeLabels
+} from '../../../lib/pricing-policy.mjs'
 import { canUseFullTrackPlayback } from '../../../lib/track-audio-access.mjs'
 
 const catalogueReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
@@ -118,6 +126,83 @@ const detailTabLabels = {
 
 const detailTabIds = Object.keys(detailTabLabels)
 
+const requestStatusOptions = [
+  {
+    label: 'New request',
+    value: 'OPEN'
+  },
+  {
+    label: 'Pending decision',
+    value: 'PENDING_DECISION'
+  },
+  {
+    label: 'Accepted - preparing',
+    value: 'ACCEPTED'
+  },
+  {
+    label: 'Rejected',
+    value: 'REJECTED'
+  },
+  {
+    label: 'Completed',
+    value: 'COMPLETED'
+  }
+]
+
+const manageableRequestStatusOptions = requestStatusOptions.filter(option => option.value !== 'COMPLETED')
+
+const formatRequestStatus = status => {
+  return requestStatusOptions.find(option => option.value === status)?.label || status
+}
+
+const requestRejectionReasonOptions = [
+  {
+    label: 'No reason selected',
+    value: ''
+  },
+  {
+    label: 'Outside current catalogue plans',
+    value: 'outside_catalogue_plans'
+  },
+  {
+    label: 'Rights or permissions unclear',
+    value: 'rights_unclear'
+  },
+  {
+    label: 'Not enough demand right now',
+    value: 'not_enough_demand'
+  },
+  {
+    label: 'Already covered by another track',
+    value: 'already_covered'
+  },
+  {
+    label: 'Uploader not available',
+    value: 'uploader_unavailable'
+  },
+  {
+    label: 'Other',
+    value: 'other'
+  }
+]
+
+const formatRejectionReason = reason => {
+  return requestRejectionReasonOptions.find(option => option.value === reason)?.label || reason
+}
+
+const sortCommentsByTimestamp = (comments, direction) => {
+  return [...comments].sort((firstComment, secondComment) => {
+    const firstTime = Date.parse(firstComment.createdAtTimestamp || '')
+    const secondTime = Date.parse(secondComment.createdAtTimestamp || '')
+    const safeFirstTime = Number.isFinite(firstTime) ? firstTime : 0
+    const safeSecondTime = Number.isFinite(secondTime) ? secondTime : 0
+
+    return direction === 'newest-first'
+      ? safeSecondTime - safeFirstTime
+      : safeFirstTime - safeSecondTime
+  })
+}
+
 const getInitialTab = searchParams => {
   const requestedTab = searchParams.get('tab')
 
@@ -138,6 +223,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [commentDraft, setCommentDraft] = useState('')
   const [commentError, setCommentError] = useState('')
   const [commentStatus, setCommentStatus] = useState('')
+  const [commentSort, setCommentSort] = useState('newest-last')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [requestList, setRequestList] = useState(requests)
   const [requestTitle, setRequestTitle] = useState('')
@@ -145,6 +231,39 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [requestError, setRequestError] = useState('')
   const [requestStatus, setRequestStatus] = useState('')
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
+  const [requestStatusDrafts, setRequestStatusDrafts] = useState(() => {
+    return Object.fromEntries(requests.map(request => [request.id, request.status]))
+  })
+  const [requestRejectionDrafts, setRequestRejectionDrafts] = useState(() => {
+    return Object.fromEntries(requests.map(request => [
+      request.id,
+      {
+        note: request.rejectionNote || '',
+        reason: request.rejectionReason || ''
+      }
+    ]))
+  })
+  const [requestUpdateError, setRequestUpdateError] = useState('')
+  const [requestUpdateStatus, setRequestUpdateStatus] = useState('')
+  const [updatingRequestId, setUpdatingRequestId] = useState(null)
+  const [requestPricingDrafts, setRequestPricingDrafts] = useState(() => {
+    return Object.fromEntries(requests.map(request => {
+      const initialType = request.pricingProposals?.[0]?.catalogueType || catalogueTypes.singleTrack
+      const initialBand = getPricingBand(initialType)
+      const initialPricePence = request.pricingProposals?.[0]?.pricePence || initialBand.defaultPricePence
+
+      return [
+        request.id,
+        {
+          catalogueType: initialType,
+          justification: request.pricingProposals?.[0]?.justification || '',
+          pricePence: initialPricePence,
+          saleFormat: request.pricingProposals?.[0]?.saleFormat || saleFormats.individual
+        }
+      ]
+    }))
+  })
+  const [pricingProposalRequestId, setPricingProposalRequestId] = useState(null)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
@@ -350,7 +469,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
         {
           content: data.content,
           createdAt: formatDisplayDate(data.createdAt),
+          createdAtTimestamp: data.createdAt,
           id: data.id,
+          isTrackOwner,
           userId: data.userId,
           userName: catalogueContext.userName || 'You'
         }
@@ -419,16 +540,172 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     }
   }
 
+  const submitRequestStatus = async requestId => {
+    setRequestUpdateError('')
+    setRequestUpdateStatus('')
+    setUpdatingRequestId(requestId)
+
+    const nextStatus = String(requestStatusDrafts[requestId] || '')
+    const rejectionDraft = requestRejectionDrafts[requestId] || {}
+
+    try {
+      const response = await fetch(`/api/track-requests/${requestId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          rejectionNote: nextStatus === 'REJECTED' ? rejectionDraft.note || undefined : undefined,
+          rejectionReason: nextStatus === 'REJECTED' ? rejectionDraft.reason || undefined : undefined,
+          status: nextStatus
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to update request')
+      }
+
+      setRequestList(currentRequests => currentRequests.map(request => (
+        request.id === requestId
+          ? {
+              ...request,
+              rejectionNote: data.rejectionNote,
+              rejectionReason: data.rejectionReason,
+              status: data.status
+            }
+          : request
+      )))
+      setRequestStatusDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: data.status
+      }))
+      setRequestRejectionDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: {
+          note: data.rejectionNote || '',
+          reason: data.rejectionReason || ''
+        }
+      }))
+      setRequestUpdateStatus('Request status updated.')
+    } catch (error) {
+      setRequestUpdateError(error.message || 'Unable to update request')
+    } finally {
+      setUpdatingRequestId(null)
+    }
+  }
+
+  const updateRequestPricingDraft = (requestId, patch) => {
+    setRequestPricingDrafts(currentDrafts => {
+      const currentDraft = currentDrafts[requestId] || {
+        catalogueType: catalogueTypes.singleTrack,
+        justification: '',
+        pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
+        saleFormat: saleFormats.individual
+      }
+      const nextDraft = {
+        ...currentDraft,
+        ...patch
+      }
+
+      if (patch.catalogueType) {
+        nextDraft.pricePence = getPricingBand(patch.catalogueType).defaultPricePence
+        nextDraft.justification = ''
+      }
+
+      return {
+        ...currentDrafts,
+        [requestId]: nextDraft
+      }
+    })
+  }
+
+  const submitRequestPricingProposal = async requestId => {
+    setRequestUpdateError('')
+    setRequestUpdateStatus('')
+    setPricingProposalRequestId(requestId)
+
+    const draft = requestPricingDrafts[requestId] || {
+      catalogueType: catalogueTypes.singleTrack,
+      justification: '',
+      pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
+      saleFormat: saleFormats.individual
+    }
+
+    try {
+      const response = await fetch(`/api/track-requests/${requestId}/pricing-proposals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          catalogueType: draft.catalogueType,
+          justification: draft.justification.trim() || undefined,
+          pricePence: Number(draft.pricePence),
+          saleFormat: draft.saleFormat
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to propose request price')
+      }
+
+      const nextProposal = {
+        catalogueType: data.catalogueType,
+        createdAt: formatDisplayDate(data.createdAt),
+        currency: data.currency,
+        id: data.id,
+        justification: data.justification,
+        pricePence: data.pricePence,
+        requesterDecision: data.requesterDecision,
+        reviewStatus: data.reviewStatus,
+        saleFormat: data.saleFormat
+      }
+
+      setRequestList(currentRequests => currentRequests.map(request => (
+        request.id === requestId
+          ? {
+              ...request,
+              pricingProposals: [
+                nextProposal,
+                ...(request.pricingProposals || [])
+              ].slice(0, 3),
+              status: request.status === 'OPEN' ? 'PENDING_DECISION' : request.status
+            }
+          : request
+      )))
+      setRequestPricingDrafts(currentDrafts => ({
+        ...currentDrafts,
+        [requestId]: {
+          catalogueType: data.catalogueType,
+          justification: data.justification || '',
+          pricePence: data.pricePence,
+          saleFormat: data.saleFormat
+        }
+      }))
+      setRequestUpdateStatus('Request price proposal sent.')
+    } catch (error) {
+      setRequestUpdateError(error.message || 'Unable to propose request price')
+    } finally {
+      setPricingProposalRequestId(null)
+    }
+  }
+
   const commentCount = commentList.length
+  const sortedComments = useMemo(() => (
+    sortCommentsByTimestamp(commentList, commentSort)
+  ), [commentList, commentSort])
   const requestCount = requestList.length
-  const canComment = catalogueContext.isAuthenticated && track.viewerState?.isOwned
+  const isTrackOwner = Boolean(track.viewerState?.isUploadedByViewer)
+  const canComment = catalogueContext.isAuthenticated && (track.viewerState?.isOwned || isTrackOwner)
   const showBasketAction = catalogueContext.isAuthenticated &&
     !track.viewerState?.isOwned &&
-    !track.viewerState?.isUploadedByViewer &&
+    !isTrackOwner &&
     !catalogueContext.showOperationsOverlay
-  const showOwnedAction = track.viewerState?.isOwned
-  const showOperationsAction = catalogueContext.showOperationsOverlay && !track.viewerState?.isUploadedByViewer
-  const showWishlistAction = !showOwnedAction
+  const showOwnedAction = track.viewerState?.isOwned && !isTrackOwner
+  const showOperationsAction = catalogueContext.showOperationsOverlay && !isTrackOwner
+  const showWishlistAction = !showOwnedAction && !isTrackOwner
   const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
   const wishlistHref = `/wishlist/add?trackId=${track.id}`
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
@@ -584,8 +861,26 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               </p>
             </div>
 
-            <aside className='cmc-track-purchase-panel' aria-label='Purchase track'>
-              {!showOwnedAction && <strong>{formatTrackPrice(track)}</strong>}
+            <aside
+              className='cmc-track-purchase-panel'
+              aria-label={isTrackOwner ? 'Uploader track activity' : 'Purchase track'}
+            >
+              {isTrackOwner ? (
+                <dl className='cmc-track-owner-stats' aria-label='Uploader track activity'>
+                  <div>
+                    <dt>Downloads</dt>
+                    <dd>{track._count?.TrackOwner || 0}</dd>
+                  </div>
+                  <div>
+                    <dt>Comments</dt>
+                    <dd>{commentCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Requests</dt>
+                    <dd>{requestCount}</dd>
+                  </div>
+                </dl>
+              ) : !showOwnedAction && <strong>{formatTrackPrice(track)}</strong>}
               {showBasketAction && (
                 <Button variant='ink' size='md' onClick={addToCart}>
                   Add to Cart
@@ -730,12 +1025,26 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                 <section className='cmc-track-comments-section' id='track-comments'>
                   <div className='cmc-track-section-header'>
                     <h2>Comments <span>({commentCount})</span></h2>
-                    <small>Sort: Newest</small>
+                    <label className='cmc-track-comment-sort'>
+                      <span>Sort</span>
+                      <select
+                        aria-label='Sort comments'
+                        onChange={event => setCommentSort(event.target.value)}
+                        value={commentSort}
+                      >
+                        <option value='newest-last'>Newest at bottom</option>
+                        <option value='newest-first'>Newest at top</option>
+                      </select>
+                    </label>
                   </div>
                   <div className='cmc-track-comments'>
-                    {commentList.map((comment, key) => (
+                    {sortedComments.map((comment, key) => (
                       <div
-                        className={comment.id === focusedCommentId ? 'cmc-track-comment cmc-track-comment--focused' : 'cmc-track-comment'}
+                        className={[
+                          'cmc-track-comment',
+                          comment.id === focusedCommentId ? 'cmc-track-comment--focused' : '',
+                          comment.isTrackOwner ? 'cmc-track-comment--owner' : ''
+                        ].filter(Boolean).join(' ')}
                         id={`comment-${comment.id}`}
                         key={comment.id}
                       >
@@ -743,6 +1052,12 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         <div>
                           <header>
                             <strong>{comment.userName}</strong>
+                            {comment.isTrackOwner && (
+                              <span className='cmc-track-owner-comment-badge'>
+                                <BadgeCheck aria-hidden='true' strokeWidth={1.8} />
+                                Track uploader
+                              </span>
+                            )}
                             <time>{comment.createdAt}</time>
                           </header>
                           <p>{comment.content}</p>
@@ -808,23 +1123,227 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                     <small>Open community requests</small>
                   </div>
                   <div className='cmc-track-requests'>
-                    {requestList.map(request => (
-                      <article
-                        className={request.id === focusedRequestId ? 'cmc-track-request cmc-track-request--focused' : 'cmc-track-request'}
-                        id={`request-${request.id}`}
-                        key={request.id}
-                      >
-                        <header>
-                          <strong>{request.title}</strong>
-                          <span>{request.status}</span>
-                        </header>
-                        <p>{request.description}</p>
-                        <footer>
-                          <span>{request.requestedBy}</span>
-                          <span>{request.createdAt}</span>
-                        </footer>
-                      </article>
-                    ))}
+                    {requestList.map(request => {
+                      const draftStatus = requestStatusDrafts[request.id] || request.status
+                      const rejectionDraft = requestRejectionDrafts[request.id] || {
+                        note: '',
+                        reason: ''
+                      }
+                      const pricingDraft = requestPricingDrafts[request.id] || {
+                        catalogueType: catalogueTypes.singleTrack,
+                        justification: '',
+                        pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
+                        saleFormat: saleFormats.individual
+                      }
+                      const pricingBand = getPricingBand(pricingDraft.catalogueType)
+                      const latestProposal = request.pricingProposals?.[0]
+
+                      return (
+                        <article
+                          className={request.id === focusedRequestId ? 'cmc-track-request cmc-track-request--focused' : 'cmc-track-request'}
+                          id={`request-${request.id}`}
+                          key={request.id}
+                        >
+                          <header>
+                            <strong>{request.title}</strong>
+                            <span>{formatRequestStatus(request.status)}</span>
+                          </header>
+                          <p>{request.description}</p>
+                          <footer>
+                            <span>{request.requestedBy}</span>
+                            <span>{request.createdAt}</span>
+                          </footer>
+                          {request.status === 'REJECTED' && (request.rejectionReason || request.rejectionNote) && (
+                            <div className='cmc-track-request-rejection-note'>
+                              {request.rejectionReason && (
+                                <strong>{formatRejectionReason(request.rejectionReason)}</strong>
+                              )}
+                              {request.rejectionNote && (
+                                <span>{request.rejectionNote}</span>
+                              )}
+                            </div>
+                          )}
+                          {request.fulfilledByTrack && (
+                            <p className='cmc-track-request-fulfilment'>
+                              Fulfilment uploaded: <strong>{request.fulfilledByTrack.title}</strong>
+                              {request.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
+                            </p>
+                          )}
+                          {latestProposal && (
+                            <div className='cmc-track-request-pricing-summary'>
+                              <div>
+                                <strong>{formatPricePence(latestProposal.pricePence)}</strong>
+                                <span>{trackTypeLabels[latestProposal.catalogueType] || getPricingBand(latestProposal.catalogueType).label}</span>
+                              </div>
+                              <dl>
+                                <div>
+                                  <dt>Review</dt>
+                                  <dd>{latestProposal.reviewStatus === 'NEEDS_REVIEW' ? 'Admin review needed' : 'Within band'}</dd>
+                                </div>
+                                <div>
+                                  <dt>Requester</dt>
+                                  <dd>{latestProposal.requesterDecision.toLowerCase()}</dd>
+                                </div>
+                              </dl>
+                              {latestProposal.justification && (
+                                <p>{latestProposal.justification}</p>
+                              )}
+                            </div>
+                          )}
+                          {isTrackOwner && request.status !== 'COMPLETED' && (
+                            <div
+                              className='cmc-track-request-status-form'
+                            >
+                              <div className='cmc-track-request-status-field'>
+                                <label htmlFor={`request-status-${request.id}`}>Request status</label>
+                                <select
+                                  id={`request-status-${request.id}`}
+                                  name='status'
+                                  onChange={event => setRequestStatusDrafts(currentDrafts => ({
+                                    ...currentDrafts,
+                                    [request.id]: event.target.value
+                                  }))}
+                                  value={draftStatus}
+                                >
+                                  {manageableRequestStatusOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <Button
+                                disabled={updatingRequestId === request.id}
+                                onClick={() => submitRequestStatus(request.id)}
+                                size='sm'
+                                type='button'
+                                variant='paper'
+                              >
+                                {updatingRequestId === request.id ? 'Updating...' : 'Update'}
+                              </Button>
+                              {request.status === 'ACCEPTED' && (
+                                <Button
+                                  as={Link}
+                                  href={`/upload?fulfilledRequestId=${request.id}`}
+                                  size='sm'
+                                  variant='ink'
+                                >
+                                  Upload Fulfilment
+                                </Button>
+                              )}
+                              {draftStatus === 'REJECTED' && (
+                                <div className='cmc-track-request-rejection-fields'>
+                                  <div>
+                                    <label htmlFor={`request-rejection-reason-${request.id}`}>Reason (optional)</label>
+                                    <select
+                                      id={`request-rejection-reason-${request.id}`}
+                                      name='rejectionReason'
+                                      onChange={event => setRequestRejectionDrafts(currentDrafts => ({
+                                        ...currentDrafts,
+                                        [request.id]: {
+                                          ...rejectionDraft,
+                                          reason: event.target.value
+                                        }
+                                      }))}
+                                      value={rejectionDraft.reason}
+                                    >
+                                      {requestRejectionReasonOptions.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label htmlFor={`request-rejection-note-${request.id}`}>Message (optional)</label>
+                                    <textarea
+                                      id={`request-rejection-note-${request.id}`}
+                                      maxLength={1000}
+                                      name='rejectionNote'
+                                      onChange={event => setRequestRejectionDrafts(currentDrafts => ({
+                                        ...currentDrafts,
+                                        [request.id]: {
+                                          ...rejectionDraft,
+                                          note: event.target.value
+                                        }
+                                      }))}
+                                      placeholder='Add a short note for the requester'
+                                      rows={3}
+                                      value={rejectionDraft.note}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              <div className='cmc-track-request-pricing-form'>
+                                <div className='cmc-track-request-pricing-heading'>
+                                  <strong>Request fulfilment price</strong>
+                                  <span>Use CMC guided bands before preparing bespoke work.</span>
+                                </div>
+                                <div className='cmc-track-request-pricing-grid cmc-track-request-pricing-grid--single'>
+                                  <div>
+                                    <label htmlFor={`request-pricing-type-${request.id}`}>Track type</label>
+                                    <select
+                                      id={`request-pricing-type-${request.id}`}
+                                      onChange={event => updateRequestPricingDraft(request.id, {
+                                        catalogueType: event.target.value
+                                      })}
+                                      value={pricingDraft.catalogueType}
+                                    >
+                                      {atomicTrackCatalogueTypes.map(type => (
+                                        <option key={type} value={type}>
+                                          {trackTypeLabels[type] || getPricingBand(type).label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className='cmc-track-request-price-options' role='radiogroup' aria-label={`Request price for ${request.title}`}>
+                                  {pricingBand.options.map(pricePence => (
+                                    <label
+                                      className={Number(pricingDraft.pricePence) === pricePence ? 'cmc-track-request-price-option cmc-track-request-price-option--selected' : 'cmc-track-request-price-option'}
+                                      key={pricePence}
+                                    >
+                                      <input
+                                        checked={Number(pricingDraft.pricePence) === pricePence}
+                                        name={`request-price-${request.id}`}
+                                        onChange={() => updateRequestPricingDraft(request.id, {
+                                          pricePence
+                                        })}
+                                        type='radio'
+                                        value={pricePence}
+                                      />
+                                      <span>{formatPricePence(pricePence)}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                                <div>
+                                  <label htmlFor={`request-pricing-justification-${request.id}`}>Pricing note (optional)</label>
+                                  <textarea
+                                    id={`request-pricing-justification-${request.id}`}
+                                    maxLength={2000}
+                                    onChange={event => updateRequestPricingDraft(request.id, {
+                                      justification: event.target.value
+                                    })}
+                                    placeholder='Explain specialist preparation, cuts, length, or other context.'
+                                    rows={3}
+                                    value={pricingDraft.justification}
+                                  />
+                                </div>
+                                <Button
+                                  disabled={pricingProposalRequestId === request.id}
+                                  onClick={() => submitRequestPricingProposal(request.id)}
+                                  size='sm'
+                                  type='button'
+                                  variant='ink'
+                                >
+                                  {pricingProposalRequestId === request.id ? 'Sending...' : 'Propose Price'}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </article>
+                      )
+                    })}
                     {requestList.length === 0 && (
                       <p className='cmc-track-empty'>
                         No requests yet. Community requests for alternate cuts, keys, and parts will appear here.
@@ -833,7 +1352,11 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   </div>
 
                   <div className='cmc-track-request-action'>
-                    {catalogueContext.isAuthenticated ? (
+                    {isTrackOwner ? (
+                      <p>
+                        Manage request status from each request above. New requests are created by catalogue members.
+                      </p>
+                    ) : catalogueContext.isAuthenticated ? (
                       <form onSubmit={submitRequest}>
                         <h3>Make a request</h3>
                         <label htmlFor='track-request-title'>Request title</label>
@@ -870,6 +1393,8 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         to make a request.
                       </p>
                     )}
+                    {requestUpdateError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{requestUpdateError}</p>}
+                    {requestUpdateStatus && <p className='cmc-track-comment-message' role='status'>{requestUpdateStatus}</p>}
                   </div>
                 </section>
               )}

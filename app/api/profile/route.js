@@ -79,17 +79,31 @@ export async function POST(request) {
       'Invalid comment request'
     )
 
-    const ownership = await prisma.trackOwner.findUnique({
-      where: {
-        trackId_userId: {
-          trackId,
-          userId: user.id
+    const [track, ownership] = await Promise.all([
+      prisma.track.findFirst({
+        where: {
+          id: trackId
+        },
+        select: {
+          id: true,
+          userId: true
         }
-      }
-    })
+      }),
+      prisma.trackOwner.findUnique({
+        where: {
+          trackId_userId: {
+            trackId,
+            userId: user.id
+          }
+        },
+        select: {
+          id: true
+        }
+      })
+    ])
 
-    if (!ownership) {
-      throw createForbiddenError('Track ownership required to comment')
+    if (!track || (!ownership && track.userId !== user.id)) {
+      throw createForbiddenError('Track purchase or uploader access required to comment')
     }
 
     const newComment = await prisma.$transaction(async tx => {

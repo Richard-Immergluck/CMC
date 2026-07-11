@@ -12,6 +12,9 @@ const trackSelect = {
   fileName: true,
   title: true,
   composer: true,
+  status: true,
+  moderationStatus: true,
+  processingStatus: true,
   uploadedAt: true,
   userId: true,
   previewStart: true,
@@ -26,13 +29,28 @@ const trackSelect = {
   downloadCount: true,
   key: true,
   instrumentation: true,
-  additionalInfo: true
+  additionalInfo: true,
+  _count: {
+    select: {
+      Comments: true,
+      TrackRequests: true
+    }
+  }
 }
 
-const serializeTrack = track => ({
-  ...track,
-  uploadedAt: formatDisplayDate(track.uploadedAt)
-})
+const serializeTrack = track => {
+  const {
+    _count: count,
+    ...trackFields
+  } = track
+
+  return {
+    ...trackFields,
+    commentCount: count?.Comments || 0,
+    requestCount: count?.TrackRequests || 0,
+    uploadedAt: formatDisplayDate(track.uploadedAt)
+  }
+}
 
 const serializeComment = comment => ({
   id: comment.id,
@@ -72,6 +90,9 @@ const getProfileData = async email => {
   const [uploadedTracks, purchases, comments, trackRequests, wishlistItems] = await Promise.all([
     prisma.track.findMany({
       where: {
+        moderationStatus: 'APPROVED',
+        processingStatus: 'READY',
+        status: 'PUBLISHED',
         userId: currentUser.id
       },
       orderBy: {
@@ -171,12 +192,16 @@ const ProfilePage = async ({ searchParams }) => {
   }
 
   const query = await searchParams
+  const requestedLibraryTab = ['downloads', 'uploads'].includes(query?.library) ? query.library : null
+  const focusedTrackId = Number.parseInt(query?.focusTrackId || '', 10)
 
   return (
     <ProfilePageContent
       checkout={query?.checkout || null}
       checkoutSessionId={query?.session_id || null}
       currentUser={profile.currentUser}
+      focusedTrackId={Number.isInteger(focusedTrackId) ? focusedTrackId : null}
+      initialLibraryTab={requestedLibraryTab}
       purchase={query?.purchase || null}
       userComments={profile.userComments}
       userPurchasedTracks={profile.userPurchasedTracks}

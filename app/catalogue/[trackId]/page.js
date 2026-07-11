@@ -39,7 +39,8 @@ const trackSelect = {
   _count: {
     select: {
       Comments: true,
-      TrackOwner: true
+      TrackOwner: true,
+      TrackRequests: true
     }
   }
 }
@@ -93,6 +94,8 @@ const getTrackDetail = async trackId => {
         id: true,
         title: true,
         notes: true,
+        rejectionNote: true,
+        rejectionReason: true,
         status: true,
         createdAt: true,
         userId: true,
@@ -101,6 +104,31 @@ const getTrackDetail = async trackId => {
             name: true,
             email: true
           }
+        },
+        fulfilledByTrack: {
+          select: {
+            id: true,
+            title: true,
+            moderationStatus: true,
+            status: true
+          }
+        },
+        pricingProposals: {
+          select: {
+            id: true,
+            pricePence: true,
+            currency: true,
+            catalogueType: true,
+            saleFormat: true,
+            reviewStatus: true,
+            requesterDecision: true,
+            justification: true,
+            createdAt: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 3
         }
       },
       orderBy: {
@@ -113,7 +141,9 @@ const getTrackDetail = async trackId => {
     comments: comments.map(comment => ({
       content: comment.content,
       createdAt: formatDisplayDate(comment.createdAt),
+      createdAtTimestamp: comment.createdAt.toISOString(),
       id: comment.id,
+      isTrackOwner: comment.userId === track.userId,
       userId: comment.userId,
       userName: comment.postedBy?.name || 'Unknown'
     })),
@@ -121,10 +151,31 @@ const getTrackDetail = async trackId => {
       createdAt: formatDisplayDate(request.createdAt),
       description: request.notes || 'No additional request notes supplied.',
       id: request.id,
+      rejectionNote: request.rejectionNote,
+      rejectionReason: request.rejectionReason,
       requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
       status: request.status,
       title: request.title,
-      userId: request.userId
+      userId: request.userId,
+      fulfilledByTrack: request.fulfilledByTrack
+        ? {
+            id: request.fulfilledByTrack.id,
+            title: request.fulfilledByTrack.title,
+            moderationStatus: request.fulfilledByTrack.moderationStatus,
+            status: request.fulfilledByTrack.status
+          }
+        : null,
+      pricingProposals: request.pricingProposals.map(proposal => ({
+        catalogueType: proposal.catalogueType,
+        createdAt: formatDisplayDate(proposal.createdAt),
+        currency: proposal.currency,
+        id: proposal.id,
+        justification: proposal.justification,
+        pricePence: proposal.pricePence,
+        requesterDecision: proposal.requesterDecision,
+        reviewStatus: proposal.reviewStatus,
+        saleFormat: proposal.saleFormat
+      }))
     })),
     track: {
       ...track,

@@ -4,6 +4,7 @@ import {
   canUpdateUserAccess,
   canAccessAdminSurface,
   canAccessSupportSurface,
+  canStartTrackUpload,
   canUploadTracks,
   requireAdminPermission,
   requireSupportPermission,
@@ -28,7 +29,7 @@ const user = ({ role, accountStatus = 'ACTIVE', uploaderStatus = 'NOT_REQUESTED'
   uploaderStatus
 })
 
-test('track uploads require an active approved uploader or admin', () => {
+test('established uploader features require an active approved uploader or admin', () => {
   assert.equal(canUploadTracks(activeCustomer), false)
   assert.equal(canUploadTracks(approvedUploader), true)
   assert.equal(canUploadTracks({
@@ -46,6 +47,14 @@ test('track uploads require an active approved uploader or admin', () => {
     accountStatus: 'ACTIVE',
     uploaderStatus: 'PENDING'
   }), false)
+})
+
+test('track upload submission is available to any active account', () => {
+  assert.equal(canStartTrackUpload(activeCustomer), true)
+  assert.equal(canStartTrackUpload(approvedUploader), true)
+  assert.equal(canStartTrackUpload(user({ role: 'SUPPORT' })), true)
+  assert.equal(canStartTrackUpload(user({ role: 'ADMIN' })), true)
+  assert.equal(canStartTrackUpload(user({ role: 'CUSTOMER', accountStatus: 'SUSPENDED' })), false)
 })
 
 test('role permissions preserve admin support and customer boundaries', () => {
@@ -141,12 +150,13 @@ test('user access updates cannot target the acting admin', () => {
 
 test('permission requirements throw stable forbidden errors', () => {
   assert.equal(requireTrackUploadPermission(approvedUploader), approvedUploader)
+  assert.equal(requireTrackUploadPermission(activeCustomer), activeCustomer)
   assert.equal(requireAdminPermission(user({ role: 'ADMIN' })).role, 'ADMIN')
   assert.equal(requireSupportPermission(user({ role: 'SUPPORT' })).role, 'SUPPORT')
 
   assert.throws(
-    () => requireTrackUploadPermission(activeCustomer),
-    error => error.statusCode === 403 && error.message === 'Approved uploader access required'
+    () => requireTrackUploadPermission(user({ role: 'CUSTOMER', accountStatus: 'SUSPENDED' })),
+    error => error.statusCode === 403 && error.message === 'Active account required to upload tracks'
   )
 
   assert.throws(

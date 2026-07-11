@@ -102,7 +102,8 @@ test.describe('authenticated smoke', () => {
     await page.goto('/profile')
 
     await expect(page.getByText('e2e-customer@example.com')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Downloaded tracks' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Downloaded Tracks' })).toBeVisible()
+    await expect(page.getByRole('tablist', { name: 'Profile track library' })).toHaveCount(0)
     await expect(page.getByRole('searchbox', { name: 'Search downloaded tracks' })).toBeVisible()
 
     const downloadsTable = page.getByRole('table', { name: 'Downloaded tracks' })
@@ -116,14 +117,19 @@ test.describe('authenticated smoke', () => {
     await expect(downloadsTable.getByRole('link', { name: 'Download E2E Catalogue Navigation Study' })).toBeVisible()
     await expect(downloadsTable.getByRole('link', { name: 'Open' })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'My requests' })).toBeVisible()
-    await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
-    await expect(page.getByText(/open · \d{2}\/\d{2}\/\d{4}/i).first()).toBeVisible()
-    await page.getByRole('link', { name: 'Poulenc Oboe Sonata' }).click()
+    const requestsPanel = page.getByRole('article').filter({
+      has: page.getByRole('heading', { name: 'My requests' })
+    })
+    const requestLink = requestsPanel.getByRole('link').first()
+    await expect(requestLink).toBeVisible()
+    await expect(page.getByText(/New request · \d{2}\/\d{2}\/\d{4}/).first()).toBeVisible()
+    const requestTitle = (await requestLink.textContent())?.trim() || ''
+    await requestLink.click()
 
     await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=requests&requestId=\d+/)
     await expect(page.getByRole('tab', { name: /Requests/i })).toHaveAttribute('aria-selected', 'true')
-    await expect(page.getByText('Poulenc Oboe Sonata')).toBeVisible()
-    await expect(page.getByText('OPEN').first()).toBeVisible()
+    await expect(page.getByText(requestTitle).first()).toBeVisible()
+    await expect(page.getByText('New request').first()).toBeVisible()
     await expect(page.getByLabel('Request title')).toBeVisible()
     await page.goto('/profile')
 
@@ -131,19 +137,12 @@ test.describe('authenticated smoke', () => {
       has: page.getByRole('heading', { name: 'Recent comments' })
     })
     await expect(recentCommentsPanel).toBeVisible()
-    const recentCommentLink = recentCommentsPanel.getByRole('link', { name: 'E2E Catalogue Mendelssohn Sonata Excerpt Op. 16' })
+    const recentCommentLink = recentCommentsPanel.getByRole('link').first()
     await expect(recentCommentLink).toBeVisible()
     await recentCommentLink.click()
 
     await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=comments&commentId=\d+/)
     await expect(page.getByRole('tab', { name: /Comments/i })).toHaveAttribute('aria-selected', 'true')
-    await expect(page.getByRole('textbox', { name: 'Add your comment' })).toBeVisible()
-    const ownedPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
-    await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
-    await expect(ownedPurchasePanel.getByRole('link', { name: 'View in Library' })).toHaveAttribute('href', '/profile')
-    await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
-    await expect(ownedPurchasePanel.getByRole('button', { name: 'Add to Wishlist' })).toHaveCount(0)
-    await expect(ownedPurchasePanel.getByText(/£/)).toHaveCount(0)
     await page.goto('/profile')
 
     await downloadsTable.getByRole('link', { name: 'E2E Catalogue Navigation Study', exact: true }).click()
@@ -151,16 +150,44 @@ test.describe('authenticated smoke', () => {
     await expect(page).toHaveURL(/\/catalogue\/\d+$/)
     await expect(page.getByRole('heading', { name: 'E2E Catalogue Navigation Study' })).toBeVisible()
     await expect(page.getByText('Synthetic Test Fixture')).toBeVisible()
+    await page.getByRole('tab', { name: /Comments/i }).click()
+    await expect(page.getByRole('textbox', { name: 'Add your comment' })).toBeVisible()
     const libraryPurchasePanel = page.getByRole('complementary', { name: 'Purchase track' })
     await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toBeVisible()
     await expect(libraryPurchasePanel.getByRole('link', { name: 'View in Library' })).toHaveAttribute('href', '/profile')
     await expect(libraryPurchasePanel.getByRole('button', { name: 'Add to Cart' })).toHaveCount(0)
+    await expect(libraryPurchasePanel.getByRole('button', { name: 'Add to Wishlist' })).toHaveCount(0)
+    await expect(libraryPurchasePanel.getByText(/£/)).toHaveCount(0)
 
     await page.goto('/catalogue?q=E2E%20Catalogue%20Navigation%20Study')
     const ownedCatalogueRow = page.locator('.cmc-catalogue-track-card').filter({ hasText: 'E2E Catalogue Navigation Study' }).first()
     await expect(ownedCatalogueRow.getByText('Owned')).toBeVisible()
     await expect(ownedCatalogueRow.getByRole('link', { name: 'View in Library' })).toHaveCount(0)
     await expect(ownedCatalogueRow.getByRole('link', { name: 'Details' })).toBeVisible()
+  })
+
+  test('seeded uploaders see uploaded tracks as their default profile library tab', async ({ page }) => {
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    await page.goto('/profile')
+
+    await expect(page.locator('#profile-library-heading')).toHaveText('Uploaded Tracks')
+    const libraryTabs = page.getByRole('tablist', { name: 'Profile track library' })
+    await expect(libraryTabs).toBeVisible()
+    await expect(libraryTabs.getByRole('tab', { name: /Uploaded Tracks/i })).toHaveAttribute('aria-selected', 'true')
+    await expect(libraryTabs.getByRole('tab', { name: /Downloaded Tracks/i })).toHaveAttribute('aria-selected', 'false')
+
+    const uploadsTable = page.getByRole('table', { name: 'Uploaded tracks' })
+    await expect(uploadsTable.getByRole('columnheader', { name: 'Downloads' })).toBeVisible()
+    await expect(uploadsTable.getByRole('columnheader', { name: 'Comments' })).toBeVisible()
+    await expect(uploadsTable.getByRole('columnheader', { name: 'Requests' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Manage uploads' }).first()).toHaveAttribute('href', '/upload/manage')
+
+    await page.goto('/upload/manage')
+    await expect(page.getByRole('heading', { name: 'Manage Uploads.' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Group Approved Tracks' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Upload Batches' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'View upload reporting' })).toHaveAttribute('href', '/profile?library=uploads')
   })
 
   test('seeded customers can create a request from a track detail page', async ({ page }) => {
@@ -181,11 +208,11 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('status')).toContainText('Your request has been added.')
     const createdRequest = page.locator('.cmc-track-request').filter({ hasText: requestTitle }).first()
     await expect(createdRequest).toBeVisible()
-    await expect(createdRequest.getByText('OPEN')).toBeVisible()
+    await expect(createdRequest.getByText('New request')).toBeVisible()
     await expect(createdRequest.getByText(/\d{2}\/\d{2}\/\d{4}/)).toBeVisible()
   })
 
-  test('seeded customers do not see uploader or admin navigation', async ({ page }) => {
+  test('seeded customers can access upload navigation but not admin navigation', async ({ page }) => {
     await signInPageAs(page, 'e2e-customer@example.com')
 
     await page.goto('/')
@@ -197,15 +224,13 @@ test.describe('authenticated smoke', () => {
     await expect(primaryNav.getByRole('link', { name: /^Cart \(\d+\)$/ })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: 'Sign Out' })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: /Login \/ Sign up/i })).toHaveCount(0)
-    await expect(primaryNav.getByRole('link', { name: 'Upload' })).toHaveCount(0)
+    await expect(primaryNav.getByRole('link', { name: 'Upload' })).toBeVisible()
     await expect(primaryNav.getByRole('link', { name: 'Admin' })).toHaveCount(0)
 
     await page.goto('/upload')
 
-    await expect(page.getByRole('heading', { name: 'Upload Form' })).toBeVisible()
-    await expect(page.getByText('Approved uploader access is required before you can submit tracks.')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Go to Profile' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Submit' })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Share a Track.' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeVisible()
   })
 
   test('seeded support users can inspect operations without user management access', async ({ page }) => {
