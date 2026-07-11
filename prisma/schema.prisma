@@ -422,7 +422,11 @@ enum SaleFormat {
 }
 
 enum CatalogueReleaseStatus {
+  DRAFT
+  SUBMITTED
   PUBLISHED
+  NEEDS_CHANGES
+  REJECTED
   ARCHIVED
 }
 

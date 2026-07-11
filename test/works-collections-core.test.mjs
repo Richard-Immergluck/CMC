@@ -1,9 +1,26 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  canEditWorksCollection,
+  catalogueReleaseStatuses,
   getWorksCollectionDeleteResolution,
+  isPublicWorksCollectionStatus,
+  isTerminalWorksCollectionStatus,
   normalizeTrackItems
 } from '../lib/server/works-collections-core.mjs'
+
+test('works collection lifecycle statuses describe editing and public visibility', () => {
+  assert.equal(canEditWorksCollection({ status: catalogueReleaseStatuses.draft }), true)
+  assert.equal(canEditWorksCollection({ status: catalogueReleaseStatuses.needsChanges }), true)
+  assert.equal(canEditWorksCollection({ status: catalogueReleaseStatuses.published }), true)
+  assert.equal(canEditWorksCollection({ status: catalogueReleaseStatuses.submitted }), false)
+  assert.equal(canEditWorksCollection({ status: catalogueReleaseStatuses.rejected }), false)
+  assert.equal(canEditWorksCollection({ status: catalogueReleaseStatuses.archived }), false)
+  assert.equal(isPublicWorksCollectionStatus(catalogueReleaseStatuses.published), true)
+  assert.equal(isPublicWorksCollectionStatus(catalogueReleaseStatuses.submitted), false)
+  assert.equal(isTerminalWorksCollectionStatus(catalogueReleaseStatuses.rejected), true)
+  assert.equal(isTerminalWorksCollectionStatus(catalogueReleaseStatuses.archived), true)
+})
 
 test('normalizeTrackItems sorts positions and rejects duplicate tracks', () => {
   assert.deepEqual(
