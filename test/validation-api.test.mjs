@@ -426,13 +426,26 @@ test('admin pricing review body accepts only supported targets and decisions', (
       decision: 'approve',
       note: ' Fair specialist price ',
       targetId: '42',
-      targetType: 'requestProposal',
+      targetType: 'release',
       ignored: 'removed'
     }),
     {
       decision: 'approve',
       note: 'Fair specialist price',
       targetId: 42,
+      targetType: 'release'
+    }
+  )
+
+  assert.deepEqual(
+    validateInput(adminPricingReviewBodySchema, {
+      decision: 'reject',
+      targetId: 41,
+      targetType: 'requestProposal'
+    }),
+    {
+      decision: 'reject',
+      targetId: 41,
       targetType: 'requestProposal'
     }
   )
@@ -450,7 +463,7 @@ test('admin pricing review body accepts only supported targets and decisions', (
     () => validateInput(adminPricingReviewBodySchema, {
       decision: 'approve',
       targetId: 42,
-      targetType: 'release'
+      targetType: 'collection'
     }),
     error => error.statusCode === 400
   )

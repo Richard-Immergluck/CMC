@@ -115,6 +115,55 @@ export async function PATCH(request) {
       })
     }
 
+    if (input.targetType === 'release') {
+      const release = await prisma.catalogueRelease.findUnique({
+        where: {
+          id: input.targetId
+        }
+      })
+
+      if (!release) {
+        throw createNotFoundError('Work or Collection not found')
+      }
+
+      const updatedRelease = await prisma.catalogueRelease.update({
+        where: {
+          id: input.targetId
+        },
+        data: {
+          pricingReviewStatus: nextStatus
+        }
+      })
+
+      await recordAuditEvent({
+        action: auditActions.worksCollectionPricingReviewed,
+        actorId: user.id,
+        entityType: 'CatalogueRelease',
+        entityId: input.targetId,
+        metadata: {
+          before: release.pricingReviewStatus,
+          after: updatedRelease.pricingReviewStatus,
+          decision: input.decision,
+          noteProvided: Boolean(input.note),
+          pricePence: release.pricePence
+        }
+      })
+
+      telemetry.complete({
+        statusCode: 200,
+        userId: user.id,
+        targetId: input.targetId,
+        targetType: input.targetType,
+        decision: input.decision
+      })
+
+      return jsonResponse(200, {
+        pricingReviewStatus: updatedRelease.pricingReviewStatus,
+        targetId: updatedRelease.id,
+        targetType: input.targetType
+      })
+    }
+
     const proposal = await prisma.requestPricingProposal.findUnique({
       where: {
         id: input.targetId
