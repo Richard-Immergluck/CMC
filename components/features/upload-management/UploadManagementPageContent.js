@@ -2,7 +2,7 @@
 
 import { memo, useState } from 'react'
 import Link from 'next/link'
-import { Layers3, UploadCloud } from 'lucide-react'
+import { ArrowDown, ArrowUp, Layers3, UploadCloud } from 'lucide-react'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
@@ -81,7 +81,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [pricePence, setPricePence] = useState(getPricingBand(catalogueTypes.collection).defaultPricePence)
   const [pricingJustification, setPricingJustification] = useState('')
   const [saleFormat, setSaleFormat] = useState(saleFormats.both)
-  const [selectedTrackIds, setSelectedTrackIds] = useState([])
+  const [selectedTrackItems, setSelectedTrackItems] = useState([])
   const [status, setStatus] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [title, setTitle] = useState('')
@@ -89,7 +89,8 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
 
   const pricingBand = getPricingBand(catalogueType)
   const needsPricingReview = pricePence > pricingBand.reviewThresholdPence
-  const canSave = selectedTrackIds.length >= 2 && title.trim() && !submitting
+  const selectedTrackIds = selectedTrackItems.map(item => item.trackId)
+  const canSave = selectedTrackItems.length >= 2 && title.trim() && !submitting
 
   const handleTypeChange = event => {
     const nextType = event.target.value
@@ -101,18 +102,54 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   }
 
   const toggleTrack = trackId => {
-    setSelectedTrackIds(currentIds => (
-      currentIds.includes(trackId)
-        ? currentIds.filter(id => id !== trackId)
-        : [...currentIds, trackId]
+    const track = tracks.find(candidateTrack => candidateTrack.id === trackId)
+
+    setSelectedTrackItems(currentItems => (
+      currentItems.some(item => item.trackId === trackId)
+        ? currentItems.filter(item => item.trackId !== trackId)
+        : [
+          ...currentItems,
+          {
+            titleInWork: track?.title || '',
+            trackId
+          }
+        ]
     ))
+  }
+
+  const moveSelectedTrack = (trackId, direction) => {
+    setSelectedTrackItems(currentItems => {
+      const currentIndex = currentItems.findIndex(item => item.trackId === trackId)
+      const nextIndex = currentIndex + direction
+
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= currentItems.length) {
+        return currentItems
+      }
+
+      const nextItems = [...currentItems]
+      const [item] = nextItems.splice(currentIndex, 1)
+      nextItems.splice(nextIndex, 0, item)
+
+      return nextItems
+    })
+  }
+
+  const updateSelectedTrackTitle = (trackId, titleInWork) => {
+    setSelectedTrackItems(currentItems => currentItems.map(item => (
+      item.trackId === trackId
+        ? {
+          ...item,
+          titleInWork
+        }
+        : item
+    )))
   }
 
   const resetForm = () => {
     setComposer('')
     setEditingCollectionId(null)
     setPricingJustification('')
-    setSelectedTrackIds([])
+    setSelectedTrackItems([])
     setTitle('')
   }
 
@@ -126,7 +163,10 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     setPricePence(collection.pricePence || nextBand.defaultPricePence)
     setPricingJustification('')
     setSaleFormat(collection.saleFormat || saleFormats.both)
-    setSelectedTrackIds(collection.tracks.map(track => track.trackId))
+    setSelectedTrackItems(collection.tracks.map(track => ({
+      titleInWork: track.titleInWork || track.title || '',
+      trackId: track.trackId
+    })))
     setStatus('')
     setTitle(collection.title)
   }
@@ -159,7 +199,11 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
           pricingJustification: pricingJustification.trim() || undefined,
           saleFormat,
           title: title.trim(),
-          trackIds: selectedTrackIds
+          trackItems: selectedTrackItems.map((item, index) => ({
+            position: index + 1,
+            titleInWork: item.titleInWork.trim() || undefined,
+            trackId: item.trackId
+          }))
         })
       })
       const data = await response.json()
@@ -283,6 +327,58 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
             ))}
           </fieldset>
 
+          {selectedTrackItems.length > 0 && (
+            <section className='cmc-profile-works-selected' aria-labelledby='works-selected-tracks-heading'>
+              <div className='cmc-profile-works-selected-heading'>
+                <h3 id='works-selected-tracks-heading'>Release order</h3>
+                <p>{selectedTrackItems.length} tracks selected</p>
+              </div>
+              <ol>
+                {selectedTrackItems.map((item, index) => {
+                  const track = tracks.find(candidateTrack => candidateTrack.id === item.trackId)
+
+                  return (
+                    <li key={item.trackId}>
+                      <span className='cmc-profile-works-selected-position'>{index + 1}</span>
+                      <label>
+                        <span>{track?.title || 'Selected track'}</span>
+                        <input
+                          maxLength={255}
+                          onChange={event => updateSelectedTrackTitle(item.trackId, event.target.value)}
+                          placeholder='Display title inside this Work or Collection'
+                          type='text'
+                          value={item.titleInWork}
+                        />
+                      </label>
+                      <div className='cmc-profile-works-selected-actions'>
+                        <Button
+                          aria-label={`Move ${track?.title || 'track'} up`}
+                          disabled={index === 0}
+                          onClick={() => moveSelectedTrack(item.trackId, -1)}
+                          size='sm'
+                          type='button'
+                          variant='subtle'
+                        >
+                          <ArrowUp aria-hidden='true' size={16} />
+                        </Button>
+                        <Button
+                          aria-label={`Move ${track?.title || 'track'} down`}
+                          disabled={index === selectedTrackItems.length - 1}
+                          onClick={() => moveSelectedTrack(item.trackId, 1)}
+                          size='sm'
+                          type='button'
+                          variant='subtle'
+                        >
+                          <ArrowDown aria-hidden='true' size={16} />
+                        </Button>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ol>
+            </section>
+          )}
+
           <fieldset className='cmc-profile-works-price'>
             <legend>Collection price</legend>
             <div>
@@ -320,7 +416,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
           {status && <div className='cmc-profile-notice cmc-profile-notice--success' role='status'>{status}</div>}
 
           <div className='cmc-profile-works-actions'>
-            <span>{selectedTrackIds.length} selected</span>
+            <span>{selectedTrackItems.length} selected</span>
             {editingCollectionId && (
               <Button disabled={submitting} type='button' variant='subtle' onClick={cancelEditingCollection}>
                 Cancel edit

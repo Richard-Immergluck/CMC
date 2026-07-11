@@ -689,6 +689,48 @@ test('works collection body accepts guided grouped prices only', () => {
       trackIds: [12, 11]
     }
   )
+
+  assert.deepEqual(
+    validateInput(createWorksCollectionBodySchema, {
+      catalogueType: 'COLLECTION',
+      currency: 'GBP',
+      pricePence: '1499',
+      saleFormat: 'BOTH',
+      title: 'Ordered rehearsal set',
+      trackItems: [
+        {
+          position: '2',
+          titleInWork: ' II. Andante ',
+          trackId: '12'
+        },
+        {
+          position: '1',
+          titleInWork: ' I. Allegro ',
+          trackId: '11',
+          ignored: 'removed'
+        }
+      ]
+    }),
+    {
+      catalogueType: 'COLLECTION',
+      currency: 'gbp',
+      pricePence: 1499,
+      saleFormat: 'BOTH',
+      title: 'Ordered rehearsal set',
+      trackItems: [
+        {
+          position: 2,
+          titleInWork: 'II. Andante',
+          trackId: 12
+        },
+        {
+          position: 1,
+          titleInWork: 'I. Allegro',
+          trackId: 11
+        }
+      ]
+    }
+  )
 })
 
 test('upload batch body accepts optional catalogue defaults', () => {
