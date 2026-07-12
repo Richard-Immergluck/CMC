@@ -795,15 +795,21 @@ const WorksCollectionsTable = ({ worksCollections }) => (
             <div className='text-muted small'>
               {release.catalogueType} · {release.formattedPrice || formatPricePence(release.pricePence)}
             </div>
+            <div className='text-muted small'>
+              Individual total {release.formattedIndividualTracksTotal || formatPricePence(release.individualTracksTotalPence || 0)}
+              {release.savingsPence > 0 && ` · Buyer saving ${release.formattedSavings}`}
+              {release.individualTracksTotalPence > 0 && release.individualTracksTotalPence < release.pricePence && ` · Premium ${formatPricePence(release.pricePence - release.individualTracksTotalPence)}`}
+            </div>
             {release.tracks?.length > 0 && (
               <ol className='cmc-admin-release-track-list'>
-                {release.tracks.map(track => (
+                {release.tracks.slice(0, 4).map(track => (
                   <li key={`${release.id}-${track.position}`}>
                     {track.position}. {track.movementNo ? `${track.movementNo} · ` : ''}{track.title}
+                    {track.formattedPrice || Number.isInteger(track.pricePence) ? ` · ${track.formattedPrice || formatPricePence(track.pricePence)}` : ''}
                   </li>
                 ))}
-                {release.trackCount > release.tracks.length && (
-                  <li>{release.trackCount - release.tracks.length} more tracks</li>
+                {release.tracks.length > 4 && (
+                  <li>{release.tracks.length - 4} more tracks</li>
                 )}
               </ol>
             )}
