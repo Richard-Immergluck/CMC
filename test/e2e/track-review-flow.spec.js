@@ -103,6 +103,67 @@ test.describe('track review API flow', () => {
     )
   })
 
+  test('support admins can bulk approve pending uploaded tracks', async ({ request }) => {
+    const suffix = `bulk-${Date.now()}`
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const firstCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-one`)
+    })
+    const secondCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-two`)
+    })
+    const firstTrack = await firstCreateResponse.json()
+    const secondTrack = await secondCreateResponse.json()
+
+    expect(firstCreateResponse.status()).toBe(200)
+    expect(secondCreateResponse.status()).toBe(200)
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    const bulkApprovalResponse = await request.patch('/api/admin/tracks/bulk-moderation', {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved together by E2E bulk review.',
+        trackIds: [firstTrack.id, secondTrack.id]
+      }
+    })
+    const bulkApprovalBody = await bulkApprovalResponse.json()
+
+    expect(bulkApprovalResponse.status()).toBe(200)
+    expect(bulkApprovalBody.updatedCount).toBe(2)
+    expect(bulkApprovalBody.tracks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: firstTrack.id,
+          moderationStatus: 'APPROVED',
+          status: 'PUBLISHED'
+        }),
+        expect.objectContaining({
+          id: secondTrack.id,
+          moderationStatus: 'APPROVED',
+          status: 'PUBLISHED'
+        })
+      ])
+    )
+
+    const pendingResponse = await request.get('/api/admin/tracks')
+    const pendingBody = await pendingResponse.json()
+
+    expect(pendingResponse.status()).toBe(200)
+    expect(pendingBody.tracks).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: firstTrack.id
+        }),
+        expect.objectContaining({
+          id: secondTrack.id
+        })
+      ])
+    )
+  })
+
   test('request fulfilment pricing is proposed by the track uploader using guided bands', async ({ request }) => {
     const suffix = `request-pricing-${Date.now()}`
 

@@ -616,7 +616,7 @@ const OperationsTables = ({
   )
 }
 
-const TrackReviewRow = ({ track, onModerate }) => {
+const TrackReviewRow = ({ checked, disabled = false, onModerate, onToggleSelected, track }) => {
   const [reviewUrl, setReviewUrl] = useState('')
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [error, setError] = useState('')
@@ -637,6 +637,14 @@ const TrackReviewRow = ({ track, onModerate }) => {
 
   return (
     <tr>
+      <td className='text-center align-middle'>
+        <Form.Check
+          aria-label={`Select ${track.title} for bulk review`}
+          checked={checked}
+          disabled={disabled}
+          onChange={event => onToggleSelected(track.id, event.target.checked)}
+        />
+      </td>
       <td>
         <strong>{track.title}</strong>
         <div className='text-muted small'>{track.composer}</div>
@@ -1099,6 +1107,10 @@ const AdminConsoleContent = ({
 }) => {
   const [summary, setSummary] = useState(initialSummary)
   const [tracks, setTracks] = useState(initialTracks)
+  const [selectedTrackIds, setSelectedTrackIds] = useState([])
+  const [bulkTrackDecision, setBulkTrackDecision] = useState('approve')
+  const [bulkTrackNotes, setBulkTrackNotes] = useState('')
+  const [bulkModeratingTracks, setBulkModeratingTracks] = useState(false)
   const [uploadBatches, setUploadBatches] = useState(initialUploadBatches)
   const [worksCollections] = useState(initialWorksCollections)
   const [users, setUsers] = useState(initialUsers)
@@ -1138,6 +1150,9 @@ const AdminConsoleContent = ({
 
       setSummary(summaryData)
       setTracks(trackData.tracks)
+      setSelectedTrackIds(currentSelection => currentSelection.filter(trackId => (
+        trackData.tracks.some(track => track.id === trackId)
+      )))
       setUploadBatches(uploadBatchData.uploadBatches)
       setUsers(userData.users)
       setOperations(operationsData)
@@ -1167,10 +1182,62 @@ const AdminConsoleContent = ({
         body: JSON.stringify({ decision })
       })
       setTracks(tracks.filter(track => track.id !== trackId))
+      setSelectedTrackIds(selectedTrackIds.filter(selectedTrackId => selectedTrackId !== trackId))
       setNotice(`Track ${decision}d.`)
       loadAdminData()
     } catch (moderationError) {
       setError(moderationError.message)
+    }
+  }
+
+  const toggleTrackSelection = (trackId, checked) => {
+    setSelectedTrackIds(currentSelection => {
+      if (checked) {
+        return currentSelection.includes(trackId)
+          ? currentSelection
+          : [...currentSelection, trackId].slice(0, 50)
+      }
+
+      return currentSelection.filter(selectedTrackId => selectedTrackId !== trackId)
+    })
+  }
+
+  const toggleVisibleTracks = checked => {
+    setSelectedTrackIds(checked ? tracks.slice(0, 50).map(track => track.id) : [])
+  }
+
+  const bulkModerateTracks = async () => {
+    if (selectedTrackIds.length === 0) {
+      setError('Choose at least one pending track to review.')
+      return
+    }
+
+    setNotice('')
+    setError('')
+    setBulkModeratingTracks(true)
+
+    try {
+      const data = await fetchJson('/api/admin/tracks/bulk-moderation', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          decision: bulkTrackDecision,
+          moderationNotes: bulkTrackNotes || undefined,
+          trackIds: selectedTrackIds
+        })
+      })
+      const reviewedIds = new Set(data.tracks.map(track => track.id))
+      setTracks(currentTracks => currentTracks.filter(track => !reviewedIds.has(track.id)))
+      setSelectedTrackIds([])
+      setBulkTrackNotes('')
+      setNotice(`${data.updatedCount} track${data.updatedCount === 1 ? '' : 's'} ${pastTenseDecision(bulkTrackDecision)}.`)
+      loadAdminData()
+    } catch (moderationError) {
+      setError(moderationError.message)
+    } finally {
+      setBulkModeratingTracks(false)
     }
   }
 
@@ -1290,9 +1357,58 @@ const AdminConsoleContent = ({
           </Tab>
 
           <Tab eventKey='tracks' title={`Track Review (${tracks.length})`}>
+            {tracks.length > 0 && (
+              <Card className='mb-3'>
+                <Card.Body>
+                  <Row className='align-items-end g-3'>
+                    <Col md={3}>
+                      <Form.Check
+                        checked={tracks.length > 0 && selectedTrackIds.length === Math.min(tracks.length, 50)}
+                        label={`Select visible (${Math.min(tracks.length, 50)} max)`}
+                        onChange={event => toggleVisibleTracks(event.target.checked)}
+                      />
+                      <div className='text-muted small'>{selectedTrackIds.length} selected for this review action.</div>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Label className='small text-muted'>Bulk decision</Form.Label>
+                      <Form.Select
+                        disabled={bulkModeratingTracks}
+                        onChange={event => setBulkTrackDecision(event.target.value)}
+                        size='sm'
+                        value={bulkTrackDecision}
+                      >
+                        <option value='approve'>Approve selected</option>
+                        <option value='reject'>Reject selected</option>
+                      </Form.Select>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Label className='small text-muted'>Shared review note</Form.Label>
+                      <Form.Control
+                        disabled={bulkModeratingTracks}
+                        onChange={event => setBulkTrackNotes(event.target.value)}
+                        placeholder='Optional moderation note'
+                        size='sm'
+                        value={bulkTrackNotes}
+                      />
+                    </Col>
+                    <Col md={2} className='text-end'>
+                      <Button
+                        disabled={bulkModeratingTracks || selectedTrackIds.length === 0}
+                        onClick={bulkModerateTracks}
+                        size='sm'
+                        variant={bulkTrackDecision === 'reject' ? 'danger' : 'primary'}
+                      >
+                        {bulkModeratingTracks ? 'Reviewing...' : 'Apply'}
+                      </Button>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+            )}
             <Table bordered hover responsive size='sm'>
               <thead>
                 <tr>
+                  <th className='text-center'>Select</th>
                   <th>Track</th>
                   <th>Uploader</th>
                   <th>Status</th>
@@ -1303,14 +1419,17 @@ const AdminConsoleContent = ({
               <tbody>
                 {tracks.map(track => (
                   <TrackReviewRow
+                    checked={selectedTrackIds.includes(track.id)}
+                    disabled={bulkModeratingTracks}
                     key={track.id}
-                    track={track}
                     onModerate={moderateTrack}
+                    onToggleSelected={toggleTrackSelection}
+                    track={track}
                   />
                 ))}
                 {tracks.length === 0 && (
                   <tr>
-                    <td colSpan='5' className='text-center text-muted'>No pending tracks.</td>
+                    <td colSpan='6' className='text-center text-muted'>No pending tracks.</td>
                   </tr>
                 )}
               </tbody>
