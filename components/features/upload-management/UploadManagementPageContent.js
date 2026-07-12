@@ -739,6 +739,10 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     )))
   }
 
+  const removeSelectedTrack = trackId => {
+    setSelectedTrackItems(currentItems => currentItems.filter(item => item.trackId !== trackId))
+  }
+
   const resetForm = () => {
     setComposer('')
     setEditingCollectionId(null)
@@ -1021,6 +1025,15 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                           variant='subtle'
                         >
                           <ArrowDown aria-hidden='true' size={16} />
+                        </Button>
+                        <Button
+                          aria-label={`Remove ${item.titleInWork || track?.title || 'track'} from release`}
+                          onClick={() => removeSelectedTrack(item.trackId)}
+                          size='sm'
+                          type='button'
+                          variant='subtle'
+                        >
+                          <X aria-hidden='true' size={16} />
                         </Button>
                       </div>
                     </li>
