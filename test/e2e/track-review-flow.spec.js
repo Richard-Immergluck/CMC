@@ -355,6 +355,17 @@ test.describe('track review API flow', () => {
       ])
     )
 
+    await signInPageAs(page, 'e2e-admin@example.com')
+    await page.goto('/admin')
+    await page.getByRole('tab', { name: /Works & Collections/i }).click()
+    const worksAdminPanel = page.locator('.tab-pane.active')
+    await worksAdminPanel.getByLabel('Search Works & Collections').fill(`E2E Grouped Work ${suffix}`)
+    await worksAdminPanel.getByRole('button', { name: /Live/i }).click()
+    await worksAdminPanel.getByLabel('Sort').selectOption('title')
+    await expect(worksAdminPanel.getByRole('row').filter({
+      hasText: `E2E Grouped Work ${suffix}`
+    })).toBeVisible()
+
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload/manage')
     await expect(page.getByText(`Part of E2E Grouped Work ${suffix}`).first()).toBeVisible()

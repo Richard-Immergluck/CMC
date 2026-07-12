@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Alert,
   Badge,
@@ -15,6 +15,12 @@ import {
   Tabs
 } from 'react-bootstrap'
 import { Button } from '../../ui/primitives'
+import {
+  filterAndSortAdminUploadBatches,
+  filterAndSortAdminWorksCollections,
+  getAdminUploadBatchFilterCounts,
+  getAdminWorksCollectionFilterCounts
+} from '../../../lib/admin-review-filters.mjs'
 
 const fetchJson = async (url, options) => {
   const response = await fetch(url, options)
@@ -82,6 +88,104 @@ const TabTitleWithBadge = ({ label, badge }) => (
     {label}{' '}
     <Badge bg={badge.variant}>{badge.label}</Badge>
   </span>
+)
+
+const adminUploadBatchFilterLabels = {
+  all: 'All',
+  active: 'Active',
+  submitted: 'Submitted',
+  attention: 'Needs attention',
+  completed: 'Completed'
+}
+
+const adminUploadBatchSortLabels = {
+  newest: 'Newest',
+  attention: 'Needs attention',
+  submitted: 'Submitted date',
+  status: 'Status',
+  trackCount: 'Track count',
+  uploader: 'Uploader'
+}
+
+const adminWorksCollectionFilterLabels = {
+  all: 'All',
+  live: 'Live',
+  review: 'In review',
+  needsChanges: 'Needs changes',
+  archived: 'Archived',
+  withSales: 'With sales'
+}
+
+const adminWorksCollectionSortLabels = {
+  newest: 'Newest',
+  price: 'Highest price',
+  sales: 'Most sales',
+  status: 'Status',
+  title: 'Title',
+  trackCount: 'Track count'
+}
+
+const AdminReviewControls = ({
+  counts,
+  filter,
+  filterLabels,
+  onFilterChange,
+  onQueryChange,
+  onSortChange,
+  query,
+  searchControlId,
+  searchLabel,
+  sort,
+  sortControlId,
+  sortLabels
+}) => (
+  <Card className='mb-3'>
+    <Card.Body>
+      <Row className='g-3 align-items-end'>
+        <Col lg={4}>
+          <Form.Label className='small text-muted' htmlFor={searchControlId}>{searchLabel}</Form.Label>
+          <Form.Control
+            id={searchControlId}
+            onChange={event => onQueryChange(event.target.value)}
+            placeholder='Search title, uploader, status, track...'
+            size='sm'
+            type='search'
+            value={query}
+          />
+        </Col>
+        <Col lg={5}>
+          <Form.Label className='small text-muted'>Filter</Form.Label>
+          <div className='cmc-admin-filter-chips'>
+            {Object.entries(filterLabels).map(([filterValue, label]) => (
+              <Button
+                aria-pressed={filter === filterValue}
+                key={filterValue}
+                onClick={() => onFilterChange(filterValue)}
+                size='sm'
+                type='button'
+                variant={filter === filterValue ? 'primary' : 'subtle'}
+              >
+                {label} ({counts[filterValue] || 0})
+              </Button>
+            ))}
+          </div>
+        </Col>
+        <Col lg={3}>
+          <Form.Label className='small text-muted' htmlFor={sortControlId}>Sort</Form.Label>
+          <Form.Select
+            id={sortControlId}
+            onChange={event => onSortChange(event.target.value)}
+            size='sm'
+            value={sort}
+          >
+            {Object.entries(sortLabels).map(([sortValue, label]) => (
+              <option key={sortValue} value={sortValue}>{label}</option>
+            ))}
+          </Form.Select>
+        </Col>
+      </Row>
+    </Card.Body>
+  </Card>
 )
 
 const formatMinutes = value => {
@@ -744,103 +848,169 @@ const UploadBatchTrackPreview = ({ tracks = [] }) => {
   )
 }
 
-const UploadBatchesTable = ({ uploadBatches }) => (
-  <Table bordered hover responsive size='sm'>
-    <thead>
-      <tr>
-        <th>Batch</th>
-        <th>Uploader</th>
-        <th>Status</th>
-        <th>Queue</th>
-        <th>Latest tracks</th>
-        <th>Submitted</th>
-      </tr>
-    </thead>
-    <tbody>
-      {uploadBatches.map(batch => (
-        <tr key={batch.id}>
-          <td>
-            <strong>{batch.label || `Batch #${batch.id}`}</strong>
-            <div className='text-muted small'>Created {formatDate(batch.createdAt)}</div>
-          </td>
-          <td>
-            {batch.uploader?.name || 'Unknown'}
-            <div className='text-muted small'>{batch.uploader?.email}</div>
-          </td>
-          <td><StatusBadge value={batch.status} /></td>
-          <td><UploadBatchStatusSummary summary={batch.summary} /></td>
-          <td><UploadBatchTrackPreview tracks={batch.tracks} /></td>
-          <td>{formatDate(batch.submittedAt)}</td>
-        </tr>
-      ))}
-      {uploadBatches.length === 0 && (
-        <tr>
-          <td colSpan='6' className='text-center text-muted'>No upload batches found.</td>
-        </tr>
-      )}
-    </tbody>
-  </Table>
-)
+const UploadBatchesTable = ({ uploadBatches }) => {
+  const [batchFilter, setBatchFilter] = useState('all')
+  const [batchQuery, setBatchQuery] = useState('')
+  const [batchSort, setBatchSort] = useState('newest')
+  const batchCounts = useMemo(() => getAdminUploadBatchFilterCounts(uploadBatches), [uploadBatches])
+  const filteredBatches = useMemo(() => filterAndSortAdminUploadBatches({
+    batches: uploadBatches,
+    filter: batchFilter,
+    query: batchQuery,
+    sort: batchSort
+  }), [batchFilter, batchQuery, batchSort, uploadBatches])
 
-const WorksCollectionsTable = ({ worksCollections }) => (
-  <Table bordered hover responsive size='sm'>
-    <thead>
-      <tr>
-        <th>Release</th>
-        <th>Uploader</th>
-        <th>Status</th>
-        <th>Pricing</th>
-        <th>Tracks</th>
-        <th>Sales</th>
-        <th>Created</th>
-      </tr>
-    </thead>
-    <tbody>
-      {worksCollections.map(release => (
-        <tr key={release.id}>
-          <td>
-            <strong>{release.title}</strong>
-            <div className='text-muted small'>
-              {release.catalogueType} · {release.formattedPrice || formatPricePence(release.pricePence)}
-            </div>
-            <div className='text-muted small'>
-              Individual total {release.formattedIndividualTracksTotal || formatPricePence(release.individualTracksTotalPence || 0)}
-              {release.savingsPence > 0 && ` · Buyer saving ${release.formattedSavings}`}
-              {release.individualTracksTotalPence > 0 && release.individualTracksTotalPence < release.pricePence && ` · Premium ${formatPricePence(release.pricePence - release.individualTracksTotalPence)}`}
-            </div>
-            {release.tracks?.length > 0 && (
-              <ol className='cmc-admin-release-track-list'>
-                {release.tracks.slice(0, 4).map(track => (
-                  <li key={`${release.id}-${track.position}`}>
-                    {track.position}. {track.movementNo ? `${track.movementNo} · ` : ''}{track.title}
-                    {track.formattedPrice || Number.isInteger(track.pricePence) ? ` · ${track.formattedPrice || formatPricePence(track.pricePence)}` : ''}
-                  </li>
-                ))}
-                {release.tracks.length > 4 && (
-                  <li>{release.tracks.length - 4} more tracks</li>
+  return (
+    <>
+      <AdminReviewControls
+        counts={batchCounts}
+        filter={batchFilter}
+        filterLabels={adminUploadBatchFilterLabels}
+        onFilterChange={setBatchFilter}
+        onQueryChange={setBatchQuery}
+        onSortChange={setBatchSort}
+        query={batchQuery}
+        searchControlId='admin-batch-imports-search'
+        searchLabel='Search batch imports'
+        sort={batchSort}
+        sortControlId='admin-batch-imports-sort'
+        sortLabels={adminUploadBatchSortLabels}
+      />
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Batch</th>
+            <th>Uploader</th>
+            <th>Status</th>
+            <th>Queue</th>
+            <th>Latest tracks</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredBatches.map(batch => (
+            <tr key={batch.id}>
+              <td>
+                <strong>{batch.label || `Batch #${batch.id}`}</strong>
+                <div className='text-muted small'>Created {formatDate(batch.createdAt)}</div>
+              </td>
+              <td>
+                {batch.uploader?.name || 'Unknown'}
+                <div className='text-muted small'>{batch.uploader?.email}</div>
+              </td>
+              <td><StatusBadge value={batch.status} /></td>
+              <td><UploadBatchStatusSummary summary={batch.summary} /></td>
+              <td><UploadBatchTrackPreview tracks={batch.tracks} /></td>
+              <td>{formatDate(batch.submittedAt)}</td>
+            </tr>
+          ))}
+          {uploadBatches.length === 0 ? (
+            <tr>
+              <td colSpan='6' className='text-center text-muted'>No upload batches found.</td>
+            </tr>
+          ) : filteredBatches.length === 0 && (
+            <tr>
+              <td colSpan='6' className='text-center text-muted'>No upload batches match this search or filter.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+    </>
+  )
+}
+
+const WorksCollectionsTable = ({ worksCollections }) => {
+  const [releaseFilter, setReleaseFilter] = useState('all')
+  const [releaseQuery, setReleaseQuery] = useState('')
+  const [releaseSort, setReleaseSort] = useState('newest')
+  const releaseCounts = useMemo(() => getAdminWorksCollectionFilterCounts(worksCollections), [worksCollections])
+  const filteredReleases = useMemo(() => filterAndSortAdminWorksCollections({
+    filter: releaseFilter,
+    query: releaseQuery,
+    releases: worksCollections,
+    sort: releaseSort
+  }), [releaseFilter, releaseQuery, releaseSort, worksCollections])
+
+  return (
+    <>
+      <AdminReviewControls
+        counts={releaseCounts}
+        filter={releaseFilter}
+        filterLabels={adminWorksCollectionFilterLabels}
+        onFilterChange={setReleaseFilter}
+        onQueryChange={setReleaseQuery}
+        onSortChange={setReleaseSort}
+        query={releaseQuery}
+        searchControlId='admin-works-collections-search'
+        searchLabel='Search Works & Collections'
+        sort={releaseSort}
+        sortControlId='admin-works-collections-sort'
+        sortLabels={adminWorksCollectionSortLabels}
+      />
+      <Table bordered hover responsive size='sm'>
+        <thead>
+          <tr>
+            <th>Release</th>
+            <th>Uploader</th>
+            <th>Status</th>
+            <th>Pricing</th>
+            <th>Tracks</th>
+            <th>Sales</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredReleases.map(release => (
+            <tr key={release.id}>
+              <td>
+                <strong>{release.title}</strong>
+                <div className='text-muted small'>
+                  {release.catalogueType} · {release.formattedPrice || formatPricePence(release.pricePence)}
+                </div>
+                <div className='text-muted small'>
+                  Individual total {release.formattedIndividualTracksTotal || formatPricePence(release.individualTracksTotalPence || 0)}
+                  {release.savingsPence > 0 && ` · Buyer saving ${release.formattedSavings}`}
+                  {release.individualTracksTotalPence > 0 && release.individualTracksTotalPence < release.pricePence && ` · Premium ${formatPricePence(release.pricePence - release.individualTracksTotalPence)}`}
+                </div>
+                {release.tracks?.length > 0 && (
+                  <ol className='cmc-admin-release-track-list'>
+                    {release.tracks.slice(0, 4).map(track => (
+                      <li key={`${release.id}-${track.position}`}>
+                        {track.position}. {track.movementNo ? `${track.movementNo} · ` : ''}{track.title}
+                        {track.formattedPrice || Number.isInteger(track.pricePence) ? ` · ${track.formattedPrice || formatPricePence(track.pricePence)}` : ''}
+                      </li>
+                    ))}
+                    {release.tracks.length > 4 && (
+                      <li>{release.tracks.length - 4} more tracks</li>
+                    )}
+                  </ol>
                 )}
-              </ol>
-            )}
-          </td>
-          <td>
-            {release.uploader?.name || 'Unknown'}
-            <div className='text-muted small'>{release.uploader?.email}</div>
-          </td>
-          <td><StatusBadge value={release.status} /></td>
-          <td><StatusBadge value={release.pricingReviewStatus} /></td>
-          <td>{release.trackCount}</td>
-          <td>{release.orderItemCount}</td>
-          <td>{formatDate(release.createdAt)}</td>
-        </tr>
-      ))}
-      {worksCollections.length === 0 && (
-        <tr>
-          <td colSpan='7' className='text-center text-muted'>No Works or Collections found.</td>
-        </tr>
-      )}
-    </tbody>
-  </Table>
-)
+              </td>
+              <td>
+                {release.uploader?.name || 'Unknown'}
+                <div className='text-muted small'>{release.uploader?.email}</div>
+              </td>
+              <td><StatusBadge value={release.status} /></td>
+              <td><StatusBadge value={release.pricingReviewStatus} /></td>
+              <td>{release.trackCount}</td>
+              <td>{release.orderItemCount}</td>
+              <td>{formatDate(release.createdAt)}</td>
+            </tr>
+          ))}
+          {worksCollections.length === 0 ? (
+            <tr>
+              <td colSpan='7' className='text-center text-muted'>No Works or Collections found.</td>
+            </tr>
+          ) : filteredReleases.length === 0 && (
+            <tr>
+              <td colSpan='7' className='text-center text-muted'>No Works or Collections match this search or filter.</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+    </>
+  )
+}
 
 const PricingReviewsTable = ({
   canReviewPricing,
