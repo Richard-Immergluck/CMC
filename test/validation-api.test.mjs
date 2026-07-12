@@ -21,6 +21,7 @@ import {
   trackRequestPricingProposalBodySchema,
   trackRequestStatusBodySchema,
   trackIdParamSchema,
+  updateTrackMetadataBodySchema,
   updateUploadBatchBodySchema,
   updateWorksCollectionBodySchema,
   uploadBatchIdParamSchema,
@@ -671,6 +672,40 @@ test('track creation body normalizes upload metadata and preview bounds', () => 
       previewEnd: '10',
       additionalInfo: 'Practice backing track',
       price: '2.99'
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('track metadata update body accepts descriptive fields only', () => {
+  assert.deepEqual(
+    validateInput(updateTrackMetadataBodySchema, {
+      title: ' Updated Bach Study ',
+      composer: ' Synthetic Composer ',
+      key: ' D minor ',
+      instrumentation: ' Piano ',
+      additionalInfo: ' Updated notes. ',
+      downloadName: 'bach-study.mp3',
+      ignored: 'removed'
+    }),
+    {
+      title: 'Updated Bach Study',
+      composer: 'Synthetic Composer',
+      key: 'D minor',
+      instrumentation: 'Piano',
+      additionalInfo: 'Updated notes.',
+      downloadName: 'bach-study.mp3'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(updateTrackMetadataBodySchema, {}),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(updateTrackMetadataBodySchema, {
+      pricePence: 899
     }),
     error => error.statusCode === 400
   )
