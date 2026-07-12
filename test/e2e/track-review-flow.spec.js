@@ -772,11 +772,12 @@ test.describe('track review API flow', () => {
     await page.goto('/admin')
 
     await page.getByRole('tab', { name: /Track Review/i }).click()
+    const trackReviewPanel = page.locator('.tab-pane.active')
 
-    const firstReviewRow = page.getByRole('row').filter({
+    const firstReviewRow = trackReviewPanel.getByRole('row').filter({
       hasText: firstTrack.title
     })
-    const secondReviewRow = page.getByRole('row').filter({
+    const secondReviewRow = trackReviewPanel.getByRole('row').filter({
       hasText: secondTrack.title
     })
 
@@ -785,10 +786,10 @@ test.describe('track review API flow', () => {
 
     await firstReviewRow.getByLabel(`Select ${firstTrack.title} for bulk review`).check()
     await secondReviewRow.getByLabel(`Select ${secondTrack.title} for bulk review`).check()
-    await expect(page.getByText('2 selected for this review action.')).toBeVisible()
+    await expect(trackReviewPanel.getByText('2 selected for this review action.')).toBeVisible()
 
-    await page.getByPlaceholder('Optional moderation note').fill('Approved together from admin browser flow.')
-    await page.getByRole('button', { name: 'Apply' }).click()
+    await trackReviewPanel.getByPlaceholder('Optional moderation note').fill('Approved together from admin browser flow.')
+    await trackReviewPanel.getByRole('button', { name: 'Apply' }).click()
 
     await expect(firstReviewRow).toHaveCount(0)
     await expect(secondReviewRow).toHaveCount(0)

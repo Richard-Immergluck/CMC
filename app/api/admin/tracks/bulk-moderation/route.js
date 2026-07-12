@@ -16,6 +16,7 @@ import { auditActions, buildAuditEventData } from '../../../../../lib/server/aud
 import { requireSupportPermission } from '../../../../../lib/server/permissions.mjs'
 import prisma from '../../../../../lib/server/prisma'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
+import { getUploadBatchStatusAfterModeration } from '../../../../../lib/server/upload-batches-core.mjs'
 import {
   adminBulkTrackModerationBodySchema,
   validateInput
@@ -118,6 +119,63 @@ export async function PATCH(request) {
         })
 
         updatedTracks.push(after)
+      }
+
+      const uploadBatchIds = [...new Set(
+        beforeTracks
+          .map(track => track.uploadBatchId)
+          .filter(Boolean)
+      )]
+
+      for (const uploadBatchId of uploadBatchIds) {
+        const beforeBatch = await tx.uploadBatch.findUnique({
+          where: {
+            id: uploadBatchId
+          },
+          include: {
+            tracks: {
+              select: {
+                moderationStatus: true,
+                processingStatus: true
+              }
+            }
+          }
+        })
+
+        const nextStatus = getUploadBatchStatusAfterModeration(beforeBatch)
+
+        if (beforeBatch && beforeBatch.status !== nextStatus) {
+          const afterBatch = await tx.uploadBatch.update({
+            where: {
+              id: beforeBatch.id
+            },
+            data: {
+              completedAt: nextStatus === 'COMPLETED' ? reviewedAt : beforeBatch.completedAt,
+              status: nextStatus
+            }
+          })
+
+          if (nextStatus === 'COMPLETED') {
+            await tx.auditEvent.create({
+              data: buildAuditEventData({
+                action: auditActions.uploadBatchModerationCompleted,
+                actorId: user.id,
+                entityType: 'UploadBatch',
+                entityId: beforeBatch.id,
+                metadata: {
+                  after: {
+                    status: afterBatch.status
+                  },
+                  before: {
+                    status: beforeBatch.status
+                  },
+                  route: '/api/admin/tracks/bulk-moderation',
+                  trackCount: beforeBatch.tracks.length
+                }
+              })
+            })
+          }
+        }
       }
 
       return updatedTracks
