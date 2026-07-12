@@ -230,7 +230,20 @@ test('Works and Collections admin items expose release context only', () => {
           titleInWork: 'Gute Nacht',
           track: {
             id: 11,
+            formattedPrice: '£4.99',
+            pricePence: 499,
             title: 'Original track title'
+          }
+        },
+        {
+          movementNo: 'No. 2',
+          position: 2,
+          titleInWork: '',
+          track: {
+            id: 12,
+            formattedPrice: '£5.99',
+            pricePence: 599,
+            title: 'Second track title'
           }
         }
       ],
@@ -245,20 +258,34 @@ test('Works and Collections admin items expose release context only', () => {
       catalogueType: 'SONG_CYCLE',
       createdAt: '2026-07-12T00:00:00.000Z',
       formattedPrice: '£14.99',
+      formattedIndividualTracksTotal: '£10.98',
+      formattedSavings: '£0.00',
       id: 123,
+      individualTracksTotalPence: 1098,
       orderItemCount: 4,
       pricePence: 1499,
       pricingReviewStatus: 'APPROVED',
       saleFormat: 'BOTH',
+      savingsPence: 0,
       status: 'PUBLISHED',
       title: 'Schubert Songs',
       trackCount: 2,
       tracks: [
         {
+          formattedPrice: '£4.99',
           id: 11,
           movementNo: 'No. 1',
           position: 1,
+          pricePence: 499,
           title: 'Gute Nacht'
+        },
+        {
+          formattedPrice: '£5.99',
+          id: 12,
+          movementNo: 'No. 2',
+          position: 2,
+          pricePence: 599,
+          title: 'Second track title'
         }
       ],
       uploader: {

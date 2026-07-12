@@ -143,11 +143,12 @@ const getAdminInitialData = async currentUser => {
           orderBy: {
             position: 'asc'
           },
-          take: 4,
           include: {
             track: {
               select: {
+                formattedPrice: true,
                 id: true,
+                pricePence: true,
                 title: true
               }
             }
