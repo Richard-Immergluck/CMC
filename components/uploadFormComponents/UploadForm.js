@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 // React Bootstrap imports
 import {
@@ -427,6 +428,7 @@ const UploadPreviewSelector = ({
 
 function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null }) {
   const fulfilledRequestId = initialFulfilledRequestId
+  const router = useRouter()
   const [selectedFile, setSelectedFile] = useState(null) // File selected by the user
   const [selectedFiles, setSelectedFiles] = useState([])
   const [uploadedFileName, setUploadedFileName] = useState('')
@@ -547,6 +549,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
 
     setUploadError('')
     let uploadBatch = activeUploadBatch
+    let createdUploadBatch = false
 
     if (uploadMode === 'batch' && !uploadBatch) {
       uploadBatch = await createUploadBatch({
@@ -555,6 +558,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
         defaultPricePence: Math.round(Number(values.priceString) * 100),
         label: batchLabel.trim() || `${values.composer || 'CMC'} upload batch`
       })
+      createdUploadBatch = true
       setActiveUploadBatch(uploadBatch)
     }
 
@@ -564,6 +568,12 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
 
     if (uploadBatch?.id) {
       setActiveUploadBatch(await fetchUploadBatch(uploadBatch.id))
+
+      if (createdUploadBatch) {
+        router.replace(`/upload?batchId=${uploadBatch.id}`, {
+          scroll: false
+        })
+      }
     }
 
     setShowUploadComplete(true)
