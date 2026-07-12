@@ -341,6 +341,24 @@ test.describe('upload browser flow', () => {
     await expect(page.getByRole('listitem').filter({ hasText: newTitle })).toBeVisible()
   })
 
+  test('approved uploaders can search filter and sort large uploaded libraries', async ({ page }) => {
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload/manage')
+    await page.waitForLoadState('networkidle')
+
+    const uploadedTracksSection = page.locator('.cmc-upload-management-tracks')
+
+    await uploadedTracksSection.getByLabel('Search uploaded tracks').fill('E2E Catalogue')
+    await uploadedTracksSection.getByLabel('Sort').selectOption('title')
+    await uploadedTracksSection.getByRole('button', { name: /Complete/i }).click()
+
+    const filteredRows = uploadedTracksSection.locator('.cmc-upload-management-track-list > li')
+
+    await expect(filteredRows.first()).toContainText('E2E Catalogue')
+    expect(await filteredRows.count()).toBeGreaterThan(10)
+    await expect(uploadedTracksSection.getByText(/of \d+$/).first()).toBeVisible()
+  })
+
   test('accepted requests show fulfilment feedback after upload submission', async ({ page }) => {
     const suffix = Date.now()
     let interceptedUpload = false

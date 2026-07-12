@@ -6,8 +6,10 @@ import { ArrowDown, ArrowUp, Layers3, Pencil, Search, UploadCloud, X } from 'luc
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
+  filterAndSortUploadInventoryTracks,
   filterUploadInventoryCollections,
   filterUploadInventoryTracks,
+  getUploadInventoryTrackFilterCounts,
   getUploadInventorySearchQuery
 } from '../../../lib/upload-management-inventory.mjs'
 import {
@@ -113,6 +115,22 @@ const getBulkMetadataDraft = () => ({
   key: ''
 })
 
+const trackFilterLabels = {
+  all: 'All',
+  complete: 'Complete',
+  incomplete: 'Needs metadata',
+  inCollection: 'In a collection',
+  needsCollection: 'Ungrouped',
+  withActivity: 'Comments or requests'
+}
+
+const trackSortLabels = {
+  activity: 'Most activity',
+  composer: 'Composer',
+  newest: 'Newest uploaded',
+  title: 'Title'
+}
+
 const getSelectedTracksTotalPence = ({ selectedTrackItems, tracks }) => (
   selectedTrackItems.reduce((total, item) => {
     const track = tracks.find(candidateTrack => candidateTrack.id === item.trackId)
@@ -148,13 +166,18 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
   const [selectedTrackIds, setSelectedTrackIds] = useState([])
   const [savingTrackId, setSavingTrackId] = useState(null)
   const [status, setStatus] = useState('')
+  const [trackFilter, setTrackFilter] = useState('all')
   const [trackSearch, setTrackSearch] = useState('')
+  const [trackSort, setTrackSort] = useState('newest')
 
   const normalizedTrackSearch = getUploadInventorySearchQuery(trackSearch)
-  const filteredTracks = useMemo(() => filterUploadInventoryTracks({
+  const trackFilterCounts = useMemo(() => getUploadInventoryTrackFilterCounts(tracks), [tracks])
+  const filteredTracks = useMemo(() => filterAndSortUploadInventoryTracks({
+    filter: trackFilter,
     query: normalizedTrackSearch,
+    sort: trackSort,
     tracks
-  }), [normalizedTrackSearch, tracks])
+  }), [normalizedTrackSearch, trackFilter, trackSort, tracks])
   const filteredTrackIds = filteredTracks.map(track => track.id)
   const selectedVisibleTrackCount = selectedTrackIds.filter(trackId => filteredTrackIds.includes(trackId)).length
   const allVisibleTracksSelected = filteredTracks.length > 0 && selectedVisibleTrackCount === filteredTracks.length
@@ -325,6 +348,33 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
         )}
       </div>
 
+      <div className='cmc-upload-management-library-controls' aria-label='Uploaded track filters'>
+        <div className='cmc-upload-management-filter-chips'>
+          {Object.entries(trackFilterLabels).map(([filter, label]) => (
+            <button
+              aria-pressed={trackFilter === filter}
+              key={filter}
+              onClick={() => setTrackFilter(filter)}
+              type='button'
+            >
+              <span>{label}</span>
+              <strong>{trackFilterCounts[filter] || 0}</strong>
+            </button>
+          ))}
+        </div>
+        <label className='cmc-upload-management-sort-control'>
+          <span>Sort</span>
+          <select
+            onChange={event => setTrackSort(event.target.value)}
+            value={trackSort}
+          >
+            {Object.entries(trackSortLabels).map(([sort, label]) => (
+              <option key={sort} value={sort}>{label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       {error && <div className='cmc-profile-notice cmc-profile-notice--error' role='alert'>{error}</div>}
       {status && <div className='cmc-profile-notice cmc-profile-notice--success' role='status'>{status}</div>}
 
@@ -336,7 +386,7 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
       ) : filteredTracks.length === 0 ? (
         <div className='cmc-upload-management-empty'>
           <h3>No tracks found</h3>
-          <p>No approved uploaded tracks match that search.</p>
+          <p>No approved uploaded tracks match that search or filter.</p>
         </div>
       ) : (
         <>
