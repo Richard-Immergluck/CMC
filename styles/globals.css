@@ -1903,7 +1903,7 @@ a {
 
 .cmc-works-card dl {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--cmc-space-3);
   margin: 0;
 }
@@ -1969,6 +1969,36 @@ a {
   margin: 0;
   color: var(--cmc-color-text-muted);
   font-weight: 680;
+}
+
+.cmc-works-price-context {
+  display: grid;
+  gap: var(--cmc-space-2);
+  margin: 0;
+  padding: var(--cmc-space-2) 0;
+  border-top: 1px solid rgba(23, 63, 56, 0.12);
+  border-bottom: 1px solid rgba(23, 63, 56, 0.12);
+}
+
+.cmc-works-price-context div {
+  display: flex;
+  gap: var(--cmc-space-2);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.cmc-works-price-context dt {
+  color: var(--cmc-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-works-price-context dd {
+  margin: 0;
+  color: var(--cmc-color-text);
+  font-weight: 850;
 }
 
 .cmc-works-track-list {

@@ -159,6 +159,8 @@ test.describe('checkout browser flow', () => {
     await signInPageAs(page, 'e2e-customer@example.com')
     await page.goto(`/works-collections/${collection.id}`)
     await expect(page.getByRole('heading', { name: `${collection.title}.` })).toBeVisible()
+    await expect(page.getByText('Individual total')).toBeVisible()
+    await expect(page.getByText('£9.98')).toBeVisible()
 
     for (const track of tracks) {
       await denyDownload(page, track.id)
