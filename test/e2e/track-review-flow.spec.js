@@ -298,6 +298,15 @@ test.describe('track review API flow', () => {
     await page.goto('/upload/manage')
     await expect(page.getByText(`Part of E2E Grouped Work ${suffix}`).first()).toBeVisible()
     await expect(page.getByText('Individual total £7.98').first()).toBeVisible()
+    const bulkMetadataPanel = page.locator('.cmc-upload-management-bulk-panel')
+    await page.getByLabel(`Select E2E Pending Review ${suffix}-one`).check()
+    await page.getByLabel(`Select E2E Pending Review ${suffix}-two`).check()
+    await bulkMetadataPanel.getByLabel('Composer').fill('Bulk Updated Composer')
+    await bulkMetadataPanel.getByLabel('Key').fill('F major')
+    await bulkMetadataPanel.getByLabel('Instrumentation').fill('Bulk piano reduction')
+    await bulkMetadataPanel.getByRole('button', { name: 'Apply shared metadata' }).click()
+    await expect(page.getByText('2 uploaded tracks updated with shared metadata.')).toBeVisible()
+    await expect(page.getByText('Bulk Updated Composer · F major · Bulk piano reduction').first()).toBeVisible()
     const collectionRow = page.getByRole('listitem').filter({
       hasText: `E2E Grouped Work ${suffix}`
     })
