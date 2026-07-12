@@ -86,6 +86,7 @@ This tracker records backend security and auditability work completed so far and
 - Added admin remediation visibility for Works & Collections blocked by rejected or non-ready dependent tracks, including filter counts and per-track lifecycle badges.
 - Added uploader-facing recovery guidance for Works & Collections blocked by dependent track moderation, including a dedicated management filter and affected-track labels.
 - Added Work/Collection detail-page recovery guidance that identifies blocked dependent tracks and explains the edit/save resubmission path.
+- Added e2e coverage for repairing a blocked Work/Collection by replacing a rejected dependent track and confirming the release returns to public availability.
 
 ## In Progress
 
@@ -94,4 +95,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
-- Continue upload-management hardening around first-wave uploader import operations, especially e2e coverage for blocked Work/Collection repair and resubmission flows.
+- Continue upload-management hardening around first-wave uploader import operations, especially admin/uploader audit reporting for blocked Work/Collection repair events.

@@ -456,6 +456,179 @@ test.describe('track review API flow', () => {
     )
   })
 
+  test('uploaders can repair a Work or Collection after a dependent track is rejected', async ({ page, request }) => {
+    const suffix = `blocked-release-repair-${Date.now()}`
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const firstCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-one`)
+    })
+    const firstTrack = await firstCreateResponse.json()
+    const secondCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-two`)
+    })
+    const secondTrack = await secondCreateResponse.json()
+    const replacementCreateResponse = await request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-replacement`)
+    })
+    const replacementTrack = await replacementCreateResponse.json()
+
+    expect(firstCreateResponse.status()).toBe(200)
+    expect(secondCreateResponse.status()).toBe(200)
+    expect(replacementCreateResponse.status()).toBe(200)
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    for (const track of [firstTrack, secondTrack, replacementTrack]) {
+      const approvalResponse = await request.patch(`/api/admin/tracks/${track.id}`, {
+        data: {
+          decision: 'approve',
+          moderationNotes: 'Approved for blocked release repair E2E.'
+        }
+      })
+
+      expect(approvalResponse.status()).toBe(200)
+    }
+
+    await signInAs(request, 'e2e-uploader@example.com')
+
+    const releaseTitle = `E2E Blocked Release Repair ${suffix}`
+    const collectionResponse = await request.post('/api/works-collections', {
+      data: {
+        catalogueType: 'COLLECTION',
+        composer: 'Synthetic Repair Fixture',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        title: releaseTitle,
+        trackItems: [
+          {
+            movementNo: 'I',
+            position: 1,
+            titleInWork: 'Rejected dependency cut',
+            trackId: firstTrack.id
+          },
+          {
+            movementNo: 'II',
+            position: 2,
+            titleInWork: 'Stable dependency cut',
+            trackId: secondTrack.id
+          }
+        ]
+      }
+    })
+    const collectionBody = await collectionResponse.json()
+
+    expect(collectionResponse.status()).toBe(200)
+    expect(collectionBody.collection.status).toBe('PUBLISHED')
+
+    await signInAs(request, 'e2e-admin@example.com')
+
+    const rejectionResponse = await request.patch(`/api/admin/tracks/${firstTrack.id}`, {
+      data: {
+        decision: 'reject',
+        moderationNotes: 'Rejected to exercise blocked release repair.'
+      }
+    })
+    const rejectionBody = await rejectionResponse.json()
+
+    expect(rejectionResponse.status()).toBe(200)
+    expect(rejectionBody.track.worksCollections).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: collectionBody.collection.id,
+          status: 'NEEDS_CHANGES'
+        })
+      ])
+    )
+
+    await signInAs(request, 'e2e-uploader@example.com')
+    const blockedListResponse = await request.get('/api/works-collections')
+    const blockedListBody = await blockedListResponse.json()
+
+    expect(blockedListResponse.status()).toBe(200)
+    expect(blockedListBody.collections).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: collectionBody.collection.id,
+          status: 'NEEDS_CHANGES',
+          tracks: expect.arrayContaining([
+            expect.objectContaining({
+              moderationStatus: 'REJECTED',
+              trackId: firstTrack.id
+            })
+          ])
+        })
+      ])
+    )
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload/manage')
+    const createdCollectionsPanel = page.locator('.cmc-profile-works-list')
+    await createdCollectionsPanel.getByLabel('Search Works and Collections').fill(releaseTitle)
+    await createdCollectionsPanel.getByRole('button', { name: /Blocked dependency/i }).click()
+    const blockedCollectionRow = createdCollectionsPanel.getByRole('listitem').filter({
+      hasText: releaseTitle
+    })
+
+    await expect(blockedCollectionRow).toBeVisible()
+    await expect(blockedCollectionRow.getByText(/Blocked dependency: Rejected dependency cut \(Rejected\)/)).toBeVisible()
+
+    await blockedCollectionRow.getByRole('link', { name: 'View' }).click()
+    await expect(page).toHaveURL(new RegExp(`/upload/manage/works/${collectionBody.collection.id}$`))
+    const recoveryGuidance = page.getByRole('region', { name: 'Blocked dependency recovery guidance' })
+    await expect(recoveryGuidance).toBeVisible()
+    await expect(page.getByText('Repair this release before it can return to the catalogue')).toBeVisible()
+    await expect(recoveryGuidance.getByText('Rejected dependency cut')).toBeVisible()
+    await page.getByRole('link', { name: 'Back to management' }).click()
+
+    await createdCollectionsPanel.getByLabel('Search Works and Collections').fill(releaseTitle)
+    await blockedCollectionRow.getByRole('button', { name: `Edit ${releaseTitle}` }).click()
+    await expect(page.getByText('Editing an existing Work or Collection.')).toBeVisible()
+    const worksCollectionForm = page.locator('.cmc-profile-works-form')
+    await page.getByRole('button', { name: 'Remove Rejected dependency cut from release' }).click()
+    await worksCollectionForm
+      .getByRole('checkbox', { name: new RegExp(`^E2E Pending Review ${suffix}-replacement\\b`) })
+      .check()
+    await worksCollectionForm.getByRole('button', { name: 'Save Work or Collection' }).click()
+    await expect(page.getByText('Work or Collection updated.')).toBeVisible()
+
+    const repairedListResponse = await request.get('/api/works-collections')
+    const repairedListBody = await repairedListResponse.json()
+    const repairedCollection = repairedListBody.collections.find(collection => collection.id === collectionBody.collection.id)
+
+    expect(repairedListResponse.status()).toBe(200)
+    expect(repairedCollection).toEqual(
+      expect.objectContaining({
+        status: 'PUBLISHED'
+      })
+    )
+    expect(repairedCollection.tracks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trackId: secondTrack.id
+        }),
+        expect.objectContaining({
+          trackId: replacementTrack.id
+        })
+      ])
+    )
+    expect(repairedCollection.tracks).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trackId: firstTrack.id
+        })
+      ])
+    )
+
+    const publicReleaseResponse = await page.goto(`/works-collections/${collectionBody.collection.id}`)
+
+    expect(publicReleaseResponse.status()).toBe(200)
+    await expect(page.getByRole('heading', { name: `${releaseTitle}.` })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Stable dependency cut' })).toBeVisible()
+    await expect(page.getByRole('link', { name: `E2E Pending Review ${suffix}-replacement` })).toBeVisible()
+  })
+
   test('admins can review Works and Collections pricing with release contents visible', async ({ page, request }) => {
     const suffix = `release-pricing-review-${Date.now()}`
 

@@ -39,7 +39,7 @@ const checks = [
     name: 'home page',
     path: '/',
     status: 200,
-    includes: ['Classical Music Catalogue', 'Backing tracks should not gather dust.', 'Sign in or register'],
+    includes: ['Classical Music Catalogue', 'Backing tracks should not gather dust.', 'Login / Sign up'],
     headers: [
       {
         name: 'content-security-policy',
@@ -67,7 +67,7 @@ const checks = [
     name: 'catalogue page',
     path: '/catalogue',
     status: 200,
-    includes: ['Track Listing']
+    includes: ['Browse Archive', 'Search catalogue', 'Title', 'Composer']
   },
   {
     name: 'public health endpoint',
