@@ -213,25 +213,24 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
     setBulkSaving(true)
 
     try {
-      const updates = await Promise.all(selectedTrackIds.map(async trackId => {
-        const response = await fetch(`/api/tracks/${trackId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(bulkInput)
+      const response = await fetch('/api/tracks/bulk-metadata', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          metadata: bulkInput,
+          trackIds: selectedTrackIds
         })
-        const data = await response.json()
+      })
+      const data = await response.json()
 
-        if (!response.ok) {
-          throw new Error(data.message || `Unable to update track #${trackId}`)
-        }
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to apply shared metadata.')
+      }
 
-        return data
-      }))
-
-      updates.forEach(onTrackUpdated)
-      setStatus(`${updates.length} uploaded ${updates.length === 1 ? 'track' : 'tracks'} updated with shared metadata.`)
+      data.tracks.forEach(onTrackUpdated)
+      setStatus(`${data.updatedCount} uploaded ${data.updatedCount === 1 ? 'track' : 'tracks'} updated with shared metadata.`)
       clearBulkSelection()
     } catch (bulkError) {
       setError(bulkError.message || 'Unable to apply shared metadata.')

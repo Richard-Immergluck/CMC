@@ -7,6 +7,7 @@ import {
   adminUserUpdateBodySchema,
   adminTrackModerationBodySchema,
   adminPricingReviewBodySchema,
+  bulkUpdateTrackMetadataBodySchema,
   checkoutSessionBodySchema,
   createTrackBodySchema,
   createUploadBatchBodySchema,
@@ -706,6 +707,54 @@ test('track metadata update body accepts descriptive fields only', () => {
   assert.throws(
     () => validateInput(updateTrackMetadataBodySchema, {
       pricePence: 899
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('bulk track metadata update body requires unique bounded track ids and metadata', () => {
+  assert.deepEqual(
+    validateInput(bulkUpdateTrackMetadataBodySchema, {
+      metadata: {
+        composer: ' Shared Composer ',
+        key: ' G major ',
+        ignored: 'removed'
+      },
+      trackIds: ['12', 13]
+    }),
+    {
+      metadata: {
+        composer: 'Shared Composer',
+        key: 'G major'
+      },
+      trackIds: [12, 13]
+    }
+  )
+
+  assert.throws(
+    () => validateInput(bulkUpdateTrackMetadataBodySchema, {
+      metadata: {
+        composer: 'Shared Composer'
+      },
+      trackIds: [12, 12]
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(bulkUpdateTrackMetadataBodySchema, {
+      metadata: {},
+      trackIds: [12]
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(bulkUpdateTrackMetadataBodySchema, {
+      metadata: {
+        composer: 'Shared Composer'
+      },
+      trackIds: Array.from({ length: 51 }, (_, index) => index + 1)
     }),
     error => error.statusCode === 400
   )
