@@ -233,6 +233,15 @@ test('upload batch admin items expose operational context only', () => {
       createdAt,
       submittedAt,
       completedAt: null,
+      diagnostics: {
+        blockerCodes: [
+          'failed_tracks',
+          'awaiting_moderation'
+        ],
+        canSubmit: false,
+        requiresAttention: true,
+        supportPriority: 'review'
+      },
       summary: {
         approvedTracks: 0,
         failedTracks: 1,
@@ -619,6 +628,21 @@ test('audit event query options support release lifecycle category filters', () 
   assert.ok(options.where.action.in.includes('works_collection.dependency_repaired'))
   assert.ok(options.where.action.in.includes('works_collection.pricing_reviewed'))
   assert.ok(options.where.action.in.includes('works_collection.updated'))
+})
+
+test('audit event query options support upload lifecycle category filters', () => {
+  const options = toAuditEventQueryOptions({
+    auditCategory: 'uploadLifecycle'
+  })
+
+  assert.deepEqual(options.where, {
+    action: {
+      in: auditEventCategories.uploadLifecycle
+    }
+  })
+  assert.ok(options.where.action.in.includes('upload_batch.created'))
+  assert.ok(options.where.action.in.includes('upload_batch.submitted'))
+  assert.ok(options.where.action.in.includes('upload_batch.updated'))
 })
 
 test('audit event query options default to latest 25 rows', () => {

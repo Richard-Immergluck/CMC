@@ -4,6 +4,7 @@ import {
   canAddTrackToUploadBatch,
   canEditUploadBatch,
   canSubmitUploadBatch,
+  buildUploadBatchDiagnostics,
   getUploadBatchSubmitBlocker,
   getUploadBatchStatusAfterFailedTrackRemoval,
   getUploadBatchStatusAfterModeration,
@@ -188,6 +189,53 @@ test('upload batch summaries count processing and moderation states', () => {
       pendingReviewTracks: 1,
       readyTracks: 2,
       totalTracks: 3
+    }
+  )
+})
+
+test('upload batch diagnostics describe support posture without file details', () => {
+  assert.deepEqual(
+    buildUploadBatchDiagnostics({
+      status: uploadBatchStatuses.partiallyFailed,
+      tracks: [
+        {
+          moderationStatus: 'PENDING',
+          processingStatus: 'READY'
+        },
+        {
+          moderationStatus: 'REJECTED',
+          processingStatus: 'FAILED',
+          fileName: 'should-not-leak.mp3',
+          s3Key: 'should-not-leak'
+        }
+      ]
+    }),
+    {
+      blockerCodes: ['failed_tracks'],
+      canSubmit: false,
+      requiresAttention: true,
+      supportPriority: 'review'
+    }
+  )
+
+  assert.deepEqual(
+    buildUploadBatchDiagnostics({
+      _count: {
+        tracks: maxUploadBatchTracks
+      },
+      status: uploadBatchStatuses.submitted,
+      tracks: [
+        {
+          moderationStatus: 'PENDING',
+          processingStatus: 'READY'
+        }
+      ]
+    }),
+    {
+      blockerCodes: ['awaiting_moderation', 'batch_capacity_full'],
+      canSubmit: true,
+      requiresAttention: false,
+      supportPriority: 'normal'
     }
   )
 })
