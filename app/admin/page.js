@@ -6,6 +6,7 @@ import {
   toTrackReviewItem,
   toUploadBatchAdminItem,
   toWorksCollectionAdminItem,
+  trackReviewInclude,
   toUserAdminItem
 } from '../../lib/server/admin-core.mjs'
 import { getAdminOperationsData } from '../../lib/server/admin-operations'
@@ -76,21 +77,7 @@ const getAdminInitialData = async currentUser => {
       where: {
         moderationStatus: 'PENDING'
       },
-      include: {
-        uploadBatch: {
-          select: {
-            id: true,
-            label: true,
-            status: true,
-            _count: {
-              select: {
-                tracks: true
-              }
-            }
-          }
-        },
-        uploadedBy: true
-      },
+      include: trackReviewInclude,
       orderBy: [
         {
           uploadedAt: 'asc'

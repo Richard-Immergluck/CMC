@@ -5,7 +5,10 @@ import {
   requireRouteMethod
 } from '../../../../lib/server/route-handlers'
 import { requireRouteCurrentUser } from '../../../../lib/server/route-auth'
-import { toTrackReviewItem } from '../../../../lib/server/admin-core.mjs'
+import {
+  toTrackReviewItem,
+  trackReviewInclude
+} from '../../../../lib/server/admin-core.mjs'
 import { requireSupportPermission } from '../../../../lib/server/permissions.mjs'
 import prisma from '../../../../lib/server/prisma'
 
@@ -22,21 +25,7 @@ export async function GET(request) {
       where: {
         moderationStatus: 'PENDING'
       },
-      include: {
-        uploadBatch: {
-          select: {
-            id: true,
-            label: true,
-            status: true,
-            _count: {
-              select: {
-                tracks: true
-              }
-            }
-          }
-        },
-        uploadedBy: true
-      },
+      include: trackReviewInclude,
       orderBy: [
         {
           uploadedAt: 'asc'

@@ -8,7 +8,8 @@ import {
 } from '../../../../../lib/server/route-handlers'
 import {
   buildTrackModerationChangeMetadata,
-  toTrackReviewItem
+  toTrackReviewItem,
+  trackReviewInclude
 } from '../../../../../lib/server/admin-core.mjs'
 import { createValidationError } from '../../../../../lib/server/api-core.mjs'
 import { requireSensitiveRouteCurrentUser } from '../../../../../lib/server/route-auth'
@@ -67,9 +68,7 @@ export async function PATCH(request) {
             in: input.trackIds
           }
         },
-        include: {
-          uploadedBy: true
-        }
+        include: trackReviewInclude
       })
 
       if (beforeTracks.length !== input.trackIds.length) {
@@ -95,9 +94,7 @@ export async function PATCH(request) {
             reviewedAt,
             publishedAt: input.decision === 'approve' ? reviewedAt : before.publishedAt
           },
-          include: {
-            uploadedBy: true
-          }
+          include: trackReviewInclude
         })
 
         await tx.auditEvent.create({
