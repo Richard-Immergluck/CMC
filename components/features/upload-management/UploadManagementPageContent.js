@@ -6,11 +6,12 @@ import { ArrowDown, ArrowUp, Layers3, Pencil, Search, UploadCloud, X } from 'luc
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
+  filterAndSortUploadInventoryCollections,
   filterAndSortUploadInventoryTracks,
-  filterUploadInventoryCollections,
   filterUploadInventoryTracks,
-  getUploadInventoryTrackFilterCounts,
-  getUploadInventorySearchQuery
+  getUploadInventoryCollectionFilterCounts,
+  getUploadInventorySearchQuery,
+  getUploadInventoryTrackFilterCounts
 } from '../../../lib/upload-management-inventory.mjs'
 import {
   atomicTrackCatalogueTypes,
@@ -129,6 +130,22 @@ const trackSortLabels = {
   composer: 'Composer',
   newest: 'Newest uploaded',
   title: 'Title'
+}
+
+const collectionFilterLabels = {
+  all: 'All',
+  archived: 'Archived',
+  live: 'Live',
+  needsChanges: 'Needs changes',
+  review: 'In review'
+}
+
+const collectionSortLabels = {
+  newest: 'Newest created',
+  price: 'Highest price',
+  status: 'Status',
+  title: 'Title',
+  trackCount: 'Most tracks'
 }
 
 const getSelectedTracksTotalPence = ({ selectedTrackItems, tracks }) => (
@@ -587,7 +604,9 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
 
 const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [catalogueType, setCatalogueType] = useState(catalogueTypes.collection)
+  const [collectionFilter, setCollectionFilter] = useState('all')
   const [collectionSearch, setCollectionSearch] = useState('')
+  const [collectionSort, setCollectionSort] = useState('newest')
   const [composer, setComposer] = useState('')
   const [editingCollectionId, setEditingCollectionId] = useState(null)
   const [error, setError] = useState('')
@@ -607,10 +626,13 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const canSave = selectedTrackItems.length >= 2 && title.trim() && !submitting
   const normalizedCollectionSearch = getUploadInventorySearchQuery(collectionSearch)
   const normalizedTrackSearch = getUploadInventorySearchQuery(trackSearch)
-  const filteredCollections = useMemo(() => filterUploadInventoryCollections({
+  const collectionFilterCounts = useMemo(() => getUploadInventoryCollectionFilterCounts(collections), [collections])
+  const filteredCollections = useMemo(() => filterAndSortUploadInventoryCollections({
     collections,
-    query: normalizedCollectionSearch
-  }), [collections, normalizedCollectionSearch])
+    filter: collectionFilter,
+    query: normalizedCollectionSearch,
+    sort: collectionSort
+  }), [collections, collectionFilter, collectionSort, normalizedCollectionSearch])
   const filteredTracks = useMemo(() => filterUploadInventoryTracks({
     query: normalizedTrackSearch,
     tracks
@@ -1067,10 +1089,36 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
               </button>
             )}
           </div>
+          <div className='cmc-upload-management-library-controls cmc-upload-management-library-controls--compact' aria-label='Works and Collections filters'>
+            <div className='cmc-upload-management-filter-chips'>
+              {Object.entries(collectionFilterLabels).map(([filter, label]) => (
+                <button
+                  aria-pressed={collectionFilter === filter}
+                  key={filter}
+                  onClick={() => setCollectionFilter(filter)}
+                  type='button'
+                >
+                  <span>{label}</span>
+                  <strong>{collectionFilterCounts[filter] || 0}</strong>
+                </button>
+              ))}
+            </div>
+            <label className='cmc-upload-management-sort-control'>
+              <span>Sort</span>
+              <select
+                onChange={event => setCollectionSort(event.target.value)}
+                value={collectionSort}
+              >
+                {Object.entries(collectionSortLabels).map(([sort, label]) => (
+                  <option key={sort} value={sort}>{label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
           {collections.length === 0 ? (
             <p>Approved uploaded tracks can be grouped here once you have at least two related items.</p>
           ) : filteredCollections.length === 0 ? (
-            <p>No Works or Collections match that search.</p>
+            <p>No Works or Collections match that search or filter.</p>
           ) : (
             <ul>
               {filteredCollections.map(collection => (
