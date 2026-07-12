@@ -774,6 +774,60 @@ const UploadBatchesTable = ({ uploadBatches }) => (
   </Table>
 )
 
+const WorksCollectionsTable = ({ worksCollections }) => (
+  <Table bordered hover responsive size='sm'>
+    <thead>
+      <tr>
+        <th>Release</th>
+        <th>Uploader</th>
+        <th>Status</th>
+        <th>Pricing</th>
+        <th>Tracks</th>
+        <th>Sales</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {worksCollections.map(release => (
+        <tr key={release.id}>
+          <td>
+            <strong>{release.title}</strong>
+            <div className='text-muted small'>
+              {release.catalogueType} · {release.formattedPrice || formatPricePence(release.pricePence)}
+            </div>
+            {release.tracks?.length > 0 && (
+              <ol className='cmc-admin-release-track-list'>
+                {release.tracks.map(track => (
+                  <li key={`${release.id}-${track.position}`}>
+                    {track.position}. {track.movementNo ? `${track.movementNo} · ` : ''}{track.title}
+                  </li>
+                ))}
+                {release.trackCount > release.tracks.length && (
+                  <li>{release.trackCount - release.tracks.length} more tracks</li>
+                )}
+              </ol>
+            )}
+          </td>
+          <td>
+            {release.uploader?.name || 'Unknown'}
+            <div className='text-muted small'>{release.uploader?.email}</div>
+          </td>
+          <td><StatusBadge value={release.status} /></td>
+          <td><StatusBadge value={release.pricingReviewStatus} /></td>
+          <td>{release.trackCount}</td>
+          <td>{release.orderItemCount}</td>
+          <td>{formatDate(release.createdAt)}</td>
+        </tr>
+      ))}
+      {worksCollections.length === 0 && (
+        <tr>
+          <td colSpan='7' className='text-center text-muted'>No Works or Collections found.</td>
+        </tr>
+      )}
+    </tbody>
+  </Table>
+)
+
 const PricingReviewsTable = ({
   canReviewPricing,
   onReviewPricing,
@@ -1032,6 +1086,7 @@ const AdminConsoleContent = ({
   initialSummary = null,
   initialTracks = [],
   initialUploadBatches = [],
+  initialWorksCollections = [],
   initialUsers = [],
   initialOperations = null,
   initialPricingReviews = null
@@ -1039,6 +1094,7 @@ const AdminConsoleContent = ({
   const [summary, setSummary] = useState(initialSummary)
   const [tracks, setTracks] = useState(initialTracks)
   const [uploadBatches, setUploadBatches] = useState(initialUploadBatches)
+  const [worksCollections] = useState(initialWorksCollections)
   const [users, setUsers] = useState(initialUsers)
   const [operations, setOperations] = useState(initialOperations)
   const [pricingReviews, setPricingReviews] = useState(initialPricingReviews)
@@ -1257,6 +1313,10 @@ const AdminConsoleContent = ({
 
           <Tab eventKey='upload-batches' title={`Batch Imports (${uploadBatches.length})`}>
             <UploadBatchesTable uploadBatches={uploadBatches} />
+          </Tab>
+
+          <Tab eventKey='works-collections' title={`Works & Collections (${worksCollections.length})`}>
+            <WorksCollectionsTable worksCollections={worksCollections} />
           </Tab>
 
           <Tab

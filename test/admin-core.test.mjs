@@ -13,6 +13,7 @@ import {
   toPaymentEventAdminItem,
   toTrackReviewItem,
   toUploadBatchAdminItem,
+  toWorksCollectionAdminItem,
   toUserAccessChangeRequestAdminItem,
   toUserAdminItem
 } from '../lib/server/admin-core.mjs'
@@ -202,6 +203,69 @@ test('upload batch admin items expose operational context only', () => {
           uploadedAt
         }
       ]
+    }
+  )
+})
+
+test('Works and Collections admin items expose release context only', () => {
+  assert.deepEqual(
+    toWorksCollectionAdminItem({
+      _count: {
+        orderItems: 4,
+        tracks: 2
+      },
+      catalogueType: 'SONG_CYCLE',
+      createdAt: '2026-07-12T00:00:00.000Z',
+      formattedPrice: '£14.99',
+      id: 123,
+      pricePence: 1499,
+      pricingReviewStatus: 'APPROVED',
+      saleFormat: 'BOTH',
+      status: 'PUBLISHED',
+      title: 'Schubert Songs',
+      tracks: [
+        {
+          movementNo: 'No. 1',
+          position: 1,
+          titleInWork: 'Gute Nacht',
+          track: {
+            id: 11,
+            title: 'Original track title'
+          }
+        }
+      ],
+      uploadedBy: {
+        id: 'user-1',
+        name: 'Uploader',
+        email: 'uploader@example.com',
+        image: 'should-not-leak'
+      }
+    }),
+    {
+      catalogueType: 'SONG_CYCLE',
+      createdAt: '2026-07-12T00:00:00.000Z',
+      formattedPrice: '£14.99',
+      id: 123,
+      orderItemCount: 4,
+      pricePence: 1499,
+      pricingReviewStatus: 'APPROVED',
+      saleFormat: 'BOTH',
+      status: 'PUBLISHED',
+      title: 'Schubert Songs',
+      trackCount: 2,
+      tracks: [
+        {
+          id: 11,
+          movementNo: 'No. 1',
+          position: 1,
+          title: 'Gute Nacht'
+        }
+      ],
+      uploader: {
+        id: 'user-1',
+        name: 'Uploader',
+        email: 'uploader@example.com'
+      }
     }
   )
 })
