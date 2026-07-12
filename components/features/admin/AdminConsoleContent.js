@@ -692,11 +692,19 @@ const OperationsTables = ({
             All audit
           </Button>
           <Button
+            className='me-2'
             onClick={() => onLoadAuditCategory('accountLifecycle')}
             size='sm'
             variant={activeAuditCategory === 'accountLifecycle' ? 'secondary' : 'subtle'}
           >
             Account lifecycle
+          </Button>
+          <Button
+            onClick={() => onLoadAuditCategory('releaseLifecycle')}
+            size='sm'
+            variant={activeAuditCategory === 'releaseLifecycle' ? 'secondary' : 'subtle'}
+          >
+            Release lifecycle
           </Button>
         </Col>
       </Row>

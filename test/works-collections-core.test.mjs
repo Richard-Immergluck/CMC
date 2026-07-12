@@ -6,6 +6,7 @@ import {
   catalogueReleaseStatusDescriptions,
   catalogueReleaseStatusLabels,
   getInitialWorksCollectionStatus,
+  getWorksCollectionRepairAuditMetadata,
   getWorksCollectionStatusAfterPricingDecision,
   getWorksCollectionDeleteResolution,
   isPublicWorksCollectionStatus,
@@ -102,5 +103,79 @@ test('works collection delete resolution preserves sold release history', () => 
       orderItemCount: 2,
       trackOwnerCount: 5
     }
+  )
+})
+
+test('works collection repair audit metadata captures safe lifecycle context', () => {
+  assert.deepEqual(
+    getWorksCollectionRepairAuditMetadata({
+      before: {
+        pricingReviewStatus: 'APPROVED',
+        status: catalogueReleaseStatuses.needsChanges,
+        tracks: [
+          {
+            track: {
+              id: 10,
+              moderationStatus: 'REJECTED',
+              processingStatus: 'READY',
+              status: 'PUBLISHED'
+            }
+          },
+          {
+            track: {
+              id: 20,
+              moderationStatus: 'APPROVED',
+              processingStatus: 'READY',
+              status: 'PUBLISHED'
+            }
+          }
+        ]
+      },
+      after: {
+        pricingReviewStatus: 'AUTO_APPROVED',
+        status: catalogueReleaseStatuses.published,
+        tracks: [
+          {
+            track: {
+              id: 20
+            }
+          },
+          {
+            track: {
+              id: 30
+            }
+          }
+        ]
+      },
+      trackIds: [20, 30]
+    }),
+    {
+      after: {
+        pricingReviewStatus: 'AUTO_APPROVED',
+        status: 'PUBLISHED',
+        trackCount: 2
+      },
+      before: {
+        blockedDependencyCount: 1,
+        pricingReviewStatus: 'APPROVED',
+        status: 'NEEDS_CHANGES',
+        trackCount: 2
+      },
+      blockedDependencyTrackIds: [10],
+      trackIds: [20, 30]
+    }
+  )
+
+  assert.equal(
+    getWorksCollectionRepairAuditMetadata({
+      before: {
+        status: catalogueReleaseStatuses.published
+      },
+      after: {
+        status: catalogueReleaseStatuses.published
+      },
+      trackIds: [20, 30]
+    }),
+    null
   )
 })

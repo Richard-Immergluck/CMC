@@ -605,6 +605,22 @@ test('audit event query options support account lifecycle category filters', () 
   assert.ok(options.where.action.in.includes('user_access.updated'))
 })
 
+test('audit event query options support release lifecycle category filters', () => {
+  const options = toAuditEventQueryOptions({
+    auditCategory: 'releaseLifecycle'
+  })
+
+  assert.deepEqual(options.where, {
+    action: {
+      in: auditEventCategories.releaseLifecycle
+    }
+  })
+  assert.ok(options.where.action.in.includes('works_collection.dependency_blocked'))
+  assert.ok(options.where.action.in.includes('works_collection.dependency_repaired'))
+  assert.ok(options.where.action.in.includes('works_collection.pricing_reviewed'))
+  assert.ok(options.where.action.in.includes('works_collection.updated'))
+})
+
 test('audit event query options default to latest 25 rows', () => {
   assert.deepEqual(toAuditEventQueryOptions(), {
     where: {},
