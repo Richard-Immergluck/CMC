@@ -4808,6 +4808,12 @@ a {
   margin-top: var(--cmc-space-4);
 }
 
+.cmc-upload-management-tracks {
+  display: grid;
+  gap: var(--cmc-space-3);
+  margin-top: var(--cmc-space-4);
+}
+
 .cmc-upload-management-batches {
   display: grid;
   gap: var(--cmc-space-3);
@@ -4947,6 +4953,132 @@ a {
   color: var(--cmc-color-accent-strong);
   font-size: 0.76rem;
   font-weight: 800;
+}
+
+.cmc-upload-management-track-list {
+  display: grid;
+  gap: var(--cmc-space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-upload-management-track-list > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.78fr) auto;
+  gap: var(--cmc-space-4);
+  align-items: center;
+  padding: var(--cmc-space-4);
+  background: rgba(255, 253, 248, 0.58);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+  border-left: 0.34rem solid rgba(185, 133, 34, 0.78);
+}
+
+.cmc-upload-management-track-main {
+  min-width: 0;
+}
+
+.cmc-upload-management-track-main strong {
+  display: block;
+  color: var(--cmc-theme-heading);
+  font-family: var(--cmc-font-family-display);
+  font-size: 1.36rem;
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.cmc-upload-management-track-main span {
+  display: block;
+  margin-top: var(--cmc-space-1);
+  color: var(--cmc-color-text-muted);
+  font-size: var(--cmc-font-size-small);
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.cmc-upload-management-track-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cmc-space-2);
+  margin: 0;
+}
+
+.cmc-upload-management-track-stats div {
+  padding-left: var(--cmc-space-2);
+  border-left: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-upload-management-track-stats dt {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-management-track-stats dd {
+  margin: var(--cmc-space-1) 0 0;
+  color: var(--cmc-color-text);
+  font-weight: 850;
+}
+
+.cmc-upload-management-track-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
+}
+
+.cmc-upload-management-track-actions .cmc-button {
+  white-space: nowrap;
+}
+
+.cmc-upload-management-track-edit-form {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cmc-space-3);
+  padding-top: var(--cmc-space-3);
+  border-top: 1px solid rgba(23, 63, 56, 0.12);
+}
+
+.cmc-upload-management-track-edit-form label {
+  display: grid;
+  gap: var(--cmc-space-1);
+}
+
+.cmc-upload-management-track-edit-form label > span {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cmc-upload-management-track-edit-form input,
+.cmc-upload-management-track-edit-form textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.68rem 0.78rem;
+  color: var(--cmc-color-text);
+  background: rgba(255, 253, 248, 0.86);
+  border: 1px solid rgba(23, 63, 56, 0.22);
+}
+
+.cmc-upload-management-track-edit-form textarea {
+  resize: vertical;
+}
+
+.cmc-upload-management-track-edit-form-notes,
+.cmc-upload-management-track-edit-actions {
+  grid-column: 1 / -1;
+}
+
+.cmc-upload-management-track-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmc-space-2);
+  justify-content: flex-end;
 }
 
 .cmc-upload-management-batch-list dl {
@@ -5832,6 +5964,9 @@ a {
   .cmc-upload-management-batch-list li,
   .cmc-upload-management-batch-list dl,
   .cmc-upload-management-defaults-form,
+  .cmc-upload-management-track-edit-form,
+  .cmc-upload-management-track-list > li,
+  .cmc-upload-management-track-stats,
   .cmc-upload-batch-capacity-panel,
   .cmc-upload-batch-defaults dl,
   .cmc-upload-batch-track-list li,
@@ -5841,6 +5976,10 @@ a {
 
   .cmc-profile-works-track-picker label {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .cmc-upload-management-track-actions {
+    justify-content: flex-start;
   }
 
   .cmc-profile-works-track-picker small {

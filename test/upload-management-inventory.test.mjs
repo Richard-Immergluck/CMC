@@ -22,7 +22,9 @@ test('upload inventory track search covers metadata and collection membership', 
         titleInWork: 'Der Lindenbaum'
       }
     ],
+    additionalInfo: 'Recorded for rehearsal with optional repeats.',
     composer: 'Franz Schubert',
+    downloadName: 'schubert-lindenbaum-rehearsal.wav',
     formattedPrice: '£2.99',
     instrumentation: 'Piano, voice',
     key: 'E major',
@@ -31,6 +33,8 @@ test('upload inventory track search covers metadata and collection membership', 
 
   assert.equal(trackMatchesUploadInventorySearch({ query: 'schubert', track }), true)
   assert.equal(trackMatchesUploadInventorySearch({ query: 'winterreise', track }), true)
+  assert.equal(trackMatchesUploadInventorySearch({ query: 'optional repeats', track }), true)
+  assert.equal(trackMatchesUploadInventorySearch({ query: 'lindenbaum-rehearsal', track }), true)
   assert.equal(trackMatchesUploadInventorySearch({ query: 'voice', track }), true)
   assert.equal(trackMatchesUploadInventorySearch({ query: 'brahms', track }), false)
 })
