@@ -97,6 +97,17 @@ const createUploadBatch = async ({
   return data.batch
 }
 
+const fetchUploadBatch = async batchId => {
+  const response = await fetch(`/api/upload-batches/${batchId}`)
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Unable to refresh upload batch')
+  }
+
+  return data.batch
+}
+
 const getInitialCatalogueTypeForPrice = pricePence => {
   if (!Number.isInteger(Number(pricePence))) {
     return catalogueTypes.singleTrack
@@ -550,6 +561,11 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
     await uploadToDB(values, uploadedFileName, {
       uploadBatchId: uploadBatch?.id
     })
+
+    if (uploadBatch?.id) {
+      setActiveUploadBatch(await fetchUploadBatch(uploadBatch.id))
+    }
+
     setShowUploadComplete(true)
     fileReset()
   }
@@ -629,6 +645,12 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
             })
             const needsPricingReview = pricingReviewStatus === pricingReviewStatuses.needsReview
             const isBatchMode = uploadMode === 'batch'
+            const batchUsedTracks = activeUploadBatch?.summary?.totalTracks || 0
+            const batchRemainingTracks = activeUploadBatch?.capacity?.remainingTracks ?? maxUploadBatchTracks
+            const batchFileLimit = isBatchMode ? Math.max(0, batchRemainingTracks) : 1
+            const batchCapacityLabel = activeUploadBatch
+              ? `${batchUsedTracks}/${maxUploadBatchTracks} tracks used`
+              : `0/${maxUploadBatchTracks} tracks used`
 
             const resetUploadProgress = () => {
               setUploadedFileName('')
@@ -676,7 +698,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
 
             const handleFileChange = event => {
               const nextFiles = Array.from(event.target.files || [])
-              const batchFiles = nextFiles.slice(0, maxUploadBatchTracks)
+              const batchFiles = nextFiles.slice(0, batchFileLimit)
               const filesForMode = isBatchMode ? batchFiles : nextFiles.slice(0, 1)
               const file = filesForMode[0]
 
@@ -684,8 +706,10 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                 URL.revokeObjectURL(audioUrl)
               }
 
-              setUploadError(isBatchMode && nextFiles.length > maxUploadBatchTracks
-                ? uploadBatchLimitMessage
+              setUploadError(isBatchMode && nextFiles.length > batchFileLimit
+                ? activeUploadBatch
+                  ? `This batch has ${batchRemainingTracks} upload slot${batchRemainingTracks === 1 ? '' : 's'} remaining.`
+                  : uploadBatchLimitMessage
                 : '')
               setSelectedFile(file || null)
               setSelectedFiles(filesForMode)
@@ -887,11 +911,25 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                               </label>
                               {activeUploadBatch ? (
                                 <div className='cmc-upload-batch-status' role='status'>
-                                  <strong>{activeUploadBatch.label || `Upload batch #${activeUploadBatch.id}`}</strong>
-                                  <span>New tracks will be attached to this batch.</span>
-                                  <Button type='button' variant='subtle' onClick={startNewBatch}>
-                                    Start new batch
-                                  </Button>
+                                  <div>
+                                    <strong>{activeUploadBatch.label || `Upload batch #${activeUploadBatch.id}`}</strong>
+                                    <span>New tracks will be attached to this batch.</span>
+                                  </div>
+                                  <div className='cmc-upload-batch-progress' aria-label={batchCapacityLabel}>
+                                    <span>{batchCapacityLabel}</span>
+                                    <div>
+                                      <span style={{ width: `${Math.min(100, Math.round((batchUsedTracks / maxUploadBatchTracks) * 100))}%` }} />
+                                    </div>
+                                    <small>{batchRemainingTracks} slot{batchRemainingTracks === 1 ? '' : 's'} remaining</small>
+                                  </div>
+                                  <div className='cmc-upload-batch-status-actions'>
+                                    <Button as={Link} href={`/upload/manage/${activeUploadBatch.id}`} variant='paper'>
+                                      Review batch
+                                    </Button>
+                                    <Button type='button' variant='subtle' onClick={startNewBatch}>
+                                      Start new batch
+                                    </Button>
+                                  </div>
                                 </div>
                               ) : (
                                 <p>The batch will be created when the first track is submitted. Add up to {maxUploadBatchTracks} tracks per batch.</p>
@@ -922,7 +960,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                                   <span>{selectedFile ? 'Click to choose different files' : 'or click anywhere in this box to browse'}</span>
                                   <small>
                                     {isBatchMode
-                                      ? `MP3 files only. Up to ${maxUploadBatchTracks} files per batch; each track keeps its own preview, details and price.`
+                                      ? `MP3 files only. ${batchFileLimit} upload slot${batchFileLimit === 1 ? '' : 's'} available in this batch; each track keeps its own preview, details and price.`
                                       : 'MP3 files only. The full track remains private while it is reviewed.'}
                                   </small>
                                 </span>
@@ -965,6 +1003,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
 
                             <div className='cmc-upload-step-actions'>
                               <Button
+                                disabled={!selectedFile || batchFileLimit === 0}
                                 type='button'
                                 onClick={handleUploadAudio}
                               >
@@ -1392,8 +1431,8 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                     {activeUploadBatch ? 'Add Another to Batch' : 'Upload Another'}
                   </Button>
                   {activeUploadBatch && (
-                    <Button as={Link} href='/upload/manage' variant='secondary'>
-                      Manage Uploads
+                    <Button as={Link} href={`/upload/manage/${activeUploadBatch.id}`} variant='secondary'>
+                      Review Batch
                     </Button>
                   )}
                   <Button as={Link} href='/catalogue' variant='secondary'>
