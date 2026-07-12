@@ -308,4 +308,36 @@ test.describe('upload browser flow', () => {
     await expect(page.getByLabel('Batch label')).toHaveValue(batchLabel)
     await expect(page.getByText('New tracks will be attached to this batch.')).toBeVisible()
   })
+
+  test('approved uploaders can update descriptive metadata for approved tracks', async ({ page }) => {
+    const suffix = Date.now()
+    const newTitle = `E2E Managed Metadata ${suffix}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+    await page.goto('/upload/manage')
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.getByRole('heading', { name: 'Manage Track Metadata' })).toBeVisible()
+
+    const trackRow = page.getByRole('listitem').filter({
+      hasText: 'E2E Catalogue Navigation Study'
+    })
+
+    await expect(trackRow).toBeVisible()
+    await trackRow.getByRole('button', { name: 'Edit metadata' }).click()
+    await trackRow.getByLabel('Title').fill(newTitle)
+    await trackRow.getByLabel('Composer').fill('Synthetic Managed Composer')
+    await trackRow.getByLabel('Key').fill('F major')
+    await trackRow.getByLabel('Instrumentation').fill('Voice and piano')
+    await trackRow.getByLabel('Download filename').fill(`managed-metadata-${suffix}.wav`)
+    await trackRow.getByLabel('Additional notes').fill('Updated through the uploader management console.')
+    await trackRow.getByRole('button', { name: 'Save metadata' }).click()
+
+    await expect(page.getByText(`${newTitle} updated.`)).toBeVisible()
+    await expect(page.getByRole('listitem').filter({ hasText: newTitle })).toContainText('Synthetic Managed Composer')
+    await expect(page.getByRole('listitem').filter({ hasText: newTitle })).toContainText('F major')
+
+    await page.getByLabel('Search uploaded tracks').fill(`managed-metadata-${suffix}`)
+    await expect(page.getByRole('listitem').filter({ hasText: newTitle })).toBeVisible()
+  })
 })
