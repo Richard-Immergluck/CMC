@@ -337,6 +337,9 @@ test.describe('upload browser flow', () => {
     await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'true')
     await expect(page.getByLabel('Batch label')).toHaveValue(batchLabel)
     await expect(page.getByText('New tracks will be attached to this batch.')).toBeVisible()
+    await page.getByRole('button', { name: 'Start new batch' }).click()
+    await expect(page).toHaveURL('/upload')
+    await expect(page.getByText('New tracks will be attached to this batch.')).toHaveCount(0)
   })
 
   test('approved uploaders can update descriptive metadata for approved tracks', async ({ page }) => {

@@ -446,6 +446,16 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
   const [uploadMode, setUploadMode] = useState(initialUploadBatch ? 'batch' : 'single')
   const [batchLabel, setBatchLabel] = useState(initialUploadBatch?.label || '')
   const [activeUploadBatch, setActiveUploadBatch] = useState(initialUploadBatch)
+  const uploadUrlWithoutBatch = fulfilledRequestId
+    ? `/upload?fulfilledRequestId=${encodeURIComponent(fulfilledRequestId)}`
+    : '/upload'
+  const getUploadBatchUrl = batchId => {
+    const batchQuery = `batchId=${encodeURIComponent(batchId)}`
+
+    return fulfilledRequestId
+      ? `${uploadUrlWithoutBatch}&${batchQuery}`
+      : `/upload?${batchQuery}`
+  }
 
   // Get the session
   const { data: session } = useSession()
@@ -570,7 +580,7 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
       setActiveUploadBatch(await fetchUploadBatch(uploadBatch.id))
 
       if (createdUploadBatch) {
-        router.replace(`/upload?batchId=${uploadBatch.id}`, {
+        router.replace(getUploadBatchUrl(uploadBatch.id), {
           scroll: false
         })
       }
@@ -836,6 +846,9 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
               setUploadMode('single')
               setActiveUploadBatch(null)
               setSelectedFiles(selectedFile ? [selectedFile] : [])
+              router.replace(uploadUrlWithoutBatch, {
+                scroll: false
+              })
             }
 
             const chooseBatchMode = () => {
@@ -846,6 +859,9 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
               setActiveUploadBatch(null)
               setBatchLabel('')
               setShowUploadComplete(false)
+              router.replace(uploadUrlWithoutBatch, {
+                scroll: false
+              })
             }
 
             return (
