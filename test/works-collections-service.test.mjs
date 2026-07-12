@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { normalizeTrackItems } from '../lib/server/works-collections-core.mjs'
+import {
+  getWorksCollectionPriceContext,
+  normalizeTrackItems
+} from '../lib/server/works-collections-core.mjs'
 
 test('normalizeTrackItems preserves legacy trackIds as ordered release items', () => {
   assert.deepEqual(
@@ -73,4 +76,61 @@ test('normalizeTrackItems rejects duplicate track ids', () => {
     }),
     error => error.statusCode === 400
   )
+})
+
+test('getWorksCollectionPriceContext exposes separate-track totals and savings', () => {
+  const priceContext = getWorksCollectionPriceContext({
+    pricePence: 799,
+    tracks: [
+      {
+        position: 1,
+        track: {
+          id: 11,
+          title: 'First track',
+          pricePence: 499
+        }
+      },
+      {
+        position: 2,
+        track: {
+          id: 12,
+          title: 'Second track',
+          pricePence: 499
+        }
+      }
+    ]
+  })
+
+  assert.equal(priceContext.individualTracksTotalPence, 998)
+  assert.equal(priceContext.formattedIndividualTracksTotal, '£9.98')
+  assert.equal(priceContext.savingsPence, 199)
+  assert.equal(priceContext.formattedSavings, '£1.99')
+})
+
+test('getWorksCollectionPriceContext does not report negative savings for premium collections', () => {
+  const priceContext = getWorksCollectionPriceContext({
+    pricePence: 1499,
+    tracks: [
+      {
+        position: 1,
+        track: {
+          id: 21,
+          title: 'First track',
+          pricePence: 499
+        }
+      },
+      {
+        position: 2,
+        track: {
+          id: 22,
+          title: 'Second track',
+          pricePence: 499
+        }
+      }
+    ]
+  })
+
+  assert.equal(priceContext.individualTracksTotalPence, 998)
+  assert.equal(priceContext.savingsPence, 0)
+  assert.equal(priceContext.formattedSavings, '£0.00')
 })

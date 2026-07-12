@@ -71,6 +71,10 @@ const WorksCollectionsPage = async () => {
                       <dt>Price</dt>
                       <dd>{collection.formattedPrice}</dd>
                     </div>
+                    <div>
+                      <dt>Separate</dt>
+                      <dd>{collection.formattedIndividualTracksTotal}</dd>
+                    </div>
                   </dl>
                   <Button as={Link} href={`/works-collections/${collection.id}`} variant='ink'>
                     View Collection

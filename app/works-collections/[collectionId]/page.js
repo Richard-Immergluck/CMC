@@ -84,6 +84,18 @@ const WorksCollectionDetailPage = async ({ params }) => {
             <aside className='cmc-works-purchase-panel' aria-label='Collection purchase'>
               <strong>{collection.formattedPrice}</strong>
               <p>{collection.trackCount} tracks in this Work or Collection</p>
+              <dl className='cmc-works-price-context'>
+                <div>
+                  <dt>Individual total</dt>
+                  <dd>{collection.formattedIndividualTracksTotal}</dd>
+                </div>
+                {collection.savingsPence > 0 && (
+                  <div>
+                    <dt>Collection saving</dt>
+                    <dd>{collection.formattedSavings}</dd>
+                  </div>
+                )}
+              </dl>
               <WorksCollectionCartButton collection={collection} />
               <Button as={Link} href='/works-collections' variant='paper'>
                 Back to Works
