@@ -78,6 +78,7 @@ This tracker records backend security and auditability work completed so far and
 - Added admin bulk track moderation for up to 50 pending tracks at a time, using the sensitive-session guard, trusted-origin enforcement, transactionally applied status changes, and per-track audit events.
 - Added browser smoke coverage for the admin bulk moderation workflow so CI proves operators can select pending rows, apply a shared review decision, and publish the selected tracks.
 - Added uploader-side search/filter/sort controls for larger uploaded-track libraries and Works & Collections maintenance views.
+- Added admin/operator search/filter/sort controls for Batch Imports and Works & Collections review surfaces so large first-wave imports can be triaged by lifecycle, uploader, attention state, sales, and release status.
 
 ## In Progress
 
@@ -86,4 +87,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
-- Continue upload-management hardening around first-wave uploader import operations, especially admin/operator review visibility for large batches and grouped releases.
+- Continue upload-management hardening around first-wave uploader import operations, especially deeper batch detail review actions and release-linked moderation workflows.

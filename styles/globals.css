@@ -6019,6 +6019,16 @@ a {
   justify-content: flex-end;
 }
 
+.cmc-admin-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.cmc-admin-filter-chips [aria-pressed='true'] {
+  box-shadow: inset 0.18rem 0 0 var(--cmc-color-accent-gold);
+}
+
 .cmc-admin-release-track-list {
   display: grid;
   gap: 0.16rem;

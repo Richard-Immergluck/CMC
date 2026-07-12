@@ -246,6 +246,14 @@ test.describe('upload browser flow', () => {
     })
 
     await expect(adminTrackRow.getByText(`Import batch: ${batchLabel}`)).toBeVisible()
+    await page.getByRole('tab', { name: /Batch Imports/i }).click()
+    const batchImportsPanel = page.locator('.tab-pane.active')
+    await batchImportsPanel.getByLabel('Search batch imports').fill(batchLabel)
+    await batchImportsPanel.getByRole('button', { name: /Active/i }).click()
+    await batchImportsPanel.getByLabel('Sort').selectOption('trackCount')
+    await expect(batchImportsPanel.getByRole('row').filter({
+      hasText: batchLabel
+    })).toBeVisible()
   })
 
   test('batch upload selection is capped at 50 files', async ({ page }) => {
