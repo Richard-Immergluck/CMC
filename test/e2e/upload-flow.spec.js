@@ -358,14 +358,44 @@ test.describe('upload browser flow', () => {
       await route.continue()
     })
 
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const createTrackResponse = await page.request.post('/api/tracks', {
+      data: {
+        title: `E2E Request Source ${suffix}`,
+        composer: 'Synthetic Upload Fixture',
+        key: 'C major',
+        instrumentation: 'Piano',
+        newFileName: `e2e-fixtures/request-source-${suffix}.mp3`,
+        previewStart: 0,
+        previewEnd: 15,
+        durationSeconds: 30,
+        sourceContentType: 'audio/mpeg',
+        additionalInfo: 'Synthetic source track for request fulfilment upload.',
+        price: 3.99,
+        pricePence: 399,
+        currency: 'gbp',
+        formattedPrice: '£3.99',
+        downloadName: `request-source-${suffix}.mp3`,
+        downloadCount: 0
+      }
+    })
+    const requestedTrack = await createTrackResponse.json()
+
+    expect(createTrackResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+
+    const approvalResponse = await page.request.patch(`/api/admin/tracks/${requestedTrack.id}`, {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved for fulfilment upload E2E.'
+      }
+    })
+
+    expect(approvalResponse.status()).toBe(200)
+
     await signInPageAs(page, 'e2e-customer@example.com')
-
-    const catalogueResponse = await page.request.get('/api/tracks/list')
-    const catalogue = await catalogueResponse.json()
-    const requestedTrack = catalogue.find(track => track.title === 'E2E Catalogue Navigation Study')
-
-    expect(catalogueResponse.status()).toBe(200)
-    expect(requestedTrack).toBeTruthy()
 
     const requestResponse = await page.request.post('/api/track-requests', {
       data: {
