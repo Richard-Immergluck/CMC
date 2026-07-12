@@ -6,6 +6,7 @@ import {
   filterAndSortAdminWorksCollections,
   getAdminUploadBatchFilterCounts,
   getAdminWorksCollectionFilterCounts,
+  hasBlockedReleaseDependency,
   releaseMatchesAdminSearch
 } from '../lib/admin-review-filters.mjs'
 
@@ -120,7 +121,10 @@ test('admin Works and Collections search covers release uploader and track conte
     tracks: [
       {
         formattedPrice: '£3.99',
+        moderationStatus: 'APPROVED',
         movementNo: 'No. 5',
+        processingStatus: 'READY',
+        status: 'PUBLISHED',
         title: 'Der Lindenbaum'
       }
     ]
@@ -129,6 +133,7 @@ test('admin Works and Collections search covers release uploader and track conte
   assert.equal(releaseMatchesAdminSearch({ query: 'winterreise', release }), true)
   assert.equal(releaseMatchesAdminSearch({ query: 'lindenbaum', release }), true)
   assert.equal(releaseMatchesAdminSearch({ query: 'uploader@example.com', release }), true)
+  assert.equal(releaseMatchesAdminSearch({ query: 'approved', release }), true)
   assert.equal(releaseMatchesAdminSearch({ query: 'mozart', release }), false)
 })
 
@@ -159,18 +164,53 @@ test('admin Works and Collections filters and sorts support release triage', () 
       pricingReviewStatus: 'REJECTED',
       status: 'NEEDS_CHANGES',
       title: 'Needs edit pack',
-      trackCount: 2
+      trackCount: 2,
+      tracks: [
+        {
+          moderationStatus: 'APPROVED',
+          processingStatus: 'READY',
+          status: 'PUBLISHED'
+        }
+      ]
+    },
+    {
+      createdAt: '2026-07-12T10:00:00.000Z',
+      orderItemCount: 0,
+      pricePence: 1999,
+      pricingReviewStatus: 'APPROVED',
+      status: 'NEEDS_CHANGES',
+      title: 'Blocked dependency cycle',
+      trackCount: 3,
+      tracks: [
+        {
+          moderationStatus: 'REJECTED',
+          processingStatus: 'READY',
+          status: 'REJECTED'
+        }
+      ]
     }
   ]
 
+  assert.equal(hasBlockedReleaseDependency(releases[2]), false)
+  assert.equal(hasBlockedReleaseDependency(releases[3]), true)
   assert.deepEqual(getAdminWorksCollectionFilterCounts(releases), {
-    all: 3,
+    all: 4,
     archived: 0,
+    blockedDependencies: 1,
     live: 1,
-    needsChanges: 1,
+    needsChanges: 2,
     review: 1,
     withSales: 1
   })
+  assert.deepEqual(
+    filterAndSortAdminWorksCollections({
+      filter: 'blockedDependencies',
+      query: '',
+      releases,
+      sort: 'title'
+    }).map(release => release.title),
+    ['Blocked dependency cycle']
+  )
   assert.deepEqual(
     filterAndSortAdminWorksCollections({
       filter: 'review',
@@ -187,6 +227,6 @@ test('admin Works and Collections filters and sorts support release triage', () 
       releases,
       sort: 'sales'
     }).map(release => release.title),
-    ['Live cycle', 'Needs edit pack', 'Review opera']
+    ['Live cycle', 'Blocked dependency cycle', 'Needs edit pack', 'Review opera']
   )
 })
