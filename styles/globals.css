@@ -5534,6 +5534,12 @@ a {
   margin: var(--cmc-space-3) 0;
 }
 
+.cmc-upload-management-library-controls--compact {
+  grid-template-columns: 1fr;
+  gap: var(--cmc-space-2);
+  margin: var(--cmc-space-2) 0 var(--cmc-space-3);
+}
+
 .cmc-upload-management-filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -5600,6 +5606,10 @@ a {
   color: var(--cmc-color-text);
   background: #fffdf8;
   border: 1px solid rgba(23, 63, 56, 0.22);
+}
+
+.cmc-upload-management-library-controls--compact .cmc-upload-management-sort-control {
+  max-width: 16rem;
 }
 
 .cmc-profile-works-track-picker label {

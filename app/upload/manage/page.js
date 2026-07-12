@@ -84,7 +84,8 @@ const serializeTrack = track => {
 
 const serializeUploadManagementWorksCollection = collection => ({
   ...serializeWorksCollection(collection),
-  createdAt: formatDisplayDate(collection.createdAt)
+  createdAt: formatDisplayDate(collection.createdAt),
+  createdAtSort: collection.createdAt ? collection.createdAt.getTime() : 0
 })
 
 const getUploadManagementData = async email => {

@@ -2,12 +2,15 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   collectionMatchesUploadInventorySearch,
+  filterAndSortUploadInventoryCollections,
   filterAndSortUploadInventoryTracks,
   filterUploadInventoryCollections,
   filterUploadInventoryTracks,
   getUploadInventorySearchQuery,
+  getUploadInventoryCollectionFilterCounts,
   getUploadInventoryTrackFilterCounts,
   isUploadInventoryTrackMetadataComplete,
+  collectionMatchesUploadInventoryFilter,
   trackMatchesUploadInventorySearch
 } from '../lib/upload-management-inventory.mjs'
 
@@ -64,6 +67,43 @@ test('upload inventory collection search covers lifecycle and track contents', (
   assert.equal(collectionMatchesUploadInventorySearch({ collection, query: 'submitted' }), true)
   assert.equal(collectionMatchesUploadInventorySearch({ collection, query: 'gute nacht' }), true)
   assert.equal(collectionMatchesUploadInventorySearch({ collection, query: 'opera' }), false)
+})
+
+test('upload inventory collection counts describe release lifecycle posture', () => {
+  const collections = [
+    {
+      pricingReviewStatus: 'APPROVED',
+      status: 'PUBLISHED',
+      title: 'Live collection'
+    },
+    {
+      pricingReviewStatus: 'NEEDS_REVIEW',
+      status: 'SUBMITTED',
+      title: 'Review collection'
+    },
+    {
+      pricingReviewStatus: 'REJECTED',
+      status: 'NEEDS_CHANGES',
+      title: 'Needs changes collection'
+    },
+    {
+      pricingReviewStatus: 'APPROVED',
+      status: 'ARCHIVED',
+      title: 'Archived collection'
+    }
+  ]
+
+  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[0], filter: 'live' }), true)
+  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[1], filter: 'review' }), true)
+  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[2], filter: 'needsChanges' }), true)
+  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[3], filter: 'archived' }), true)
+  assert.deepEqual(getUploadInventoryCollectionFilterCounts(collections), {
+    all: 4,
+    archived: 1,
+    live: 1,
+    needsChanges: 1,
+    review: 1
+  })
 })
 
 test('upload inventory filters preserve all rows when query is empty', () => {
@@ -178,5 +218,64 @@ test('upload inventory track filter and sort supports large-library management v
       tracks
     }).map(track => track.title),
     ['Catalogue aria']
+  )
+})
+
+test('upload inventory collection filter and sort supports release maintenance views', () => {
+  const collections = [
+    {
+      createdAtSort: 200,
+      pricePence: 1499,
+      pricingReviewStatus: 'APPROVED',
+      status: 'PUBLISHED',
+      title: 'Winterreise highlights',
+      tracks: [{ title: 'Gute Nacht' }, { title: 'Der Lindenbaum' }]
+    },
+    {
+      createdAtSort: 300,
+      pricePence: 2999,
+      pricingReviewStatus: 'NEEDS_REVIEW',
+      status: 'SUBMITTED',
+      title: 'Opera scenes',
+      tracks: [{ title: 'Aria cut' }, { title: 'Recitative' }, { title: 'Finale' }]
+    },
+    {
+      createdAtSort: 100,
+      pricePence: 999,
+      pricingReviewStatus: 'REJECTED',
+      status: 'NEEDS_CHANGES',
+      title: 'Learning pack',
+      tracks: [{ title: 'Slow practice' }]
+    }
+  ]
+
+  assert.deepEqual(
+    filterAndSortUploadInventoryCollections({
+      collections,
+      filter: 'review',
+      query: '',
+      sort: 'newest'
+    }).map(collection => collection.title),
+    ['Opera scenes']
+  )
+
+  assert.deepEqual(
+    filterAndSortUploadInventoryCollections({
+      collections,
+      filter: 'all',
+      query: '',
+      sort: 'trackCount'
+    }).map(collection => collection.title),
+    ['Opera scenes', 'Winterreise highlights', 'Learning pack']
+  )
+
+  assert.deepEqual(
+    filterAndSortUploadInventoryCollections({
+      collections,
+      filter: 'all',
+      query: 'winterreise',
+      sort: 'price'
+    }).map(collection => collection.title),
+    ['Winterreise highlights']
   )
 })

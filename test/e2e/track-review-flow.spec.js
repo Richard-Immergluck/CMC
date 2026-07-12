@@ -359,6 +359,13 @@ test.describe('track review API flow', () => {
     await page.goto('/upload/manage')
     await expect(page.getByText(`Part of E2E Grouped Work ${suffix}`).first()).toBeVisible()
     await expect(page.getByText('Individual total £7.98').first()).toBeVisible()
+    const createdCollectionsPanel = page.locator('.cmc-profile-works-list')
+    await createdCollectionsPanel.getByLabel('Search Works and Collections').fill(`E2E Grouped Work ${suffix}`)
+    await createdCollectionsPanel.getByRole('button', { name: /Live/i }).click()
+    await createdCollectionsPanel.getByLabel('Sort').selectOption('title')
+    await expect(createdCollectionsPanel.getByRole('listitem').filter({
+      hasText: `E2E Grouped Work ${suffix}`
+    })).toBeVisible()
     const bulkMetadataPanel = page.locator('.cmc-upload-management-bulk-panel')
     await page.getByLabel(`Select E2E Pending Review ${suffix}-one`).check()
     await page.getByLabel(`Select E2E Pending Review ${suffix}-two`).check()
