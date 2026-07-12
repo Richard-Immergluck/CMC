@@ -173,8 +173,14 @@ const serializeTrack = track => ({
   ...track,
   collectionMemberships: (track.releaseItems || []).map(releaseItem => ({
     collectionId: releaseItem.release.id,
+    collectionFormattedPrice: releaseItem.release.formattedPrice,
     collectionTitle: releaseItem.release.title,
     collectionType: releaseItem.release.catalogueType,
+    collectionPricePence: releaseItem.release.pricePence,
+    collectionTrackCount: releaseItem.release._count?.tracks || releaseItem.release.tracks?.length || 0,
+    individualTracksTotalPence: (releaseItem.release.tracks || []).reduce((total, item) => (
+      total + Number(item.track?.pricePence || 0)
+    ), 0),
     movementNo: releaseItem.movementNo,
     position: releaseItem.position,
     titleInWork: releaseItem.titleInWork
@@ -228,8 +234,24 @@ const trackListSelect = {
       titleInWork: true,
       release: {
         select: {
+          _count: {
+            select: {
+              tracks: true
+            }
+          },
           catalogueType: true,
+          formattedPrice: true,
           id: true,
+          pricePence: true,
+          tracks: {
+            select: {
+              track: {
+                select: {
+                  pricePence: true
+                }
+              }
+            }
+          },
           title: true
         }
       }

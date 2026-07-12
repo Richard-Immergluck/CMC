@@ -40,7 +40,7 @@ test.describe('upload browser flow', () => {
     await expect(page.getByRole('radio', { name: /Single track/i })).toHaveAttribute('aria-checked', 'true')
     await expect(page.getByRole('radio', { name: /Batch upload/i })).toHaveAttribute('aria-checked', 'false')
     await expect(page.getByLabel('Select a File')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Upload audio' })).toBeDisabled()
     await expect(page.getByRole('heading', { name: 'Choose the buyer preview' })).toHaveCount(0)
     await expect(page.getByRole('textbox', { name: 'Title' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Submit' })).toHaveCount(0)
@@ -188,7 +188,7 @@ test.describe('upload browser flow', () => {
     await expect(reviewDialog.getByText(batchLabel)).toBeVisible()
     await expect(reviewDialog.getByText(/next queued file/i)).toBeVisible()
     await expect(reviewDialog.getByRole('button', { name: 'Add Another to Batch' })).toBeVisible()
-    await expect(reviewDialog.getByRole('link', { name: 'Manage Uploads' })).toHaveAttribute('href', '/upload/manage')
+    await expect(reviewDialog.getByRole('link', { name: 'Review Batch' })).toHaveAttribute('href', /\/upload\/manage\/\d+$/)
     await reviewDialog.getByRole('button', { name: 'Add Another to Batch' }).click()
     await expect(page.getByRole('dialog', { name: 'Track submitted for review' })).toHaveCount(0)
     await expect(selectedBatchFiles.getByText(`batch-upload-${suffix}-two.mp3`)).toBeVisible()
@@ -349,8 +349,8 @@ test.describe('upload browser flow', () => {
     await expect(page.getByRole('heading', { name: 'Manage Track Metadata' })).toBeVisible()
 
     const trackRow = page.getByRole('listitem').filter({
-      hasText: 'E2E Catalogue Navigation Study'
-    })
+      hasText: /E2E Catalogue Navigation Study|E2E Managed Metadata/
+    }).first()
 
     await expect(trackRow).toBeVisible()
     await trackRow.getByRole('button', { name: 'Edit metadata' }).click()

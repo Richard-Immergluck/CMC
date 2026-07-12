@@ -115,7 +115,7 @@ const getTrackActivity = track => {
   ]
 }
 
-const getCollectionMembershipLabel = track => {
+const getCollectionMembershipPrompt = track => {
   const memberships = track.collectionMemberships || []
 
   if (memberships.length === 0) {
@@ -124,10 +124,23 @@ const getCollectionMembershipLabel = track => {
 
   const [firstMembership] = memberships
   const extraCount = memberships.length - 1
+  const individualTotal = Number(firstMembership.individualTracksTotalPence || 0)
+  const collectionPrice = Number(firstMembership.collectionPricePence || 0)
+  const savingsPence = Math.max(0, individualTotal - collectionPrice)
+  const collectionPriceLabel = Number.isInteger(collectionPrice) && collectionPrice > 0
+    ? currencyFormatter.format(collectionPrice / 100)
+    : firstMembership.collectionFormattedPrice || null
+  const savingsLabel = savingsPence > 0
+    ? `Save ${currencyFormatter.format(savingsPence / 100)} in the full work`
+    : collectionPriceLabel ? `Full work ${collectionPriceLabel}` : 'Available in a full work'
 
-  return extraCount > 0
-    ? `Part of ${firstMembership.collectionTitle} + ${extraCount} more`
-    : `Part of ${firstMembership.collectionTitle}`
+  return {
+    collectionId: firstMembership.collectionId,
+    label: extraCount > 0
+      ? `Part of ${firstMembership.collectionTitle} + ${extraCount} more`
+      : `Part of ${firstMembership.collectionTitle}`,
+    savingsLabel
+  }
 }
 
 const getTrackBadges = ({ catalogueContext, track }) => {
@@ -189,7 +202,7 @@ const CatalogueTrackRow = ({
   track
 }) => {
   const badges = getTrackBadges({ catalogueContext, track })
-  const collectionMembershipLabel = getCollectionMembershipLabel(track)
+  const collectionMembershipPrompt = getCollectionMembershipPrompt(track)
   const primaryAction = getPrimaryTrackAction({ catalogueContext, track })
   const operationsAction = getSecondaryOperationsAction(catalogueContext)
 
@@ -220,9 +233,12 @@ const CatalogueTrackRow = ({
                 <span key={item}>{item}</span>
               ))}
             </div>
-            {collectionMembershipLabel && (
+            {collectionMembershipPrompt && (
               <div className='cmc-catalogue-track-membership' aria-label={`Collection membership for ${track.title}`}>
-                <span>{collectionMembershipLabel}</span>
+                <Link href={`/works-collections/${collectionMembershipPrompt.collectionId}`} onClick={onCatalogueNavigation}>
+                  <span>{collectionMembershipPrompt.label}</span>
+                  <strong>{collectionMembershipPrompt.savingsLabel}</strong>
+                </Link>
               </div>
             )}
           </div>

@@ -1703,16 +1703,36 @@ a {
   margin-top: 0.5rem;
 }
 
-.cmc-catalogue-track-membership span {
+.cmc-catalogue-track-membership a {
   display: inline-flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.55rem;
+  align-items: baseline;
   max-width: 100%;
-  padding-left: 0.55rem;
+  padding: 0.18rem 0 0.18rem 0.55rem;
   color: var(--cmc-color-deep-green);
   border-left: 0.18rem solid var(--cmc-color-accent-gold);
+  text-decoration: none;
+}
+
+.cmc-catalogue-track-membership span {
   font-size: 0.72rem;
   font-weight: 800;
   line-height: 1.25;
+}
+
+.cmc-catalogue-track-membership strong {
+  color: var(--cmc-color-accent-rose);
+  font-size: 0.68rem;
+  font-weight: 850;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.cmc-catalogue-track-membership a:hover span,
+.cmc-catalogue-track-membership a:focus-visible span {
+  text-decoration: underline;
+  text-underline-offset: 0.16rem;
 }
 
 .cmc-catalogue-track-heading p {
@@ -3738,13 +3758,49 @@ a {
 }
 
 .cmc-upload-batch-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, 16rem) auto;
+  gap: var(--cmc-space-2);
+  align-items: center;
+  padding: var(--cmc-space-3);
+  border: 1px solid rgba(23, 63, 56, 0.14);
+}
+
+.cmc-upload-batch-status > div:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.cmc-upload-batch-progress {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.cmc-upload-batch-progress > span,
+.cmc-upload-batch-progress small {
+  color: var(--cmc-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 780;
+}
+
+.cmc-upload-batch-progress > div {
+  height: 0.48rem;
+  overflow: hidden;
+  background: rgba(23, 63, 56, 0.12);
+  border: 1px solid rgba(23, 63, 56, 0.16);
+}
+
+.cmc-upload-batch-progress > div span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--cmc-color-deep-green), var(--cmc-color-accent-teal));
+}
+
+.cmc-upload-batch-status-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--cmc-space-2);
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--cmc-space-3);
-  border: 1px solid rgba(23, 63, 56, 0.14);
+  justify-content: flex-end;
 }
 
 .cmc-upload-queue {
@@ -6124,6 +6180,14 @@ a {
 
   .cmc-upload-mode-options {
     grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-batch-status {
+    grid-template-columns: 1fr;
+  }
+
+  .cmc-upload-batch-status-actions {
+    justify-content: flex-start;
   }
 
   .cmc-profile-header,
