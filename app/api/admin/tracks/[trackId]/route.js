@@ -15,11 +15,11 @@ import {
   toTrackReviewItem,
   trackReviewInclude
 } from '../../../../../lib/server/admin-core.mjs'
-import { auditActions } from '../../../../../lib/server/audit-core.mjs'
-import { recordAuditEvent } from '../../../../../lib/server/audit'
+import { auditActions, buildAuditEventData } from '../../../../../lib/server/audit-core.mjs'
 import { requireSupportPermission } from '../../../../../lib/server/permissions.mjs'
 import prisma from '../../../../../lib/server/prisma'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
+import { applyReleaseDependencyModerationUpdates } from '../../../../../lib/server/release-dependency-moderation.mjs'
 import {
   adminTrackModerationBodySchema,
   trackIdParamSchema,
@@ -68,43 +68,64 @@ export async function PATCH(request, { params }) {
       'Invalid track moderation request'
     )
 
-    const before = await prisma.track.findUnique({
-      where: {
-        id: trackId
-      },
-      include: trackReviewInclude
-    })
+    const after = await prisma.$transaction(async tx => {
+      const before = await tx.track.findUnique({
+        where: {
+          id: trackId
+        },
+        include: trackReviewInclude
+      })
 
-    if (!before) {
-      throw createNotFoundError('Track not found')
-    }
-
-    const after = await prisma.track.update({
-      where: {
-        id: trackId
-      },
-      data: {
-        ...decisionData[input.decision],
-        moderationNotes: input.moderationNotes,
-        reviewedAt: new Date(),
-        publishedAt: input.decision === 'approve' ? new Date() : before.publishedAt
-      },
-      include: trackReviewInclude
-    })
-
-    await recordAuditEvent({
-      action: auditActions.trackModerationUpdated,
-      actorId: user.id,
-      entityType: 'Track',
-      entityId: trackId,
-      metadata: {
-        decision: input.decision,
-        notesProvided: Boolean(input.moderationNotes),
-        ...buildTrackModerationChangeMetadata({
-          before,
-          after
-        })
+      if (!before) {
+        throw createNotFoundError('Track not found')
       }
+
+      const reviewedAt = new Date()
+      const updatedTrack = await tx.track.update({
+        where: {
+          id: trackId
+        },
+        data: {
+          ...decisionData[input.decision],
+          moderationNotes: input.moderationNotes,
+          reviewedAt,
+          publishedAt: input.decision === 'approve' ? reviewedAt : before.publishedAt
+        },
+        include: trackReviewInclude
+      })
+
+      await tx.auditEvent.create({
+        data: buildAuditEventData({
+          action: auditActions.trackModerationUpdated,
+          actorId: user.id,
+          entityType: 'Track',
+          entityId: trackId,
+          metadata: {
+            decision: input.decision,
+            notesProvided: Boolean(input.moderationNotes),
+            ...buildTrackModerationChangeMetadata({
+              before,
+              after: updatedTrack
+            })
+          }
+        })
+      })
+
+      await applyReleaseDependencyModerationUpdates({
+        actorId: user.id,
+        decision: input.decision,
+        releaseItems: before.releaseItems,
+        route: '/api/admin/tracks/[trackId]',
+        trackId,
+        tx
+      })
+
+      return tx.track.findUnique({
+        where: {
+          id: trackId
+        },
+        include: trackReviewInclude
+      })
     })
 
     telemetry.complete({
