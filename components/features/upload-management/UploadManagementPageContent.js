@@ -1,10 +1,15 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, Layers3, UploadCloud } from 'lucide-react'
+import { ArrowDown, ArrowUp, Layers3, Search, UploadCloud, X } from 'lucide-react'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
+import {
+  filterUploadInventoryCollections,
+  filterUploadInventoryTracks,
+  getUploadInventorySearchQuery
+} from '../../../lib/upload-management-inventory.mjs'
 import {
   atomicTrackCatalogueTypes,
   catalogueTypes,
@@ -95,6 +100,7 @@ const formatBatchDate = value => {
 
 const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [catalogueType, setCatalogueType] = useState(catalogueTypes.collection)
+  const [collectionSearch, setCollectionSearch] = useState('')
   const [composer, setComposer] = useState('')
   const [editingCollectionId, setEditingCollectionId] = useState(null)
   const [error, setError] = useState('')
@@ -106,11 +112,22 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [submitting, setSubmitting] = useState(false)
   const [title, setTitle] = useState('')
   const [deletingCollectionId, setDeletingCollectionId] = useState(null)
+  const [trackSearch, setTrackSearch] = useState('')
 
   const pricingBand = getPricingBand(catalogueType)
   const needsPricingReview = pricePence > pricingBand.reviewThresholdPence
   const selectedTrackIds = selectedTrackItems.map(item => item.trackId)
   const canSave = selectedTrackItems.length >= 2 && title.trim() && !submitting
+  const normalizedCollectionSearch = getUploadInventorySearchQuery(collectionSearch)
+  const normalizedTrackSearch = getUploadInventorySearchQuery(trackSearch)
+  const filteredCollections = useMemo(() => filterUploadInventoryCollections({
+    collections,
+    query: normalizedCollectionSearch
+  }), [collections, normalizedCollectionSearch])
+  const filteredTracks = useMemo(() => filterUploadInventoryTracks({
+    query: normalizedTrackSearch,
+    tracks
+  }), [normalizedTrackSearch, tracks])
 
   const handleTypeChange = event => {
     const nextType = event.target.value
@@ -351,10 +368,35 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
           </div>
 
           <fieldset className='cmc-profile-works-track-picker'>
-            <legend>Choose tracks</legend>
+            <div className='cmc-upload-management-inventory-heading'>
+              <legend>Choose tracks</legend>
+              <span>{filteredTracks.length} of {tracks.length} tracks</span>
+            </div>
+            <div className='cmc-upload-management-search'>
+              <Search aria-hidden='true' size={18} />
+              <label htmlFor='works-track-search'>Search approved tracks</label>
+              <input
+                id='works-track-search'
+                onChange={event => setTrackSearch(event.target.value)}
+                placeholder='Search title, composer, key, collection...'
+                type='search'
+                value={trackSearch}
+              />
+              {trackSearch && (
+                <button
+                  aria-label='Clear approved track search'
+                  onClick={() => setTrackSearch('')}
+                  type='button'
+                >
+                  <X aria-hidden='true' size={18} />
+                </button>
+              )}
+            </div>
             {tracks.length === 0 ? (
               <p>Approved uploaded tracks will appear here after review.</p>
-            ) : tracks.map(track => {
+            ) : filteredTracks.length === 0 ? (
+              <p>No approved tracks match that search.</p>
+            ) : filteredTracks.map(track => {
               const membershipSummary = getTrackMembershipSummary(track)
 
               return (
@@ -495,12 +537,37 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
         </form>
 
         <aside className='cmc-profile-works-list' aria-label='Created Works and Collections'>
-          <h3>Created</h3>
+          <div className='cmc-upload-management-list-heading'>
+            <h3>Created</h3>
+            <span>{filteredCollections.length} of {collections.length}</span>
+          </div>
+          <div className='cmc-upload-management-search cmc-upload-management-search--compact'>
+            <Search aria-hidden='true' size={18} />
+            <label htmlFor='works-collection-search'>Search Works and Collections</label>
+            <input
+              id='works-collection-search'
+              onChange={event => setCollectionSearch(event.target.value)}
+              placeholder='Search releases, status, tracks...'
+              type='search'
+              value={collectionSearch}
+            />
+            {collectionSearch && (
+              <button
+                aria-label='Clear Works and Collections search'
+                onClick={() => setCollectionSearch('')}
+                type='button'
+              >
+                <X aria-hidden='true' size={18} />
+              </button>
+            )}
+          </div>
           {collections.length === 0 ? (
             <p>Approved uploaded tracks can be grouped here once you have at least two related items.</p>
+          ) : filteredCollections.length === 0 ? (
+            <p>No Works or Collections match that search.</p>
           ) : (
             <ul>
-              {collections.map(collection => (
+              {filteredCollections.map(collection => (
                 <li key={collection.id}>
                   <div>
                     <strong>{collection.title}</strong>
