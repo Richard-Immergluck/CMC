@@ -848,10 +848,179 @@ const UploadBatchTrackPreview = ({ tracks = [] }) => {
   )
 }
 
-const UploadBatchesTable = ({ uploadBatches }) => {
+const getPendingBatchTrackIds = tracks => (
+  (tracks || [])
+    .filter(track => track.moderationStatus === 'PENDING')
+    .slice(0, 50)
+    .map(track => track.id)
+)
+
+const UploadBatchReviewPanel = ({ batch, onBulkModerate }) => {
+  const pendingTrackIds = useMemo(() => getPendingBatchTrackIds(batch?.tracks), [batch])
+  const [selectedTrackIds, setSelectedTrackIds] = useState(pendingTrackIds)
+  const [decision, setDecision] = useState('approve')
+  const [moderationNotes, setModerationNotes] = useState('')
+  const [reviewing, setReviewing] = useState(false)
+  const [error, setError] = useState('')
+
+  if (!batch) {
+    return null
+  }
+
+  const toggleTrack = (trackId, checked) => {
+    setSelectedTrackIds(currentSelection => {
+      if (checked) {
+        return currentSelection.includes(trackId)
+          ? currentSelection
+          : [...currentSelection, trackId].slice(0, 50)
+      }
+
+      return currentSelection.filter(selectedTrackId => selectedTrackId !== trackId)
+    })
+  }
+
+  const submitBatchReview = async () => {
+    if (selectedTrackIds.length === 0) {
+      setError('Choose at least one pending track in this batch.')
+      return
+    }
+
+    setError('')
+    setReviewing(true)
+
+    try {
+      await onBulkModerate({
+        decision,
+        moderationNotes,
+        successPrefix: `${batch.label || `Batch #${batch.id}`}: `,
+        trackIds: selectedTrackIds
+      })
+      setSelectedTrackIds([])
+      setModerationNotes('')
+    } catch (reviewError) {
+      setError(reviewError.message)
+    } finally {
+      setReviewing(false)
+    }
+  }
+
+  return (
+    <Card className='mb-3'>
+      <Card.Body>
+        <Row className='align-items-start g-3 mb-3'>
+          <Col lg={6}>
+            <div className='text-muted small text-uppercase'>Batch review workspace</div>
+            <h3 className='h5 mb-1'>{batch.label || `Batch #${batch.id}`}</h3>
+            <div className='text-muted small'>
+              {batch.uploader?.name || 'Unknown uploader'} · {batch.uploader?.email || 'No email'} · Created {formatDate(batch.createdAt)}
+            </div>
+          </Col>
+          <Col lg={6}>
+            <UploadBatchStatusSummary summary={batch.summary} />
+          </Col>
+        </Row>
+
+        {error && <Alert variant='danger'>{error}</Alert>}
+
+        <Row className='align-items-end g-3 mb-3'>
+          <Col md={3}>
+            <Form.Check
+              checked={pendingTrackIds.length > 0 && selectedTrackIds.length === pendingTrackIds.length}
+              disabled={reviewing || pendingTrackIds.length === 0}
+              label={`Select pending (${pendingTrackIds.length})`}
+              onChange={event => setSelectedTrackIds(event.target.checked ? pendingTrackIds : [])}
+            />
+            <div className='text-muted small'>{selectedTrackIds.length} selected for this batch decision.</div>
+          </Col>
+          <Col md={3}>
+            <Form.Label className='small text-muted' htmlFor='admin-batch-review-decision'>Batch decision</Form.Label>
+            <Form.Select
+              disabled={reviewing || pendingTrackIds.length === 0}
+              id='admin-batch-review-decision'
+              onChange={event => setDecision(event.target.value)}
+              size='sm'
+              value={decision}
+            >
+              <option value='approve'>Approve selected</option>
+              <option value='reject'>Reject selected</option>
+            </Form.Select>
+          </Col>
+          <Col md={4}>
+            <Form.Label className='small text-muted' htmlFor='admin-batch-review-note'>Shared review note</Form.Label>
+            <Form.Control
+              disabled={reviewing || pendingTrackIds.length === 0}
+              id='admin-batch-review-note'
+              onChange={event => setModerationNotes(event.target.value)}
+              placeholder='Optional moderation note'
+              size='sm'
+              value={moderationNotes}
+            />
+          </Col>
+          <Col md={2} className='text-end'>
+            <Button
+              disabled={reviewing || selectedTrackIds.length === 0}
+              onClick={submitBatchReview}
+              size='sm'
+              variant={decision === 'reject' ? 'danger' : 'primary'}
+            >
+              {reviewing ? 'Reviewing...' : 'Apply'}
+            </Button>
+          </Col>
+        </Row>
+
+        <Table bordered hover responsive size='sm'>
+          <thead>
+            <tr>
+              <th className='text-center'>Select</th>
+              <th>Track</th>
+              <th>Status</th>
+              <th>Uploaded</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(batch.tracks || []).map(track => {
+              const pending = track.moderationStatus === 'PENDING'
+
+              return (
+                <tr key={track.id}>
+                  <td className='text-center align-middle'>
+                    <Form.Check
+                      aria-label={`Select ${track.title} in batch review`}
+                      checked={selectedTrackIds.includes(track.id)}
+                      disabled={reviewing || !pending}
+                      onChange={event => toggleTrack(track.id, event.target.checked)}
+                    />
+                  </td>
+                  <td>
+                    <strong>{track.title}</strong>
+                    <div className='text-muted small'>Track #{track.id}</div>
+                  </td>
+                  <td>
+                    <StatusBadge value={track.status} />{' '}
+                    <StatusBadge value={track.moderationStatus} />{' '}
+                    <StatusBadge value={track.processingStatus} />
+                  </td>
+                  <td>{formatDate(track.uploadedAt)}</td>
+                </tr>
+              )
+            })}
+            {(batch.tracks || []).length === 0 && (
+              <tr>
+                <td colSpan='4' className='text-center text-muted'>No tracks attached to this batch.</td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </Card.Body>
+    </Card>
+  )
+}
+
+const UploadBatchesTable = ({ onBulkModerate, uploadBatches }) => {
   const [batchFilter, setBatchFilter] = useState('all')
   const [batchQuery, setBatchQuery] = useState('')
   const [batchSort, setBatchSort] = useState('newest')
+  const [selectedBatchId, setSelectedBatchId] = useState(uploadBatches[0]?.id || null)
   const batchCounts = useMemo(() => getAdminUploadBatchFilterCounts(uploadBatches), [uploadBatches])
   const filteredBatches = useMemo(() => filterAndSortAdminUploadBatches({
     batches: uploadBatches,
@@ -859,9 +1028,17 @@ const UploadBatchesTable = ({ uploadBatches }) => {
     query: batchQuery,
     sort: batchSort
   }), [batchFilter, batchQuery, batchSort, uploadBatches])
+  const selectedBatch = useMemo(() => (
+    uploadBatches.find(batch => batch.id === selectedBatchId) || filteredBatches[0] || null
+  ), [filteredBatches, selectedBatchId, uploadBatches])
 
   return (
     <>
+      <UploadBatchReviewPanel
+        batch={selectedBatch}
+        key={selectedBatch?.id || 'no-selected-batch'}
+        onBulkModerate={onBulkModerate}
+      />
       <AdminReviewControls
         counts={batchCounts}
         filter={batchFilter}
@@ -885,11 +1062,12 @@ const UploadBatchesTable = ({ uploadBatches }) => {
             <th>Queue</th>
             <th>Latest tracks</th>
             <th>Submitted</th>
+            <th className='text-end'>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filteredBatches.map(batch => (
-            <tr key={batch.id}>
+            <tr key={batch.id} className={selectedBatch?.id === batch.id ? 'table-active' : ''}>
               <td>
                 <strong>{batch.label || `Batch #${batch.id}`}</strong>
                 <div className='text-muted small'>Created {formatDate(batch.createdAt)}</div>
@@ -902,15 +1080,25 @@ const UploadBatchesTable = ({ uploadBatches }) => {
               <td><UploadBatchStatusSummary summary={batch.summary} /></td>
               <td><UploadBatchTrackPreview tracks={batch.tracks} /></td>
               <td>{formatDate(batch.submittedAt)}</td>
+              <td className='text-end'>
+                <Button
+                  aria-label={`Review ${batch.label || `Batch #${batch.id}`}`}
+                  onClick={() => setSelectedBatchId(batch.id)}
+                  size='sm'
+                  variant={selectedBatch?.id === batch.id ? 'primary' : 'secondary'}
+                >
+                  Review batch
+                </Button>
+              </td>
             </tr>
           ))}
           {uploadBatches.length === 0 ? (
             <tr>
-              <td colSpan='6' className='text-center text-muted'>No upload batches found.</td>
+              <td colSpan='7' className='text-center text-muted'>No upload batches found.</td>
             </tr>
           ) : filteredBatches.length === 0 && (
             <tr>
-              <td colSpan='6' className='text-center text-muted'>No upload batches match this search or filter.</td>
+              <td colSpan='7' className='text-center text-muted'>No upload batches match this search or filter.</td>
             </tr>
           )}
         </tbody>
@@ -1376,34 +1564,51 @@ const AdminConsoleContent = ({
     setSelectedTrackIds(checked ? tracks.slice(0, 50).map(track => track.id) : [])
   }
 
+  const bulkModerateTrackIds = async ({
+    decision,
+    moderationNotes,
+    successPrefix = '',
+    trackIds
+  }) => {
+    setNotice('')
+    setError('')
+
+    const data = await fetchJson('/api/admin/tracks/bulk-moderation', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        decision,
+        moderationNotes: moderationNotes || undefined,
+        trackIds
+      })
+    })
+    const reviewedIds = new Set(data.tracks.map(track => track.id))
+    setTracks(currentTracks => currentTracks.filter(track => !reviewedIds.has(track.id)))
+    setSelectedTrackIds(currentSelection => currentSelection.filter(trackId => !reviewedIds.has(trackId)))
+    setNotice(`${successPrefix}${data.updatedCount} track${data.updatedCount === 1 ? '' : 's'} ${pastTenseDecision(decision)}.`)
+    await loadAdminData()
+
+    return data
+  }
+
   const bulkModerateTracks = async () => {
     if (selectedTrackIds.length === 0) {
       setError('Choose at least one pending track to review.')
       return
     }
 
-    setNotice('')
-    setError('')
     setBulkModeratingTracks(true)
 
     try {
-      const data = await fetchJson('/api/admin/tracks/bulk-moderation', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          decision: bulkTrackDecision,
-          moderationNotes: bulkTrackNotes || undefined,
-          trackIds: selectedTrackIds
-        })
+      await bulkModerateTrackIds({
+        decision: bulkTrackDecision,
+        moderationNotes: bulkTrackNotes,
+        trackIds: selectedTrackIds
       })
-      const reviewedIds = new Set(data.tracks.map(track => track.id))
-      setTracks(currentTracks => currentTracks.filter(track => !reviewedIds.has(track.id)))
       setSelectedTrackIds([])
       setBulkTrackNotes('')
-      setNotice(`${data.updatedCount} track${data.updatedCount === 1 ? '' : 's'} ${pastTenseDecision(bulkTrackDecision)}.`)
-      loadAdminData()
     } catch (moderationError) {
       setError(moderationError.message)
     } finally {
@@ -1607,7 +1812,10 @@ const AdminConsoleContent = ({
           </Tab>
 
           <Tab eventKey='upload-batches' title={`Batch Imports (${uploadBatches.length})`}>
-            <UploadBatchesTable uploadBatches={uploadBatches} />
+            <UploadBatchesTable
+              onBulkModerate={bulkModerateTrackIds}
+              uploadBatches={uploadBatches}
+            />
           </Tab>
 
           <Tab eventKey='works-collections' title={`Works & Collections (${worksCollections.length})`}>

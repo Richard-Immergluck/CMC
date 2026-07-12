@@ -251,9 +251,30 @@ test.describe('upload browser flow', () => {
     await batchImportsPanel.getByLabel('Search batch imports').fill(batchLabel)
     await batchImportsPanel.getByRole('button', { name: /Active/i }).click()
     await batchImportsPanel.getByLabel('Sort').selectOption('trackCount')
-    await expect(batchImportsPanel.getByRole('row').filter({
+    const batchImportRow = batchImportsPanel.getByRole('row').filter({
       hasText: batchLabel
-    })).toBeVisible()
+    })
+
+    await expect(batchImportRow).toBeVisible()
+    await batchImportRow.getByRole('button', { name: `Review ${batchLabel}` }).click()
+    await expect(batchImportsPanel.getByRole('heading', { name: batchLabel })).toBeVisible()
+    await expect(batchImportsPanel.getByText('1 selected for this batch decision.')).toBeVisible()
+    await batchImportsPanel.getByLabel('Shared review note').fill('Approved from the batch review workspace.')
+    await batchImportsPanel.getByRole('button', { name: 'Apply' }).click()
+
+    await expect.poll(async () => {
+      const response = await page.request.get('/api/admin/upload-batches')
+      const body = await response.json()
+      const reviewedBatch = body.uploadBatches.find(batch => batch.label === batchLabel)
+
+      return {
+        status: reviewedBatch?.status,
+        pendingReviewTracks: reviewedBatch?.summary?.pendingReviewTracks
+      }
+    }).toEqual({
+      status: 'COMPLETED',
+      pendingReviewTracks: 0
+    })
   })
 
   test('batch upload selection is capped at 50 files', async ({ page }) => {

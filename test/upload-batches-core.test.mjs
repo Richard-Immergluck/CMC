@@ -6,6 +6,7 @@ import {
   canSubmitUploadBatch,
   getUploadBatchSubmitBlocker,
   getUploadBatchStatusAfterFailedTrackRemoval,
+  getUploadBatchStatusAfterModeration,
   isTerminalUploadBatch,
   maxUploadBatchTracks,
   normalizeUploadBatchDefaults,
@@ -225,6 +226,60 @@ test('upload batch failed-track removal resolves the next editable status', () =
           processingStatus: 'READY'
         },
         {
+          processingStatus: 'FAILED'
+        }
+      ]
+    }),
+    uploadBatchStatuses.partiallyFailed
+  )
+})
+
+test('upload batch moderation resolves the next review status', () => {
+  assert.equal(
+    getUploadBatchStatusAfterModeration({
+      status: uploadBatchStatuses.submitted,
+      tracks: []
+    }),
+    uploadBatchStatuses.draft
+  )
+  assert.equal(
+    getUploadBatchStatusAfterModeration({
+      status: uploadBatchStatuses.submitted,
+      tracks: [
+        {
+          moderationStatus: 'APPROVED',
+          processingStatus: 'READY'
+        },
+        {
+          moderationStatus: 'REJECTED',
+          processingStatus: 'READY'
+        }
+      ]
+    }),
+    uploadBatchStatuses.completed
+  )
+  assert.equal(
+    getUploadBatchStatusAfterModeration({
+      status: uploadBatchStatuses.submitted,
+      tracks: [
+        {
+          moderationStatus: 'PENDING',
+          processingStatus: 'READY'
+        },
+        {
+          moderationStatus: 'APPROVED',
+          processingStatus: 'READY'
+        }
+      ]
+    }),
+    uploadBatchStatuses.submitted
+  )
+  assert.equal(
+    getUploadBatchStatusAfterModeration({
+      status: uploadBatchStatuses.submitted,
+      tracks: [
+        {
+          moderationStatus: 'PENDING',
           processingStatus: 'FAILED'
         }
       ]
