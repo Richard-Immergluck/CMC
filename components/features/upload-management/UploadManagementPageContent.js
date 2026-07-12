@@ -107,6 +107,12 @@ const getTrackMetadataDraft = track => ({
   title: track.title || ''
 })
 
+const getBulkMetadataDraft = () => ({
+  composer: '',
+  instrumentation: '',
+  key: ''
+})
+
 const getSelectedTracksTotalPence = ({ selectedTrackItems, tracks }) => (
   selectedTrackItems.reduce((total, item) => {
     const track = tracks.find(candidateTrack => candidateTrack.id === item.trackId)
@@ -134,9 +140,12 @@ const getGroupedPriceContextText = ({ pricePence, totalPence }) => {
 }
 
 const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
+  const [bulkDraft, setBulkDraft] = useState(getBulkMetadataDraft)
+  const [bulkSaving, setBulkSaving] = useState(false)
   const [draft, setDraft] = useState(null)
   const [editingTrackId, setEditingTrackId] = useState(null)
   const [error, setError] = useState('')
+  const [selectedTrackIds, setSelectedTrackIds] = useState([])
   const [savingTrackId, setSavingTrackId] = useState(null)
   const [status, setStatus] = useState('')
   const [trackSearch, setTrackSearch] = useState('')
@@ -146,6 +155,90 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
     query: normalizedTrackSearch,
     tracks
   }), [normalizedTrackSearch, tracks])
+  const filteredTrackIds = filteredTracks.map(track => track.id)
+  const selectedVisibleTrackCount = selectedTrackIds.filter(trackId => filteredTrackIds.includes(trackId)).length
+  const allVisibleTracksSelected = filteredTracks.length > 0 && selectedVisibleTrackCount === filteredTracks.length
+
+  const toggleTrackSelection = trackId => {
+    setSelectedTrackIds(currentIds => (
+      currentIds.includes(trackId)
+        ? currentIds.filter(currentId => currentId !== trackId)
+        : [...currentIds, trackId]
+    ))
+  }
+
+  const toggleVisibleTrackSelection = () => {
+    setSelectedTrackIds(currentIds => {
+      if (allVisibleTracksSelected) {
+        return currentIds.filter(trackId => !filteredTrackIds.includes(trackId))
+      }
+
+      return [...new Set([...currentIds, ...filteredTrackIds])]
+    })
+  }
+
+  const clearBulkSelection = () => {
+    setSelectedTrackIds([])
+    setBulkDraft(getBulkMetadataDraft())
+  }
+
+  const updateBulkDraft = (field, value) => {
+    setBulkDraft(currentDraft => ({
+      ...currentDraft,
+      [field]: value
+    }))
+  }
+
+  const applyBulkMetadata = async event => {
+    event.preventDefault()
+    setError('')
+    setStatus('')
+
+    const bulkInput = Object.fromEntries(
+      Object.entries(bulkDraft)
+        .map(([field, value]) => [field, value.trim()])
+        .filter(([, value]) => value)
+    )
+
+    if (selectedTrackIds.length === 0) {
+      setError('Select at least one uploaded track before applying shared metadata.')
+      return
+    }
+
+    if (Object.keys(bulkInput).length === 0) {
+      setError('Enter at least one shared metadata value to apply.')
+      return
+    }
+
+    setBulkSaving(true)
+
+    try {
+      const updates = await Promise.all(selectedTrackIds.map(async trackId => {
+        const response = await fetch(`/api/tracks/${trackId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bulkInput)
+        })
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message || `Unable to update track #${trackId}`)
+        }
+
+        return data
+      }))
+
+      updates.forEach(onTrackUpdated)
+      setStatus(`${updates.length} uploaded ${updates.length === 1 ? 'track' : 'tracks'} updated with shared metadata.`)
+      clearBulkSelection()
+    } catch (bulkError) {
+      setError(bulkError.message || 'Unable to apply shared metadata.')
+    } finally {
+      setBulkSaving(false)
+    }
+  }
 
   const startEditingTrack = track => {
     setDraft(getTrackMetadataDraft(track))
@@ -247,13 +340,77 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
           <p>No approved uploaded tracks match that search.</p>
         </div>
       ) : (
-        <ul className='cmc-upload-management-track-list'>
-          {filteredTracks.map(track => {
-            const isEditing = editingTrackId === track.id
-            const membershipSummary = getTrackMembershipSummary(track)
+        <>
+          <form className='cmc-upload-management-bulk-panel' onSubmit={applyBulkMetadata}>
+            <div>
+              <strong>Shared metadata</strong>
+              <p>Apply composer, key, or instrumentation to selected approved uploads.</p>
+            </div>
+            <label className='cmc-upload-management-select-visible'>
+              <input
+                checked={allVisibleTracksSelected}
+                onChange={toggleVisibleTrackSelection}
+                type='checkbox'
+              />
+              <span>{allVisibleTracksSelected ? 'Clear visible tracks' : 'Select visible tracks'}</span>
+            </label>
+            <label>
+              <span>Composer</span>
+              <input
+                maxLength={255}
+                onChange={event => updateBulkDraft('composer', event.target.value)}
+                placeholder='Shared composer'
+                type='text'
+                value={bulkDraft.composer}
+              />
+            </label>
+            <label>
+              <span>Key</span>
+              <input
+                maxLength={255}
+                onChange={event => updateBulkDraft('key', event.target.value)}
+                placeholder='Shared key'
+                type='text'
+                value={bulkDraft.key}
+              />
+            </label>
+            <label>
+              <span>Instrumentation</span>
+              <input
+                maxLength={255}
+                onChange={event => updateBulkDraft('instrumentation', event.target.value)}
+                placeholder='Shared instrumentation'
+                type='text'
+                value={bulkDraft.instrumentation}
+              />
+            </label>
+            <div className='cmc-upload-management-bulk-actions'>
+              <span>{selectedTrackIds.length} selected</span>
+              <Button disabled={bulkSaving || selectedTrackIds.length === 0} type='submit' variant='ink'>
+                {bulkSaving ? 'Applying...' : 'Apply shared metadata'}
+              </Button>
+              <Button disabled={bulkSaving || selectedTrackIds.length === 0} onClick={clearBulkSelection} type='button' variant='subtle'>
+                Clear
+              </Button>
+            </div>
+          </form>
 
-            return (
-              <li key={track.id}>
+          <ul className='cmc-upload-management-track-list'>
+            {filteredTracks.map(track => {
+              const isEditing = editingTrackId === track.id
+              const membershipSummary = getTrackMembershipSummary(track)
+              const isSelected = selectedTrackIds.includes(track.id)
+
+              return (
+                <li className={isSelected ? 'cmc-upload-management-track-list-item--selected' : undefined} key={track.id}>
+                  <label className='cmc-upload-management-track-select'>
+                    <input
+                      aria-label={`Select ${track.title}`}
+                      checked={isSelected}
+                      onChange={() => toggleTrackSelection(track.id)}
+                      type='checkbox'
+                    />
+                  </label>
                 <div className='cmc-upload-management-track-main'>
                   <strong>{track.title}</strong>
                   <span>{track.composer || 'Unknown composer'} · {track.key || 'Key not set'} · {track.instrumentation || 'Instrumentation not set'}</span>
@@ -370,9 +527,10 @@ const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
                   </form>
                 )}
               </li>
-            )
-          })}
-        </ul>
+              )
+            })}
+          </ul>
+        </>
       )}
     </section>
   )
