@@ -135,7 +135,10 @@ const getAdminInitialData = async currentUser => {
               select: {
                 formattedPrice: true,
                 id: true,
+                moderationStatus: true,
                 pricePence: true,
+                processingStatus: true,
+                status: true,
                 title: true
               }
             }

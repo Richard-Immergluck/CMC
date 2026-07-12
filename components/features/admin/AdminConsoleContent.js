@@ -110,6 +110,7 @@ const adminUploadBatchSortLabels = {
 
 const adminWorksCollectionFilterLabels = {
   all: 'All',
+  blockedDependencies: 'Blocked dependency',
   live: 'Live',
   review: 'In review',
   needsChanges: 'Needs changes',
@@ -124,6 +125,16 @@ const adminWorksCollectionSortLabels = {
   status: 'Status',
   title: 'Title',
   trackCount: 'Track count'
+}
+
+const isBlockedReleaseTrack = track => {
+  const hasLifecycleContext = track?.moderationStatus || track?.processingStatus || track?.status
+
+  return Boolean(hasLifecycleContext) && (
+    track.moderationStatus !== 'APPROVED' ||
+    track.processingStatus !== 'READY' ||
+    track.status !== 'PUBLISHED'
+  )
 }
 
 const AdminReviewControls = ({
@@ -1180,6 +1191,11 @@ const WorksCollectionsTable = ({ worksCollections }) => {
                       <li key={`${release.id}-${track.position}`}>
                         {track.position}. {track.movementNo ? `${track.movementNo} · ` : ''}{track.title}
                         {track.formattedPrice || Number.isInteger(track.pricePence) ? ` · ${track.formattedPrice || formatPricePence(track.pricePence)}` : ''}
+                        {isBlockedReleaseTrack(track) && (
+                          <Badge bg='danger' className='ms-2'>
+                            {track.moderationStatus || track.processingStatus || track.status || 'Blocked'}
+                          </Badge>
+                        )}
                       </li>
                     ))}
                     {release.tracks.length > 4 && (

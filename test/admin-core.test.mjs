@@ -291,7 +291,10 @@ test('Works and Collections admin items expose release context only', () => {
           track: {
             id: 11,
             formattedPrice: '£4.99',
+            moderationStatus: 'APPROVED',
             pricePence: 499,
+            processingStatus: 'READY',
+            status: 'PUBLISHED',
             title: 'Original track title'
           }
         },
@@ -302,7 +305,10 @@ test('Works and Collections admin items expose release context only', () => {
           track: {
             id: 12,
             formattedPrice: '£5.99',
+            moderationStatus: 'REJECTED',
             pricePence: 599,
+            processingStatus: 'READY',
+            status: 'REJECTED',
             title: 'Second track title'
           }
         }
@@ -335,16 +341,22 @@ test('Works and Collections admin items expose release context only', () => {
           formattedPrice: '£4.99',
           id: 11,
           movementNo: 'No. 1',
+          moderationStatus: 'APPROVED',
           position: 1,
           pricePence: 499,
+          processingStatus: 'READY',
+          status: 'PUBLISHED',
           title: 'Gute Nacht'
         },
         {
           formattedPrice: '£5.99',
           id: 12,
           movementNo: 'No. 2',
+          moderationStatus: 'REJECTED',
           position: 2,
           pricePence: 599,
+          processingStatus: 'READY',
+          status: 'REJECTED',
           title: 'Second track title'
         }
       ],
