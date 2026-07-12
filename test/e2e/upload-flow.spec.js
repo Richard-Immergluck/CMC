@@ -340,4 +340,119 @@ test.describe('upload browser flow', () => {
     await page.getByLabel('Search uploaded tracks').fill(`managed-metadata-${suffix}`)
     await expect(page.getByRole('listitem').filter({ hasText: newTitle })).toBeVisible()
   })
+
+  test('accepted requests show fulfilment feedback after upload submission', async ({ page }) => {
+    const suffix = Date.now()
+    let interceptedUpload = false
+
+    await page.route(/https:\/\/.*amazonaws\.com\/.*/, async route => {
+      if (route.request().method() === 'PUT') {
+        interceptedUpload = true
+        await route.fulfill({
+          status: 200,
+          body: ''
+        })
+        return
+      }
+
+      await route.continue()
+    })
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const createTrackResponse = await page.request.post('/api/tracks', {
+      data: {
+        title: `E2E Request Source ${suffix}`,
+        composer: 'Synthetic Upload Fixture',
+        key: 'C major',
+        instrumentation: 'Piano',
+        newFileName: `e2e-fixtures/request-source-${suffix}.mp3`,
+        previewStart: 0,
+        previewEnd: 15,
+        durationSeconds: 30,
+        sourceContentType: 'audio/mpeg',
+        additionalInfo: 'Synthetic source track for request fulfilment upload.',
+        price: 3.99,
+        pricePence: 399,
+        currency: 'gbp',
+        formattedPrice: '£3.99',
+        downloadName: `request-source-${suffix}.mp3`,
+        downloadCount: 0
+      }
+    })
+    const requestedTrack = await createTrackResponse.json()
+
+    expect(createTrackResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+
+    const approvalResponse = await page.request.patch(`/api/admin/tracks/${requestedTrack.id}`, {
+      data: {
+        decision: 'approve',
+        moderationNotes: 'Approved for fulfilment upload E2E.'
+      }
+    })
+
+    expect(approvalResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-customer@example.com')
+
+    const requestResponse = await page.request.post('/api/track-requests', {
+      data: {
+        trackId: requestedTrack.id,
+        title: `E2E Upload Fulfilment ${suffix}`,
+        notes: 'Please prepare a short requested fulfilment upload.'
+      }
+    })
+    const trackRequest = await requestResponse.json()
+
+    expect(requestResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const acceptResponse = await page.request.patch(`/api/track-requests/${trackRequest.id}`, {
+      data: {
+        status: 'ACCEPTED'
+      }
+    })
+
+    expect(acceptResponse.status()).toBe(200)
+
+    await page.goto(`/upload?fulfilledRequestId=${trackRequest.id}`)
+    await expect(page.getByText(`This upload will be attached to request #${trackRequest.id} after submission.`)).toBeVisible()
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: `fulfilled-request-${suffix}.mp3`,
+      mimeType: 'audio/mpeg',
+      buffer: createTinyMp3()
+    })
+    await page.getByRole('button', { name: 'Upload audio' }).click()
+    await page.getByRole('button', { name: 'Confirm preview' }).click()
+    await page.getByRole('textbox', { name: 'Title' }).fill(`E2E Fulfilment Upload ${suffix}`)
+    await page.getByRole('textbox', { name: 'Composer' }).fill('Synthetic Upload Fixture')
+    await page.getByRole('textbox', { name: 'Key' }).fill('G major')
+    await page.getByRole('textbox', { name: 'Instrumentation' }).fill('Piano')
+    await page.getByRole('textbox', { name: 'Additional Information' }).fill('Synthetic request fulfilment upload.')
+    await page.getByRole('button', { name: 'Confirm details' }).click()
+    await page.getByLabel('£3.99').check()
+    await page.getByRole('button', { name: 'Confirm price' }).click()
+    await page.getByLabel('I have read and agree to the upload rights confirmation').check()
+    await page.getByRole('button', { name: 'Submit' }).click()
+
+    const reviewDialog = page.getByRole('dialog', {
+      name: 'Track submitted for review'
+    })
+
+    await expect(reviewDialog).toBeVisible()
+    await expect(reviewDialog.getByText(`linked to request #${trackRequest.id}`)).toBeVisible()
+    expect(interceptedUpload).toBe(true)
+
+    await page.goto(`/catalogue/${requestedTrack.id}?tab=requests&requestId=${trackRequest.id}`)
+
+    const requestCard = page.locator(`#request-${trackRequest.id}`)
+
+    await expect(requestCard.getByText('Fulfilment uploaded:')).toBeVisible()
+    await expect(requestCard.getByText(`E2E Fulfilment Upload ${suffix}`)).toBeVisible()
+    await expect(requestCard.getByText('(waiting for review)')).toBeVisible()
+  })
 })

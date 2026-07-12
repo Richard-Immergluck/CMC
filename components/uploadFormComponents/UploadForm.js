@@ -1367,11 +1367,19 @@ function UploadForm({ initialFulfilledRequestId = '', initialUploadBatch = null 
                     </>
                   ) : (
                     <>
-                      <p>
-                        Your track has been uploaded as a draft and is now waiting
-                        for review. It will not appear in the public catalogue until
-                        it has been checked and approved.
-                      </p>
+                      {fulfilledRequestId ? (
+                        <p>
+                          Your track has been uploaded as a draft and linked to
+                          {` request #${fulfilledRequestId}`}. The request now points
+                          at this fulfilment upload while it waits for review.
+                        </p>
+                      ) : (
+                        <p>
+                          Your track has been uploaded as a draft and is now waiting
+                          for review. It will not appear in the public catalogue until
+                          it has been checked and approved.
+                        </p>
+                      )}
                       <p className='mb-0'>
                         You can upload another track now, return to the catalogue,
                         or open the admin console to review pending submissions.
