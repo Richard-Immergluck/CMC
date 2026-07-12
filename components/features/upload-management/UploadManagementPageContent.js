@@ -107,6 +107,32 @@ const getTrackMetadataDraft = track => ({
   title: track.title || ''
 })
 
+const getSelectedTracksTotalPence = ({ selectedTrackItems, tracks }) => (
+  selectedTrackItems.reduce((total, item) => {
+    const track = tracks.find(candidateTrack => candidateTrack.id === item.trackId)
+
+    return total + Number(track?.pricePence || 0)
+  }, 0)
+)
+
+const getGroupedPriceContextText = ({ pricePence, totalPence }) => {
+  const differencePence = totalPence - Number(pricePence || 0)
+
+  if (totalPence <= 0) {
+    return 'Select tracks to compare the collection price with individual purchases.'
+  }
+
+  if (differencePence > 0) {
+    return `Buyers save ${formatPricePence(differencePence)} compared with buying these tracks individually.`
+  }
+
+  if (differencePence < 0) {
+    return `This is ${formatPricePence(Math.abs(differencePence))} above the individual-track total. Use a pricing note when that premium needs review context.`
+  }
+
+  return 'This matches the individual-track total.'
+}
+
 const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
   const [draft, setDraft] = useState(null)
   const [editingTrackId, setEditingTrackId] = useState(null)
@@ -382,6 +408,14 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     query: normalizedTrackSearch,
     tracks
   }), [normalizedTrackSearch, tracks])
+  const selectedTracksTotalPence = useMemo(() => getSelectedTracksTotalPence({
+    selectedTrackItems,
+    tracks
+  }), [selectedTrackItems, tracks])
+  const selectedPriceContextText = getGroupedPriceContextText({
+    pricePence,
+    totalPence: selectedTracksTotalPence
+  })
 
   const handleTypeChange = event => {
     const nextType = event.target.value
@@ -757,6 +791,17 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                 </label>
               ))}
             </div>
+            <dl className='cmc-profile-works-price-context'>
+              <div>
+                <dt>Individual total</dt>
+                <dd>{formatPricePence(selectedTracksTotalPence)}</dd>
+              </div>
+              <div>
+                <dt>Collection price</dt>
+                <dd>{formatPricePence(pricePence)}</dd>
+              </div>
+            </dl>
+            <p className='cmc-profile-works-price-guidance'>{selectedPriceContextText}</p>
           </fieldset>
 
           {needsPricingReview && (
@@ -828,6 +873,10 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
                     <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
                     <small>
                       {collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)} · {catalogueReleaseStatusLabels[collection.status] || collection.status}
+                    </small>
+                    <small>
+                      Individual total {collection.formattedIndividualTracksTotal}
+                      {collection.savingsPence > 0 ? ` · Buyer saving ${collection.formattedSavings}` : ''}
                     </small>
                     {catalogueReleaseStatusDescriptions[collection.status] && (
                       <small>{catalogueReleaseStatusDescriptions[collection.status]}</small>
