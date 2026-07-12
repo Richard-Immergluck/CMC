@@ -5,6 +5,7 @@ import {
   toAdminSummary,
   toTrackReviewItem,
   toUploadBatchAdminItem,
+  toWorksCollectionAdminItem,
   toUserAdminItem
 } from '../../lib/server/admin-core.mjs'
 import { getAdminOperationsData } from '../../lib/server/admin-operations'
@@ -45,6 +46,7 @@ const getAdminInitialData = async currentUser => {
     uploadBatchesNeedingAttentionCount,
     tracks,
     uploadBatches,
+    worksCollections,
     users,
     pricingReviews,
     operations
@@ -129,6 +131,41 @@ const getAdminInitialData = async currentUser => {
       },
       take: 100
     }),
+    prisma.catalogueRelease.findMany({
+      include: {
+        _count: {
+          select: {
+            orderItems: true,
+            tracks: true
+          }
+        },
+        tracks: {
+          orderBy: {
+            position: 'asc'
+          },
+          take: 4,
+          include: {
+            track: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        },
+        uploadedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 100
+    }),
     canManageUsers
       ? prisma.user.findMany({
           orderBy: [
@@ -163,6 +200,7 @@ const getAdminInitialData = async currentUser => {
       uploadedAt: formatDisplayDate(track.uploadedAt)
     })),
     initialUploadBatches: serializeOperations(uploadBatches.map(toUploadBatchAdminItem)),
+    initialWorksCollections: serializeOperations(worksCollections.map(toWorksCollectionAdminItem)),
     initialUsers: users.map(toUserAdminItem)
   }
 }
