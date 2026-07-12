@@ -65,6 +65,8 @@ test('app router shell and first public routes are present', () => {
   assert.match(appAdminBulkTrackModerationRoute, /trackModerationUpdated/)
   assert.match(appUploadWorksDetailPage, /getServerSession/)
   assert.match(appUploadWorksDetailPage, /getUserWorksCollection/)
+  assert.match(appUploadWorksDetailPage, /Blocked dependency/)
+  assert.match(appUploadWorksDetailPage, /remove or replace the affected tracks/)
   assert.match(appUploadWorksDetailPage, /notFound/)
   assert.match(appUploadWorksDetailPage, /force-dynamic/)
   assert.match(appRequestPricingDecisionRoute, /decideRequestPricingProposal/)

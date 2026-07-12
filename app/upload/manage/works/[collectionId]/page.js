@@ -35,6 +35,28 @@ const saleFormatLabels = {
   INDIVIDUAL: 'Individual tracks'
 }
 
+const isBlockedCollectionTrack = track => {
+  const hasLifecycleContext = track?.moderationStatus || track?.processingStatus || track?.status
+
+  return Boolean(hasLifecycleContext) && (
+    track.moderationStatus !== 'APPROVED' ||
+    track.processingStatus !== 'READY' ||
+    track.status !== 'PUBLISHED'
+  )
+}
+
+const getBlockedCollectionTrackLabel = track => {
+  if (track.moderationStatus === 'REJECTED' || track.status === 'REJECTED') {
+    return 'Rejected'
+  }
+
+  if (track.processingStatus && track.processingStatus !== 'READY') {
+    return track.processingStatus
+  }
+
+  return track.moderationStatus || track.status || 'Needs attention'
+}
+
 const getCollectionForSession = async ({ collectionId, email }) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -80,6 +102,8 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
   if (!collection) {
     notFound()
   }
+
+  const blockedTracks = collection.tracks.filter(isBlockedCollectionTrack)
 
   return (
     <main className='cmc-profile-page cmc-works-management-detail-page'>
@@ -138,6 +162,48 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
             </section>
           )}
 
+          {blockedTracks.length > 0 && (
+            <section className='cmc-profile-role-panel cmc-profile-role-panel--uploader' aria-label='Blocked dependency recovery guidance'>
+              <div>
+                <p className='cmc-profile-kicker'>Blocked dependency</p>
+                <h2>Repair this release before it can return to the catalogue</h2>
+                <p>
+                  One or more tracks in this Work or Collection are no longer approved and ready.
+                  Edit the release from upload management, remove or replace the affected tracks,
+                  then save it again to resubmit the repaired release for catalogue review.
+                </p>
+              </div>
+              <ul className='cmc-upload-batch-track-list'>
+                {blockedTracks.map(track => (
+                  <li key={track.trackId}>
+                    <span aria-hidden='true'>{String(track.position).padStart(2, '0')}</span>
+                    <div>
+                      <strong>{track.title}</strong>
+                      <small>
+                        {track.movementNo ? `${track.movementNo} · ` : ''}
+                        {getBlockedCollectionTrackLabel(track)}
+                      </small>
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Moderation</dt>
+                        <dd>{track.moderationStatus || 'Unknown'}</dd>
+                      </div>
+                      <div>
+                        <dt>Processing</dt>
+                        <dd>{track.processingStatus || 'Unknown'}</dd>
+                      </div>
+                      <div>
+                        <dt>Catalogue</dt>
+                        <dd>{track.status || 'Unknown'}</dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <section className='cmc-upload-batch-actions' aria-label='Work or Collection actions'>
             <Button as={Link} href='/upload/manage' variant='paper'>
               Back to management
@@ -168,6 +234,9 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
                       {track.movementNo ? `${track.movementNo} · ` : ''}
                       {track.composer || collection.composer || 'Unknown composer'}
                     </small>
+                    {isBlockedCollectionTrack(track) && (
+                      <small>Blocked dependency: {getBlockedCollectionTrackLabel(track)}</small>
+                    )}
                   </div>
                   <dl>
                     <div>
