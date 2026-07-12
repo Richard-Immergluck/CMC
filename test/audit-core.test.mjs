@@ -10,6 +10,7 @@ import {
   buildRateLimitExceededMetadata,
   buildStripeWebhookSignatureFailedMetadata,
   buildTrackAccessDeniedMetadata,
+  buildTrackMetadataUpdatedMetadata,
   buildTrackSignedUrlIssuedMetadata,
   buildUserAccessChangeRequestMetadata,
   buildUserAccessDeniedMetadata,
@@ -211,6 +212,21 @@ test('track submitted metadata omits user-authored catalogue text', () => {
       sourceContentType: 'audio/mpeg',
       status: 'DRAFT',
       moderationStatus: 'PENDING'
+    }
+  )
+})
+
+test('track metadata updated metadata records changed field names only', () => {
+  assert.equal(auditActions.trackMetadataUpdated, 'track.metadata_updated')
+  assert.deepEqual(
+    buildTrackMetadataUpdatedMetadata({
+      changedFields: ['title', 'composer'],
+      route: '/api/tracks/[trackId]',
+      title: 'should-not-leak'
+    }),
+    {
+      changedFields: ['composer', 'title'],
+      route: '/api/tracks/[trackId]'
     }
   )
 })

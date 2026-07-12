@@ -33,6 +33,17 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('track metadata updates require authentication', async ({ request }) => {
+    const response = await request.patch('/api/tracks/1', {
+      data: {
+        title: 'Anonymous Metadata Attempt'
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('checkout requires authentication', async ({ request }) => {
     const response = await request.post('/api/stripe/checkout_sessions', {
       data: {

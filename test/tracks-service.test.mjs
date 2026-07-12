@@ -2,9 +2,11 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   createDownloadName,
+  getChangedTrackMetadataFields,
   normalizeTrackPrice,
   publicTrackWhere,
-  toTrackCreateData
+  toTrackCreateData,
+  toTrackMetadataUpdateData
 } from '../lib/server/tracks-core.mjs'
 
 const user = {
@@ -109,4 +111,37 @@ test('publicTrackWhere exposes only published approved ready tracks', () => {
     moderationStatus: 'APPROVED',
     processingStatus: 'READY'
   })
+})
+
+test('track metadata update data only maps editable descriptive fields', () => {
+  assert.deepEqual(
+    toTrackMetadataUpdateData({
+      title: ' Updated title ',
+      composer: 'Updated composer',
+      pricePence: 899,
+      status: 'ARCHIVED'
+    }),
+    {
+      composer: 'Updated composer',
+      title: ' Updated title '
+    }
+  )
+})
+
+test('changed track metadata fields describe changed fields only', () => {
+  assert.deepEqual(
+    getChangedTrackMetadataFields({
+      before: {
+        composer: 'Mozart',
+        instrumentation: 'Piano',
+        title: 'Andante'
+      },
+      after: {
+        composer: 'Mozart',
+        instrumentation: 'Piano, violin',
+        title: 'Andante'
+      }
+    }),
+    ['instrumentation']
+  )
 })

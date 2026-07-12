@@ -111,13 +111,13 @@ test.describe('API method contracts', () => {
     expect(await response.text()).toContain('Method not allowed')
   })
 
-  test('catalogue detail only accepts GET', async ({ request }) => {
+  test('catalogue detail accepts GET and authenticated PATCH only', async ({ request }) => {
     const response = await request.post('/api/tracks/1', {
       data: {}
     })
 
     expect(response.status()).toBe(405)
-    expect(response.headers()['allow']).toBe('GET')
+    expect(response.headers()['allow']).toBe('GET, PATCH')
     expect(await response.text()).toContain('Method not allowed')
   })
 })
