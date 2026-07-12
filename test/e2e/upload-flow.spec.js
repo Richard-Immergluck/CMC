@@ -189,6 +189,7 @@ test.describe('upload browser flow', () => {
     await expect(reviewDialog.getByText(/next queued file/i)).toBeVisible()
     await expect(reviewDialog.getByRole('button', { name: 'Add Another to Batch' })).toBeVisible()
     await expect(reviewDialog.getByRole('link', { name: 'Review Batch' })).toHaveAttribute('href', /\/upload\/manage\/\d+$/)
+    await expect(page).toHaveURL(/\/upload\?batchId=\d+$/)
     await reviewDialog.getByRole('button', { name: 'Add Another to Batch' }).click()
     await expect(page.getByRole('dialog', { name: 'Track submitted for review' })).toHaveCount(0)
     await expect(selectedBatchFiles.getByText(`batch-upload-${suffix}-two.mp3`)).toBeVisible()
