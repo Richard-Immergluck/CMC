@@ -108,6 +108,10 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
                   <dd>{collection.tracks.length}</dd>
                 </div>
                 <div>
+                  <dt>Separate</dt>
+                  <dd>{collection.formattedIndividualTracksTotal}</dd>
+                </div>
+                <div>
                   <dt>Sale</dt>
                   <dd>{saleFormatLabels[collection.saleFormat] || collection.saleFormat}</dd>
                 </div>
@@ -126,6 +130,10 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
                 <h2>{catalogueReleaseStatusLabels[collection.status] || collection.status}</h2>
                 <p>{catalogueReleaseStatusDescriptions[collection.status]}</p>
                 <p>Pricing review: {pricingReviewLabels[collection.pricingReviewStatus] || collection.pricingReviewStatus}</p>
+                <p>
+                  Individual track total: {collection.formattedIndividualTracksTotal}
+                  {collection.savingsPence > 0 ? ` · Buyer saving: ${collection.formattedSavings}` : ''}
+                </p>
               </div>
             </section>
           )}
@@ -163,8 +171,8 @@ const WorksCollectionManagementDetailPage = async ({ params }) => {
                   </div>
                   <dl>
                     <div>
-                      <dt>Track ID</dt>
-                      <dd>{track.trackId}</dd>
+                      <dt>Price</dt>
+                      <dd>{track.formattedPrice || formatPricePence(track.pricePence || 0)}</dd>
                     </div>
                     <div>
                       <dt>Position</dt>

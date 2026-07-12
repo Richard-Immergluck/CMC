@@ -251,8 +251,10 @@ test.describe('track review API flow', () => {
       expect.objectContaining({
         catalogueType: 'COLLECTION',
         formattedPrice: '£14.99',
+        formattedIndividualTracksTotal: '£7.98',
         pricePence: 1499,
         saleFormat: 'BOTH',
+        savingsPence: 0,
         title: `E2E Grouped Work ${suffix}`
       })
     )
@@ -295,6 +297,7 @@ test.describe('track review API flow', () => {
     await signInPageAs(page, 'e2e-uploader@example.com')
     await page.goto('/upload/manage')
     await expect(page.getByText(`Part of E2E Grouped Work ${suffix}`).first()).toBeVisible()
+    await expect(page.getByText('Individual total £7.98').first()).toBeVisible()
     const collectionRow = page.getByRole('listitem').filter({
       hasText: `E2E Grouped Work ${suffix}`
     })
@@ -303,10 +306,12 @@ test.describe('track review API flow', () => {
     await collectionRow.getByRole('link', { name: 'View' }).click()
     await expect(page).toHaveURL(new RegExp(`/upload/manage/works/${collectionBody.collection.id}$`))
     await expect(page.getByRole('heading', { name: `E2E Grouped Work ${suffix}.` })).toBeVisible()
+    await expect(page.getByText('Individual track total: £7.98')).toBeVisible()
     await page.getByRole('link', { name: 'Back to management' }).click()
 
     await collectionRow.getByRole('button', { name: `Edit E2E Grouped Work ${suffix}` }).click()
     await expect(page.getByText('Editing an existing Work or Collection.')).toBeVisible()
+    await expect(page.getByText('This is £7.01 above the individual-track total.')).toBeVisible()
     await page.getByLabel('Title').fill(`E2E UI Edited Grouped Work ${suffix}`)
     await page.getByRole('button', { name: 'Save Work or Collection' }).click()
     await expect(page.getByText('Work or Collection updated.')).toBeVisible()
