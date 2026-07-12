@@ -700,11 +700,19 @@ const OperationsTables = ({
             Account lifecycle
           </Button>
           <Button
+            className='me-2'
             onClick={() => onLoadAuditCategory('releaseLifecycle')}
             size='sm'
             variant={activeAuditCategory === 'releaseLifecycle' ? 'secondary' : 'subtle'}
           >
             Release lifecycle
+          </Button>
+          <Button
+            onClick={() => onLoadAuditCategory('uploadLifecycle')}
+            size='sm'
+            variant={activeAuditCategory === 'uploadLifecycle' ? 'secondary' : 'subtle'}
+          >
+            Upload lifecycle
           </Button>
         </Col>
       </Row>
