@@ -104,6 +104,18 @@ test.describe('anonymous API access', () => {
     expect(await response.text()).toContain('Authentication required')
   })
 
+  test('admin bulk track moderation requires authentication', async ({ request }) => {
+    const response = await request.patch('/api/admin/tracks/bulk-moderation', {
+      data: {
+        decision: 'approve',
+        trackIds: [1]
+      }
+    })
+
+    expect(response.status()).toBe(401)
+    expect(await response.text()).toContain('Authentication required')
+  })
+
   test('profile ownership data requires authentication', async ({ request }) => {
     const response = await request.get('/api/profile')
 

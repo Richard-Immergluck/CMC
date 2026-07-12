@@ -3,6 +3,7 @@ import test from 'node:test'
 import {
   adminOperationsQuerySchema,
   adminSecurityReportQuerySchema,
+  adminBulkTrackModerationBodySchema,
   adminUserAccessReviewBodySchema,
   adminUserUpdateBodySchema,
   adminTrackModerationBodySchema,
@@ -437,6 +438,45 @@ test('admin track moderation body accepts supported decisions', () => {
 
   assert.throws(
     () => validateInput(adminTrackModerationBodySchema, { decision: 'publish' }),
+    error => error.statusCode === 400
+  )
+})
+
+test('admin bulk track moderation body is bounded and unique', () => {
+  assert.deepEqual(
+    validateInput(adminBulkTrackModerationBodySchema, {
+      decision: 'approve',
+      moderationNotes: ' Approved after batch review ',
+      trackIds: ['1', 2]
+    }),
+    {
+      decision: 'approve',
+      moderationNotes: 'Approved after batch review',
+      trackIds: [1, 2]
+    }
+  )
+
+  assert.throws(
+    () => validateInput(adminBulkTrackModerationBodySchema, {
+      decision: 'approve',
+      trackIds: [1, 1]
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(adminBulkTrackModerationBodySchema, {
+      decision: 'archive',
+      trackIds: [1]
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(adminBulkTrackModerationBodySchema, {
+      decision: 'approve',
+      trackIds: Array.from({ length: 51 }, (_, index) => index + 1)
+    }),
     error => error.statusCode === 400
   )
 })

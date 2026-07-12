@@ -15,6 +15,10 @@ const sensitiveMutationRoutes = [
   {
     file: 'app/api/admin/tracks/[trackId]/route.js',
     method: 'PATCH'
+  },
+  {
+    file: 'app/api/admin/tracks/bulk-moderation/route.js',
+    method: 'PATCH'
   }
 ]
 
