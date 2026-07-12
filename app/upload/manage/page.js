@@ -77,7 +77,8 @@ const serializeTrack = track => {
     })),
     commentCount: count?.Comments || 0,
     requestCount: count?.TrackRequests || 0,
-    uploadedAt: formatDisplayDate(track.uploadedAt)
+    uploadedAt: formatDisplayDate(track.uploadedAt),
+    uploadedAtSort: track.uploadedAt ? track.uploadedAt.getTime() : 0
   }
 }
 

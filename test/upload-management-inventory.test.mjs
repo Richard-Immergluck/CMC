@@ -2,9 +2,12 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   collectionMatchesUploadInventorySearch,
+  filterAndSortUploadInventoryTracks,
   filterUploadInventoryCollections,
   filterUploadInventoryTracks,
   getUploadInventorySearchQuery,
+  getUploadInventoryTrackFilterCounts,
+  isUploadInventoryTrackMetadataComplete,
   trackMatchesUploadInventorySearch
 } from '../lib/upload-management-inventory.mjs'
 
@@ -77,4 +80,103 @@ test('upload inventory filters preserve all rows when query is empty', () => {
   assert.deepEqual(filterUploadInventoryCollections({ collections, query: '' }), collections)
   assert.deepEqual(filterUploadInventoryTracks({ query: 'brahms', tracks }), [{ title: 'Brahms Sonata' }])
   assert.deepEqual(filterUploadInventoryCollections({ collections, query: 'opera' }), [{ title: 'Opera scenes' }])
+})
+
+test('upload inventory track counts describe metadata collection and activity posture', () => {
+  const tracks = [
+    {
+      collectionMemberships: [{ collectionTitle: 'Winterreise' }],
+      commentCount: 2,
+      composer: 'Franz Schubert',
+      instrumentation: 'Piano, voice',
+      key: 'E minor',
+      requestCount: 0,
+      title: 'Gute Nacht'
+    },
+    {
+      collectionMemberships: [],
+      commentCount: 0,
+      composer: '',
+      instrumentation: 'Piano',
+      key: 'C major',
+      requestCount: 1,
+      title: 'Warmup study'
+    }
+  ]
+
+  assert.equal(isUploadInventoryTrackMetadataComplete(tracks[0]), true)
+  assert.equal(isUploadInventoryTrackMetadataComplete(tracks[1]), false)
+  assert.deepEqual(getUploadInventoryTrackFilterCounts(tracks), {
+    all: 2,
+    complete: 1,
+    incomplete: 1,
+    inCollection: 1,
+    needsCollection: 1,
+    withActivity: 2
+  })
+})
+
+test('upload inventory track filter and sort supports large-library management views', () => {
+  const tracks = [
+    {
+      collectionMemberships: [],
+      commentCount: 0,
+      composer: 'Ludwig van Beethoven',
+      instrumentation: 'Piano',
+      key: 'C minor',
+      requestCount: 0,
+      title: 'Moonlight excerpt',
+      uploadedAtSort: 100
+    },
+    {
+      collectionMemberships: [{ collectionTitle: 'Opera scenes' }],
+      commentCount: 4,
+      composer: 'Wolfgang Amadeus Mozart',
+      instrumentation: 'Piano, voice',
+      key: 'D major',
+      requestCount: 2,
+      title: 'Catalogue aria',
+      uploadedAtSort: 200
+    },
+    {
+      collectionMemberships: [],
+      commentCount: 1,
+      composer: '',
+      instrumentation: '',
+      key: '',
+      requestCount: 0,
+      title: 'Untitled upload',
+      uploadedAtSort: 300
+    }
+  ]
+
+  assert.deepEqual(
+    filterAndSortUploadInventoryTracks({
+      filter: 'needsCollection',
+      query: '',
+      sort: 'title',
+      tracks
+    }).map(track => track.title),
+    ['Moonlight excerpt', 'Untitled upload']
+  )
+
+  assert.deepEqual(
+    filterAndSortUploadInventoryTracks({
+      filter: 'withActivity',
+      query: '',
+      sort: 'activity',
+      tracks
+    }).map(track => track.title),
+    ['Catalogue aria', 'Untitled upload']
+  )
+
+  assert.deepEqual(
+    filterAndSortUploadInventoryTracks({
+      filter: 'all',
+      query: 'mozart',
+      sort: 'newest',
+      tracks
+    }).map(track => track.title),
+    ['Catalogue aria']
+  )
 })

@@ -382,8 +382,9 @@ test.describe('track review API flow', () => {
     await collectionRow.getByRole('button', { name: `Edit E2E Grouped Work ${suffix}` }).click()
     await expect(page.getByText('Editing an existing Work or Collection.')).toBeVisible()
     await expect(page.getByText('This is £7.01 above the individual-track total.')).toBeVisible()
-    await page.getByLabel('Title').fill(`E2E UI Edited Grouped Work ${suffix}`)
-    await page.getByRole('button', { name: 'Save Work or Collection' }).click()
+    const worksCollectionForm = page.locator('.cmc-profile-works-form')
+    await worksCollectionForm.getByLabel('Title').fill(`E2E UI Edited Grouped Work ${suffix}`)
+    await worksCollectionForm.getByRole('button', { name: 'Save Work or Collection' }).click()
     await expect(page.getByText('Work or Collection updated.')).toBeVisible()
     await expect(page.getByText(`E2E UI Edited Grouped Work ${suffix}`)).toBeVisible()
 
