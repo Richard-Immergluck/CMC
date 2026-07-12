@@ -18,6 +18,7 @@ import { requireSupportPermission } from '../../../../../lib/server/permissions.
 import prisma from '../../../../../lib/server/prisma'
 import { createRouteTelemetry } from '../../../../../lib/server/route-telemetry'
 import { getUploadBatchStatusAfterModeration } from '../../../../../lib/server/upload-batches-core.mjs'
+import { applyReleaseDependencyModerationUpdates } from '../../../../../lib/server/release-dependency-moderation.mjs'
 import {
   adminBulkTrackModerationBodySchema,
   validateInput
@@ -115,7 +116,21 @@ export async function PATCH(request) {
           })
         })
 
-        updatedTracks.push(after)
+        await applyReleaseDependencyModerationUpdates({
+          actorId: user.id,
+          decision: input.decision,
+          releaseItems: before.releaseItems,
+          route: '/api/admin/tracks/bulk-moderation',
+          trackId: before.id,
+          tx
+        })
+
+        updatedTracks.push(await tx.track.findUnique({
+          where: {
+            id: before.id
+          },
+          include: trackReviewInclude
+        }))
       }
 
       const uploadBatchIds = [...new Set(
