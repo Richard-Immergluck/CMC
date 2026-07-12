@@ -11,7 +11,8 @@ import {
   filterUploadInventoryTracks,
   getUploadInventoryCollectionFilterCounts,
   getUploadInventorySearchQuery,
-  getUploadInventoryTrackFilterCounts
+  getUploadInventoryTrackFilterCounts,
+  hasBlockedCollectionDependency
 } from '../../../lib/upload-management-inventory.mjs'
 import {
   atomicTrackCatalogueTypes,
@@ -135,6 +136,7 @@ const trackSortLabels = {
 const collectionFilterLabels = {
   all: 'All',
   archived: 'Archived',
+  blockedDependencies: 'Blocked dependency',
   live: 'Live',
   needsChanges: 'Needs changes',
   review: 'In review'
@@ -172,6 +174,32 @@ const getGroupedPriceContextText = ({ pricePence, totalPence }) => {
   }
 
   return 'This matches the individual-track total.'
+}
+
+const isBlockedCollectionTrack = track => {
+  const hasLifecycleContext = track?.moderationStatus || track?.processingStatus || track?.status
+
+  return Boolean(hasLifecycleContext) && (
+    track.moderationStatus !== 'APPROVED' ||
+    track.processingStatus !== 'READY' ||
+    track.status !== 'PUBLISHED'
+  )
+}
+
+const getBlockedCollectionTracks = collection => (
+  (collection?.tracks || []).filter(isBlockedCollectionTrack)
+)
+
+const getBlockedCollectionTrackLabel = track => {
+  if (track.moderationStatus === 'REJECTED' || track.status === 'REJECTED') {
+    return 'Rejected'
+  }
+
+  if (track.processingStatus && track.processingStatus !== 'READY') {
+    return track.processingStatus
+  }
+
+  return track.moderationStatus || track.status || 'Needs attention'
 }
 
 const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
@@ -1121,54 +1149,65 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
             <p>No Works or Collections match that search or filter.</p>
           ) : (
             <ul>
-              {filteredCollections.map(collection => (
-                <li key={collection.id}>
-                  <div>
-                    <strong>{collection.title}</strong>
-                    <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
-                    <small>
-                      {collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)} · {catalogueReleaseStatusLabels[collection.status] || collection.status}
-                    </small>
-                    <small>
-                      Individual total {collection.formattedIndividualTracksTotal}
-                      {collection.savingsPence > 0 ? ` · Buyer saving ${collection.formattedSavings}` : ''}
-                    </small>
-                    {catalogueReleaseStatusDescriptions[collection.status] && (
-                      <small>{catalogueReleaseStatusDescriptions[collection.status]}</small>
-                    )}
-                  </div>
-                  <div className='cmc-profile-works-list-actions'>
-                    <Button
-                      as={Link}
-                      href={`/upload/manage/works/${collection.id}`}
-                      size='sm'
-                      variant='subtle'
-                    >
-                      View
-                    </Button>
-                    <Button
-                      aria-label={`Edit ${collection.title}`}
-                      disabled={deletingCollectionId === collection.id || !canEditWorksCollection(collection)}
-                      onClick={() => startEditingCollection(collection)}
-                      size='sm'
-                      type='button'
-                      variant='paper'
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      aria-label={`Delete ${collection.title}`}
-                      disabled={deletingCollectionId === collection.id || collection.status === 'ARCHIVED'}
-                      onClick={() => deleteCollection(collection)}
-                      size='sm'
-                      type='button'
-                      variant='subtle'
-                    >
-                      {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
-                    </Button>
-                  </div>
-                </li>
-              ))}
+              {filteredCollections.map(collection => {
+                const blockedTracks = getBlockedCollectionTracks(collection)
+
+                return (
+                  <li key={collection.id}>
+                    <div>
+                      <strong>{collection.title}</strong>
+                      <span>{worksAndCollectionsTypeLabels[collection.catalogueType] || 'Collection'} · {collection.formattedPrice}</span>
+                      <small>
+                        {collection.tracks.length} tracks · Created {formatCollectionDate(collection.createdAt)} · {catalogueReleaseStatusLabels[collection.status] || collection.status}
+                      </small>
+                      <small>
+                        Individual total {collection.formattedIndividualTracksTotal}
+                        {collection.savingsPence > 0 ? ` · Buyer saving ${collection.formattedSavings}` : ''}
+                      </small>
+                      {catalogueReleaseStatusDescriptions[collection.status] && (
+                        <small>{catalogueReleaseStatusDescriptions[collection.status]}</small>
+                      )}
+                      {hasBlockedCollectionDependency(collection) && (
+                        <small>
+                          Blocked dependency: {blockedTracks.map(track => (
+                            `${track.title} (${getBlockedCollectionTrackLabel(track)})`
+                          )).join(', ')}. Edit this Work or Collection and remove or replace the affected track before resubmitting.
+                        </small>
+                      )}
+                    </div>
+                    <div className='cmc-profile-works-list-actions'>
+                      <Button
+                        as={Link}
+                        href={`/upload/manage/works/${collection.id}`}
+                        size='sm'
+                        variant='subtle'
+                      >
+                        View
+                      </Button>
+                      <Button
+                        aria-label={`Edit ${collection.title}`}
+                        disabled={deletingCollectionId === collection.id || !canEditWorksCollection(collection)}
+                        onClick={() => startEditingCollection(collection)}
+                        size='sm'
+                        type='button'
+                        variant='paper'
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        aria-label={`Delete ${collection.title}`}
+                        disabled={deletingCollectionId === collection.id || collection.status === 'ARCHIVED'}
+                        onClick={() => deleteCollection(collection)}
+                        size='sm'
+                        type='button'
+                        variant='subtle'
+                      >
+                        {deletingCollectionId === collection.id ? 'Removing...' : 'Remove'}
+                      </Button>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </aside>

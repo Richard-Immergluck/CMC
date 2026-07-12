@@ -9,6 +9,7 @@ import {
   getUploadInventorySearchQuery,
   getUploadInventoryCollectionFilterCounts,
   getUploadInventoryTrackFilterCounts,
+  hasBlockedCollectionDependency,
   isUploadInventoryTrackMetadataComplete,
   collectionMatchesUploadInventoryFilter,
   trackMatchesUploadInventorySearch
@@ -84,7 +85,26 @@ test('upload inventory collection counts describe release lifecycle posture', ()
     {
       pricingReviewStatus: 'REJECTED',
       status: 'NEEDS_CHANGES',
-      title: 'Needs changes collection'
+      title: 'Needs changes collection',
+      tracks: [
+        {
+          moderationStatus: 'APPROVED',
+          processingStatus: 'READY',
+          status: 'PUBLISHED'
+        }
+      ]
+    },
+    {
+      pricingReviewStatus: 'APPROVED',
+      status: 'NEEDS_CHANGES',
+      title: 'Blocked dependency collection',
+      tracks: [
+        {
+          moderationStatus: 'REJECTED',
+          processingStatus: 'READY',
+          status: 'REJECTED'
+        }
+      ]
     },
     {
       pricingReviewStatus: 'APPROVED',
@@ -96,12 +116,16 @@ test('upload inventory collection counts describe release lifecycle posture', ()
   assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[0], filter: 'live' }), true)
   assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[1], filter: 'review' }), true)
   assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[2], filter: 'needsChanges' }), true)
-  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[3], filter: 'archived' }), true)
+  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[3], filter: 'blockedDependencies' }), true)
+  assert.equal(collectionMatchesUploadInventoryFilter({ collection: collections[4], filter: 'archived' }), true)
+  assert.equal(hasBlockedCollectionDependency(collections[2]), false)
+  assert.equal(hasBlockedCollectionDependency(collections[3]), true)
   assert.deepEqual(getUploadInventoryCollectionFilterCounts(collections), {
-    all: 4,
+    all: 5,
     archived: 1,
+    blockedDependencies: 1,
     live: 1,
-    needsChanges: 1,
+    needsChanges: 2,
     review: 1
   })
 })
