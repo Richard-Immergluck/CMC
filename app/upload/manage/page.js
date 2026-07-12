@@ -17,9 +17,11 @@ import {
 export const dynamic = 'force-dynamic'
 
 const trackSelect = {
+  additionalInfo: true,
   id: true,
   title: true,
   composer: true,
+  downloadName: true,
   status: true,
   moderationStatus: true,
   processingStatus: true,

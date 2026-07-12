@@ -2,7 +2,7 @@
 
 import { memo, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, Layers3, Search, UploadCloud, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Layers3, Pencil, Search, UploadCloud, X } from 'lucide-react'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import { Button } from '../../ui/primitives'
 import {
@@ -96,6 +96,260 @@ const formatBatchDate = value => {
     month: '2-digit',
     year: 'numeric'
   }).format(new Date(value))
+}
+
+const getTrackMetadataDraft = track => ({
+  additionalInfo: track.additionalInfo || '',
+  composer: track.composer || '',
+  downloadName: track.downloadName || '',
+  instrumentation: track.instrumentation || '',
+  key: track.key || '',
+  title: track.title || ''
+})
+
+const UploadedTracksManager = ({ onTrackUpdated, tracks }) => {
+  const [draft, setDraft] = useState(null)
+  const [editingTrackId, setEditingTrackId] = useState(null)
+  const [error, setError] = useState('')
+  const [savingTrackId, setSavingTrackId] = useState(null)
+  const [status, setStatus] = useState('')
+  const [trackSearch, setTrackSearch] = useState('')
+
+  const normalizedTrackSearch = getUploadInventorySearchQuery(trackSearch)
+  const filteredTracks = useMemo(() => filterUploadInventoryTracks({
+    query: normalizedTrackSearch,
+    tracks
+  }), [normalizedTrackSearch, tracks])
+
+  const startEditingTrack = track => {
+    setDraft(getTrackMetadataDraft(track))
+    setEditingTrackId(track.id)
+    setError('')
+    setStatus('')
+  }
+
+  const cancelEditingTrack = () => {
+    setDraft(null)
+    setEditingTrackId(null)
+  }
+
+  const updateDraft = (field, value) => {
+    setDraft(currentDraft => ({
+      ...(currentDraft || {}),
+      [field]: value
+    }))
+  }
+
+  const saveTrackMetadata = async track => {
+    setError('')
+    setStatus('')
+    setSavingTrackId(track.id)
+
+    try {
+      const response = await fetch(`/api/tracks/${track.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          additionalInfo: draft.additionalInfo.trim() || undefined,
+          composer: draft.composer.trim() || undefined,
+          downloadName: draft.downloadName.trim(),
+          instrumentation: draft.instrumentation.trim() || undefined,
+          key: draft.key.trim() || undefined,
+          title: draft.title.trim() || undefined
+        })
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to update track metadata')
+      }
+
+      onTrackUpdated(data)
+      setStatus(`${data.title || track.title} updated.`)
+      cancelEditingTrack()
+    } catch (saveError) {
+      setError(saveError.message || 'Unable to update track metadata')
+    } finally {
+      setSavingTrackId(null)
+    }
+  }
+
+  return (
+    <section className='cmc-upload-management-tracks' aria-labelledby='upload-management-tracks-heading'>
+      <div className='cmc-profile-section-heading'>
+        <div>
+          <p className='cmc-profile-kicker'>Uploaded tracks</p>
+          <h2 id='upload-management-tracks-heading'>Manage Track Metadata</h2>
+        </div>
+        <p>{filteredTracks.length} of {tracks.length}</p>
+      </div>
+
+      <div className='cmc-upload-management-search'>
+        <Search aria-hidden='true' size={18} />
+        <label htmlFor='uploaded-track-search'>Search uploaded tracks</label>
+        <input
+          id='uploaded-track-search'
+          onChange={event => setTrackSearch(event.target.value)}
+          placeholder='Search title, composer, key, filename, notes...'
+          type='search'
+          value={trackSearch}
+        />
+        {trackSearch && (
+          <button
+            aria-label='Clear uploaded track search'
+            onClick={() => setTrackSearch('')}
+            type='button'
+          >
+            <X aria-hidden='true' size={18} />
+          </button>
+        )}
+      </div>
+
+      {error && <div className='cmc-profile-notice cmc-profile-notice--error' role='alert'>{error}</div>}
+      {status && <div className='cmc-profile-notice cmc-profile-notice--success' role='status'>{status}</div>}
+
+      {tracks.length === 0 ? (
+        <div className='cmc-upload-management-empty'>
+          <h3>No approved tracks yet</h3>
+          <p>Approved uploads will appear here for metadata upkeep once review is complete.</p>
+        </div>
+      ) : filteredTracks.length === 0 ? (
+        <div className='cmc-upload-management-empty'>
+          <h3>No tracks found</h3>
+          <p>No approved uploaded tracks match that search.</p>
+        </div>
+      ) : (
+        <ul className='cmc-upload-management-track-list'>
+          {filteredTracks.map(track => {
+            const isEditing = editingTrackId === track.id
+            const membershipSummary = getTrackMembershipSummary(track)
+
+            return (
+              <li key={track.id}>
+                <div className='cmc-upload-management-track-main'>
+                  <strong>{track.title}</strong>
+                  <span>{track.composer || 'Unknown composer'} · {track.key || 'Key not set'} · {track.instrumentation || 'Instrumentation not set'}</span>
+                  {membershipSummary && (
+                    <small className='cmc-upload-management-membership'>
+                      Part of {membershipSummary}
+                    </small>
+                  )}
+                </div>
+                <dl className='cmc-upload-management-track-stats'>
+                  <div>
+                    <dt>Price</dt>
+                    <dd>{track.formattedPrice || formatPricePence(track.pricePence || 0)}</dd>
+                  </div>
+                  <div>
+                    <dt>Comments</dt>
+                    <dd>{track.commentCount || 0}</dd>
+                  </div>
+                  <div>
+                    <dt>Requests</dt>
+                    <dd>{track.requestCount || 0}</dd>
+                  </div>
+                </dl>
+                <div className='cmc-upload-management-track-actions'>
+                  <Button
+                    disabled={Boolean(editingTrackId) && !isEditing}
+                    onClick={() => startEditingTrack(track)}
+                    type='button'
+                    variant='paper'
+                  >
+                    <Pencil aria-hidden='true' size={16} />
+                    Edit metadata
+                  </Button>
+                  <Button as={Link} href={`/tracks/${track.id}`} variant='subtle'>
+                    Details
+                  </Button>
+                </div>
+
+                {isEditing && draft && (
+                  <form
+                    className='cmc-upload-management-track-edit-form'
+                    onSubmit={event => {
+                      event.preventDefault()
+                      saveTrackMetadata(track)
+                    }}
+                  >
+                    <label>
+                      <span>Title</span>
+                      <input
+                        maxLength={255}
+                        onChange={event => updateDraft('title', event.target.value)}
+                        required
+                        type='text'
+                        value={draft.title}
+                      />
+                    </label>
+                    <label>
+                      <span>Composer</span>
+                      <input
+                        maxLength={255}
+                        onChange={event => updateDraft('composer', event.target.value)}
+                        required
+                        type='text'
+                        value={draft.composer}
+                      />
+                    </label>
+                    <label>
+                      <span>Key</span>
+                      <input
+                        maxLength={255}
+                        onChange={event => updateDraft('key', event.target.value)}
+                        required
+                        type='text'
+                        value={draft.key}
+                      />
+                    </label>
+                    <label>
+                      <span>Instrumentation</span>
+                      <input
+                        maxLength={255}
+                        onChange={event => updateDraft('instrumentation', event.target.value)}
+                        required
+                        type='text'
+                        value={draft.instrumentation}
+                      />
+                    </label>
+                    <label>
+                      <span>Download filename</span>
+                      <input
+                        maxLength={255}
+                        onChange={event => updateDraft('downloadName', event.target.value)}
+                        placeholder='Optional buyer-facing filename'
+                        type='text'
+                        value={draft.downloadName}
+                      />
+                    </label>
+                    <label className='cmc-upload-management-track-edit-form-notes'>
+                      <span>Additional notes</span>
+                      <textarea
+                        maxLength={2000}
+                        onChange={event => updateDraft('additionalInfo', event.target.value)}
+                        rows={4}
+                        value={draft.additionalInfo}
+                      />
+                    </label>
+                    <div className='cmc-upload-management-track-edit-actions'>
+                      <Button disabled={savingTrackId === track.id} type='submit' variant='ink'>
+                        {savingTrackId === track.id ? 'Saving...' : 'Save metadata'}
+                      </Button>
+                      <Button disabled={savingTrackId === track.id} onClick={cancelEditingTrack} type='button' variant='subtle'>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
+  )
 }
 
 const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
@@ -626,6 +880,7 @@ const UploadManagementPageContent = ({
   userWorksCollections = []
 }) => {
   const [uploadBatches, setUploadBatches] = useState(userUploadBatches)
+  const [uploadedTracks, setUploadedTracks] = useState(userUploadedTracks)
   const [worksCollections, setWorksCollections] = useState(userWorksCollections)
   const [batchStatusMessage, setBatchStatusMessage] = useState('')
   const [batchError, setBatchError] = useState('')
@@ -778,7 +1033,7 @@ const UploadManagementPageContent = ({
               <dl>
                 <div>
                   <dt>Approved Tracks</dt>
-                  <dd>{userUploadedTracks.length}</dd>
+                  <dd>{uploadedTracks.length}</dd>
                 </div>
                 <div>
                   <dt>Collections</dt>
@@ -807,6 +1062,13 @@ const UploadManagementPageContent = ({
             </div>
           </section>
 
+          <UploadedTracksManager
+            onTrackUpdated={updatedTrack => setUploadedTracks(currentTracks => currentTracks.map(track => (
+              track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
+            )))}
+            tracks={uploadedTracks}
+          />
+
           <WorksCollectionsManager
             collections={worksCollections}
             onCreated={(collection, action = {}) => setWorksCollections(currentCollections => {
@@ -822,7 +1084,7 @@ const UploadManagementPageContent = ({
 
               return [collection, ...currentCollections]
             })}
-            tracks={userUploadedTracks}
+            tracks={uploadedTracks}
           />
 
           <section className='cmc-upload-management-batches' aria-labelledby='upload-management-batches-heading'>
