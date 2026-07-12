@@ -15,6 +15,7 @@ import {
   Tabs
 } from 'react-bootstrap'
 import { Button } from '../../ui/primitives'
+import { getAdminBatchReviewGuidance } from '../../../lib/admin-batch-review-guidance.mjs'
 import {
   filterAndSortAdminUploadBatches,
   filterAndSortAdminWorksCollections,
@@ -862,6 +863,7 @@ const UploadBatchReviewPanel = ({ batch, onBulkModerate }) => {
   const [moderationNotes, setModerationNotes] = useState('')
   const [reviewing, setReviewing] = useState(false)
   const [error, setError] = useState('')
+  const guidance = getAdminBatchReviewGuidance(batch)
 
   if (!batch) {
     return null
@@ -920,13 +922,16 @@ const UploadBatchReviewPanel = ({ batch, onBulkModerate }) => {
           </Col>
         </Row>
 
+        <Alert className='py-2' variant={guidance.variant}>
+          <strong>{guidance.title}.</strong> {guidance.body}
+        </Alert>
         {error && <Alert variant='danger'>{error}</Alert>}
 
         <Row className='align-items-end g-3 mb-3'>
           <Col md={3}>
             <Form.Check
               checked={pendingTrackIds.length > 0 && selectedTrackIds.length === pendingTrackIds.length}
-              disabled={reviewing || pendingTrackIds.length === 0}
+              disabled={reviewing || !guidance.actionable}
               label={`Select pending (${pendingTrackIds.length})`}
               onChange={event => setSelectedTrackIds(event.target.checked ? pendingTrackIds : [])}
             />
@@ -935,7 +940,7 @@ const UploadBatchReviewPanel = ({ batch, onBulkModerate }) => {
           <Col md={3}>
             <Form.Label className='small text-muted' htmlFor='admin-batch-review-decision'>Batch decision</Form.Label>
             <Form.Select
-              disabled={reviewing || pendingTrackIds.length === 0}
+              disabled={reviewing || !guidance.actionable}
               id='admin-batch-review-decision'
               onChange={event => setDecision(event.target.value)}
               size='sm'
@@ -948,7 +953,7 @@ const UploadBatchReviewPanel = ({ batch, onBulkModerate }) => {
           <Col md={4}>
             <Form.Label className='small text-muted' htmlFor='admin-batch-review-note'>Shared review note</Form.Label>
             <Form.Control
-              disabled={reviewing || pendingTrackIds.length === 0}
+              disabled={reviewing || !guidance.actionable}
               id='admin-batch-review-note'
               onChange={event => setModerationNotes(event.target.value)}
               placeholder='Optional moderation note'
@@ -958,7 +963,7 @@ const UploadBatchReviewPanel = ({ batch, onBulkModerate }) => {
           </Col>
           <Col md={2} className='text-end'>
             <Button
-              disabled={reviewing || selectedTrackIds.length === 0}
+              disabled={reviewing || !guidance.actionable || selectedTrackIds.length === 0}
               onClick={submitBatchReview}
               size='sm'
               variant={decision === 'reject' ? 'danger' : 'primary'}
