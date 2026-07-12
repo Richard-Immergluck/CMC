@@ -34,6 +34,7 @@ const requiredRoutes = [
   '/api/stripe/checkout_sessions/reconcile',
   '/api/stripe/webhook',
   '/api/tracks',
+  '/api/tracks/bulk-metadata',
   '/api/tracks/[trackId]',
   '/api/tracks/[trackId]/signed-url',
   '/api/tracks/list',
