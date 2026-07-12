@@ -731,4 +731,80 @@ test.describe('track review API flow', () => {
       moderationStatus: 'APPROVED'
     })
   })
+
+  test('admins can bulk approve selected pending tracks in the browser', async ({ page }) => {
+    const suffix = `ui-bulk-${Date.now()}`
+
+    await signInPageAs(page, 'e2e-uploader@example.com')
+
+    const firstCreateResponse = await page.request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-one`)
+    })
+    const secondCreateResponse = await page.request.post('/api/tracks', {
+      data: createTrackInput(`${suffix}-two`)
+    })
+    const firstTrack = await firstCreateResponse.json()
+    const secondTrack = await secondCreateResponse.json()
+
+    expect(firstCreateResponse.status()).toBe(200)
+    expect(secondCreateResponse.status()).toBe(200)
+
+    await signInPageAs(page, 'e2e-admin@example.com')
+    await page.goto('/admin')
+
+    await page.getByRole('tab', { name: /Track Review/i }).click()
+
+    const firstReviewRow = page.getByRole('row').filter({
+      hasText: firstTrack.title
+    })
+    const secondReviewRow = page.getByRole('row').filter({
+      hasText: secondTrack.title
+    })
+
+    await expect(firstReviewRow).toBeVisible()
+    await expect(secondReviewRow).toBeVisible()
+
+    await firstReviewRow.getByLabel(`Select ${firstTrack.title} for bulk review`).check()
+    await secondReviewRow.getByLabel(`Select ${secondTrack.title} for bulk review`).check()
+    await expect(page.getByText('2 selected for this review action.')).toBeVisible()
+
+    await page.getByPlaceholder('Optional moderation note').fill('Approved together from admin browser flow.')
+    await page.getByRole('button', { name: 'Apply' }).click()
+
+    await expect(firstReviewRow).toHaveCount(0)
+    await expect(secondReviewRow).toHaveCount(0)
+
+    await expect.poll(async () => {
+      const [firstPublicResponse, secondPublicResponse] = await Promise.all([
+        page.request.get(`/api/tracks/${firstTrack.id}`),
+        page.request.get(`/api/tracks/${secondTrack.id}`)
+      ])
+
+      if (!firstPublicResponse.ok() || !secondPublicResponse.ok()) {
+        return []
+      }
+
+      const [firstPublicTrack, secondPublicTrack] = await Promise.all([
+        firstPublicResponse.json(),
+        secondPublicResponse.json()
+      ])
+
+      return [firstPublicTrack, secondPublicTrack].map(track => ({
+        id: track.id,
+        status: track.status,
+        moderationStatus: track.moderationStatus
+      }))
+    }).toEqual([
+      {
+        id: firstTrack.id,
+        status: 'PUBLISHED',
+        moderationStatus: 'APPROVED'
+      },
+      {
+        id: secondTrack.id,
+        status: 'PUBLISHED',
+        moderationStatus: 'APPROVED'
+      }
+    ])
+  })
 })
