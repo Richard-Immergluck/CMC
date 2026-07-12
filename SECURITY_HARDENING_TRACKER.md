@@ -81,6 +81,7 @@ This tracker records backend security and auditability work completed so far and
 - Added admin/operator search/filter/sort controls for Batch Imports and Works & Collections review surfaces so large first-wave imports can be triaged by lifecycle, uploader, attention state, sales, and release status.
 - Added an admin Batch Imports review workspace so operators can open an import batch, apply audited bulk decisions to pending tracks in that batch, and automatically close fully reviewed batches.
 - Added deterministic admin guidance for empty, ready, failed, and completed upload batches so operators can distinguish reviewable work from uploader-action blockers.
+- Added admin track review dependency visibility for Works & Collections so operators can see when a pending track is part of a grouped release and understand release/pricing state before moderation.
 
 ## In Progress
 
@@ -89,4 +90,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
-- Continue upload-management hardening around first-wave uploader import operations, especially release-linked moderation workflows.
+- Continue upload-management hardening around first-wave uploader import operations, especially automatic release lifecycle responses after dependent track moderation.

@@ -12,7 +12,8 @@ import {
 import { requireSensitiveRouteCurrentUser } from '../../../../../lib/server/route-auth'
 import {
   buildTrackModerationChangeMetadata,
-  toTrackReviewItem
+  toTrackReviewItem,
+  trackReviewInclude
 } from '../../../../../lib/server/admin-core.mjs'
 import { auditActions } from '../../../../../lib/server/audit-core.mjs'
 import { recordAuditEvent } from '../../../../../lib/server/audit'
@@ -71,9 +72,7 @@ export async function PATCH(request, { params }) {
       where: {
         id: trackId
       },
-      include: {
-        uploadedBy: true
-      }
+      include: trackReviewInclude
     })
 
     if (!before) {
@@ -90,9 +89,7 @@ export async function PATCH(request, { params }) {
         reviewedAt: new Date(),
         publishedAt: input.decision === 'approve' ? new Date() : before.publishedAt
       },
-      include: {
-        uploadedBy: true
-      }
+      include: trackReviewInclude
     })
 
     await recordAuditEvent({

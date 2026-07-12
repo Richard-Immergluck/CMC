@@ -758,6 +758,15 @@ const TrackReviewRow = ({ checked, disabled = false, onModerate, onToggleSelecte
             Import batch: {track.uploadBatch.label || `Batch #${track.uploadBatch.id}`} · {track.uploadBatch.status} · {track.uploadBatch.trackCount} tracks
           </div>
         )}
+        {track.worksCollections?.length > 0 && (
+          <div className='small mt-1'>
+            {track.worksCollections.map(release => (
+              <div className='text-muted' key={release.id}>
+                Work/Collection dependency: <strong>{release.title}</strong> · {release.status} · {release.pricingReviewStatus} · {release.trackCount} tracks
+              </div>
+            ))}
+          </div>
+        )}
         <div className='mt-2'>
           {reviewUrl ? (
             <audio controls src={reviewUrl} className='w-100'>

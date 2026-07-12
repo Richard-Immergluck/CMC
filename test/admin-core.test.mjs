@@ -71,6 +71,7 @@ test('track review items expose moderation context and uploader identity only', 
       processingStatus: 'READY',
       uploadBatch: null,
       uploadedAt: new Date('2026-06-25T12:00:00.000Z'),
+      worksCollections: [],
       uploader: {
         id: 'user-1',
         name: 'Uploader',
@@ -115,6 +116,65 @@ test('track review items expose limited upload batch context', () => {
         status: 'UPLOADING',
         trackCount: 7
       },
+      worksCollections: [],
+      uploader: null
+    }
+  )
+})
+
+test('track review items expose limited Works and Collections dependency context', () => {
+  assert.deepEqual(
+    toTrackReviewItem({
+      id: 3,
+      title: 'Track in release',
+      composer: 'Composer',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING',
+      processingStatus: 'READY',
+      uploadedAt: new Date('2026-06-25T12:00:00.000Z'),
+      uploadedBy: null,
+      releaseItems: [
+        {
+          position: 1,
+          titleInWork: 'should-not-leak',
+          release: {
+            id: 91,
+            title: 'Pending song cycle',
+            status: 'SUBMITTED',
+            catalogueType: 'SONG_CYCLE',
+            saleFormat: 'BOTH',
+            pricingReviewStatus: 'NEEDS_REVIEW',
+            pricingJustification: 'should-not-leak',
+            uploadedBy: {
+              email: 'should-not-leak@example.com'
+            },
+            _count: {
+              tracks: 4
+            }
+          }
+        }
+      ]
+    }),
+    {
+      id: 3,
+      title: 'Track in release',
+      composer: 'Composer',
+      status: 'DRAFT',
+      moderationStatus: 'PENDING',
+      processingStatus: 'READY',
+      uploadBatch: null,
+      uploadedAt: new Date('2026-06-25T12:00:00.000Z'),
+      worksCollections: [
+        {
+          catalogueType: 'SONG_CYCLE',
+          id: 91,
+          pricingReviewStatus: 'NEEDS_REVIEW',
+          saleFormat: 'BOTH',
+          status: 'SUBMITTED',
+          title: 'Pending song cycle',
+          trackCount: 4
+        }
+      ],
       uploader: null
     }
   )
