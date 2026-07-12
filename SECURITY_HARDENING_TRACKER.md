@@ -73,6 +73,8 @@ This tracker records backend security and auditability work completed so far and
 - Added buyer-facing Works & Collections price transparency so public list/detail pages show the individual-track total and only show savings when the grouped release is actually cheaper.
 - Added uploader-facing Works & Collections price context in upload management so uploaders can compare selected-track totals against grouped release pricing while creating or editing collections.
 - Added admin-facing Works & Collections price context so operators can review release price, individual-track total, savings/premium context, and per-track prices from the admin console.
+- Added uploader-side bulk metadata controls so first-wave uploaders can select approved uploaded tracks and apply shared composer, key, and instrumentation values without editing each track manually.
+- Added a bounded trusted-origin bulk track metadata API that validates unique track IDs, enforces uploader ownership for every selected track, updates in one transaction, and writes per-track audit events for changed metadata.
 
 ## In Progress
 
@@ -81,4 +83,4 @@ This tracker records backend security and auditability work completed so far and
 ## Next Targets
 
 - Review whether user-facing messaging should distinguish forced re-authentication from generic auth expiry.
-- Continue upload-management hardening around larger uploader-library management, especially bulk-edit ergonomics and high-volume review workflows for first-wave uploaders.
+- Continue upload-management hardening around larger uploader-library management, especially high-volume import/review workflows for first-wave uploaders.
