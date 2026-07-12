@@ -145,6 +145,14 @@ Server-side permissions are centralised in `lib/server/permissions.mjs`. Track u
 
 New uploader submissions are created as `DRAFT` tracks with `moderationStatus=PENDING` and are not visible in the public catalogue until they are moved to `PUBLISHED`, `APPROVED`, and `READY`. Seeded demo fixtures remain explicitly published for Preview smoke testing.
 
+Uploader catalogue management is split across three surfaces:
+
+- `/upload` creates single-track or batch submissions. Batch uploads are capped at 50 files per batch so first-wave uploader imports remain reviewable and recoverable.
+- `/upload/manage` is the uploader workspace for approved catalogue operations. Uploaders can search approved uploaded tracks, edit descriptive metadata only (`title`, `composer`, `key`, `instrumentation`, `additionalInfo`, `downloadName`), resume upload batches, and group approved tracks into Works and Collections.
+- `/upload/manage/works/:collectionId` is the read-only management detail for a grouped Work or Collection. Public buyers still discover and buy individual tracks first; collection membership is supporting catalogue context unless the Work or Collection is explicitly offered as a grouped release.
+
+Pricing, publication state, moderation state, processing state, ownership, and uploader identity are not editable from the uploader metadata form. Track metadata updates go through `PATCH /api/tracks/:trackId`, require the current user to own the upload, reject archived tracks, require trusted browser origins, and write `track.metadata_updated` audit events with changed field names only.
+
 Privileged backend foundations:
 
 - `GET /api/admin/summary` requires `ADMIN` or `SUPPORT`.
