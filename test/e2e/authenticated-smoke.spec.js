@@ -188,7 +188,8 @@ test.describe('authenticated smoke', () => {
     const requestStatuses = requestQueue.locator('.cmc-profile-request-status')
     await expect(requestStatuses.getByText('Active request', { exact: true }).first()).toBeVisible()
     await expect(requestStatuses.getByText('Accepted - preparing', { exact: true }).first()).toBeVisible()
-    await expect(requestQueue.getByRole('link', { name: /Bach Warmup Slower Tempo/i })).toHaveAttribute('href', /\/catalogue\/\d+\?tab=requests&requestId=\d+/)
+    await expect(requestQueue.locator('.cmc-profile-request-main a').first()).toHaveAttribute('href', /\/catalogue\/\d+\?tab=requests&requestId=\d+/)
+    await expect(requestQueue.getByRole('link', { name: 'Review request' }).first()).toHaveAttribute('href', /\/catalogue\/\d+\?tab=requests&requestId=\d+/)
     await expect(requestQueue.getByRole('link', { name: 'Upload fulfilment' }).first()).toHaveAttribute('href', /\/upload\?fulfilledRequestId=\d+/)
 
     await page.goto('/upload/manage')
