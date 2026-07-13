@@ -12,6 +12,7 @@
     "deploy:check": "node scripts/deployment-readiness.js",
     "deploy:aliases": "node scripts/deployment-alias-policy-check.js",
     "seed:demo": "node scripts/seed-demo-data.mjs",
+    "seed:poc": "CMC_ALLOW_POC_RESEED=true node --env-file-if-exists=.env.local scripts/seed-poc-data.mjs",
     "security:audit-cleanup:rehearse": "node scripts/audit-cleanup-rehearsal.mjs",
     "security:access-reviews": "node scripts/admin-access-review-metrics.mjs",
     "security:alerts": "node scripts/security-alert-check.mjs",

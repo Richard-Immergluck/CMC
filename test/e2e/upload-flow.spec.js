@@ -461,8 +461,12 @@ test.describe('upload browser flow', () => {
 
     await signInPageAs(page, 'e2e-uploader@example.com')
 
-    const acceptResponse = await page.request.patch(`/api/track-requests/${trackRequest.id}`, {
+    const acceptResponse = await page.request.post(`/api/track-requests/${trackRequest.id}/responses`, {
       data: {
+        catalogueType: 'SINGLE_TRACK',
+        pricePence: 399,
+        pricingJustification: 'Accepted for fulfilment upload E2E.',
+        saleFormat: 'INDIVIDUAL',
         status: 'ACCEPTED'
       }
     })

@@ -11,6 +11,7 @@ const requiredTables = [
   'TrackOwner',
   'Comment',
   'TrackRequest',
+  'TrackRequestResponse',
   'WishlistItem',
   'CatalogueRelease',
   'CatalogueReleaseTrack',

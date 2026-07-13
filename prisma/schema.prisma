@@ -61,6 +61,7 @@ model User {
   orders                        Order[]
   auditEvents                   AuditEvent[]
   TrackRequests                 TrackRequest[]
+  TrackRequestResponses         TrackRequestResponse[]
   WishlistItems                 WishlistItem[]
   CatalogueReleases             CatalogueRelease[]
   UploadBatches                 UploadBatch[]
@@ -84,49 +85,50 @@ model VerificationToken {
 }
 
 model Track {
-  id                     Int                   @id @default(autoincrement())
-  fileName               String
-  title                  String
-  composer               String
-  status                 TrackStatus           @default(PUBLISHED)
-  moderationStatus       TrackModerationStatus @default(APPROVED)
-  processingStatus       TrackProcessingStatus @default(READY)
-  uploadedAt             DateTime              @default(now())
-  updatedAt              DateTime              @updatedAt
-  publishedAt            DateTime?
-  reviewedAt             DateTime?
-  uploadedBy             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                 String
-  uploadBatch            UploadBatch?          @relation(fields: [uploadBatchId], references: [id], onDelete: SetNull)
-  uploadBatchId          Int?
-  previewFileName        String?
-  previewStart           Int?
-  previewEnd             Int?
-  durationSeconds        Int?
-  sourceContentType      String?
-  price                  Float?
-  pricePence             Int?
-  currency               String                @default("gbp")
-  formattedPrice         String?
-  catalogueType          CatalogueType         @default(SINGLE_TRACK)
-  saleFormat             SaleFormat            @default(INDIVIDUAL)
-  pricingTier            String?
-  pricingReviewStatus    PricingReviewStatus   @default(AUTO_APPROVED)
-  pricingJustification   String?               @db.Text
-  downloadName           String?
-  downloadCount          Int?
-  key                    String?
-  instrumentation        String?
-  additionalInfo         String?
-  moderationNotes        String?               @db.Text
-  processingError        String?               @db.Text
-  TrackOwner             TrackOwner[]
-  Comments               Comment[]
-  TrackRequests          TrackRequest[]
-  FulfilledTrackRequests TrackRequest[]        @relation("TrackRequestFulfilment")
-  WishlistItems          WishlistItem[]
-  orderItems             OrderItem[]
-  releaseItems           CatalogueReleaseTrack[]
+  id                        Int                     @id @default(autoincrement())
+  fileName                  String
+  title                     String
+  composer                  String
+  status                    TrackStatus             @default(PUBLISHED)
+  moderationStatus          TrackModerationStatus   @default(APPROVED)
+  processingStatus          TrackProcessingStatus   @default(READY)
+  uploadedAt                DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
+  publishedAt               DateTime?
+  reviewedAt                DateTime?
+  uploadedBy                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                    String
+  uploadBatch               UploadBatch?            @relation(fields: [uploadBatchId], references: [id], onDelete: SetNull)
+  uploadBatchId             Int?
+  previewFileName           String?
+  previewStart              Int?
+  previewEnd                Int?
+  durationSeconds           Int?
+  sourceContentType         String?
+  price                     Float?
+  pricePence                Int?
+  currency                  String                  @default("gbp")
+  formattedPrice            String?
+  catalogueType             CatalogueType           @default(SINGLE_TRACK)
+  saleFormat                SaleFormat              @default(INDIVIDUAL)
+  pricingTier               String?
+  pricingReviewStatus       PricingReviewStatus     @default(AUTO_APPROVED)
+  pricingJustification      String?                 @db.Text
+  downloadName              String?
+  downloadCount             Int?
+  key                       String?
+  instrumentation           String?
+  additionalInfo            String?
+  moderationNotes           String?                 @db.Text
+  processingError           String?                 @db.Text
+  TrackOwner                TrackOwner[]
+  Comments                  Comment[]
+  TrackRequests             TrackRequest[]
+  FulfilledTrackRequests    TrackRequest[]          @relation("TrackRequestFulfilment")
+  FulfilledRequestResponses TrackRequestResponse[]  @relation("TrackRequestResponseFulfilment")
+  WishlistItems             WishlistItem[]
+  orderItems                OrderItem[]
+  releaseItems              CatalogueReleaseTrack[]
 
   @@index([status])
   @@index([userId])
@@ -158,24 +160,24 @@ model UploadBatch {
 }
 
 model CatalogueRelease {
-  id                    Int                     @id @default(autoincrement())
-  title                 String
-  composer              String?
-  status                CatalogueReleaseStatus  @default(PUBLISHED)
-  catalogueType         CatalogueType
-  saleFormat            SaleFormat              @default(BUNDLE)
-  pricePence            Int?
-  currency              String                  @default("gbp")
-  formattedPrice        String?
-  pricingReviewStatus   PricingReviewStatus     @default(AUTO_APPROVED)
-  pricingJustification  String?                 @db.Text
-  uploadedBy            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                String
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
-  tracks                CatalogueReleaseTrack[]
-  orderItems            OrderItem[]
-  trackOwners           TrackOwner[]
+  id                   Int                     @id @default(autoincrement())
+  title                String
+  composer             String?
+  status               CatalogueReleaseStatus  @default(PUBLISHED)
+  catalogueType        CatalogueType
+  saleFormat           SaleFormat              @default(BUNDLE)
+  pricePence           Int?
+  currency             String                  @default("gbp")
+  formattedPrice       String?
+  pricingReviewStatus  PricingReviewStatus     @default(AUTO_APPROVED)
+  pricingJustification String?                 @db.Text
+  uploadedBy           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               String
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  tracks               CatalogueReleaseTrack[]
+  orderItems           OrderItem[]
+  trackOwners          TrackOwner[]
 
   @@index([catalogueType])
   @@index([saleFormat])
@@ -232,47 +234,79 @@ model Comment {
 }
 
 model TrackRequest {
-  id                 Int                @id @default(autoincrement())
-  requestedBy        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 Int                      @id @default(autoincrement())
+  requestedBy        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String
-  track              Track?             @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  track              Track?                   @relation(fields: [trackId], references: [id], onDelete: Cascade)
   trackId            Int?
-  fulfilledByTrack   Track?             @relation("TrackRequestFulfilment", fields: [fulfilledByTrackId], references: [id], onDelete: SetNull)
+  fulfilledByTrack   Track?                   @relation("TrackRequestFulfilment", fields: [fulfilledByTrackId], references: [id], onDelete: SetNull)
   fulfilledByTrackId Int?
   title              String
   composer           String?
   instrumentation    String?
-  notes              String?            @db.Text
+  notes              String?                  @db.Text
   rejectionReason    String?
-  rejectionNote      String?            @db.Text
-  status             TrackRequestStatus @default(OPEN)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  rejectionNote      String?                  @db.Text
+  status             TrackRequestStatus       @default(OPEN)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  expiresAt          DateTime?
   pricingProposals   RequestPricingProposal[]
+  responses          TrackRequestResponse[]
 
   @@index([userId, createdAt])
   @@index([trackId, createdAt])
   @@index([fulfilledByTrackId])
   @@index([status, createdAt])
+  @@index([expiresAt])
+}
+
+model TrackRequestResponse {
+  id                   Int                        @id @default(autoincrement())
+  request              TrackRequest               @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId            Int
+  respondedBy          User                       @relation(fields: [respondedById], references: [id], onDelete: Cascade)
+  respondedById        String
+  fulfilledByTrack     Track?                     @relation("TrackRequestResponseFulfilment", fields: [fulfilledByTrackId], references: [id], onDelete: SetNull)
+  fulfilledByTrackId   Int?
+  status               TrackRequestResponseStatus @default(ACCEPTED)
+  pricePence           Int?
+  currency             String                     @default("gbp")
+  catalogueType        CatalogueType              @default(SINGLE_TRACK)
+  saleFormat           SaleFormat                 @default(INDIVIDUAL)
+  pricingReviewStatus  PricingReviewStatus        @default(AUTO_APPROVED)
+  pricingJustification String?                    @db.Text
+  responseNote         String?                    @db.Text
+  rejectionReason      String?
+  rejectionNote        String?                    @db.Text
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  completedAt          DateTime?
+
+  @@unique([requestId, respondedById])
+  @@index([requestId, status])
+  @@index([respondedById, createdAt])
+  @@index([fulfilledByTrackId])
+  @@index([pricingReviewStatus, createdAt])
 }
 
 model RequestPricingProposal {
-  id                    Int                          @id @default(autoincrement())
-  request               TrackRequest                 @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  requestId             Int
-  proposedBy            User                         @relation(fields: [proposedById], references: [id], onDelete: Cascade)
-  proposedById          String
-  pricePence            Int
-  currency              String                       @default("gbp")
-  catalogueType         CatalogueType                @default(SINGLE_TRACK)
-  saleFormat            SaleFormat                   @default(INDIVIDUAL)
-  reviewStatus          PricingReviewStatus          @default(AUTO_APPROVED)
-  requesterDecision     RequestPricingDecisionStatus @default(PENDING)
-  justification         String?                      @db.Text
-  requesterNote         String?                      @db.Text
-  createdAt             DateTime                     @default(now())
-  updatedAt             DateTime                     @updatedAt
-  requesterRespondedAt  DateTime?
+  id                   Int                          @id @default(autoincrement())
+  request              TrackRequest                 @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId            Int
+  proposedBy           User                         @relation(fields: [proposedById], references: [id], onDelete: Cascade)
+  proposedById         String
+  pricePence           Int
+  currency             String                       @default("gbp")
+  catalogueType        CatalogueType                @default(SINGLE_TRACK)
+  saleFormat           SaleFormat                   @default(INDIVIDUAL)
+  reviewStatus         PricingReviewStatus          @default(AUTO_APPROVED)
+  requesterDecision    RequestPricingDecisionStatus @default(PENDING)
+  justification        String?                      @db.Text
+  requesterNote        String?                      @db.Text
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  requesterRespondedAt DateTime?
 
   @@index([requestId, createdAt])
   @@index([proposedById, createdAt])
@@ -403,6 +437,13 @@ enum TrackRequestStatus {
   ACCEPTED
   REJECTED
   COMPLETED
+}
+
+enum TrackRequestResponseStatus {
+  ACCEPTED
+  DECLINED
+  COMPLETED
+  WITHDRAWN
 }
 
 enum CatalogueType {

@@ -6,6 +6,7 @@ import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import { authOptions } from '../../../lib/server/auth'
 import { getCurrentUser } from '../../../lib/server/ownership'
 import prisma from '../../../lib/server/prisma'
+import { isTrackRequestExpired } from '../../../lib/server/request-responses.mjs'
 import { publicTrackWhere } from '../../../lib/server/tracks-core.mjs'
 
 export const dynamic = 'force-dynamic'
@@ -98,6 +99,7 @@ const getTrackDetail = async (trackId, currentUser = null) => {
         rejectionReason: true,
         status: true,
         createdAt: true,
+        expiresAt: true,
         userId: true,
         requestedBy: {
           select: {
@@ -129,10 +131,49 @@ const getTrackDetail = async (trackId, currentUser = null) => {
             createdAt: 'desc'
           },
           take: 3
+        },
+        responses: {
+          select: {
+            id: true,
+            catalogueType: true,
+            completedAt: true,
+            createdAt: true,
+            currency: true,
+            fulfilledByTrack: {
+              select: {
+                id: true,
+                moderationStatus: true,
+                processingStatus: true,
+                status: true,
+                title: true
+              }
+            },
+            fulfilledByTrackId: true,
+            pricePence: true,
+            pricingJustification: true,
+            pricingReviewStatus: true,
+            rejectionNote: true,
+            rejectionReason: true,
+            respondedBy: {
+              select: {
+                email: true,
+                id: true,
+                name: true
+              }
+            },
+            respondedById: true,
+            responseNote: true,
+            saleFormat: true,
+            status: true,
+            updatedAt: true
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
         }
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'asc'
       }
     })
   ])
@@ -147,37 +188,76 @@ const getTrackDetail = async (trackId, currentUser = null) => {
       userId: comment.userId,
       userName: comment.postedBy?.name || 'Unknown'
     })),
-    requests: requests.map(request => ({
-      createdAt: formatDisplayDate(request.createdAt),
-      description: request.notes || 'No additional request notes supplied.',
-      id: request.id,
-      rejectionNote: request.rejectionNote,
-      rejectionReason: request.rejectionReason,
-      requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
-      isRequestedByViewer: Boolean(currentUser && request.userId === currentUser.id),
-      status: request.status,
-      title: request.title,
-      userId: request.userId,
-      fulfilledByTrack: request.fulfilledByTrack
-        ? {
-            id: request.fulfilledByTrack.id,
-            title: request.fulfilledByTrack.title,
-            moderationStatus: request.fulfilledByTrack.moderationStatus,
-            status: request.fulfilledByTrack.status
-          }
-        : null,
-      pricingProposals: request.pricingProposals.map(proposal => ({
-        catalogueType: proposal.catalogueType,
-        createdAt: formatDisplayDate(proposal.createdAt),
-        currency: proposal.currency,
-        id: proposal.id,
-        justification: proposal.justification,
-        pricePence: proposal.pricePence,
-        requesterDecision: proposal.requesterDecision,
-        reviewStatus: proposal.reviewStatus,
-        saleFormat: proposal.saleFormat
+    requests: requests.map(request => {
+      const responses = request.responses.map(response => ({
+        catalogueType: response.catalogueType,
+        completedAt: response.completedAt ? formatDisplayDate(response.completedAt) : null,
+        createdAt: formatDisplayDate(response.createdAt),
+        currency: response.currency,
+        fulfilledByTrack: response.fulfilledByTrack
+          ? {
+              id: response.fulfilledByTrack.id,
+              title: response.fulfilledByTrack.title,
+              moderationStatus: response.fulfilledByTrack.moderationStatus,
+              processingStatus: response.fulfilledByTrack.processingStatus,
+              status: response.fulfilledByTrack.status
+            }
+          : null,
+        fulfilledByTrackId: response.fulfilledByTrackId,
+        id: response.id,
+        isCurrentUserResponse: Boolean(currentUser && response.respondedById === currentUser.id),
+        pricePence: response.pricePence,
+        pricingJustification: response.pricingJustification,
+        pricingReviewStatus: response.pricingReviewStatus,
+        rejectionNote: response.rejectionNote,
+        rejectionReason: response.rejectionReason,
+        respondedBy: response.respondedBy?.name || response.respondedBy?.email || 'CMC uploader',
+        respondedById: response.respondedById,
+        responseNote: response.responseNote,
+        saleFormat: response.saleFormat,
+        status: response.status,
+        updatedAt: formatDisplayDate(response.updatedAt)
       }))
-    })),
+      const hasCompletedResponse = responses.some(response => response.status === 'COMPLETED') || Boolean(request.fulfilledByTrack)
+      const expired = isTrackRequestExpired(request) && !hasCompletedResponse
+
+      return {
+        createdAt: formatDisplayDate(request.createdAt),
+        createdAtTimestamp: request.createdAt.toISOString(),
+        description: request.notes || 'No additional request notes supplied.',
+        displayStatus: expired ? 'EXPIRED' : request.status,
+        expiresAt: request.expiresAt ? formatDisplayDate(request.expiresAt) : null,
+        fulfilledByTrack: request.fulfilledByTrack
+          ? {
+              id: request.fulfilledByTrack.id,
+              title: request.fulfilledByTrack.title,
+              moderationStatus: request.fulfilledByTrack.moderationStatus,
+              status: request.fulfilledByTrack.status
+            }
+          : null,
+        id: request.id,
+        isExpired: expired,
+        isRequestedByViewer: Boolean(currentUser && request.userId === currentUser.id),
+        pricingProposals: request.pricingProposals.map(proposal => ({
+          catalogueType: proposal.catalogueType,
+          createdAt: formatDisplayDate(proposal.createdAt),
+          currency: proposal.currency,
+          id: proposal.id,
+          justification: proposal.justification,
+          pricePence: proposal.pricePence,
+          requesterDecision: proposal.requesterDecision,
+          reviewStatus: proposal.reviewStatus,
+          saleFormat: proposal.saleFormat
+        })),
+        rejectionNote: request.rejectionNote,
+        rejectionReason: request.rejectionReason,
+        requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
+        responses,
+        status: request.status,
+        title: request.title,
+        userId: request.userId
+      }
+    }),
     track: {
       ...track,
       uploadedAt: formatDisplayDate(track.uploadedAt),

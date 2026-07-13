@@ -78,6 +78,14 @@ const serializeOwnerTrackRequest = request => ({
   id: request.id,
   composer: request.composer,
   createdAt: formatDisplayDate(request.createdAt),
+  currentResponse: request.responses?.[0]
+    ? {
+        id: request.responses[0].id,
+        pricePence: request.responses[0].pricePence,
+        pricingReviewStatus: request.responses[0].pricingReviewStatus,
+        status: request.responses[0].status
+      }
+    : null,
   fulfilledByTrack: request.fulfilledByTrack
     ? {
         id: request.fulfilledByTrack.id,
@@ -187,34 +195,19 @@ const getProfileData = async email => {
     }),
     prisma.trackRequest.findMany({
       where: {
-        track: {
-          userId: currentUser.id
-        },
         OR: [
           {
-            status: {
-              in: ['OPEN', 'PENDING_DECISION', 'ACCEPTED']
+            track: {
+              userId: currentUser.id
             }
           },
           {
-            status: 'COMPLETED',
-            fulfilledByTrack: {
-              is: {
-                OR: [
-                  {
-                    moderationStatus: 'PENDING'
-                  },
-                  {
-                    processingStatus: {
-                      not: 'READY'
-                    }
-                  },
-                  {
-                    status: {
-                      not: 'PUBLISHED'
-                    }
-                  }
-                ]
+            responses: {
+              some: {
+                respondedById: currentUser.id,
+                status: {
+                  in: ['ACCEPTED', 'COMPLETED']
+                }
               }
             }
           }
@@ -242,6 +235,18 @@ const getProfileData = async email => {
             id: true,
             title: true
           }
+        },
+        responses: {
+          where: {
+            respondedById: currentUser.id
+          },
+          select: {
+            id: true,
+            pricePence: true,
+            pricingReviewStatus: true,
+            status: true
+          },
+          take: 1
         }
       },
       orderBy: [

@@ -128,7 +128,7 @@ const detailTabIds = Object.keys(detailTabLabels)
 
 const requestStatusOptions = [
   {
-    label: 'New request',
+    label: 'Active request',
     value: 'OPEN'
   },
   {
@@ -146,13 +146,42 @@ const requestStatusOptions = [
   {
     label: 'Completed',
     value: 'COMPLETED'
+  },
+  {
+    label: 'Expired',
+    value: 'EXPIRED'
   }
 ]
 
-const manageableRequestStatusOptions = requestStatusOptions.filter(option => option.value !== 'COMPLETED')
+const requestResponseStatusOptions = [
+  {
+    label: 'Accepted - preparing',
+    value: 'ACCEPTED'
+  },
+  {
+    label: 'Declined',
+    value: 'DECLINED'
+  }
+]
 
 const formatRequestStatus = status => {
   return requestStatusOptions.find(option => option.value === status)?.label || status
+}
+
+const formatResponseStatus = status => {
+  if (status === 'DECLINED') {
+    return 'Declined'
+  }
+
+  if (status === 'COMPLETED') {
+    return 'Completed'
+  }
+
+  if (status === 'WITHDRAWN') {
+    return 'Withdrawn'
+  }
+
+  return 'Accepted - preparing'
 }
 
 const requestRejectionReasonOptions = [
@@ -202,26 +231,23 @@ const formatPricingReviewStatus = status => {
   return 'Within band'
 }
 
-const formatRequesterDecision = decision => {
-  if (decision === 'ACCEPTED') {
-    return 'Accepted'
-  }
-
-  if (decision === 'DECLINED') {
-    return 'Declined'
-  }
-
-  if (decision === 'SUPERSEDED') {
-    return 'Superseded'
-  }
-
-  return 'Awaiting requester'
-}
-
 const sortCommentsByTimestamp = (comments, direction) => {
   return [...comments].sort((firstComment, secondComment) => {
     const firstTime = Date.parse(firstComment.createdAtTimestamp || '')
     const secondTime = Date.parse(secondComment.createdAtTimestamp || '')
+    const safeFirstTime = Number.isFinite(firstTime) ? firstTime : 0
+    const safeSecondTime = Number.isFinite(secondTime) ? secondTime : 0
+
+    return direction === 'newest-first'
+      ? safeSecondTime - safeFirstTime
+      : safeFirstTime - safeSecondTime
+  })
+}
+
+const sortRequestsByTimestamp = (requests, direction) => {
+  return [...requests].sort((firstRequest, secondRequest) => {
+    const firstTime = Date.parse(firstRequest.createdAtTimestamp || '')
+    const secondTime = Date.parse(secondRequest.createdAtTimestamp || '')
     const safeFirstTime = Number.isFinite(firstTime) ? firstTime : 0
     const safeSecondTime = Number.isFinite(secondTime) ? secondTime : 0
 
@@ -257,42 +283,34 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const [requestTitle, setRequestTitle] = useState('')
   const [requestNotes, setRequestNotes] = useState('')
   const [requestError, setRequestError] = useState('')
+  const [requestSort, setRequestSort] = useState('newest-last')
   const [requestStatus, setRequestStatus] = useState('')
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
-  const [requestStatusDrafts, setRequestStatusDrafts] = useState(() => {
-    return Object.fromEntries(requests.map(request => [request.id, request.status]))
-  })
-  const [requestRejectionDrafts, setRequestRejectionDrafts] = useState(() => {
-    return Object.fromEntries(requests.map(request => [
-      request.id,
-      {
-        note: request.rejectionNote || '',
-        reason: request.rejectionReason || ''
-      }
-    ]))
-  })
   const [requestUpdateError, setRequestUpdateError] = useState('')
   const [requestUpdateStatus, setRequestUpdateStatus] = useState('')
-  const [updatingRequestId, setUpdatingRequestId] = useState(null)
-  const [requestPricingDrafts, setRequestPricingDrafts] = useState(() => {
+  const [requestResponseDrafts, setRequestResponseDrafts] = useState(() => {
     return Object.fromEntries(requests.map(request => {
-      const initialType = request.pricingProposals?.[0]?.catalogueType || catalogueTypes.singleTrack
+      const currentResponse = request.responses?.find(response => response.isCurrentUserResponse)
+      const initialType = currentResponse?.catalogueType || catalogueTypes.singleTrack
       const initialBand = getPricingBand(initialType)
-      const initialPricePence = request.pricingProposals?.[0]?.pricePence || initialBand.defaultPricePence
+      const initialPricePence = currentResponse?.pricePence || initialBand.defaultPricePence
 
       return [
         request.id,
         {
           catalogueType: initialType,
-          justification: request.pricingProposals?.[0]?.justification || '',
           pricePence: initialPricePence,
-          saleFormat: request.pricingProposals?.[0]?.saleFormat || saleFormats.individual
+          pricingJustification: currentResponse?.pricingJustification || '',
+          rejectionNote: currentResponse?.rejectionNote || '',
+          rejectionReason: currentResponse?.rejectionReason || '',
+          responseNote: currentResponse?.responseNote || '',
+          saleFormat: currentResponse?.saleFormat || saleFormats.individual,
+          status: currentResponse?.status === 'DECLINED' ? 'DECLINED' : 'ACCEPTED'
         }
       ]
     }))
   })
-  const [pricingProposalRequestId, setPricingProposalRequestId] = useState(null)
-  const [pricingDecisionProposalId, setPricingDecisionProposalId] = useState(null)
+  const [respondingRequestId, setRespondingRequestId] = useState(null)
   const [previewVolume, setPreviewVolume] = useState(78)
   const [isWaveformLoading, setIsWaveformLoading] = useState(true)
   const [waveformPeaks, setWaveformPeaks] = useState(() => createFallbackWaveform(track.id))
@@ -548,18 +566,23 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
       }
 
       setRequestList(currentRequests => [
+        ...currentRequests,
         {
           createdAt: formatDisplayDate(data.createdAt),
+          createdAtTimestamp: data.createdAt,
           description: data.notes || 'No additional request notes supplied.',
+          displayStatus: data.status,
+          expiresAt: data.expiresAt ? formatDisplayDate(data.expiresAt) : null,
           id: data.id,
+          isExpired: false,
           isRequestedByViewer: true,
           pricingProposals: [],
           requestedBy: catalogueContext.userName || 'You',
+          responses: [],
           status: data.status,
           title: data.title,
           userId: data.userId
-        },
-        ...currentRequests
+        }
       ])
       setRequestTitle('')
       setRequestNotes('')
@@ -571,68 +594,17 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     }
   }
 
-  const submitRequestStatus = async requestId => {
-    setRequestUpdateError('')
-    setRequestUpdateStatus('')
-    setUpdatingRequestId(requestId)
-
-    const nextStatus = String(requestStatusDrafts[requestId] || '')
-    const rejectionDraft = requestRejectionDrafts[requestId] || {}
-
-    try {
-      const response = await fetch(`/api/track-requests/${requestId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          rejectionNote: nextStatus === 'REJECTED' ? rejectionDraft.note || undefined : undefined,
-          rejectionReason: nextStatus === 'REJECTED' ? rejectionDraft.reason || undefined : undefined,
-          status: nextStatus
-        })
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Unable to update request')
-      }
-
-      setRequestList(currentRequests => currentRequests.map(request => (
-        request.id === requestId
-          ? {
-              ...request,
-              rejectionNote: data.rejectionNote,
-              rejectionReason: data.rejectionReason,
-              status: data.status
-            }
-          : request
-      )))
-      setRequestStatusDrafts(currentDrafts => ({
-        ...currentDrafts,
-        [requestId]: data.status
-      }))
-      setRequestRejectionDrafts(currentDrafts => ({
-        ...currentDrafts,
-        [requestId]: {
-          note: data.rejectionNote || '',
-          reason: data.rejectionReason || ''
-        }
-      }))
-      setRequestUpdateStatus('Request status updated.')
-    } catch (error) {
-      setRequestUpdateError(error.message || 'Unable to update request')
-    } finally {
-      setUpdatingRequestId(null)
-    }
-  }
-
-  const updateRequestPricingDraft = (requestId, patch) => {
-    setRequestPricingDrafts(currentDrafts => {
+  const updateRequestResponseDraft = (requestId, patch) => {
+    setRequestResponseDrafts(currentDrafts => {
       const currentDraft = currentDrafts[requestId] || {
         catalogueType: catalogueTypes.singleTrack,
-        justification: '',
         pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
-        saleFormat: saleFormats.individual
+        pricingJustification: '',
+        rejectionNote: '',
+        rejectionReason: '',
+        responseNote: '',
+        saleFormat: saleFormats.individual,
+        status: 'ACCEPTED'
       }
       const nextDraft = {
         ...currentDraft,
@@ -641,7 +613,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
 
       if (patch.catalogueType) {
         nextDraft.pricePence = getPricingBand(patch.catalogueType).defaultPricePence
-        nextDraft.justification = ''
+        nextDraft.pricingJustification = ''
       }
 
       return {
@@ -651,126 +623,101 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     })
   }
 
-  const submitRequestPricingProposal = async requestId => {
+  const serializeRequestResponse = data => ({
+    catalogueType: data.catalogueType,
+    completedAt: data.completedAt ? formatDisplayDate(data.completedAt) : null,
+    createdAt: formatDisplayDate(data.createdAt),
+    currency: data.currency,
+    fulfilledByTrack: data.fulfilledByTrack || null,
+    fulfilledByTrackId: data.fulfilledByTrackId,
+    id: data.id,
+    isCurrentUserResponse: true,
+    pricePence: data.pricePence,
+    pricingJustification: data.pricingJustification,
+    pricingReviewStatus: data.pricingReviewStatus,
+    rejectionNote: data.rejectionNote,
+    rejectionReason: data.rejectionReason,
+    respondedBy: data.respondedBy?.name || data.respondedBy?.email || catalogueContext.userName || 'You',
+    respondedById: data.respondedById,
+    responseNote: data.responseNote,
+    saleFormat: data.saleFormat,
+    status: data.status,
+    updatedAt: formatDisplayDate(data.updatedAt)
+  })
+
+  const submitRequestResponse = async requestId => {
     setRequestUpdateError('')
     setRequestUpdateStatus('')
-    setPricingProposalRequestId(requestId)
+    setRespondingRequestId(requestId)
 
-    const draft = requestPricingDrafts[requestId] || {
+    const draft = requestResponseDrafts[requestId] || {
       catalogueType: catalogueTypes.singleTrack,
-      justification: '',
       pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
-      saleFormat: saleFormats.individual
+      pricingJustification: '',
+      rejectionNote: '',
+      rejectionReason: '',
+      responseNote: '',
+      saleFormat: saleFormats.individual,
+      status: 'ACCEPTED'
     }
+    const accepting = draft.status === 'ACCEPTED'
 
     try {
-      const response = await fetch(`/api/track-requests/${requestId}/pricing-proposals`, {
+      const response = await fetch(`/api/track-requests/${requestId}/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           catalogueType: draft.catalogueType,
-          justification: draft.justification.trim() || undefined,
-          pricePence: Number(draft.pricePence),
-          saleFormat: draft.saleFormat
+          pricePence: accepting ? Number(draft.pricePence) : undefined,
+          pricingJustification: accepting ? draft.pricingJustification.trim() || undefined : undefined,
+          rejectionNote: !accepting ? draft.rejectionNote.trim() || undefined : undefined,
+          rejectionReason: !accepting ? draft.rejectionReason || undefined : undefined,
+          responseNote: draft.responseNote.trim() || undefined,
+          saleFormat: draft.saleFormat,
+          status: draft.status
         })
       })
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Unable to propose request price')
+        throw new Error(data.message || 'Unable to update request response')
       }
 
-      const nextProposal = {
-        catalogueType: data.catalogueType,
-        createdAt: formatDisplayDate(data.createdAt),
-        currency: data.currency,
-        id: data.id,
-        justification: data.justification,
-        pricePence: data.pricePence,
-        requesterDecision: data.requesterDecision,
-        reviewStatus: data.reviewStatus,
-        saleFormat: data.saleFormat
-      }
+      const nextResponse = serializeRequestResponse(data)
 
       setRequestList(currentRequests => currentRequests.map(request => (
         request.id === requestId
           ? {
               ...request,
-              pricingProposals: [
-                nextProposal,
-                ...(request.pricingProposals || [])
-              ].slice(0, 3),
-              status: request.status === 'OPEN' ? 'PENDING_DECISION' : request.status
+              responses: [
+                ...(request.responses || []).filter(response => response.id !== nextResponse.id),
+                nextResponse
+              ].sort((first, second) => first.id - second.id)
             }
           : request
       )))
-      setRequestPricingDrafts(currentDrafts => ({
+      setRequestResponseDrafts(currentDrafts => ({
         ...currentDrafts,
         [requestId]: {
           catalogueType: data.catalogueType,
-          justification: data.justification || '',
-          pricePence: data.pricePence,
-          saleFormat: data.saleFormat
+          pricePence: data.pricePence || getPricingBand(data.catalogueType).defaultPricePence,
+          pricingJustification: data.pricingJustification || '',
+          rejectionNote: data.rejectionNote || '',
+          rejectionReason: data.rejectionReason || '',
+          responseNote: data.responseNote || '',
+          saleFormat: data.saleFormat,
+          status: data.status === 'DECLINED' ? 'DECLINED' : 'ACCEPTED'
         }
       }))
-      setRequestUpdateStatus('Request price proposal sent.')
+      setRequestUpdateStatus(data.status === 'ACCEPTED'
+        ? 'Response saved. The fulfilment price is now attached to your accepted request response.'
+        : 'Response saved. The request remains visible for other uploaders.')
     } catch (error) {
-      setRequestUpdateError(error.message || 'Unable to propose request price')
+      setRequestUpdateError(error.message || 'Unable to update request response')
     } finally {
-      setPricingProposalRequestId(null)
-    }
-  }
-
-  const submitRequestPricingDecision = async ({ decision, proposalId, requestId }) => {
-    setRequestUpdateError('')
-    setRequestUpdateStatus('')
-    setPricingDecisionProposalId(proposalId)
-
-    try {
-      const response = await fetch(`/api/track-requests/${requestId}/pricing-proposals/${proposalId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          decision
-        })
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Unable to update request price decision')
-      }
-
-      setRequestList(currentRequests => currentRequests.map(request => (
-        request.id === requestId
-          ? {
-              ...request,
-              pricingProposals: (request.pricingProposals || []).map(proposal => (
-                proposal.id === proposalId
-                  ? {
-                      ...proposal,
-                      requesterDecision: data.requesterDecision
-                    }
-                  : proposal
-              )),
-              status: data.requesterDecision === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING_DECISION'
-            }
-          : request
-      )))
-      setRequestStatusDrafts(currentDrafts => ({
-        ...currentDrafts,
-        [requestId]: data.requesterDecision === 'ACCEPTED' ? 'ACCEPTED' : 'PENDING_DECISION'
-      }))
-      setRequestUpdateStatus(data.requesterDecision === 'ACCEPTED'
-        ? 'Request price accepted. The uploader can now prepare the track.'
-        : 'Request price declined. The request is waiting for another decision.')
-    } catch (error) {
-      setRequestUpdateError(error.message || 'Unable to update request price decision')
-    } finally {
-      setPricingDecisionProposalId(null)
+      setRespondingRequestId(null)
     }
   }
 
@@ -778,6 +725,9 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const sortedComments = useMemo(() => (
     sortCommentsByTimestamp(commentList, commentSort)
   ), [commentList, commentSort])
+  const sortedRequests = useMemo(() => (
+    sortRequestsByTimestamp(requestList, requestSort)
+  ), [requestList, requestSort])
   const requestCount = requestList.length
   const isTrackOwner = Boolean(track.viewerState?.isUploadedByViewer)
   const canComment = catalogueContext.isAuthenticated && (track.viewerState?.isOwned || isTrackOwner)
@@ -1201,33 +1151,42 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               {activeTab === 'requests' && (
                 <section className='cmc-track-requests-section' id='track-requests'>
                   <div className='cmc-track-section-header'>
-                    <h2>Requests <span>({requestCount})</span></h2>
-                    <small>Open community requests</small>
+                    <h2>Requests</h2>
+                    <label className='cmc-track-comment-sort'>
+                      <span>Sort</span>
+                      <select
+                        aria-label='Sort requests'
+                        onChange={event => setRequestSort(event.target.value)}
+                        value={requestSort}
+                      >
+                        <option value='newest-last'>Newest at bottom</option>
+                        <option value='newest-first'>Newest at top</option>
+                      </select>
+                    </label>
                   </div>
                   <div className='cmc-track-requests'>
-                    {requestList.map(request => {
-                      const draftStatus = requestStatusDrafts[request.id] || request.status
-                      const rejectionDraft = requestRejectionDrafts[request.id] || {
-                        note: '',
-                        reason: ''
-                      }
-                      const pricingDraft = requestPricingDrafts[request.id] || {
+                    {sortedRequests.map(request => {
+                      const responseDraft = requestResponseDrafts[request.id] || {
                         catalogueType: catalogueTypes.singleTrack,
-                        justification: '',
                         pricePence: getPricingBand(catalogueTypes.singleTrack).defaultPricePence,
-                        saleFormat: saleFormats.individual
+                        pricingJustification: '',
+                        rejectionNote: '',
+                        rejectionReason: '',
+                        responseNote: '',
+                        saleFormat: saleFormats.individual,
+                        status: 'ACCEPTED'
                       }
-                      const pricingBand = getPricingBand(pricingDraft.catalogueType)
-                      const latestProposal = request.pricingProposals?.[0]
-                      const canDecideLatestProposal = Boolean(
-                        catalogueContext.isAuthenticated &&
-                        request.isRequestedByViewer &&
-                        latestProposal &&
-                        latestProposal.requesterDecision === 'PENDING'
-                      )
-                      const canAcceptLatestProposal = canDecideLatestProposal &&
-                        latestProposal.reviewStatus !== 'NEEDS_REVIEW' &&
-                        latestProposal.reviewStatus !== 'REJECTED'
+                      const responsePricingBand = getPricingBand(responseDraft.catalogueType)
+                      const currentResponse = request.responses?.find(response => response.isCurrentUserResponse)
+                      const canRespondToRequest = Boolean(catalogueContext.canUpload && !request.isExpired)
+                      const responsePriceReviewBlocksUpload = currentResponse?.pricingReviewStatus === 'NEEDS_REVIEW' ||
+                        currentResponse?.pricingReviewStatus === 'REJECTED'
+                      const canUploadFulfilment = currentResponse?.status === 'ACCEPTED' &&
+                        !currentResponse.fulfilledByTrack &&
+                        !responsePriceReviewBlocksUpload
+                      const requestStatusLabel = request.displayStatus && request.displayStatus !== 'OPEN'
+                        ? formatRequestStatus(request.displayStatus)
+                        : null
 
                       return (
                         <article
@@ -1237,118 +1196,85 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         >
                           <header>
                             <strong>{request.title}</strong>
-                            <span>{formatRequestStatus(request.status)}</span>
+                            {requestStatusLabel && <span>{requestStatusLabel}</span>}
                           </header>
                           <p>{request.description}</p>
                           <footer>
                             <span>{request.requestedBy}</span>
                             <span>{request.createdAt}</span>
                           </footer>
-                          {request.status === 'REJECTED' && (request.rejectionReason || request.rejectionNote) && (
-                            <div className='cmc-track-request-rejection-note'>
-                              {request.rejectionReason && (
-                                <strong>{formatRejectionReason(request.rejectionReason)}</strong>
-                              )}
-                              {request.rejectionNote && (
-                                <span>{request.rejectionNote}</span>
-                              )}
-                            </div>
-                          )}
-                          {request.fulfilledByTrack && (
+                          {request.isExpired && (
                             <p className='cmc-track-request-fulfilment'>
-                              Fulfilment uploaded: <strong>{request.fulfilledByTrack.title}</strong>
-                              {request.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
+                              This request expired{request.expiresAt ? ` on ${request.expiresAt}` : ''}.
                             </p>
                           )}
-                          {latestProposal && (
+                          {request.responses?.length > 0 && (
                             <div className='cmc-track-request-pricing-summary'>
-                              <div>
-                                <strong>{formatPricePence(latestProposal.pricePence)}</strong>
-                                <span>{trackTypeLabels[latestProposal.catalogueType] || getPricingBand(latestProposal.catalogueType).label}</span>
-                              </div>
-                              <dl>
-                                <div>
-                                  <dt>Review</dt>
-                                  <dd>{formatPricingReviewStatus(latestProposal.reviewStatus)}</dd>
-                                </div>
-                                <div>
-                                  <dt>Requester</dt>
-                                  <dd>{formatRequesterDecision(latestProposal.requesterDecision)}</dd>
-                                </div>
-                              </dl>
-                              {latestProposal.justification && (
-                                <p>{latestProposal.justification}</p>
-                              )}
-                              {canDecideLatestProposal && (
-                                <div className='cmc-track-request-pricing-actions' aria-label={`Respond to proposed price for ${request.title}`}>
-                                  {latestProposal.reviewStatus === 'NEEDS_REVIEW' && (
-                                    <p>CMC needs to review this price before you can accept it.</p>
-                                  )}
-                                  {latestProposal.reviewStatus === 'REJECTED' && (
-                                    <p>This price was rejected by CMC and cannot be accepted.</p>
-                                  )}
-                                  <Button
-                                    disabled={!canAcceptLatestProposal || pricingDecisionProposalId === latestProposal.id}
-                                    onClick={() => submitRequestPricingDecision({
-                                      decision: 'ACCEPTED',
-                                      proposalId: latestProposal.id,
-                                      requestId: request.id
-                                    })}
-                                    size='sm'
-                                    type='button'
-                                    variant='ink'
-                                  >
-                                    {pricingDecisionProposalId === latestProposal.id ? 'Updating...' : 'Accept Price'}
-                                  </Button>
-                                  <Button
-                                    disabled={pricingDecisionProposalId === latestProposal.id}
-                                    onClick={() => submitRequestPricingDecision({
-                                      decision: 'DECLINED',
-                                      proposalId: latestProposal.id,
-                                      requestId: request.id
-                                    })}
-                                    size='sm'
-                                    type='button'
-                                    variant='paper'
-                                  >
-                                    Decline
-                                  </Button>
-                                </div>
-                              )}
+                              <strong>Uploader responses</strong>
+                              <ul className='cmc-track-request-response-list'>
+                                {request.responses.map(response => (
+                                  <li key={response.id}>
+                                    <header>
+                                      <span>{response.respondedBy}</span>
+                                      <span>{formatResponseStatus(response.status)}</span>
+                                    </header>
+                                    {['ACCEPTED', 'COMPLETED'].includes(response.status) && (
+                                      <dl>
+                                        <div>
+                                          <dt>Price</dt>
+                                          <dd>{formatPricePence(response.pricePence)}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>Review</dt>
+                                          <dd>{formatPricingReviewStatus(response.pricingReviewStatus)}</dd>
+                                        </div>
+                                      </dl>
+                                    )}
+                                    {response.responseNote && <p>{response.responseNote}</p>}
+                                    {response.pricingJustification && <p>{response.pricingJustification}</p>}
+                                    {response.status === 'DECLINED' && (response.rejectionReason || response.rejectionNote) && (
+                                      <div className='cmc-track-request-rejection-note'>
+                                        {response.rejectionReason && (
+                                          <strong>{formatRejectionReason(response.rejectionReason)}</strong>
+                                        )}
+                                        {response.rejectionNote && (
+                                          <span>{response.rejectionNote}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                    {response.fulfilledByTrack && (
+                                      <p className='cmc-track-request-fulfilment'>
+                                        Fulfilment uploaded: <strong>{response.fulfilledByTrack.title}</strong>
+                                        {response.fulfilledByTrack.moderationStatus === 'PENDING' ? ' (waiting for review)' : ''}
+                                      </p>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           )}
-                          {isTrackOwner && request.status !== 'COMPLETED' && (
+                          {canRespondToRequest && (
                             <div
                               className='cmc-track-request-status-form'
                             >
                               <div className='cmc-track-request-status-field'>
-                                <label htmlFor={`request-status-${request.id}`}>Request status</label>
+                                <label htmlFor={`request-response-status-${request.id}`}>Your response</label>
                                 <select
-                                  id={`request-status-${request.id}`}
+                                  id={`request-response-status-${request.id}`}
                                   name='status'
-                                  onChange={event => setRequestStatusDrafts(currentDrafts => ({
-                                    ...currentDrafts,
-                                    [request.id]: event.target.value
-                                  }))}
-                                  value={draftStatus}
+                                  onChange={event => updateRequestResponseDraft(request.id, {
+                                    status: event.target.value
+                                  })}
+                                  value={responseDraft.status}
                                 >
-                                  {manageableRequestStatusOptions.map(option => (
+                                  {requestResponseStatusOptions.map(option => (
                                     <option key={option.value} value={option.value}>
                                       {option.label}
                                     </option>
                                   ))}
                                 </select>
                               </div>
-                              <Button
-                                disabled={updatingRequestId === request.id}
-                                onClick={() => submitRequestStatus(request.id)}
-                                size='sm'
-                                type='button'
-                                variant='paper'
-                              >
-                                {updatingRequestId === request.id ? 'Updating...' : 'Update'}
-                              </Button>
-                              {request.status === 'ACCEPTED' && (
+                              {canUploadFulfilment && (
                                 <Button
                                   as={Link}
                                   href={`/upload?fulfilledRequestId=${request.id}`}
@@ -1358,21 +1284,22 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                                   Upload Fulfilment
                                 </Button>
                               )}
-                              {draftStatus === 'REJECTED' && (
+                              {currentResponse?.status === 'ACCEPTED' && responsePriceReviewBlocksUpload && (
+                                <p className='cmc-track-request-fulfilment'>
+                                  CMC must approve this response price before fulfilment upload.
+                                </p>
+                              )}
+                              {responseDraft.status === 'DECLINED' && (
                                 <div className='cmc-track-request-rejection-fields'>
                                   <div>
                                     <label htmlFor={`request-rejection-reason-${request.id}`}>Reason (optional)</label>
                                     <select
                                       id={`request-rejection-reason-${request.id}`}
                                       name='rejectionReason'
-                                      onChange={event => setRequestRejectionDrafts(currentDrafts => ({
-                                        ...currentDrafts,
-                                        [request.id]: {
-                                          ...rejectionDraft,
-                                          reason: event.target.value
-                                        }
-                                      }))}
-                                      value={rejectionDraft.reason}
+                                      onChange={event => updateRequestResponseDraft(request.id, {
+                                        rejectionReason: event.target.value
+                                      })}
+                                      value={responseDraft.rejectionReason}
                                     >
                                       {requestRejectionReasonOptions.map(option => (
                                         <option key={option.value} value={option.value}>
@@ -1387,85 +1314,96 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                                       id={`request-rejection-note-${request.id}`}
                                       maxLength={1000}
                                       name='rejectionNote'
-                                      onChange={event => setRequestRejectionDrafts(currentDrafts => ({
-                                        ...currentDrafts,
-                                        [request.id]: {
-                                          ...rejectionDraft,
-                                          note: event.target.value
-                                        }
-                                      }))}
+                                      onChange={event => updateRequestResponseDraft(request.id, {
+                                        rejectionNote: event.target.value
+                                      })}
                                       placeholder='Add a short note for the requester'
                                       rows={3}
-                                      value={rejectionDraft.note}
+                                      value={responseDraft.rejectionNote}
                                     />
                                   </div>
                                 </div>
                               )}
-                              <div className='cmc-track-request-pricing-form'>
-                                <div className='cmc-track-request-pricing-heading'>
-                                  <strong>Request fulfilment price</strong>
-                                  <span>Use CMC guided bands before preparing bespoke work.</span>
-                                </div>
-                                <div className='cmc-track-request-pricing-grid cmc-track-request-pricing-grid--single'>
+                              {responseDraft.status === 'ACCEPTED' && (
+                                <div className='cmc-track-request-pricing-form'>
+                                  <div className='cmc-track-request-pricing-heading'>
+                                    <strong>Request fulfilment price</strong>
+                                    <span>Set the buyer price before preparing this response.</span>
+                                  </div>
+                                  <div className='cmc-track-request-pricing-grid cmc-track-request-pricing-grid--single'>
+                                    <div>
+                                      <label htmlFor={`request-pricing-type-${request.id}`}>Track type</label>
+                                      <select
+                                        id={`request-pricing-type-${request.id}`}
+                                        onChange={event => updateRequestResponseDraft(request.id, {
+                                          catalogueType: event.target.value
+                                        })}
+                                        value={responseDraft.catalogueType}
+                                      >
+                                        {atomicTrackCatalogueTypes.map(type => (
+                                          <option key={type} value={type}>
+                                            {trackTypeLabels[type] || getPricingBand(type).label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div className='cmc-track-request-price-options' role='radiogroup' aria-label={`Request price for ${request.title}`}>
+                                    {responsePricingBand.options.map(pricePence => (
+                                      <label
+                                        className={Number(responseDraft.pricePence) === pricePence ? 'cmc-track-request-price-option cmc-track-request-price-option--selected' : 'cmc-track-request-price-option'}
+                                        key={pricePence}
+                                      >
+                                        <input
+                                          checked={Number(responseDraft.pricePence) === pricePence}
+                                          name={`request-price-${request.id}`}
+                                          onChange={() => updateRequestResponseDraft(request.id, {
+                                            pricePence
+                                          })}
+                                          type='radio'
+                                          value={pricePence}
+                                        />
+                                        <span>{formatPricePence(pricePence)}</span>
+                                      </label>
+                                    ))}
+                                  </div>
                                   <div>
-                                    <label htmlFor={`request-pricing-type-${request.id}`}>Track type</label>
-                                    <select
-                                      id={`request-pricing-type-${request.id}`}
-                                      onChange={event => updateRequestPricingDraft(request.id, {
-                                        catalogueType: event.target.value
+                                    <label htmlFor={`request-pricing-justification-${request.id}`}>Pricing note (optional)</label>
+                                    <textarea
+                                      id={`request-pricing-justification-${request.id}`}
+                                      maxLength={2000}
+                                      onChange={event => updateRequestResponseDraft(request.id, {
+                                        pricingJustification: event.target.value
                                       })}
-                                      value={pricingDraft.catalogueType}
-                                    >
-                                      {atomicTrackCatalogueTypes.map(type => (
-                                        <option key={type} value={type}>
-                                          {trackTypeLabels[type] || getPricingBand(type).label}
-                                        </option>
-                                      ))}
-                                    </select>
+                                      placeholder='Explain specialist preparation, cuts, length, or other context.'
+                                      rows={3}
+                                      value={responseDraft.pricingJustification}
+                                    />
                                   </div>
                                 </div>
-                                <div className='cmc-track-request-price-options' role='radiogroup' aria-label={`Request price for ${request.title}`}>
-                                  {pricingBand.options.map(pricePence => (
-                                    <label
-                                      className={Number(pricingDraft.pricePence) === pricePence ? 'cmc-track-request-price-option cmc-track-request-price-option--selected' : 'cmc-track-request-price-option'}
-                                      key={pricePence}
-                                    >
-                                      <input
-                                        checked={Number(pricingDraft.pricePence) === pricePence}
-                                        name={`request-price-${request.id}`}
-                                        onChange={() => updateRequestPricingDraft(request.id, {
-                                          pricePence
-                                        })}
-                                        type='radio'
-                                        value={pricePence}
-                                      />
-                                      <span>{formatPricePence(pricePence)}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                                <div>
-                                  <label htmlFor={`request-pricing-justification-${request.id}`}>Pricing note (optional)</label>
-                                  <textarea
-                                    id={`request-pricing-justification-${request.id}`}
-                                    maxLength={2000}
-                                    onChange={event => updateRequestPricingDraft(request.id, {
-                                      justification: event.target.value
-                                    })}
-                                    placeholder='Explain specialist preparation, cuts, length, or other context.'
-                                    rows={3}
-                                    value={pricingDraft.justification}
-                                  />
-                                </div>
-                                <Button
-                                  disabled={pricingProposalRequestId === request.id}
-                                  onClick={() => submitRequestPricingProposal(request.id)}
-                                  size='sm'
-                                  type='button'
-                                  variant='ink'
-                                >
-                                  {pricingProposalRequestId === request.id ? 'Sending...' : 'Propose Price'}
-                                </Button>
+                              )}
+                              <div>
+                                <label htmlFor={`request-response-note-${request.id}`}>Response note (optional)</label>
+                                <textarea
+                                  id={`request-response-note-${request.id}`}
+                                  maxLength={2000}
+                                  onChange={event => updateRequestResponseDraft(request.id, {
+                                    responseNote: event.target.value
+                                  })}
+                                  placeholder='Add preparation context for the community.'
+                                  rows={3}
+                                  value={responseDraft.responseNote}
+                                />
                               </div>
+                              <Button
+                                disabled={respondingRequestId === request.id}
+                                onClick={() => submitRequestResponse(request.id)}
+                                size='sm'
+                                type='button'
+                                variant='ink'
+                              >
+                                {respondingRequestId === request.id ? 'Saving...' : 'Save Response'}
+                              </Button>
                             </div>
                           )}
                         </article>
@@ -1479,11 +1417,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                   </div>
 
                   <div className='cmc-track-request-action'>
-                    {isTrackOwner ? (
-                      <p>
-                        Manage request status from each request above. New requests are created by catalogue members.
-                      </p>
-                    ) : catalogueContext.isAuthenticated ? (
+                    {!isTrackOwner && catalogueContext.isAuthenticated ? (
                       <form onSubmit={submitRequest}>
                         <h3>Make a request</h3>
                         <label htmlFor='track-request-title'>Request title</label>
@@ -1512,14 +1446,14 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                         {requestError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{requestError}</p>}
                         {requestStatus && <p className='cmc-track-comment-message' role='status'>{requestStatus}</p>}
                       </form>
-                    ) : (
+                    ) : !catalogueContext.isAuthenticated ? (
                       <p aria-label='Sign in to make a request'>
                         <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(`/catalogue/${track.id}?tab=requests`)}`}>
                           Sign in
                         </Link>{' '}
                         to make a request.
                       </p>
-                    )}
+                    ) : null}
                     {requestUpdateError && <p className='cmc-track-comment-message cmc-track-comment-message--error' role='alert'>{requestUpdateError}</p>}
                     {requestUpdateStatus && <p className='cmc-track-comment-message' role='status'>{requestUpdateStatus}</p>}
                   </div>
