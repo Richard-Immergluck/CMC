@@ -183,6 +183,15 @@ test.describe('authenticated smoke', () => {
     await expect(uploadsTable.getByRole('columnheader', { name: 'Requests' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Manage uploads' }).first()).toHaveAttribute('href', '/upload/manage')
 
+    const requestQueue = page.getByRole('region', { name: 'Requests Needing Attention' })
+    await expect(requestQueue).toBeVisible()
+    const requestStatuses = requestQueue.locator('.cmc-profile-request-status')
+    await expect(requestStatuses.getByText('New request', { exact: true }).first()).toBeVisible()
+    await expect(requestStatuses.getByText('Pending decision', { exact: true }).first()).toBeVisible()
+    await expect(requestStatuses.getByText('Accepted - preparing', { exact: true }).first()).toBeVisible()
+    await expect(requestQueue.getByRole('link', { name: /Bach Warmup Slower Tempo/i })).toHaveAttribute('href', /\/catalogue\/\d+\?tab=requests&requestId=\d+/)
+    await expect(requestQueue.getByRole('link', { name: 'Upload fulfilment' }).first()).toHaveAttribute('href', /\/upload\?fulfilledRequestId=\d+/)
+
     await page.goto('/upload/manage')
     await expect(page.getByRole('heading', { name: 'Manage Uploads.' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Group Approved Tracks' })).toBeVisible()

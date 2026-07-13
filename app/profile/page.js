@@ -74,6 +74,35 @@ const serializeTrackRequest = request => ({
   updatedAt: formatDisplayDate(request.updatedAt)
 })
 
+const serializeOwnerTrackRequest = request => ({
+  id: request.id,
+  composer: request.composer,
+  createdAt: formatDisplayDate(request.createdAt),
+  fulfilledByTrack: request.fulfilledByTrack
+    ? {
+        id: request.fulfilledByTrack.id,
+        title: request.fulfilledByTrack.title,
+        moderationStatus: request.fulfilledByTrack.moderationStatus,
+        processingStatus: request.fulfilledByTrack.processingStatus,
+        status: request.fulfilledByTrack.status
+      }
+    : null,
+  instrumentation: request.instrumentation,
+  notes: request.notes,
+  requestedBy: request.requestedBy?.name || request.requestedBy?.email || 'CMC member',
+  status: request.status,
+  title: request.title,
+  track: request.track
+    ? {
+        id: request.track.id,
+        title: request.track.title,
+        composer: request.track.composer
+      }
+    : null,
+  trackId: request.trackId,
+  updatedAt: formatDisplayDate(request.updatedAt)
+})
+
 const getProfileData = async email => {
   const currentUser = await prisma.user.findUnique({
     where: {
@@ -94,7 +123,7 @@ const getProfileData = async email => {
     return null
   }
 
-  const [uploadedTracks, purchases, comments, trackRequests, wishlistItems] = await Promise.all([
+  const [uploadedTracks, purchases, comments, trackRequests, ownerTrackRequests, wishlistItems] = await Promise.all([
     prisma.track.findMany({
       where: {
         moderationStatus: 'APPROVED',
@@ -156,6 +185,75 @@ const getProfileData = async email => {
       },
       take: 8
     }),
+    prisma.trackRequest.findMany({
+      where: {
+        track: {
+          userId: currentUser.id
+        },
+        OR: [
+          {
+            status: {
+              in: ['OPEN', 'PENDING_DECISION', 'ACCEPTED']
+            }
+          },
+          {
+            status: 'COMPLETED',
+            fulfilledByTrack: {
+              is: {
+                OR: [
+                  {
+                    moderationStatus: 'PENDING'
+                  },
+                  {
+                    processingStatus: {
+                      not: 'READY'
+                    }
+                  },
+                  {
+                    status: {
+                      not: 'PUBLISHED'
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      include: {
+        fulfilledByTrack: {
+          select: {
+            id: true,
+            moderationStatus: true,
+            processingStatus: true,
+            status: true,
+            title: true
+          }
+        },
+        requestedBy: {
+          select: {
+            email: true,
+            name: true
+          }
+        },
+        track: {
+          select: {
+            composer: true,
+            id: true,
+            title: true
+          }
+        }
+      },
+      orderBy: [
+        {
+          updatedAt: 'desc'
+        },
+        {
+          createdAt: 'desc'
+        }
+      ],
+      take: 8
+    }),
     prisma.wishlistItem.findMany({
       where: {
         userId: currentUser.id
@@ -174,6 +272,7 @@ const getProfileData = async email => {
 
   return {
     currentUser,
+    ownerTrackRequests: ownerTrackRequests.map(serializeOwnerTrackRequest),
     userComments: comments.map(serializeComment),
     userPurchasedTracks: purchases.map(serializePurchasedTrack),
     userTrackRequests: trackRequests.map(serializeTrackRequest),
@@ -211,6 +310,7 @@ const ProfilePage = async ({ searchParams }) => {
       initialLibraryTab={requestedLibraryTab}
       purchase={query?.purchase || null}
       userComments={profile.userComments}
+      ownerTrackRequests={profile.ownerTrackRequests}
       userPurchasedTracks={profile.userPurchasedTracks}
       userTrackRequests={profile.userTrackRequests}
       userUploadedTracks={profile.userUploadedTracks}

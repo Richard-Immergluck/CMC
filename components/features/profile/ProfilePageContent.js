@@ -30,6 +30,49 @@ const requestStatusLabels = {
 
 const formatRequestStatus = status => requestStatusLabels[status] || String(status || 'Request')
 
+const ownerRequestStatusRank = {
+  OPEN: 1,
+  PENDING_DECISION: 2,
+  ACCEPTED: 3,
+  COMPLETED: 4
+}
+
+const getOwnerRequestAction = request => {
+  if (request.status === 'ACCEPTED' && !request.fulfilledByTrack) {
+    return {
+      href: `/upload?fulfilledRequestId=${request.id}`,
+      label: 'Upload fulfilment',
+      variant: 'ink'
+    }
+  }
+
+  return {
+    href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : '/catalogue',
+    label: request.status === 'COMPLETED' ? 'View fulfilment' : 'Review request',
+    variant: request.status === 'OPEN' ? 'ink' : 'paper'
+  }
+}
+
+const getOwnerRequestPrompt = request => {
+  if (request.status === 'OPEN') {
+    return 'Needs your first review.'
+  }
+
+  if (request.status === 'PENDING_DECISION') {
+    return 'Waiting for your pricing or fulfilment decision.'
+  }
+
+  if (request.status === 'ACCEPTED') {
+    return request.fulfilledByTrack ? 'Fulfilment has been uploaded.' : 'Accepted and ready for fulfilment upload.'
+  }
+
+  if (request.status === 'COMPLETED' && request.fulfilledByTrack) {
+    return 'Fulfilment uploaded and waiting for approval.'
+  }
+
+  return 'Request activity needs attention.'
+}
+
 const trackReturnTrackIdStorageKey = 'cmc.catalogue.returnTrackId'
 const trackReturnUrlStorageKey = 'cmc.catalogue.returnUrl'
 
@@ -374,12 +417,95 @@ const TrackTable = ({
   )
 }
 
+const UploaderRequestQueue = ({ requests }) => {
+  if (requests.length === 0) {
+    return null
+  }
+
+  const visibleRequests = [...requests]
+    .sort((first, second) => {
+      const firstRank = ownerRequestStatusRank[first.status] || 99
+      const secondRank = ownerRequestStatusRank[second.status] || 99
+
+      return firstRank - secondRank
+    })
+    .slice(0, 5)
+
+  const statusCounts = requests.reduce((counts, request) => ({
+    ...counts,
+    [request.status]: (counts[request.status] || 0) + 1
+  }), {})
+
+  return (
+    <section className='cmc-profile-request-queue' aria-labelledby='profile-uploader-requests-heading'>
+      <div className='cmc-profile-request-queue-heading'>
+        <div>
+          <p className='cmc-profile-kicker'>Uploader actions</p>
+          <h2 id='profile-uploader-requests-heading'>Requests Needing Attention</h2>
+          <p>
+            Community requests on your uploaded tracks that need review, a decision, or fulfilment follow-up.
+          </p>
+        </div>
+        <dl aria-label='Request queue summary'>
+          <div>
+            <dt>New</dt>
+            <dd>{statusCounts.OPEN || 0}</dd>
+          </div>
+          <div>
+            <dt>Decision</dt>
+            <dd>{statusCounts.PENDING_DECISION || 0}</dd>
+          </div>
+          <div>
+            <dt>Accepted</dt>
+            <dd>{statusCounts.ACCEPTED || 0}</dd>
+          </div>
+        </dl>
+      </div>
+      <ul>
+        {visibleRequests.map(request => {
+          const action = getOwnerRequestAction(request)
+
+          return (
+            <li key={request.id}>
+              <div className='cmc-profile-request-status'>
+                <span>{formatRequestStatus(request.status)}</span>
+              </div>
+              <div className='cmc-profile-request-main'>
+                <Link
+                  href={request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : action.href}
+                  onClick={() => request.trackId && storeProfileTrackReturn(request.trackId)}
+                >
+                  {request.title.replace(/^E2E Request /, '')}
+                </Link>
+                <p>{getOwnerRequestPrompt(request)}</p>
+                <small>
+                  {request.track?.title || 'Catalogue request'} · {request.requestedBy} · {request.updatedAt}
+                </small>
+              </div>
+              <Button
+                as={Link}
+                href={action.href}
+                onClick={() => request.trackId && storeProfileTrackReturn(request.trackId)}
+                size='sm'
+                variant={action.variant}
+              >
+                {action.label}
+              </Button>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
 const ProfilePageContent = ({
   checkout,
   checkoutSessionId,
   currentUser,
   focusedTrackId,
   initialLibraryTab,
+  ownerTrackRequests = [],
   purchase,
   userComments,
   userUploadedTracks,
@@ -601,6 +727,10 @@ const ProfilePageContent = ({
             <div className='cmc-profile-notice cmc-profile-notice--error' role='alert'>
               {checkoutError}
             </div>
+          )}
+
+          {hasUploadedTrackLibrary && (
+            <UploaderRequestQueue requests={ownerTrackRequests} />
           )}
 
           <section className='cmc-profile-library' aria-labelledby='profile-library-heading'>
