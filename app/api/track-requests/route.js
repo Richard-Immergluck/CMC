@@ -10,6 +10,7 @@ import { createNotFoundError } from '../../../lib/server/api-core.mjs'
 import { requireRouteCurrentUser } from '../../../lib/server/route-auth'
 import prisma from '../../../lib/server/prisma'
 import { enforceRouteRateLimit } from '../../../lib/server/rate-limit'
+import { getTrackRequestExpiry } from '../../../lib/server/request-responses.mjs'
 import { createRouteTelemetry } from '../../../lib/server/route-telemetry'
 import { publicTrackWhere } from '../../../lib/server/tracks-core.mjs'
 import {
@@ -71,6 +72,7 @@ export async function POST(request) {
         userId: user.id,
         title: input.title,
         composer: track.composer,
+        expiresAt: getTrackRequestExpiry(new Date()),
         instrumentation: track.instrumentation,
         notes: input.notes || null
       }

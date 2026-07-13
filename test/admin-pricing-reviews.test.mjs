@@ -5,6 +5,7 @@ process.env.DATABASE_URL ||= 'postgresql://postgres:postgres@localhost:5432/cmc_
 
 const {
   toReleasePricingReviewItem,
+  toRequestResponsePricingReviewItem,
   toRequestPricingReviewItem,
   toTrackPricingReviewItem
 } = await import('../lib/server/admin-pricing-reviews.mjs')
@@ -50,6 +51,75 @@ test('admin pricing review serializers expose stable review context', () => {
       request: null
     }).formattedPrice,
     '£14.99'
+  )
+
+  assert.deepEqual(
+    toRequestResponsePricingReviewItem({
+      id: 21,
+      requestId: 31,
+      pricePence: 899,
+      currency: 'gbp',
+      catalogueType: 'OPERA_EXCERPT',
+      saleFormat: 'INDIVIDUAL',
+      pricingReviewStatus: 'NEEDS_REVIEW',
+      status: 'ACCEPTED',
+      pricingJustification: 'Specialist cut prepared to request',
+      createdAt: new Date('2026-07-02T11:00:00.000Z'),
+      respondedBy: {
+        id: 'uploader-3',
+        name: 'Response uploader',
+        email: 'response@example.com'
+      },
+      request: {
+        id: 31,
+        title: 'Prepare a short aria cut',
+        status: 'OPEN',
+        requestedBy: {
+          id: 'requester-1',
+          name: 'Requester',
+          email: 'requester@example.com'
+        },
+        track: {
+          id: 4,
+          title: 'Source track',
+          composer: 'Composer'
+        }
+      }
+    }),
+    {
+      id: 21,
+      requestId: 31,
+      pricePence: 899,
+      formattedPrice: '£8.99',
+      currency: 'gbp',
+      catalogueType: 'OPERA_EXCERPT',
+      saleFormat: 'INDIVIDUAL',
+      reviewStatus: 'NEEDS_REVIEW',
+      responseStatus: 'ACCEPTED',
+      justification: 'Specialist cut prepared to request',
+      suggestedBand: 'Opera excerpt',
+      createdAt: new Date('2026-07-02T11:00:00.000Z'),
+      respondedBy: {
+        id: 'uploader-3',
+        name: 'Response uploader',
+        email: 'response@example.com'
+      },
+      request: {
+        id: 31,
+        title: 'Prepare a short aria cut',
+        status: 'OPEN',
+        requestedBy: {
+          id: 'requester-1',
+          name: 'Requester',
+          email: 'requester@example.com'
+        },
+        track: {
+          id: 4,
+          title: 'Source track',
+          composer: 'Composer'
+        }
+      }
+    }
   )
 
   assert.deepEqual(

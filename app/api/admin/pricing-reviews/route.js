@@ -169,6 +169,56 @@ export async function PATCH(request) {
       })
     }
 
+    if (input.targetType === 'requestResponse') {
+      const response = await prisma.trackRequestResponse.findUnique({
+        where: {
+          id: input.targetId
+        }
+      })
+
+      if (!response) {
+        throw createNotFoundError('Request response not found')
+      }
+
+      const updatedResponse = await prisma.trackRequestResponse.update({
+        where: {
+          id: input.targetId
+        },
+        data: {
+          pricingReviewStatus: nextStatus
+        }
+      })
+
+      await recordAuditEvent({
+        action: auditActions.requestPricingReviewed,
+        actorId: user.id,
+        entityType: 'TrackRequestResponse',
+        entityId: input.targetId,
+        metadata: {
+          before: response.pricingReviewStatus,
+          after: updatedResponse.pricingReviewStatus,
+          decision: input.decision,
+          noteProvided: Boolean(input.note),
+          pricePence: response.pricePence,
+          requestId: response.requestId
+        }
+      })
+
+      telemetry.complete({
+        statusCode: 200,
+        userId: user.id,
+        targetId: input.targetId,
+        targetType: input.targetType,
+        decision: input.decision
+      })
+
+      return jsonResponse(200, {
+        pricingReviewStatus: updatedResponse.pricingReviewStatus,
+        targetId: updatedResponse.id,
+        targetType: input.targetType
+      })
+    }
+
     const proposal = await prisma.requestPricingProposal.findUnique({
       where: {
         id: input.targetId

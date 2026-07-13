@@ -21,11 +21,13 @@ import {
 const normalize = value => String(value || '').toLowerCase()
 
 const requestStatusLabels = {
-  OPEN: 'New request',
+  OPEN: 'Active request',
   PENDING_DECISION: 'Pending decision',
   ACCEPTED: 'Accepted - preparing',
+  DECLINED: 'Declined',
   REJECTED: 'Rejected',
-  COMPLETED: 'Completed'
+  COMPLETED: 'Completed',
+  WITHDRAWN: 'Withdrawn'
 }
 
 const formatRequestStatus = status => requestStatusLabels[status] || String(status || 'Request')
@@ -38,7 +40,9 @@ const ownerRequestStatusRank = {
 }
 
 const getOwnerRequestAction = request => {
-  if (request.status === 'ACCEPTED' && !request.fulfilledByTrack) {
+  const responseStatus = request.currentResponse?.status || request.status
+
+  if (responseStatus === 'ACCEPTED' && !request.fulfilledByTrack) {
     return {
       href: `/upload?fulfilledRequestId=${request.id}`,
       label: 'Upload fulfilment',
@@ -48,25 +52,27 @@ const getOwnerRequestAction = request => {
 
   return {
     href: request.trackId ? `/catalogue/${request.trackId}?tab=requests&requestId=${request.id}` : '/catalogue',
-    label: request.status === 'COMPLETED' ? 'View fulfilment' : 'Review request',
-    variant: request.status === 'OPEN' ? 'ink' : 'paper'
+    label: responseStatus === 'COMPLETED' ? 'View fulfilment' : 'Review request',
+    variant: responseStatus === 'OPEN' ? 'ink' : 'paper'
   }
 }
 
 const getOwnerRequestPrompt = request => {
-  if (request.status === 'OPEN') {
-    return 'Needs your first review.'
+  const responseStatus = request.currentResponse?.status || request.status
+
+  if (!request.currentResponse && request.status === 'OPEN') {
+    return 'Open community request. You can respond from the request tab.'
   }
 
-  if (request.status === 'PENDING_DECISION') {
-    return 'Waiting for your pricing or fulfilment decision.'
+  if (responseStatus === 'PENDING_DECISION') {
+    return 'Waiting for a response decision.'
   }
 
-  if (request.status === 'ACCEPTED') {
+  if (responseStatus === 'ACCEPTED') {
     return request.fulfilledByTrack ? 'Fulfilment has been uploaded.' : 'Accepted and ready for fulfilment upload.'
   }
 
-  if (request.status === 'COMPLETED' && request.fulfilledByTrack) {
+  if (responseStatus === 'COMPLETED' && request.fulfilledByTrack) {
     return 'Fulfilment uploaded and waiting for approval.'
   }
 
@@ -468,7 +474,7 @@ const UploaderRequestQueue = ({ requests }) => {
           return (
             <li key={request.id}>
               <div className='cmc-profile-request-status'>
-                <span>{formatRequestStatus(request.status)}</span>
+                <span>{formatRequestStatus(request.currentResponse?.status || request.status)}</span>
               </div>
               <div className='cmc-profile-request-main'>
                 <Link

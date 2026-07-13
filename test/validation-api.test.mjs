@@ -19,6 +19,7 @@ import {
   simulatedCartBodySchema,
   signedTrackUrlQuerySchema,
   trackRequestBodySchema,
+  trackRequestResponseBodySchema,
   trackRequestPricingDecisionBodySchema,
   trackRequestPricingProposalBodySchema,
   trackRequestStatusBodySchema,
@@ -348,6 +349,69 @@ test('track request pricing proposal body accepts guided catalogue prices only',
   )
 })
 
+test('track request response body accepts accepted responses with guided buyer prices only', () => {
+  assert.deepEqual(
+    validateInput(trackRequestResponseBodySchema, {
+      catalogueType: 'OPERA_EXCERPT',
+      currency: 'GBP',
+      ignored: 'removed',
+      pricePence: '899',
+      pricingJustification: ' Prepared to order with specialist cuts. ',
+      responseNote: ' I can prepare this within a week. ',
+      saleFormat: 'INDIVIDUAL',
+      status: 'ACCEPTED'
+    }),
+    {
+      catalogueType: 'OPERA_EXCERPT',
+      currency: 'gbp',
+      pricePence: 899,
+      pricingJustification: 'Prepared to order with specialist cuts.',
+      responseNote: 'I can prepare this within a week.',
+      saleFormat: 'INDIVIDUAL',
+      status: 'ACCEPTED'
+    }
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestResponseBodySchema, {
+      catalogueType: 'SINGLE_TRACK',
+      pricePence: 999,
+      saleFormat: 'INDIVIDUAL',
+      status: 'ACCEPTED'
+    }),
+    error => error.statusCode === 400
+  )
+
+  assert.throws(
+    () => validateInput(trackRequestResponseBodySchema, {
+      catalogueType: 'SINGLE_TRACK',
+      saleFormat: 'INDIVIDUAL',
+      status: 'ACCEPTED'
+    }),
+    error => error.statusCode === 400
+  )
+})
+
+test('track request response body accepts declined responses without a price', () => {
+  assert.deepEqual(
+    validateInput(trackRequestResponseBodySchema, {
+      rejectionNote: ' This sits outside my current upload plan. ',
+      rejectionReason: 'outside_catalogue_plans',
+      responseNote: ' Another uploader may still take this on. ',
+      status: 'DECLINED'
+    }),
+    {
+      catalogueType: 'SINGLE_TRACK',
+      currency: 'gbp',
+      rejectionNote: 'This sits outside my current upload plan.',
+      rejectionReason: 'outside_catalogue_plans',
+      responseNote: 'Another uploader may still take this on.',
+      saleFormat: 'INDIVIDUAL',
+      status: 'DECLINED'
+    }
+  )
+})
+
 test('track request pricing decision body accepts requester decisions only', () => {
   assert.deepEqual(
     validateInput(trackRequestPricingDecisionBodySchema, {
@@ -508,6 +572,19 @@ test('admin pricing review body accepts only supported targets and decisions', (
       decision: 'reject',
       targetId: 41,
       targetType: 'requestProposal'
+    }
+  )
+
+  assert.deepEqual(
+    validateInput(adminPricingReviewBodySchema, {
+      decision: 'approve',
+      targetId: 44,
+      targetType: 'requestResponse'
+    }),
+    {
+      decision: 'approve',
+      targetId: 44,
+      targetType: 'requestResponse'
     }
   )
 

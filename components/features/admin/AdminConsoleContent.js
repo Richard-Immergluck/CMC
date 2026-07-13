@@ -76,6 +76,7 @@ const clearAccessReviewBadge = {
 const pricingReviewBadge = pricingReviews => {
   const count = (pricingReviews?.tracks?.length || 0) +
     (pricingReviews?.requestProposals?.length || 0) +
+    (pricingReviews?.requestResponses?.length || 0) +
     (pricingReviews?.releases?.length || 0)
 
   return {
@@ -1255,7 +1256,8 @@ const PricingReviewsTable = ({
   const tracks = pricingReviews?.tracks || []
   const releases = pricingReviews?.releases || []
   const proposals = pricingReviews?.requestProposals || []
-  const hasReviews = tracks.length > 0 || releases.length > 0 || proposals.length > 0
+  const responses = pricingReviews?.requestResponses || []
+  const hasReviews = tracks.length > 0 || releases.length > 0 || proposals.length > 0 || responses.length > 0
 
   return (
     <div className='d-grid gap-4'>
@@ -1415,7 +1417,83 @@ const PricingReviewsTable = ({
 
       <Card>
         <Card.Body>
-          <Card.Title>Request Price Reviews</Card.Title>
+          <Card.Title>Request Response Price Reviews</Card.Title>
+          <Table bordered hover responsive size='sm'>
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Track</th>
+                <th>Uploader</th>
+                <th>Price</th>
+                <th>Justification</th>
+                <th className='text-end'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {responses.map(response => {
+                const targetKey = `requestResponse-${response.id}`
+
+                return (
+                  <tr key={targetKey}>
+                    <td>
+                      <strong>{response.request?.title || `Request #${response.requestId}`}</strong>
+                      <div className='text-muted small'>Requester: {response.request?.requestedBy?.email || 'Unknown'}</div>
+                    </td>
+                    <td>
+                      {response.request?.track?.title || 'Unknown track'}
+                      <div className='text-muted small'>{response.request?.track?.composer}</div>
+                    </td>
+                    <td>
+                      {response.respondedBy?.name || 'Unknown'}
+                      <div className='text-muted small'>{response.respondedBy?.email}</div>
+                    </td>
+                    <td>
+                      {formatPricePence(response.pricePence, response.currency)}
+                      <div className='text-muted small'>{response.suggestedBand}</div>
+                    </td>
+                    <td>{response.justification || 'No note supplied.'}</td>
+                    <td className='text-end'>
+                      <Button
+                        className='me-2'
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: response.id,
+                          targetType: 'requestResponse',
+                          decision: 'approve'
+                        })}
+                        size='sm'
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        disabled={!canReviewPricing || reviewingPricingTarget === targetKey}
+                        onClick={() => onReviewPricing({
+                          targetId: response.id,
+                          targetType: 'requestResponse',
+                          decision: 'reject'
+                        })}
+                        size='sm'
+                        variant='danger'
+                      >
+                        Reject
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+              {responses.length === 0 && (
+                <tr>
+                  <td colSpan='6' className='text-center text-muted'>No request response prices need review.</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
+
+      <Card>
+        <Card.Body>
+          <Card.Title>Legacy Request Price Reviews</Card.Title>
           <Table bordered hover responsive size='sm'>
             <thead>
               <tr>

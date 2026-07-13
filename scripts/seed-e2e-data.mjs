@@ -16,6 +16,10 @@ const prisma = new PrismaClient({
   })
 })
 
+const dayMs = 24 * 60 * 60 * 1000
+
+const addDays = (date, days) => new Date(date.getTime() + days * dayMs)
+
 const generatedTrackTitlePrefixes = [
   'E2E Browser Upload ',
   'E2E Checkout Study ',
@@ -95,7 +99,33 @@ const cleanGeneratedE2EData = async () => {
   })
   const generatedTrackIds = generatedTracks.map(track => track.id)
 
+  const generatedRequests = await prisma.trackRequest.findMany({
+    where: {
+      OR: requestTitlePrefixFilters
+    },
+    select: {
+      id: true
+    }
+  })
+  const generatedRequestIds = generatedRequests.map(request => request.id)
+
   if (generatedTrackIds.length === 0) {
+    await prisma.$transaction([
+      prisma.trackRequestResponse.deleteMany({
+        where: {
+          requestId: {
+            in: generatedRequestIds
+          }
+        }
+      }),
+      prisma.trackRequest.deleteMany({
+        where: {
+          id: {
+            in: generatedRequestIds
+          }
+        }
+      })
+    ])
     return
   }
 
@@ -114,9 +144,18 @@ const cleanGeneratedE2EData = async () => {
   const generatedOrderEntityIds = generatedOrderIds.map(id => `${id}`)
 
   await prisma.$transaction([
+    prisma.trackRequestResponse.deleteMany({
+      where: {
+        requestId: {
+          in: generatedRequestIds
+        }
+      }
+    }),
     prisma.trackRequest.deleteMany({
       where: {
-        OR: requestTitlePrefixFilters
+        id: {
+          in: generatedRequestIds
+        }
       }
     }),
     prisma.paymentEvent.deleteMany({
@@ -901,14 +940,20 @@ const seed = async () => {
       composer: 'Bach Style Synthetic Fixture',
       instrumentation: 'Violin and piano',
       notes: 'A version with a light violin entry cue would make this easier to use in lessons.',
-      status: 'PENDING_DECISION',
-      pricingProposal: {
-        catalogueType: 'MOVEMENT',
-        pricePence: 999,
-        requesterDecision: 'PENDING',
-        reviewStatus: 'AUTO_APPROVED',
-        saleFormat: 'INDIVIDUAL'
-      },
+      status: 'OPEN',
+      responses: [
+        {
+          catalogueType: 'MOVEMENT',
+          currency: 'gbp',
+          pricePence: 999,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Seeded uploader response for requester visibility testing.',
+          responseNote: 'I can prepare this as a movement-length violin cue.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'ACCEPTED',
+          respondedById: uploader.id
+        }
+      ],
       userId: support.id,
       createdAt: new Date('2026-07-10T13:45:00.000Z')
     },
@@ -917,14 +962,20 @@ const seed = async () => {
       composer: 'Bach Style Synthetic Fixture',
       instrumentation: 'Piano guide tone',
       notes: 'Accepted request fixture for testing upload fulfilment from the details page.',
-      status: 'ACCEPTED',
-      pricingProposal: {
-        catalogueType: 'SINGLE_TRACK',
-        pricePence: 499,
-        requesterDecision: 'ACCEPTED',
-        reviewStatus: 'AUTO_APPROVED',
-        saleFormat: 'INDIVIDUAL'
-      },
+      status: 'OPEN',
+      responses: [
+        {
+          catalogueType: 'SINGLE_TRACK',
+          currency: 'gbp',
+          pricePence: 499,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Seeded accepted response for fulfilment testing.',
+          responseNote: 'Accepted and ready for preparation.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'ACCEPTED',
+          respondedById: uploader.id
+        }
+      ],
       userId: customer.id,
       createdAt: new Date('2026-07-10T13:55:00.000Z')
     },
@@ -933,9 +984,16 @@ const seed = async () => {
       composer: 'Bach Style Synthetic Fixture',
       instrumentation: 'Clarinet and piano',
       notes: 'A declined fixture so the rejected state can be reviewed by requesters and uploaders.',
-      rejectionNote: 'Clarinet cue versions are not part of this uploader’s current catalogue plan.',
-      rejectionReason: 'outside_catalogue_plans',
-      status: 'REJECTED',
+      status: 'OPEN',
+      responses: [
+        {
+          rejectionNote: 'Clarinet cue versions are not part of this uploader’s current catalogue plan.',
+          rejectionReason: 'outside_catalogue_plans',
+          responseNote: 'Another uploader may still respond during the request window.',
+          status: 'DECLINED',
+          respondedById: uploader.id
+        }
+      ],
       userId: support.id,
       createdAt: new Date('2026-07-10T14:00:00.000Z')
     },
@@ -946,6 +1004,21 @@ const seed = async () => {
       notes: 'Could this be available as a short 45-second rehearsal cut?',
       status: 'COMPLETED',
       fulfilledByTrackId: savedExtraCatalogueTracks[12]?.id,
+      responses: [
+        {
+          catalogueType: 'SINGLE_TRACK',
+          completedAt: new Date('2026-07-10T15:10:00.000Z'),
+          currency: 'gbp',
+          fulfilledByTrackId: savedExtraCatalogueTracks[12]?.id,
+          pricePence: 499,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Seeded completed response for fulfilment display testing.',
+          responseNote: 'Prepared as a short rehearsal cut.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'COMPLETED',
+          respondedById: uploader.id
+        }
+      ],
       userId: customer.id,
       createdAt: new Date('2026-07-10T14:10:00.000Z')
     }
@@ -1003,7 +1076,20 @@ const seed = async () => {
       composer: 'Camille Saint-Saens',
       instrumentation: 'Cello and piano',
       notes: 'Useful if the accompaniment has a flexible but stable tempo.',
-      status: 'PENDING_DECISION'
+      status: 'OPEN',
+      responses: [
+        {
+          catalogueType: 'SINGLE_TRACK',
+          currency: 'gbp',
+          pricePence: 499,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Standard single-track response for the requested cut.',
+          responseNote: 'Accepted for preparation during the request window.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'ACCEPTED',
+          respondedById: uploader.id
+        }
+      ]
     },
     {
       title: 'E2E Request Mozart Clarinet Concerto Adagio',
@@ -1011,7 +1097,22 @@ const seed = async () => {
       instrumentation: 'Clarinet and orchestra reduction',
       notes: 'Request fulfilled by an existing catalogue upload for smoke coverage.',
       status: 'COMPLETED',
-      fulfilledByTrackId: purchasedTracks[2]?.id
+      fulfilledByTrackId: purchasedTracks[2]?.id,
+      responses: [
+        {
+          catalogueType: 'SINGLE_TRACK',
+          completedAt: new Date('2026-07-06T12:00:00.000Z'),
+          currency: 'gbp',
+          fulfilledByTrackId: purchasedTracks[2]?.id,
+          pricePence: 499,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Fulfilled by an existing catalogue upload.',
+          responseNote: 'Uploaded and available as a normal paid catalogue track.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'COMPLETED',
+          respondedById: uploader.id
+        }
+      ]
     }
   ]
 
@@ -1026,13 +1127,14 @@ const seed = async () => {
 
   if (bachWarmupTrack) {
     for (const requestFixture of bachWarmupRequests) {
+      const expiresAt = addDays(requestFixture.createdAt, 60)
+
       await prisma.trackRequest.create({
         data: {
           composer: requestFixture.composer,
+          expiresAt,
           instrumentation: requestFixture.instrumentation,
           notes: requestFixture.notes,
-          rejectionNote: requestFixture.rejectionNote,
-          rejectionReason: requestFixture.rejectionReason,
           status: requestFixture.status,
           title: requestFixture.title,
           createdAt: requestFixture.createdAt,
@@ -1053,22 +1155,9 @@ const seed = async () => {
                 }
               }
             : undefined,
-          pricingProposals: requestFixture.pricingProposal
+          responses: requestFixture.responses?.length
             ? {
-                create: {
-                  ...requestFixture.pricingProposal,
-                  currency: 'gbp',
-                  justification: 'Seeded request price proposal for requester decision testing.',
-                  proposedBy: {
-                    connect: {
-                      id: uploader.id
-                    }
-                  },
-                  requesterRespondedAt:
-                    requestFixture.pricingProposal.requesterDecision === 'PENDING'
-                      ? null
-                      : new Date('2026-07-10T15:00:00.000Z')
-                }
+                create: requestFixture.responses.map(response => response)
               }
             : undefined
         }
@@ -1077,12 +1166,14 @@ const seed = async () => {
   }
 
   for (const [index, requestFixture] of requestFixtures.entries()) {
-    const { fulfilledByTrackId, ...requestData } = requestFixture
+    const { fulfilledByTrackId, responses, ...requestData } = requestFixture
     const requestTrack = purchasedTracks[index] || purchasedTracks[0]
+    const createdAt = new Date(`2026-07-${String(index + 3).padStart(2, '0')}T09:15:00.000Z`)
 
     await prisma.trackRequest.create({
       data: {
         ...requestData,
+        expiresAt: addDays(createdAt, 60),
         track: {
           connect: {
             id: requestTrack.id
@@ -1100,7 +1191,12 @@ const seed = async () => {
               }
             }
           : undefined,
-        createdAt: new Date(`2026-07-${String(index + 3).padStart(2, '0')}T09:15:00.000Z`)
+        responses: responses?.length
+          ? {
+              create: responses.map(response => response)
+            }
+          : undefined,
+        createdAt
       }
     })
   }
@@ -1118,7 +1214,20 @@ const seed = async () => {
       composer: 'Claude Debussy',
       instrumentation: 'Flute practice guide',
       notes: 'Uploader has asked for an alternate guide tempo on a track they own.',
-      status: 'ACCEPTED'
+      status: 'OPEN',
+      responses: [
+        {
+          catalogueType: 'SINGLE_TRACK',
+          currency: 'gbp',
+          pricePence: 399,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Accepted by a peer uploader for standard guide-track pricing.',
+          responseNote: 'Accepted and preparing a shorter guide cut.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'ACCEPTED',
+          respondedById: customer.id
+        }
+      ]
     },
     {
       title: 'E2E Request Uploader Faure Elegie Reduction',
@@ -1126,13 +1235,29 @@ const seed = async () => {
       instrumentation: 'Cello and piano',
       notes: 'Uploader request fixture marked fulfilled for profile and detail review.',
       status: 'COMPLETED',
-      fulfilledByTrackId: uploaderPurchasedTracks[2]?.id
+      fulfilledByTrackId: uploaderPurchasedTracks[2]?.id,
+      responses: [
+        {
+          catalogueType: 'SINGLE_TRACK',
+          completedAt: new Date('2026-07-12T11:45:00.000Z'),
+          currency: 'gbp',
+          fulfilledByTrackId: uploaderPurchasedTracks[2]?.id,
+          pricePence: 499,
+          pricingReviewStatus: 'AUTO_APPROVED',
+          pricingJustification: 'Fulfilled from a peer catalogue upload.',
+          responseNote: 'Completed and available in the catalogue.',
+          saleFormat: 'INDIVIDUAL',
+          status: 'COMPLETED',
+          respondedById: customer.id
+        }
+      ]
     }
   ]
 
   for (const [index, requestFixture] of uploaderRequestFixtures.entries()) {
-    const { fulfilledByTrackId, ...requestData } = requestFixture
+    const { fulfilledByTrackId, responses, ...requestData } = requestFixture
     const requestTrack = uploaderPurchasedTracks[index] || uploaderPurchasedTracks[0]
+    const createdAt = new Date(`2026-07-${String(index + 8).padStart(2, '0')}T09:45:00.000Z`)
 
     if (!requestTrack) {
       continue
@@ -1141,6 +1266,7 @@ const seed = async () => {
     await prisma.trackRequest.create({
       data: {
         ...requestData,
+        expiresAt: addDays(createdAt, 60),
         track: {
           connect: {
             id: requestTrack.id
@@ -1158,7 +1284,12 @@ const seed = async () => {
               }
             }
           : undefined,
-        createdAt: new Date(`2026-07-${String(index + 8).padStart(2, '0')}T09:45:00.000Z`)
+        responses: responses?.length
+          ? {
+              create: responses.map(response => response)
+            }
+          : undefined,
+        createdAt
       }
     })
   }

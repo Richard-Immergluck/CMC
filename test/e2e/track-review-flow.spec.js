@@ -200,53 +200,56 @@ test.describe('track review API flow', () => {
 
     expect(trackRequestResponse.status()).toBe(200)
 
-    const forbiddenProposalResponse = await request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+    const forbiddenResponse = await request.post(`/api/track-requests/${trackRequest.id}/responses`, {
       data: {
         catalogueType: 'OPERA_EXCERPT',
         saleFormat: 'INDIVIDUAL',
+        status: 'ACCEPTED',
         pricePence: 899,
-        justification: 'Customer should not be able to price their own request.'
+        pricingJustification: 'Customer should not be able to price their own request.'
       }
     })
 
-    expect(forbiddenProposalResponse.status()).toBe(403)
+    expect(forbiddenResponse.status()).toBe(403)
 
     await signInAs(request, 'e2e-uploader@example.com')
 
-    const invalidPriceResponse = await request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+    const invalidPriceResponse = await request.post(`/api/track-requests/${trackRequest.id}/responses`, {
       data: {
         catalogueType: 'SINGLE_TRACK',
         saleFormat: 'INDIVIDUAL',
         pricePence: 999,
-        justification: 'This should be rejected by the guided pricing band.'
+        pricingJustification: 'This should be rejected by the guided pricing band.',
+        status: 'ACCEPTED'
       }
     })
 
     expect(invalidPriceResponse.status()).toBe(400)
 
-    const proposalResponse = await request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+    const responseResponse = await request.post(`/api/track-requests/${trackRequest.id}/responses`, {
       data: {
         catalogueType: 'OPERA_EXCERPT',
         saleFormat: 'INDIVIDUAL',
         pricePence: 899,
-        justification: 'Prepared to order with specialist cuts.'
+        pricingJustification: 'Prepared to order with specialist cuts.',
+        status: 'ACCEPTED'
       }
     })
-    const proposal = await proposalResponse.json()
+    const response = await responseResponse.json()
 
-    expect(proposalResponse.status()).toBe(200)
-    expect(proposal).toEqual(
+    expect(responseResponse.status()).toBe(200)
+    expect(response).toEqual(
       expect.objectContaining({
         id: expect.any(Number),
         requestId: trackRequest.id,
-        proposedById: expect.any(String),
+        respondedById: expect.any(String),
         pricePence: 899,
         currency: 'gbp',
         catalogueType: 'OPERA_EXCERPT',
         saleFormat: 'INDIVIDUAL',
-        reviewStatus: 'NEEDS_REVIEW',
-        requesterDecision: 'PENDING',
-        justification: 'Prepared to order with specialist cuts.'
+        pricingReviewStatus: 'NEEDS_REVIEW',
+        pricingJustification: 'Prepared to order with specialist cuts.',
+        status: 'ACCEPTED'
       })
     )
   })
@@ -745,7 +748,7 @@ test.describe('track review API flow', () => {
     await expect(page.getByRole('link', { name: 'Opening rehearsal cut' })).toBeVisible()
   })
 
-  test('uploaders can propose request fulfilment pricing from the track requests tab', async ({ page }) => {
+  test('uploaders can respond to track requests from the track requests tab', async ({ page }) => {
     const suffix = `request-pricing-ui-${Date.now()}`
 
     await signInPageAs(page, 'e2e-uploader@example.com')
@@ -787,13 +790,13 @@ test.describe('track review API flow', () => {
     const requestCard = page.locator(`#request-${trackRequest.id}`)
 
     await expect(requestCard.getByText('Request fulfilment price')).toBeVisible()
-    await requestCard.getByLabel('Type').selectOption('OPERA_EXCERPT')
+    await requestCard.getByLabel('Track type').selectOption('OPERA_EXCERPT')
     await requestCard.getByLabel('Request price for UI request pricing fixture').getByLabel('£8.99').check()
     await requestCard.getByLabel('Pricing note (optional)').fill('Specialist preparation for a requested cut.')
-    await requestCard.getByRole('button', { name: 'Propose Price' }).click()
+    await requestCard.getByRole('button', { name: 'Save Response' }).click()
 
-    await expect(page.getByRole('status').filter({ hasText: 'Request price proposal sent.' })).toBeVisible()
-    await expect(requestCard.locator('.cmc-track-request-pricing-summary strong')).toHaveText('£8.99')
+    await expect(page.getByRole('status').filter({ hasText: 'Response saved.' })).toBeVisible()
+    await expect(requestCard.locator('.cmc-track-request-pricing-summary').getByText('£8.99')).toBeVisible()
     await expect(requestCard.getByText('Admin review needed')).toBeVisible()
   })
 
@@ -836,18 +839,19 @@ test.describe('track review API flow', () => {
 
     await signInPageAs(page, 'e2e-uploader@example.com')
 
-    const proposalResponse = await page.request.post(`/api/track-requests/${trackRequest.id}/pricing-proposals`, {
+    const responseResponse = await page.request.post(`/api/track-requests/${trackRequest.id}/responses`, {
       data: {
         catalogueType: 'OPERA_EXCERPT',
         saleFormat: 'INDIVIDUAL',
         pricePence: 899,
-        justification: 'Specialist preparation for admin review.'
+        pricingJustification: 'Specialist preparation for admin review.',
+        status: 'ACCEPTED'
       }
     })
-    const proposal = await proposalResponse.json()
+    const requestResponse = await responseResponse.json()
 
-    expect(proposalResponse.status()).toBe(200)
-    expect(proposal.reviewStatus).toBe('NEEDS_REVIEW')
+    expect(responseResponse.status()).toBe(200)
+    expect(requestResponse.pricingReviewStatus).toBe('NEEDS_REVIEW')
 
     await signInPageAs(page, 'e2e-admin@example.com')
     await page.goto('/admin')
