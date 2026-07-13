@@ -122,14 +122,14 @@ test.describe('authenticated smoke', () => {
     })
     const requestLink = requestsPanel.getByRole('link').first()
     await expect(requestLink).toBeVisible()
-    await expect(page.getByText(/New request · \d{2}\/\d{2}\/\d{4}/).first()).toBeVisible()
+    await expect(page.getByText(/Active request · \d{2}\/\d{2}\/\d{4}/).first()).toBeVisible()
     const requestTitle = (await requestLink.textContent())?.trim() || ''
     await requestLink.click()
 
     await expect(page).toHaveURL(/\/catalogue\/\d+\?tab=requests&requestId=\d+/)
     await expect(page.getByRole('tab', { name: /Requests/i })).toHaveAttribute('aria-selected', 'true')
     await expect(page.getByText(requestTitle).first()).toBeVisible()
-    await expect(page.getByText('New request').first()).toBeVisible()
+    await expect(page.getByText('New request')).toHaveCount(0)
     await expect(page.getByLabel('Request title')).toBeVisible()
     await page.goto('/profile')
 
@@ -186,7 +186,7 @@ test.describe('authenticated smoke', () => {
     const requestQueue = page.getByRole('region', { name: 'Requests Needing Attention' })
     await expect(requestQueue).toBeVisible()
     const requestStatuses = requestQueue.locator('.cmc-profile-request-status')
-    await expect(requestStatuses.getByText('New request', { exact: true }).first()).toBeVisible()
+    await expect(requestStatuses.getByText('Active request', { exact: true }).first()).toBeVisible()
     await expect(requestStatuses.getByText('Pending decision', { exact: true }).first()).toBeVisible()
     await expect(requestStatuses.getByText('Accepted - preparing', { exact: true }).first()).toBeVisible()
     await expect(requestQueue.getByRole('link', { name: /Bach Warmup Slower Tempo/i })).toHaveAttribute('href', /\/catalogue\/\d+\?tab=requests&requestId=\d+/)
@@ -217,7 +217,7 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('status')).toContainText('Your request has been added.')
     const createdRequest = page.locator('.cmc-track-request').filter({ hasText: requestTitle }).first()
     await expect(createdRequest).toBeVisible()
-    await expect(createdRequest.getByText('New request')).toBeVisible()
+    await expect(createdRequest.getByText('New request')).toHaveCount(0)
     await expect(createdRequest.getByText(/\d{2}\/\d{2}\/\d{4}/)).toBeVisible()
   })
 
