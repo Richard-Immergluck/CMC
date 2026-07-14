@@ -1699,29 +1699,49 @@ a {
 }
 
 .cmc-catalogue-track-membership {
-  display: flex;
+  position: relative;
+  display: grid;
+  max-width: 100%;
   margin-top: 0.5rem;
 }
 
-.cmc-catalogue-track-membership a {
+.cmc-catalogue-track-membership summary {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.2rem 0.55rem;
   align-items: baseline;
   max-width: 100%;
   padding: 0.18rem 0 0.18rem 0.55rem;
-  color: var(--cmc-color-deep-green);
+  color: var(--cmc-color-accent-strong);
   border-left: 0.18rem solid var(--cmc-color-accent-gold);
+  cursor: pointer;
+  list-style: none;
   text-decoration: none;
 }
 
-.cmc-catalogue-track-membership span {
+.cmc-catalogue-track-membership summary::-webkit-details-marker {
+  display: none;
+}
+
+.cmc-catalogue-track-membership summary::after {
+  margin-left: 0.1rem;
+  color: var(--cmc-color-text-muted);
+  content: '+';
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.cmc-catalogue-track-membership[open] summary::after {
+  content: '-';
+}
+
+.cmc-catalogue-track-membership summary span {
   font-size: 0.72rem;
   font-weight: 800;
   line-height: 1.25;
 }
 
-.cmc-catalogue-track-membership strong {
+.cmc-catalogue-track-membership summary strong {
   color: var(--cmc-color-accent-rose);
   font-size: 0.68rem;
   font-weight: 850;
@@ -1729,10 +1749,78 @@ a {
   text-transform: uppercase;
 }
 
-.cmc-catalogue-track-membership a:hover span,
-.cmc-catalogue-track-membership a:focus-visible span {
+.cmc-catalogue-track-membership summary:hover span,
+.cmc-catalogue-track-membership summary:focus-visible span {
   text-decoration: underline;
   text-underline-offset: 0.16rem;
+}
+
+.cmc-catalogue-track-membership-drawer {
+  display: grid;
+  gap: 0.55rem;
+  width: min(28rem, 100%);
+  margin-top: 0.45rem;
+  padding: var(--cmc-space-3);
+  background: rgba(255, 253, 248, 0.92);
+  border: 1px solid rgba(23, 63, 56, 0.18);
+  box-shadow: 0 10px 24px rgba(23, 63, 56, 0.08);
+}
+
+.cmc-catalogue-track-membership-drawer p {
+  margin: 0;
+  color: var(--cmc-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+}
+
+.cmc-catalogue-track-membership-drawer ul {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cmc-catalogue-track-membership-drawer a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 0.55rem;
+  align-items: center;
+  padding: 0.52rem 0.6rem;
+  color: var(--cmc-color-text);
+  background: rgba(244, 239, 228, 0.5);
+  border-left: 0.16rem solid rgba(168, 115, 34, 0.52);
+  text-decoration: none;
+}
+
+.cmc-catalogue-track-membership-drawer a:hover,
+.cmc-catalogue-track-membership-drawer a:focus-visible {
+  background: rgba(234, 215, 185, 0.44);
+  outline: none;
+}
+
+.cmc-catalogue-track-membership-drawer a > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+  font-weight: 820;
+}
+
+.cmc-catalogue-track-membership-drawer mark {
+  padding: 0.12rem 0.34rem;
+  color: var(--cmc-color-accent-strong);
+  background: rgba(234, 215, 185, 0.76);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cmc-catalogue-track-membership-drawer small {
+  grid-column: 1 / -1;
+  color: var(--cmc-color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 720;
 }
 
 .cmc-catalogue-track-heading p {

@@ -255,8 +255,7 @@ const trackListSelect = {
           title: true
         }
       }
-    },
-    take: 3
+    }
   },
   uploadedBy: {
     select: {
