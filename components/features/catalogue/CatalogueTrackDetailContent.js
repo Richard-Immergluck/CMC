@@ -758,6 +758,7 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
   const showOperationsAction = catalogueContext.showOperationsOverlay && !isTrackOwner
   const showWishlistAction = !showOwnedAction && !isTrackOwner
   const showPurchaseDivider = showWishlistAction && (showBasketAction || showOperationsAction || !catalogueContext.isAuthenticated)
+  const signInForTrackHref = `/auth/signin?callbackUrl=${encodeURIComponent(`/catalogue/${track.id}`)}`
   const wishlistHref = `/wishlist/add?trackId=${track.id}`
   const noteText = track.additionalInfo || 'No additional information has been supplied for this track.'
   const previewStart = 0
@@ -966,9 +967,14 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
                 </Button>
               )}
               {!catalogueContext.isAuthenticated && (
-                <p>
-                  Please <Link href='/auth/signin?callbackUrl=/catalogue'>login</Link> to add this track to your cart.
-                </p>
+                <>
+                  <p>
+                    Log in or create an account to add this track to your cart.
+                  </p>
+                  <Button as={Link} href={signInForTrackHref} variant='ink' size='md'>
+                    Log In / Sign Up
+                  </Button>
+                </>
               )}
               {showPurchaseDivider && <span className='cmc-track-purchase-divider' aria-hidden='true' />}
               {showWishlistAction && (

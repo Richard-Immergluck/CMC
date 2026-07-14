@@ -211,6 +211,7 @@ const CatalogueTrackRow = ({
 }) => {
   const badges = getTrackBadges({ catalogueContext, track })
   const collectionMembershipOptions = getCollectionMembershipOptions(track)
+  const showCollectionValue = !track.viewerState?.isOwned
   const primaryAction = getPrimaryTrackAction({ catalogueContext, track })
   const operationsAction = getSecondaryOperationsAction(catalogueContext)
 
@@ -245,20 +246,28 @@ const CatalogueTrackRow = ({
               <details className='cmc-catalogue-track-membership' aria-label={`Bundle availability for ${track.title}`}>
                 <summary>
                   <span>Available in {pluralise(collectionMembershipOptions.options.length, 'bundle')}</span>
-                  <strong>Best value: {collectionMembershipOptions.bestOption.savingsLabel}</strong>
+                  {showCollectionValue && (
+                    <strong>Best value: {collectionMembershipOptions.bestOption.savingsLabel}</strong>
+                  )}
                 </summary>
                 <div className='cmc-catalogue-track-membership-drawer'>
-                  <p>Choose a bundle containing this track.</p>
+                  <p>
+                    {showCollectionValue
+                      ? 'Choose a bundle containing this track.'
+                      : 'This owned track also appears in these bundles.'}
+                  </p>
                   <ul>
                     {collectionMembershipOptions.options.map(option => (
                       <li key={option.collectionId}>
                         <Link href={`/works-collections/${option.collectionId}`} onClick={onCatalogueNavigation}>
                           <span>{option.collectionTitle}</span>
-                          {option.collectionId === collectionMembershipOptions.bestOption.collectionId && (
+                          {showCollectionValue && option.collectionId === collectionMembershipOptions.bestOption.collectionId && (
                             <mark>Best value</mark>
                           )}
                           <small>
-                            {option.collectionPriceLabel || 'Bundle price TBC'} · {pluralise(option.collectionTrackCount, 'track')} · {option.savingsLabel}
+                            {showCollectionValue
+                              ? `${option.collectionPriceLabel || 'Bundle price TBC'} · ${pluralise(option.collectionTrackCount, 'track')} · ${option.savingsLabel}`
+                              : pluralise(option.collectionTrackCount, 'track')}
                           </small>
                         </Link>
                       </li>
