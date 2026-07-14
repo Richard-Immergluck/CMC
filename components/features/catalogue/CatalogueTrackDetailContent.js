@@ -126,6 +126,18 @@ const detailTabLabels = {
 
 const detailTabIds = Object.keys(detailTabLabels)
 
+const createCatalogueFilterHref = (filterName, value) => {
+  if (!value) {
+    return '/catalogue'
+  }
+
+  const params = new URLSearchParams({
+    [filterName]: value
+  })
+
+  return `/catalogue?${params.toString()}`
+}
+
 const requestStatusOptions = [
   {
     label: 'Active request',
@@ -345,6 +357,13 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
     if (returnUrl?.startsWith('/catalogue')) {
       return {
         label: 'Back to Catalogue',
+        url: returnUrl
+      }
+    }
+
+    if (returnUrl?.startsWith('/works-collections')) {
+      return {
+        label: 'Back to Bundle',
         url: returnUrl
       }
     }
@@ -885,9 +904,22 @@ const CatalogueTrackDetailContent = ({ catalogueContext, track, comments, reques
               <h1 id='track-detail-heading'>
                 <BrandDisplayText text={track.title} />
               </h1>
-              <p className='cmc-track-composer'>{track.composer || 'Unknown composer'}</p>
+              <p className='cmc-track-composer'>
+                {track.composer ? (
+                  <Link href={createCatalogueFilterHref('composer', track.composer)}>
+                    {track.composer}
+                  </Link>
+                ) : 'Unknown composer'}
+              </p>
               <p className='cmc-track-uploader-line'>
-                <span>Uploaded by {track.uploaderName || 'Unknown'}</span>
+                <span className='cmc-track-uploader-label'>Uploaded by</span>
+                {track.uploaderName ? (
+                  <Link className='cmc-track-uploader-link' href={createCatalogueFilterHref('uploader', track.uploaderName)}>
+                    {track.uploaderName}
+                  </Link>
+                ) : (
+                  <span className='cmc-track-uploader-link'>Unknown</span>
+                )}
                 <span aria-hidden='true' />
                 <time>{track.uploadedAt || 'Unknown date'}</time>
               </p>
