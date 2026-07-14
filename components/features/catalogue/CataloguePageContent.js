@@ -115,31 +115,39 @@ const getTrackActivity = track => {
   ]
 }
 
-const getCollectionMembershipPrompt = track => {
-  const memberships = track.collectionMemberships || []
+const getCollectionMembershipOptions = track => {
+  const memberships = (track.collectionMemberships || []).map(membership => {
+    const individualTotal = Number(membership.individualTracksTotalPence || 0)
+    const collectionPrice = Number(membership.collectionPricePence || 0)
+    const savingsPence = Math.max(0, individualTotal - collectionPrice)
+    const collectionPriceLabel = Number.isInteger(collectionPrice) && collectionPrice > 0
+      ? currencyFormatter.format(collectionPrice / 100)
+      : membership.collectionFormattedPrice || null
+
+    return {
+      ...membership,
+      collectionPriceLabel,
+      savingsLabel: savingsPence > 0
+        ? `Save ${currencyFormatter.format(savingsPence / 100)}`
+        : collectionPriceLabel ? `${collectionPriceLabel} bundle` : 'Bundle option',
+      savingsPence
+    }
+  })
 
   if (memberships.length === 0) {
     return null
   }
 
-  const [firstMembership] = memberships
-  const extraCount = memberships.length - 1
-  const individualTotal = Number(firstMembership.individualTracksTotalPence || 0)
-  const collectionPrice = Number(firstMembership.collectionPricePence || 0)
-  const savingsPence = Math.max(0, individualTotal - collectionPrice)
-  const collectionPriceLabel = Number.isInteger(collectionPrice) && collectionPrice > 0
-    ? currencyFormatter.format(collectionPrice / 100)
-    : firstMembership.collectionFormattedPrice || null
-  const savingsLabel = savingsPence > 0
-    ? `Save ${currencyFormatter.format(savingsPence / 100)} in the full work`
-    : collectionPriceLabel ? `Full work ${collectionPriceLabel}` : 'Available in a full work'
+  const sortedOptions = [...memberships].sort((first, second) => (
+    second.savingsPence - first.savingsPence ||
+    Number(first.collectionPricePence || Number.MAX_SAFE_INTEGER) - Number(second.collectionPricePence || Number.MAX_SAFE_INTEGER) ||
+    first.collectionTitle.localeCompare(second.collectionTitle)
+  ))
+  const [bestOption] = sortedOptions
 
   return {
-    collectionId: firstMembership.collectionId,
-    label: extraCount > 0
-      ? `Part of ${firstMembership.collectionTitle} + ${extraCount} more`
-      : `Part of ${firstMembership.collectionTitle}`,
-    savingsLabel
+    bestOption,
+    options: sortedOptions
   }
 }
 
@@ -202,7 +210,7 @@ const CatalogueTrackRow = ({
   track
 }) => {
   const badges = getTrackBadges({ catalogueContext, track })
-  const collectionMembershipPrompt = getCollectionMembershipPrompt(track)
+  const collectionMembershipOptions = getCollectionMembershipOptions(track)
   const primaryAction = getPrimaryTrackAction({ catalogueContext, track })
   const operationsAction = getSecondaryOperationsAction(catalogueContext)
 
@@ -233,13 +241,31 @@ const CatalogueTrackRow = ({
                 <span key={item}>{item}</span>
               ))}
             </div>
-            {collectionMembershipPrompt && (
-              <div className='cmc-catalogue-track-membership' aria-label={`Collection membership for ${track.title}`}>
-                <Link href={`/works-collections/${collectionMembershipPrompt.collectionId}`} onClick={onCatalogueNavigation}>
-                  <span>{collectionMembershipPrompt.label}</span>
-                  <strong>{collectionMembershipPrompt.savingsLabel}</strong>
-                </Link>
-              </div>
+            {collectionMembershipOptions && (
+              <details className='cmc-catalogue-track-membership' aria-label={`Bundle availability for ${track.title}`}>
+                <summary>
+                  <span>Available in {pluralise(collectionMembershipOptions.options.length, 'bundle')}</span>
+                  <strong>Best value: {collectionMembershipOptions.bestOption.savingsLabel}</strong>
+                </summary>
+                <div className='cmc-catalogue-track-membership-drawer'>
+                  <p>Choose a bundle containing this track.</p>
+                  <ul>
+                    {collectionMembershipOptions.options.map(option => (
+                      <li key={option.collectionId}>
+                        <Link href={`/works-collections/${option.collectionId}`} onClick={onCatalogueNavigation}>
+                          <span>{option.collectionTitle}</span>
+                          {option.collectionId === collectionMembershipOptions.bestOption.collectionId && (
+                            <mark>Best value</mark>
+                          )}
+                          <small>
+                            {option.collectionPriceLabel || 'Bundle price TBC'} · {pluralise(option.collectionTrackCount, 'track')} · {option.savingsLabel}
+                          </small>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </details>
             )}
           </div>
 
