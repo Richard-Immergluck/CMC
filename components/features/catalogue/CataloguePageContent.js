@@ -117,20 +117,14 @@ const getTrackActivity = track => {
 
 const getCollectionMembershipOptions = track => {
   const memberships = (track.collectionMemberships || []).map(membership => {
-    const individualTotal = Number(membership.individualTracksTotalPence || 0)
     const collectionPrice = Number(membership.collectionPricePence || 0)
-    const savingsPence = Math.max(0, individualTotal - collectionPrice)
     const collectionPriceLabel = Number.isInteger(collectionPrice) && collectionPrice > 0
       ? currencyFormatter.format(collectionPrice / 100)
       : membership.collectionFormattedPrice || null
 
     return {
       ...membership,
-      collectionPriceLabel,
-      savingsLabel: savingsPence > 0
-        ? `Save ${currencyFormatter.format(savingsPence / 100)}`
-        : collectionPriceLabel ? `${collectionPriceLabel} bundle` : 'Bundle option',
-      savingsPence
+      collectionPriceLabel
     }
   })
 
@@ -139,14 +133,10 @@ const getCollectionMembershipOptions = track => {
   }
 
   const sortedOptions = [...memberships].sort((first, second) => (
-    second.savingsPence - first.savingsPence ||
-    Number(first.collectionPricePence || Number.MAX_SAFE_INTEGER) - Number(second.collectionPricePence || Number.MAX_SAFE_INTEGER) ||
     first.collectionTitle.localeCompare(second.collectionTitle)
   ))
-  const [bestOption] = sortedOptions
 
   return {
-    bestOption,
     options: sortedOptions
   }
 }
@@ -211,9 +201,10 @@ const CatalogueTrackRow = ({
 }) => {
   const badges = getTrackBadges({ catalogueContext, track })
   const collectionMembershipOptions = getCollectionMembershipOptions(track)
-  const showCollectionValue = !track.viewerState?.isOwned
+  const showCollectionPrice = !track.viewerState?.isOwned
   const primaryAction = getPrimaryTrackAction({ catalogueContext, track })
   const operationsAction = getSecondaryOperationsAction(catalogueContext)
+  const bundleAvailabilityLabel = collectionMembershipOptions?.options.length === 1 ? 'this bundle' : 'these bundles'
 
   return (
     <article
@@ -246,27 +237,21 @@ const CatalogueTrackRow = ({
               <details className='cmc-catalogue-track-membership' aria-label={`Bundle availability for ${track.title}`}>
                 <summary>
                   <span>Available in {pluralise(collectionMembershipOptions.options.length, 'bundle')}</span>
-                  {showCollectionValue && (
-                    <strong>Best value: {collectionMembershipOptions.bestOption.savingsLabel}</strong>
-                  )}
                 </summary>
                 <div className='cmc-catalogue-track-membership-drawer'>
                   <p>
-                    {showCollectionValue
-                      ? 'Choose a bundle containing this track.'
-                      : 'This owned track also appears in these bundles.'}
+                    {showCollectionPrice
+                      ? `This track is available in ${bundleAvailabilityLabel}.`
+                      : `This track also appears in ${bundleAvailabilityLabel}.`}
                   </p>
                   <ul>
                     {collectionMembershipOptions.options.map(option => (
                       <li key={option.collectionId}>
                         <Link href={`/works-collections/${option.collectionId}`} onClick={onCatalogueNavigation}>
                           <span>{option.collectionTitle}</span>
-                          {showCollectionValue && option.collectionId === collectionMembershipOptions.bestOption.collectionId && (
-                            <mark>Best value</mark>
-                          )}
                           <small>
-                            {showCollectionValue
-                              ? `${option.collectionPriceLabel || 'Bundle price TBC'} · ${pluralise(option.collectionTrackCount, 'track')} · ${option.savingsLabel}`
+                            {showCollectionPrice
+                              ? `${option.collectionPriceLabel || 'Bundle price TBC'} · ${pluralise(option.collectionTrackCount, 'track')}`
                               : pluralise(option.collectionTrackCount, 'track')}
                           </small>
                         </Link>

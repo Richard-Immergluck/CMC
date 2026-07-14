@@ -348,8 +348,9 @@ test.describe('track review API flow', () => {
     await page.goto(`/catalogue?q=${encodeURIComponent(`E2E Pending Review ${suffix}-one`)}`)
     const bundleAvailability = page.locator('.cmc-catalogue-track-membership').first()
     await expect(bundleAvailability.locator('summary')).toContainText('Available in 1 bundle')
-    await expect(bundleAvailability.locator('summary')).toContainText('Best value:')
+    await expect(bundleAvailability.locator('summary')).not.toContainText('Best value:')
     await bundleAvailability.locator('summary').click()
+    await expect(bundleAvailability.getByText('This track is available in this bundle.')).toBeVisible()
     await expect(
       bundleAvailability.getByRole('link', { name: new RegExp(`E2E Grouped Work ${suffix}`) })
     ).toHaveAttribute('href', `/works-collections/${collectionBody.collection.id}`)
