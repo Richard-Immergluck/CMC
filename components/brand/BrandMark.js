@@ -25,9 +25,20 @@ const BrandMark = ({ compact = false, className = '', wordmark = 'full' }) => {
         priority
       />
       <span className='cmc-brand__wordmark'>
-        <span className='cmc-brand__name'>
-          {wordmark === 'initials' || wordmark === 'navFull' ? 'CMC' : 'Classical Music Catalogue'}
-        </span>
+        {wordmark === 'initials' || wordmark === 'navFull' ? (
+          <Image
+            className='cmc-brand__lettering'
+            src='/brand/logo/cmc-wordmark-charcoal-final.png'
+            width='342'
+            height='115'
+            sizes='(max-width: 480px) 112px, 184px'
+            alt=''
+            aria-hidden='true'
+            priority
+          />
+        ) : (
+          <span className='cmc-brand__name'>Classical Music Catalogue</span>
+        )}
         {wordmark === 'navFull' && (
           <>
             <span className='cmc-brand__divider' aria-hidden='true' />

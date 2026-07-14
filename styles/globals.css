@@ -373,6 +373,15 @@ a {
   line-height: 1;
 }
 
+.cmc-brand__lettering {
+  display: block;
+  width: clamp(8.5rem, 12vw, 10.8rem);
+  height: auto;
+  filter: none;
+  transform: translateY(-3px) scaleY(0.95);
+  transform-origin: center bottom;
+}
+
 .cmc-brand__strapline {
   margin-top: var(--cmc-space-1);
   color: var(--cmc-color-text-muted);
@@ -443,6 +452,10 @@ a {
   font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1;
+}
+
+.cmc-brand--nav-full .cmc-brand__lettering {
+  width: clamp(9.5rem, 13vw, 11.5rem);
 }
 
 .cmc-brand--nav-full .cmc-brand__divider {
@@ -6695,6 +6708,11 @@ a {
   .cmc-brand--initials .cmc-brand__name,
   .cmc-brand--nav-full .cmc-brand__name {
     font-size: 2.35rem;
+  }
+
+  .cmc-brand--initials .cmc-brand__lettering,
+  .cmc-brand--nav-full .cmc-brand__lettering {
+    width: 7rem;
   }
 
   .cmc-brand--nav-full .cmc-brand__wordmark {
