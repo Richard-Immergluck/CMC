@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import BrandDisplayText from '../../../components/brand/BrandDisplayText'
 import WorksCollectionCartButton from '../../../components/features/works-collections/WorksCollectionCartButton'
+import WorksCollectionTrackLink from '../../../components/features/works-collections/WorksCollectionTrackLink'
 import { Button } from '../../../components/ui/primitives'
 import { formatDisplayDate } from '../../../lib/date-format.mjs'
 import {
@@ -83,15 +84,15 @@ const WorksCollectionDetailPage = async ({ params }) => {
 
             <aside className='cmc-works-purchase-panel' aria-label='Collection purchase'>
               <strong>{collection.formattedPrice}</strong>
-              <p>{collection.trackCount} tracks in this Work or Collection</p>
+              <p>{collection.trackCount} tracks in this bundle</p>
               <dl className='cmc-works-price-context'>
                 <div>
                   <dt>Individual total</dt>
                   <dd>{collection.formattedIndividualTracksTotal}</dd>
                 </div>
                 {collection.savingsPence > 0 && (
-                  <div>
-                    <dt>Collection saving</dt>
+                  <div className='cmc-works-price-context-saving'>
+                    <dt>Total saving</dt>
                     <dd>{collection.formattedSavings}</dd>
                   </div>
                 )}
@@ -120,12 +121,12 @@ const WorksCollectionDetailPage = async ({ params }) => {
               </div>
               <ul>
                 {collection.tracks.map(track => (
-                  <li key={track.trackId} role='row'>
+                  <li id={`work-track-${track.trackId}`} key={track.trackId} role='row' tabIndex='-1'>
                     <span aria-hidden='true'>{String(track.position).padStart(2, '0')}</span>
                     <div role='cell'>
-                      <Link href={`/catalogue/${track.trackId}`}>
+                      <WorksCollectionTrackLink collectionId={collection.id} trackId={track.trackId}>
                         {track.title}
-                      </Link>
+                      </WorksCollectionTrackLink>
                       <small>
                         {track.movementNo ? `${track.movementNo} · ` : ''}
                         {track.composer || collection.composer || 'Unknown composer'}
@@ -135,7 +136,7 @@ const WorksCollectionDetailPage = async ({ params }) => {
                     <span role='cell'>{track.instrumentation || 'Not set'}</span>
                     <span role='cell'>{formatDuration(track.durationSeconds)}</span>
                     <span role='cell'>{track.formattedPrice}</span>
-                    <Button as={Link} href={`/catalogue/${track.trackId}`} size='sm' variant='paper'>
+                    <Button as={WorksCollectionTrackLink} collectionId={collection.id} trackId={track.trackId} size='sm' variant='paper'>
                       Details
                     </Button>
                   </li>

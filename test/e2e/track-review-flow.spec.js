@@ -341,7 +341,7 @@ test.describe('track review API flow', () => {
     await page.getByRole('link', { name: `E2E Grouped Work ${suffix}` }).click()
     await expect(page).toHaveURL(new RegExp(`/works-collections/${collectionBody.collection.id}$`))
     await expect(page.getByRole('heading', { name: `E2E Grouped Work ${suffix}.` })).toBeVisible()
-    await expect(page.getByText(`${collectionBody.collection.tracks.length} tracks in this Work or Collection`)).toBeVisible()
+    await expect(page.getByText(`${collectionBody.collection.tracks.length} tracks in this bundle`)).toBeVisible()
     await expect(page.getByRole('link', { name: `E2E Pending Review ${suffix}-one` })).toBeVisible()
     await expect(page.getByRole('link', { name: `E2E Pending Review ${suffix}-two` })).toBeVisible()
 

@@ -139,6 +139,54 @@ test('anonymous visitor can search catalogue tracks', async ({ page }) => {
   await expect(page.getByLabel('Search catalogue')).toHaveValue('')
 })
 
+test('track detail links filter catalogue by composer and uploader', async ({ page }) => {
+  await page.goto('/catalogue')
+  await expect(page.getByRole('heading', { name: /Browse Archive/i })).toBeVisible()
+
+  await page.getByRole('link', { name: 'Details' }).first().click()
+  await expect(page).toHaveURL(/\/catalogue\/\d+$/)
+
+  const trackUrl = page.url()
+  const composerLink = page.locator('.cmc-track-composer a')
+  const composer = (await composerLink.innerText()).trim()
+
+  await composerLink.click()
+  await expect(page).toHaveURL(/\/catalogue\?composer=/)
+  expect(new URL(page.url()).searchParams.get('composer')).toBe(composer)
+  await expect(page.getByLabel('Composer')).toHaveValue(composer)
+
+  await page.goto(trackUrl)
+  const uploaderLink = page.locator('.cmc-track-uploader-link')
+  const uploader = (await uploaderLink.innerText()).trim()
+
+  await uploaderLink.click()
+  await expect(page).toHaveURL(/\/catalogue\?uploader=/)
+  expect(new URL(page.url()).searchParams.get('uploader')).toBe(uploader)
+  await expect(page.getByLabel('Uploader')).toHaveValue(uploader)
+})
+
+test('anonymous visitor returns from a bundle track detail to the focused bundle row', async ({ page }) => {
+  await page.goto('/works-collections')
+  await expect(page.getByRole('heading', { name: /Grouped music for bigger practice plans/i })).toBeVisible()
+
+  await page.getByRole('link', { name: 'View Collection' }).first().click()
+  await expect(page).toHaveURL(/\/works-collections\/\d+$/)
+  await expect(page.getByText(/tracks in this bundle/)).toBeVisible()
+
+  const firstTrackRow = page.locator('.cmc-works-track-table li').first()
+  const firstTrackRowId = await firstTrackRow.getAttribute('id')
+
+  expect(firstTrackRowId).toMatch(/^work-track-\d+$/)
+
+  await firstTrackRow.getByRole('link', { name: 'Details' }).click()
+  await expect(page).toHaveURL(/\/catalogue\/\d+$/)
+  await expect(page.getByRole('button', { name: /Back to Bundle/i })).toBeVisible()
+
+  await page.getByRole('button', { name: /Back to Bundle/i }).click()
+  await expect(page).toHaveURL(new RegExp(`/works-collections/\\d+#${firstTrackRowId}$`))
+  await expect(page.locator(`#${firstTrackRowId}`)).toBeVisible()
+})
+
 test('anonymous catalogue filters apply when changed', async ({ page }) => {
   await page.goto('/catalogue')
   await page.getByLabel('Page size').selectOption('10')
