@@ -32,6 +32,10 @@ import {
   catalogueReleaseStatusDescriptions,
   catalogueReleaseStatusLabels
 } from '../../../lib/server/works-collections-core.mjs'
+import {
+  maxWorksCollectionTags,
+  worksCollectionTags
+} from '../../../lib/works-collection-tags.mjs'
 
 const formatCollectionDate = value => {
   if (!value || !String(value).includes('T')) {
@@ -635,13 +639,13 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const [collectionFilter, setCollectionFilter] = useState('all')
   const [collectionSearch, setCollectionSearch] = useState('')
   const [collectionSort, setCollectionSort] = useState('newest')
-  const [composer, setComposer] = useState('')
   const [editingCollectionId, setEditingCollectionId] = useState(null)
   const [error, setError] = useState('')
   const [pricePence, setPricePence] = useState(getPricingBand(catalogueTypes.collection).defaultPricePence)
   const [pricingJustification, setPricingJustification] = useState('')
   const [saleFormat, setSaleFormat] = useState(saleFormats.both)
   const [selectedTrackItems, setSelectedTrackItems] = useState([])
+  const [selectedTagSlugs, setSelectedTagSlugs] = useState([])
   const [status, setStatus] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [title, setTitle] = useState('')
@@ -651,7 +655,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
   const pricingBand = getPricingBand(catalogueType)
   const needsPricingReview = pricePence > pricingBand.reviewThresholdPence
   const selectedTrackIds = selectedTrackItems.map(item => item.trackId)
-  const canSave = selectedTrackItems.length >= 2 && title.trim() && !submitting
+  const canSave = selectedTrackItems.length >= 2 && selectedTagSlugs.length >= 1 && title.trim() && !submitting
   const normalizedCollectionSearch = getUploadInventorySearchQuery(collectionSearch)
   const normalizedTrackSearch = getUploadInventorySearchQuery(trackSearch)
   const collectionFilterCounts = useMemo(() => getUploadInventoryCollectionFilterCounts(collections), [collections])
@@ -743,11 +747,25 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     setSelectedTrackItems(currentItems => currentItems.filter(item => item.trackId !== trackId))
   }
 
+  const toggleDiscoveryTag = tagSlug => {
+    setSelectedTagSlugs(currentTagSlugs => {
+      if (currentTagSlugs.includes(tagSlug)) {
+        return currentTagSlugs.filter(currentTagSlug => currentTagSlug !== tagSlug)
+      }
+
+      if (currentTagSlugs.length >= maxWorksCollectionTags) {
+        return currentTagSlugs
+      }
+
+      return [...currentTagSlugs, tagSlug]
+    })
+  }
+
   const resetForm = () => {
-    setComposer('')
     setEditingCollectionId(null)
     setPricingJustification('')
     setSelectedTrackItems([])
+    setSelectedTagSlugs([])
     setTitle('')
   }
 
@@ -755,7 +773,6 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
     const nextBand = getPricingBand(collection.catalogueType)
 
     setCatalogueType(collection.catalogueType)
-    setComposer(collection.composer || '')
     setEditingCollectionId(collection.id)
     setError('')
     setPricePence(collection.pricePence || nextBand.defaultPricePence)
@@ -766,6 +783,7 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
       titleInWork: track.titleInWork || track.title || '',
       trackId: track.trackId
     })))
+    setSelectedTagSlugs((collection.tags || []).map(tag => tag.slug))
     setStatus('')
     setTitle(collection.title)
   }
@@ -793,10 +811,10 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
         },
         body: JSON.stringify({
           catalogueType,
-          composer: composer.trim() || undefined,
           pricePence,
           pricingJustification: pricingJustification.trim() || undefined,
           saleFormat,
+          tagSlugs: selectedTagSlugs,
           title: title.trim(),
           trackItems: selectedTrackItems.map((item, index) => ({
             movementNo: item.movementNo.trim() || undefined,
@@ -885,16 +903,6 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
               />
             </label>
             <label>
-              <span>Composer</span>
-              <input
-                maxLength={255}
-                onChange={event => setComposer(event.target.value)}
-                placeholder='Optional'
-                type='text'
-                value={composer}
-              />
-            </label>
-            <label>
               <span>Type</span>
               <select value={catalogueType} onChange={handleTypeChange}>
                 {worksAndCollectionsCatalogueTypes.map(type => (
@@ -915,6 +923,30 @@ const WorksCollectionsManager = ({ collections, onCreated, tracks }) => {
               </select>
             </label>
           </div>
+
+          <fieldset className='cmc-profile-works-tags'>
+            <legend>Help people find this</legend>
+            <div>
+              {worksCollectionTags.map(tag => {
+                const selected = selectedTagSlugs.includes(tag.slug)
+                const selectionLimitReached = selectedTagSlugs.length >= maxWorksCollectionTags
+
+                return (
+                  <label className={selected ? 'cmc-profile-works-tag cmc-profile-works-tag--selected' : 'cmc-profile-works-tag'} key={tag.slug}>
+                    <input
+                      checked={selected}
+                      disabled={!selected && selectionLimitReached}
+                      onChange={() => toggleDiscoveryTag(tag.slug)}
+                      type='checkbox'
+                      value={tag.slug}
+                    />
+                    <span>{tag.label}</span>
+                  </label>
+                )
+              })}
+            </div>
+            <small>{selectedTagSlugs.length} of {maxWorksCollectionTags} selected</small>
+          </fieldset>
 
           <fieldset className='cmc-profile-works-track-picker'>
             <div className='cmc-upload-management-inventory-heading'>

@@ -881,22 +881,22 @@ test('works collection body accepts guided grouped prices only', () => {
   assert.deepEqual(
     validateInput(createWorksCollectionBodySchema, {
       catalogueType: 'COLLECTION',
-      composer: ' Synthetic Composer ',
       currency: 'GBP',
       pricePence: '1499',
       pricingJustification: ' Curated rehearsal set. ',
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies'],
       title: ' Grouped Rehearsal Set ',
       trackIds: ['11', '12'],
       ignored: 'removed'
     }),
     {
       catalogueType: 'COLLECTION',
-      composer: 'Synthetic Composer',
       currency: 'gbp',
       pricePence: 1499,
       pricingJustification: 'Curated rehearsal set.',
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies'],
       title: 'Grouped Rehearsal Set',
       trackIds: [11, 12]
     }
@@ -907,6 +907,7 @@ test('works collection body accepts guided grouped prices only', () => {
       catalogueType: 'SINGLE_TRACK',
       pricePence: 299,
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies'],
       title: 'Invalid grouped single',
       trackIds: [11, 12]
     }),
@@ -918,6 +919,7 @@ test('works collection body accepts guided grouped prices only', () => {
       catalogueType: 'COLLECTION',
       pricePence: 1499,
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies'],
       title: 'One track is not a collection',
       trackIds: [11]
     }),
@@ -929,6 +931,7 @@ test('works collection body accepts guided grouped prices only', () => {
       catalogueType: 'COLLECTION',
       pricePence: 5999,
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies'],
       title: 'Unguided price',
       trackIds: [11, 12]
     }),
@@ -941,6 +944,7 @@ test('works collection body accepts guided grouped prices only', () => {
       currency: 'GBP',
       pricePence: '1999',
       saleFormat: 'BUNDLE',
+      tagSlugs: ['lieder'],
       title: 'Updated song cycle',
       trackIds: ['12', '11']
     }),
@@ -949,6 +953,7 @@ test('works collection body accepts guided grouped prices only', () => {
       currency: 'gbp',
       pricePence: 1999,
       saleFormat: 'BUNDLE',
+      tagSlugs: ['lieder'],
       title: 'Updated song cycle',
       trackIds: [12, 11]
     }
@@ -960,6 +965,7 @@ test('works collection body accepts guided grouped prices only', () => {
       currency: 'GBP',
       pricePence: '1499',
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies', 'arias'],
       title: 'Ordered rehearsal set',
       trackItems: [
         {
@@ -982,6 +988,7 @@ test('works collection body accepts guided grouped prices only', () => {
       currency: 'gbp',
       pricePence: 1499,
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies', 'arias'],
       title: 'Ordered rehearsal set',
       trackItems: [
         {
@@ -999,6 +1006,25 @@ test('works collection body accepts guided grouped prices only', () => {
       ]
     }
   )
+
+  for (const tagSlugs of [
+    [],
+    ['unknown-tag'],
+    ['opera', 'arias', 'recitatives', 'instrumental'],
+    ['opera', 'opera']
+  ]) {
+    assert.throws(
+      () => validateInput(createWorksCollectionBodySchema, {
+        catalogueType: 'COLLECTION',
+        pricePence: 1499,
+        saleFormat: 'BOTH',
+        tagSlugs,
+        title: 'Invalid discovery tags',
+        trackIds: [11, 12]
+      }),
+      error => error.statusCode === 400
+    )
+  }
 })
 
 test('upload batch body accepts optional catalogue defaults', () => {

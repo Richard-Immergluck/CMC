@@ -176,6 +176,7 @@ model CatalogueRelease {
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
   tracks               CatalogueReleaseTrack[]
+  tags                 CatalogueReleaseTag[]
   orderItems           OrderItem[]
   trackOwners          TrackOwner[]
 
@@ -185,6 +186,30 @@ model CatalogueRelease {
   @@index([userId, createdAt])
   @@index([pricingReviewStatus])
   @@index([status, pricingReviewStatus])
+}
+
+model CatalogueTag {
+  id        Int                   @id @default(autoincrement())
+  slug      String                @unique
+  label     String
+  sortOrder Int                   @default(0)
+  active    Boolean               @default(true)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  releases  CatalogueReleaseTag[]
+
+  @@index([active, sortOrder])
+}
+
+model CatalogueReleaseTag {
+  release    CatalogueRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  releaseId  Int
+  tag        CatalogueTag     @relation(fields: [tagId], references: [id], onDelete: Restrict)
+  tagId      Int
+  assignedAt DateTime         @default(now())
+
+  @@id([releaseId, tagId])
+  @@index([tagId, releaseId])
 }
 
 model CatalogueReleaseTrack {
