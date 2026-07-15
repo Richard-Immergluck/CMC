@@ -15,6 +15,8 @@ const requiredTables = [
   'WishlistItem',
   'CatalogueRelease',
   'CatalogueReleaseTrack',
+  'CatalogueTag',
+  'CatalogueReleaseTag',
   'RequestPricingProposal',
   'UploadBatch',
   'Order',

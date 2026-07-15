@@ -12,6 +12,20 @@ const signInAs = async (request, email) => {
   return response.json()
 }
 
+const expectActivityCardsBeforeLibrary = async page => {
+  const activityCards = page.locator('.cmc-profile-secondary-grid')
+
+  await expect(activityCards).toBeVisible()
+  await expect(activityCards.getByRole('heading', { name: 'Wishlist' })).toBeVisible()
+  await expect(activityCards.getByRole('heading', { name: 'My requests' })).toBeVisible()
+  await expect(activityCards.getByRole('heading', { name: 'Recent comments' })).toBeVisible()
+  expect(await activityCards.evaluate(element => {
+    const library = document.querySelector('.cmc-profile-library')
+
+    return Boolean(library && (element.compareDocumentPosition(library) & Node.DOCUMENT_POSITION_FOLLOWING))
+  })).toBe(true)
+}
+
 test.describe('authenticated smoke', () => {
   test('signed-in customers cannot access full audio for unowned tracks', async ({ page }) => {
     await signInPageAs(page, 'e2e-customer@example.com')
@@ -102,6 +116,7 @@ test.describe('authenticated smoke', () => {
     await page.goto('/profile')
 
     await expect(page.getByText('e2e-customer@example.com')).toBeVisible()
+    await expectActivityCardsBeforeLibrary(page)
     await expect(page.getByRole('heading', { name: 'Downloaded Tracks' })).toBeVisible()
     await expect(page.getByRole('tablist', { name: 'Profile track library' })).toHaveCount(0)
     await expect(page.getByRole('searchbox', { name: 'Search downloaded tracks' })).toBeVisible()
@@ -171,6 +186,7 @@ test.describe('authenticated smoke', () => {
 
     await page.goto('/profile')
 
+    await expectActivityCardsBeforeLibrary(page)
     await expect(page.locator('#profile-library-heading')).toHaveText('Uploaded Tracks')
     const libraryTabs = page.getByRole('tablist', { name: 'Profile track library' })
     await expect(libraryTabs).toBeVisible()

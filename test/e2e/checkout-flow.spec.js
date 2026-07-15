@@ -92,9 +92,9 @@ const createPublishedCollection = async (page, suffix) => {
   const collectionResponse = await page.request.post('/api/works-collections', {
     data: {
       catalogueType: 'COLLECTION',
-      composer: 'Synthetic Checkout Fixture',
       pricePence: 1499,
       saleFormat: 'BOTH',
+      tagSlugs: ['vocal-anthologies'],
       title: `E2E Checkout Collection ${suffix}`,
       trackIds: [firstTrack.id, secondTrack.id]
     }

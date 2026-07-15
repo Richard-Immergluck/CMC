@@ -141,6 +141,7 @@ test.describe('anonymous API access', () => {
         catalogueType: 'COLLECTION',
         pricePence: 1499,
         saleFormat: 'BOTH',
+        tagSlugs: ['vocal-anthologies'],
         title: 'Anonymous collection attempt',
         trackIds: [1, 2]
       }

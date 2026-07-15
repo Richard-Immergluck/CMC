@@ -6,6 +6,7 @@ import { Container, Form } from 'react-bootstrap'
 import { catalogueModes } from '../../../lib/catalogue-view.mjs'
 import BrandDisplayText from '../../brand/BrandDisplayText'
 import PlaySample from '../../PlaySample'
+import Pagination from '../../ui/Pagination'
 import { Button } from '../../ui/primitives'
 
 const sortLabels = {
@@ -320,23 +321,14 @@ const CatalogueTrackRow = ({
 const CataloguePageContent = ({ catalogueContext, filterOptions, pagination, query, tracks }) => {
   const [activePreviewTrackId, setActivePreviewTrackId] = useState(null)
   const resultListRef = useRef(null)
-  const previousPage = Math.max(1, pagination.page - 1)
-  const nextPage = Math.min(pagination.pageCount, pagination.page + 1)
   const stopPreview = useCallback(() => setActivePreviewTrackId(null), [])
   const renderPagination = ariaLabel => (
-    <div className='cmc-catalogue-pagination' aria-label={ariaLabel}>
-      {pagination.page > 1 ? (
-        <Link href={createPageHref({ page: previousPage, query })}>Previous</Link>
-      ) : (
-        <span aria-disabled='true'>Previous</span>
-      )}
-      <strong>Page {pagination.page} of {pagination.pageCount}</strong>
-      {pagination.page < pagination.pageCount ? (
-        <Link href={createPageHref({ page: nextPage, query })}>Next</Link>
-      ) : (
-        <span aria-disabled='true'>Next</span>
-      )}
-    </div>
+    <Pagination
+      ariaLabel={ariaLabel}
+      createHref={page => createPageHref({ page, query })}
+      page={pagination.page}
+      pageCount={pagination.pageCount}
+    />
   )
   const rememberCatalogueScrollPosition = useCallback(trackId => {
     if (!resultListRef.current) {

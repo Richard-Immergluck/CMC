@@ -731,6 +731,17 @@ const seed = async () => {
               }
             }
           }))
+        },
+        tags: {
+          create: [
+            {
+              tag: {
+                connect: {
+                  slug: 'warmups-study'
+                }
+              }
+            }
+          ]
         }
       }
     })
@@ -766,6 +777,17 @@ const seed = async () => {
               }
             }
           }))
+        },
+        tags: {
+          create: [
+            {
+              tag: {
+                connect: {
+                  slug: 'opera'
+                }
+              }
+            }
+          ]
         }
       }
     })
@@ -801,6 +823,17 @@ const seed = async () => {
               }
             }
           }))
+        },
+        tags: {
+          create: [
+            {
+              tag: {
+                connect: {
+                  slug: 'vocal-anthologies'
+                }
+              }
+            }
+          ]
         }
       }
     })

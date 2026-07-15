@@ -27,7 +27,8 @@ test('anonymous visitor can reach the public catalogue and auth gate', async ({ 
 
   await primaryNav.getByRole('link', { name: 'Works', exact: true }).click()
   await expect(page).toHaveURL(/\/works-collections$/)
-  await expect(page.getByRole('heading', { name: /Grouped music for bigger practice plans/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Works & Collections/i })).toBeVisible()
+  await expect(page.getByLabel('Search Works and Collections')).toBeVisible()
 
   await primaryNav.getByRole('link', { name: 'Catalogue', exact: true }).click()
   await expect(page).toHaveURL(/\/catalogue$/)
@@ -168,9 +169,9 @@ test('track detail links filter catalogue by composer and uploader', async ({ pa
 
 test('anonymous visitor returns from a bundle track detail to the focused bundle row', async ({ page }) => {
   await page.goto('/works-collections')
-  await expect(page.getByRole('heading', { name: /Grouped music for bigger practice plans/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Works & Collections/i })).toBeVisible()
 
-  await page.getByRole('link', { name: 'View Collection' }).first().click()
+  await page.getByRole('link', { name: 'View', exact: true }).first().click()
   await expect(page).toHaveURL(/\/works-collections\/\d+$/)
   await expect(page.getByText(/tracks in this bundle/)).toBeVisible()
 

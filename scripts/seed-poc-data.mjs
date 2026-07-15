@@ -578,6 +578,15 @@ const seedReleases = async ({ tracksBySlug, users }) => {
             movementNo: `${position + 1}`,
             titleInWork: pocCatalogueTracks.find(track => track.slug === slug)?.titleInWork || tracksBySlug.get(slug).title
           }))
+        },
+        tags: {
+          create: definition.tagSlugs.map(slug => ({
+            tag: {
+              connect: {
+                slug
+              }
+            }
+          }))
         }
       }
     })

@@ -276,6 +276,7 @@ test.describe('track review API flow', () => {
         catalogueType: 'COLLECTION',
         pricePence: 1499,
         saleFormat: 'BOTH',
+        tagSlugs: ['vocal-anthologies'],
         title: `E2E Grouped Work ${suffix}`,
         trackIds: [firstTrack.id, secondTrack.id]
       }
@@ -301,9 +302,9 @@ test.describe('track review API flow', () => {
     const collectionResponse = await request.post('/api/works-collections', {
       data: {
         catalogueType: 'COLLECTION',
-        composer: 'Synthetic Review Fixture',
         pricePence: 1499,
         saleFormat: 'BOTH',
+        tagSlugs: ['vocal-anthologies'],
         title: `E2E Grouped Work ${suffix}`,
         trackIds: [firstTrack.id, secondTrack.id]
       }
@@ -334,9 +335,12 @@ test.describe('track review API flow', () => {
     ])
 
     await page.goto('/works-collections')
-    await expect(page.getByRole('heading', { name: /Grouped music for bigger practice plans/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: `E2E Grouped Work ${suffix}` })).toBeVisible()
-    await expect(page.getByText('Synthetic Review Fixture').first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Works & Collections/i })).toBeVisible()
+    const publicCollectionRow = page.locator('.cmc-works-card').filter({
+      has: page.getByRole('link', { name: `E2E Grouped Work ${suffix}`, exact: true })
+    })
+    await expect(publicCollectionRow).toBeVisible()
+    await expect(publicCollectionRow.getByText('Synthetic Review Fixture', { exact: true })).toBeVisible()
 
     await page.getByRole('link', { name: `E2E Grouped Work ${suffix}` }).click()
     await expect(page).toHaveURL(new RegExp(`/works-collections/${collectionBody.collection.id}$`))
@@ -422,9 +426,9 @@ test.describe('track review API flow', () => {
     const updateResponse = await request.patch(`/api/works-collections/${collectionBody.collection.id}`, {
       data: {
         catalogueType: 'COLLECTION',
-        composer: 'Synthetic Review Fixture',
         pricePence: 1999,
         saleFormat: 'BOTH',
+        tagSlugs: ['vocal-anthologies'],
         title: `E2E Updated Grouped Work ${suffix}`,
         trackIds: [secondTrack.id, firstTrack.id]
       }
@@ -510,9 +514,9 @@ test.describe('track review API flow', () => {
     const collectionResponse = await request.post('/api/works-collections', {
       data: {
         catalogueType: 'COLLECTION',
-        composer: 'Synthetic Repair Fixture',
         pricePence: 1499,
         saleFormat: 'BOTH',
+        tagSlugs: ['vocal-anthologies'],
         title: releaseTitle,
         trackItems: [
           {
@@ -678,10 +682,10 @@ test.describe('track review API flow', () => {
     const collectionResponse = await request.post('/api/works-collections', {
       data: {
         catalogueType: 'COLLECTION',
-        composer: 'Synthetic Review Fixture',
         pricePence: 2999,
         pricingJustification: 'Large specialist release for admin review.',
         saleFormat: 'BOTH',
+        tagSlugs: ['vocal-anthologies'],
         title: releaseTitle,
         trackItems: [
           {

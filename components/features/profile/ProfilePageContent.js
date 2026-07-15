@@ -735,6 +735,30 @@ const ProfilePageContent = ({
             </div>
           )}
 
+          <section className='cmc-profile-secondary-grid' aria-label='Profile sections'>
+            {secondaryPanels.map(panel => (
+              <article className='cmc-profile-secondary-panel' key={panel.label}>
+                <span>{panel.value}</span>
+                <h2>{panel.label}</h2>
+                <p>{panel.text}</p>
+                {panel.items?.length > 0 && (
+                  <ul>
+                    {panel.items.map(item => (
+                      <li key={item.itemKey || `${panel.label}-${item.title}-${item.meta}`}>
+                        {item.href ? (
+                          <Link href={item.href} onClick={() => item.trackId && storeProfileTrackReturn(item.trackId)}>{item.title}</Link>
+                        ) : (
+                          <strong>{item.title}</strong>
+                        )}
+                        <small>{item.meta}</small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </section>
+
           {hasUploadedTrackLibrary && (
             <UploaderRequestQueue requests={ownerTrackRequests} />
           )}
@@ -855,30 +879,6 @@ const ProfilePageContent = ({
                 </Button>
               </div>
             )}
-          </section>
-
-          <section className='cmc-profile-secondary-grid' aria-label='Profile sections'>
-            {secondaryPanels.map(panel => (
-              <article className='cmc-profile-secondary-panel' key={panel.label}>
-                <span>{panel.value}</span>
-                <h2>{panel.label}</h2>
-                <p>{panel.text}</p>
-                {panel.items?.length > 0 && (
-                  <ul>
-                    {panel.items.map(item => (
-                      <li key={item.itemKey || `${panel.label}-${item.title}-${item.meta}`}>
-                        {item.href ? (
-                          <Link href={item.href} onClick={() => item.trackId && storeProfileTrackReturn(item.trackId)}>{item.title}</Link>
-                        ) : (
-                          <strong>{item.title}</strong>
-                        )}
-                        <small>{item.meta}</small>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </article>
-            ))}
           </section>
 
           {(canUpload || canAccessOperations) && (
