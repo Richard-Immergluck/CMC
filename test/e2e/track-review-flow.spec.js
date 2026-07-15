@@ -336,8 +336,11 @@ test.describe('track review API flow', () => {
 
     await page.goto('/works-collections')
     await expect(page.getByRole('heading', { name: /Works & Collections/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: `E2E Grouped Work ${suffix}` })).toBeVisible()
-    await expect(page.getByText('Synthetic Review Fixture').first()).toBeVisible()
+    const publicCollectionRow = page.locator('.cmc-works-card').filter({
+      has: page.getByRole('link', { name: `E2E Grouped Work ${suffix}`, exact: true })
+    })
+    await expect(publicCollectionRow).toBeVisible()
+    await expect(publicCollectionRow.getByText('Synthetic Review Fixture', { exact: true })).toBeVisible()
 
     await page.getByRole('link', { name: `E2E Grouped Work ${suffix}` }).click()
     await expect(page).toHaveURL(new RegExp(`/works-collections/${collectionBody.collection.id}$`))
